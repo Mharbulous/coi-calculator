@@ -184,7 +184,7 @@
    .costs-row .value input {
       border: none;
       background-color: #e0f2f7;
-      padding: 4pt;
+      padding: 4pt 6pt 4pt 4pt; /* Matched right padding to table header (6pt) */
       font-family: inherit;
       font-size: inherit;
       font-weight: bold;
@@ -342,13 +342,27 @@
       .costs-row .label {
           flex-grow: 1 !important; margin-right: 8px !important; font-weight: bold !important;
           text-align: right !important;
-      }
-      .costs-row .value { width: 1.5in !important; flex-shrink: 0 !important; display: flex !important; justify-content: flex-end !important; }
-      .costs-row .value input { width: 100% !important; box-sizing: border-box !important; }
-  
-      /* Remove border-top from total row in print */
+     }
+     .costs-row .value { width: 1.5in !important; flex-shrink: 0 !important; display: flex !important; justify-content: flex-end !important; }
+ 
+     /* Apply consistent padding & alignment to right-aligned inputs/selects for print */
+     .right-info-block input[type="text"],
+     .right-info-block select#jurisdictionSelect,
+     .costs-row .value input {
+         padding: 3pt 6pt 3pt 6pt !important; /* Consistent padding */
+         text-align: right !important; /* Ensure right alignment */
+         /* width: 100% !important; */ /* Already applied via other rules or inherited */
+         /* box-sizing: border-box !important; */ /* Already applied via other rules or inherited */
+     }
+ 
+     /* Remove border-top from total row in print */
       .summary-table .total-row td {
           /* border-top: 1px solid black !important; */ /* Border removed */
-          font-weight: bold !important;
-      }
-  } /* End @media print */
+            font-weight: bold !important;
+        }
+
+        /* Hide date picker icon in print */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            display: none;
+        }
+    } /* End @media print */
