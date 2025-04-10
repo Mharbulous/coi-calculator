@@ -1,0 +1,404 @@
+/* --- CSS Variables --- */
+:root {
+    --page-background-color: #e0e0e0;
+    --paper-background-color: white;
+    --input-background-color: #e0f2f7;
+    --table-header-background-color: #f0f0f0;
+    --border-color: black;
+    --focus-outline-color: #a0a0a0;
+    --text-color: black;
+    --negative-currency-color: red;
+
+    --font-family: 'Times New Roman', Times, serif;
+    --base-font-size: 11pt;
+    --title-font-size: 12pt;
+    --print-font-size: 10pt;
+
+    --paper-width: 8.5in;
+    --paper-min-height: 11in;
+    --paper-padding: 0.75in;
+
+    --label-width-dates: 1.2in;
+    --value-width-right: 1.5in;
+    --currency-column-width: 1.5in;
+
+    --base-line-height: 1.2;
+    --table-line-height: 1.3;
+
+    --spacing-unit: 4pt; /* Base unit for margins/paddings */
+}
+
+/* --- Page Setup for Printing --- */
+@page {
+    size: letter; /* Set paper size to US Letter */
+    margin: 0;    /* Remove browser default margins */
+}
+
+/* --- SCREEN STYLES --- */
+body {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    background-color: var(--page-background-color);
+    margin: 0;
+    padding: calc(var(--spacing-unit) * 5); /* 20px */
+    font-family: var(--font-family);
+    font-size: var(--base-font-size);
+    color: var(--text-color);
+}
+.paper {
+    background-color: var(--paper-background-color);
+    width: var(--paper-width);
+    min-height: var(--paper-min-height);
+    padding: var(--paper-padding);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    box-sizing: border-box;
+    position: relative;
+}
+
+/* Title Row */
+h1 {
+    text-align: center;
+    font-weight: bold;
+    font-size: var(--title-font-size);
+    margin-top: 0;
+    margin-bottom: calc(var(--spacing-unit) * 4.5); /* 18pt */
+    text-transform: none;
+    line-height: var(--base-line-height);
+}
+h1 i {
+    font-style: italic;
+}
+
+/* Sections & Input Blocks */
+.editable-fields-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: calc(var(--spacing-unit) * 3); /* 12pt */
+}
+.dates-block {
+    flex: 1;
+    padding-right: calc(var(--spacing-unit) * 5); /* 20px */
+}
+.right-info-block {
+    flex: 1;
+    text-align: right;
+}
+.dates-block .field-pair,
+.right-info-block .field-pair {
+    display: flex;
+    align-items: center;
+    margin-bottom: calc(var(--spacing-unit) * 0.75); /* 3pt */
+    line-height: var(--base-line-height);
+    min-height: 26px; /* Keep min-height for alignment */
+}
+.dates-block .label {
+    width: var(--label-width-dates);
+    text-align: left;
+    font-weight: bold;
+    margin-right: calc(var(--spacing-unit) * 2); /* 8px */
+    flex-shrink: 0;
+}
+.dates-block .value {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+}
+
+.dates-block .value input[type="date"] {
+    border: none;
+    background-color: var(--input-background-color);
+    padding: var(--spacing-unit); /* 4pt */
+    font-family: inherit;
+    font-size: inherit;
+    box-sizing: border-box;
+    text-align: right;
+    max-width: 140px;
+    width: 100%;
+    margin-left: auto;
+}
+.dates-block .value input[type="date"]:focus {
+    outline: 1px solid var(--focus-outline-color);
+}
+
+.right-info-block .field-pair {
+    justify-content: flex-end;
+}
+.right-info-block .registry-row {
+    margin-bottom: calc(var(--spacing-unit) * 0.75); /* 3pt */
+}
+.right-info-block .judgment-amount-row {
+    margin-top: 1.2em; /* Keep relative margin */
+    margin-bottom: calc(var(--spacing-unit) * 0.75); /* 3pt */
+}
+.right-info-block .label {
+    font-weight: bold;
+    text-align: right;
+    margin-right: calc(var(--spacing-unit) * 2); /* 8px */
+    flex-shrink: 0;
+}
+.right-info-block .value {
+    width: var(--value-width-right);
+    flex-shrink: 0;
+    display: flex;
+    justify-content: flex-end;
+}
+#jurisdictionSelect, /* Keep ID selector for now if needed */
+[data-input="jurisdictionSelect"] {
+    font-family: inherit;
+    font-size: inherit;
+    border: 1px solid var(--focus-outline-color);
+    padding: calc(var(--spacing-unit) * 0.5) var(--spacing-unit); /* 2pt 4pt */
+    background-color: var(--input-background-color);
+    border-radius: 0;
+    width: 100%;
+    text-align: right;
+    text-align-last: right;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    box-sizing: border-box;
+}
+.right-info-block input[type="text"] {
+    border: none;
+    background-color: var(--input-background-color);
+    padding: var(--spacing-unit); /* 4pt */
+    font-family: inherit;
+    font-size: inherit;
+    box-sizing: border-box;
+    text-align: right;
+    width: 100%;
+}
+.right-info-block input[type="text"]:focus {
+    outline: 1px solid var(--focus-outline-color);
+}
+[data-input="judgmentAwarded"] {
+    font-weight: bold;
+}
+
+/* Costs Row & Section Titles */
+ .costs-row {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: calc(var(--spacing-unit) * 0.5); /* 2pt */
+    margin-bottom: 0;
+    line-height: var(--base-line-height);
+ }
+ .section-title {
+    font-weight: bold;
+    margin-top: var(--spacing-unit); /* 4pt */
+    margin-bottom: var(--spacing-unit); /* 4pt */
+    line-height: var(--base-line-height);
+ }
+ .editable-fields-section + .section-title {
+    margin-top: 0;
+ }
+ .costs-row .label {
+    font-weight: bold;
+    text-align: right;
+    margin-right: calc(var(--spacing-unit) * 2); /* 8px */
+    flex-grow: 1;
+    flex-shrink: 1;
+ }
+ .costs-row .value {
+    width: var(--value-width-right);
+    flex-shrink: 0;
+ }
+ .costs-row .value input {
+    border: none;
+    background-color: var(--input-background-color);
+    /* Matched right padding to table header (6pt) */
+    padding: var(--spacing-unit) calc(var(--spacing-unit) * 1.5) var(--spacing-unit) var(--spacing-unit);
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: bold;
+    box-sizing: border-box;
+    text-align: right;
+    width: 100%;
+ }
+ .costs-row .value input:focus {
+    outline: 1px solid var(--focus-outline-color);
+ }
+
+/* Updated Checkbox Styles (Global) */
+.checkbox-row {
+    margin-top: calc(var(--spacing-unit) * 1.5); /* 6pt */
+    margin-bottom: var(--spacing-unit); /* 4pt */
+    display: flex;
+    justify-content: flex-end; /* Aligned right */
+    min-height: 22px;
+}
+.checkbox-container {
+    display: flex;
+    align-items: center;
+}
+.checkbox-container input[type="checkbox"] {
+     margin: 0 5px 0 0;
+}
+.checkbox-container label {
+    font-weight: normal;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+/* Interest Table Styles */
+ table:not(.dates-table) { /* Assuming .dates-table doesn't exist or isn't relevant */
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: var(--spacing-unit); /* 4pt */
+    line-height: var(--table-line-height);
+ }
+ th, td {
+    padding: calc(var(--spacing-unit) * 0.75) calc(var(--spacing-unit) * 1.5); /* 3pt 6pt */
+    vertical-align: top;
+ }
+ .interest-table th, .interest-table td {
+    border: 1px solid var(--border-color);
+ }
+ .interest-table th {
+    background-color: var(--table-header-background-color);
+    font-weight: bold;
+    text-align: center;
+    white-space: nowrap;
+ }
+
+ /* Column Widths & Alignment */
+ .interest-table th:nth-child(1), .interest-table td:nth-child(1) { width: 15%; text-align: left; }
+ .interest-table th:nth-child(2), .interest-table td:nth-child(2) { width: 15%; text-align: center; }
+ .interest-table th:nth-child(3), .interest-table td:nth-child(3) { width: 15%; text-align: center; }
+ .interest-table th:nth-child(4), .interest-table td:nth-child(4) { width: 12%; text-align: center; }
+ .interest-table th:nth-child(5), .interest-table td:nth-child(5) { width: var(--currency-column-width); text-align: right; }
+
+ /* Subtotal Alignment */
+ .interest-table .subtotal td {
+    border: none;
+    font-weight: bold;
+    padding-top: var(--spacing-unit); /* 4pt */
+ }
+ .interest-table .subtotal td:first-child {
+     text-align: right;
+     border-top: 1px solid var(--border-color);
+     padding-right: calc(var(--spacing-unit) * 2); /* 8px */
+ }
+  .interest-table .subtotal td:last-child {
+     text-align: right;
+     border-top: 1px solid var(--border-color);
+     width: var(--currency-column-width); /* Ensure width matches column */
+  }
+ .interest-table tfoot {
+    margin-top: 0;
+ }
+
+ /* Summary Table Styles */
+ .summary-table {
+    margin-top: calc(var(--spacing-unit) * 3); /* 12pt */
+    margin-bottom: 0;
+ }
+ .summary-table td {
+    border: none;
+    padding: calc(var(--spacing-unit) * 0.5) calc(var(--spacing-unit) * 1.5); /* 2pt 6pt */
+ }
+ .summary-table .label {
+    width: auto;
+    font-weight: normal; /* Label for total row set below */
+    text-align: left;
+ }
+ .summary-table .amount {
+    text-align: right;
+    width: var(--currency-column-width);
+ }
+ .summary-table .total-row td {
+    font-weight: bold;
+    padding-top: var(--spacing-unit); /* 4pt */
+ }
+ .summary-table .total-row .label {
+    font-weight: bold; /* Keep total label bold */
+    width: auto;
+ }
+
+ /* Utility Styles */
+ .currency {
+     /* Base style for currency spans */
+     white-space: nowrap; /* Prevent wrapping */
+ }
+ .currency.negative {
+     color: var(--negative-currency-color);
+ }
+ /* Text alignment utilities */
+ .text-right { text-align: right !important; }
+ .text-center { text-align: center !important; }
+ .text-left { text-align: left !important; }
+
+ .bold { font-weight: bold !important; }
+ .hidden { display: none !important; }
+
+
+/* --- PRINT STYLES --- */
+@media print {
+    body {
+        background-color: var(--paper-background-color) !important; padding: 0 !important; margin: 0 !important;
+        display: block !important; min-height: auto !important; font-size: var(--print-font-size) !important;
+        -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
+    }
+    .paper {
+        margin: 0 !important; padding: var(--paper-padding) !important; width: var(--paper-width) !important;
+        min-height: 10.9in !important; /* Slightly less than 11 to avoid issues */ height: auto !important; box-shadow: none !important;
+        border: none !important; box-sizing: border-box !important;
+        page-break-after: auto !important; position: static !important; overflow: visible !important;
+    }
+    input[type="date"], input[type="text"], select {
+        border: none !important; background-color: transparent !important; padding: 0 !important;
+        box-sizing: border-box !important; color: var(--text-color) !important; appearance: none !important;
+        -webkit-appearance: none !important; -moz-appearance: none !important;
+        font-family: inherit !important; font-size: inherit !important; text-align: inherit !important;
+        -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
+    }
+    .checkbox-row { display: none !important; }
+    [data-display="accrualDateRow"], [data-display="postjudgmentSection"] {
+        /* Use direct style manipulation for hidden state in JS if needed, or add print-specific hidden class */
+    }
+    [data-display="accrualDateRow"].hidden, [data-display="postjudgmentSection"].hidden {
+         display: none !important;
+    }
+
+    [data-input="judgmentAwarded"], .costs-row .value input { font-weight: bold !important; text-align: right !important; }
+    select { padding-right: 0 !important; } /* Remove padding for select arrow space */
+
+    .interest-table th, .interest-table td { border: 1px solid var(--border-color) !important; }
+    .interest-table th { background-color: #eee !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } /* Keep light gray for header */
+    .interest-table .subtotal td {
+        border-left: none !important; border-right: none !important; border-bottom: none !important;
+        border-top: 1px solid var(--border-color) !important;
+    }
+    .costs-row {
+        display: flex !important; justify-content: flex-end !important; align-items: center !important;
+        line-height: var(--base-line-height) !important; margin-top: calc(var(--spacing-unit) * 0.5) !important; margin-bottom: 0 !important;
+    }
+    .costs-row .label {
+        flex-grow: 1 !important; margin-right: calc(var(--spacing-unit) * 2) !important; font-weight: bold !important;
+        text-align: right !important;
+   }
+   .costs-row .value { width: var(--value-width-right) !important; flex-shrink: 0 !important; display: flex !important; justify-content: flex-end !important; }
+
+   /* Apply consistent padding & alignment to right-aligned inputs/selects for print */
+   .right-info-block input[type="text"],
+   .right-info-block select,
+   .costs-row .value input {
+       padding: calc(var(--spacing-unit) * 0.75) calc(var(--spacing-unit) * 1.5) !important; /* 3pt 6pt */
+       text-align: right !important; /* Ensure right alignment */
+   }
+
+   /* Remove border-top from total row in print */
+    .summary-table .total-row td {
+          font-weight: bold !important;
+          border-top: none !important; /* Explicitly remove border */
+      }
+
+      /* Hide date picker icon in print */
+      input[type="date"]::-webkit-calendar-picker-indicator {
+          display: none;
+      }
+  } /* End @media print */

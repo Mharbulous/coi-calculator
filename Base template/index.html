@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Court Order Interest Calculator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="paper">
+
+        <h1><i>Court Order Interest Act</i> Calculations</h1>
+
+        <div class="editable-fields-section">
+            <div class="dates-block">
+                 <!-- Using data-input for JS hooks -->
+                 <div class="field-pair">
+                     <span class="label">Cause of Action</span>
+                     <span class="value"><input type="date" data-input="causeOfActionDate" value=""></span>
+                 </div>
+                 <div class="field-pair">
+                     <span class="label">Judgment Date</span>
+                     <span class="value"><input type="date" data-input="dateOfJudgment" value=""></span>
+                 </div>
+                 <div class="field-pair" data-display="accrualDateRow">
+                     <span class="label">Accrual Date</span>
+                     <span class="value"><input type="date" data-input="dateOfCalculation" value=""></span>
+                 </div>
+            </div>
+            <div class="right-info-block">
+                 <div class="field-pair">
+                     <span class="label">Jurisdiction</span>
+                     <span class="value">
+                         <select data-input="jurisdictionSelect">
+                             <option value="BC" selected>British Columbia</option>
+                             <option value="ON">Ontario</option>
+                             <option value="AB">Alberta</option>
+                             <!-- Add other jurisdictions as needed -->
+                         </select>
+                     </span>
+                 </div>
+                 <div class="field-pair file-no-row">
+                     <span class="label">File No</span>
+                     <span class="value"><input type="text" data-input="fileNo" value=""></span>
+                 </div>
+                 <div class="field-pair registry-row">
+                     <span class="label">Registry</span>
+                     <span class="value"><input type="text" data-input="registry" value="Vancouver"></span> <!-- Keeping default registry for now -->
+                 </div>
+                 <div class="field-pair judgment-amount-row">
+                     <span class="label">Judgment Amount</span>
+                     <span class="value"><input type="text" data-input="judgmentAwarded" value=""></span>
+                 </div>
+            </div>
+        </div>
+
+        <div class="section-title">Prejudgment Interest</div>
+        <table class="interest-table" id="prejudgmentTable"> <!-- ID can remain if CSS relies on it, or switch to data-display -->
+             <thead>
+                 <tr><th>Start date</th><th>End Date</th><th>Allowed %</th><th># of days</th><th>Interest</th></tr>
+             </thead>
+             <tbody data-display="prejudgmentTableBody"></tbody> <!-- Hook for JS -->
+             <tfoot><tr class="subtotal"><td colspan="4">Subtotal</td><td data-display="prejudgmentSubtotal"></td></tr></tfoot> <!-- Hook for JS -->
+        </table>
+
+        <div class="costs-row">
+             <span class="label">Costs Awarded</span>
+             <span class="value"><input type="text" data-input="costsAwarded" value=""></span>
+        </div>
+
+        <div class="checkbox-row">
+             <span class="checkbox-container">
+                 <input type="checkbox" data-input="showPostjudgmentCheckbox" checked>
+                 <label for="showPostjudgmentCheckbox">Show Postjudgment Interest</label> <!-- `for` needs matching ID -->
+             </span>
+         </div>
+         <!-- Re-add ID to checkbox for the label's `for` attribute -->
+         <script>document.querySelector('[data-input="showPostjudgmentCheckbox"]').id = 'showPostjudgmentCheckbox';</script>
+
+
+        <div data-display="postjudgmentSection">
+            <div class="section-title">Postjudgment Interest</div>
+            <table class="interest-table" id="postjudgmentTable"> <!-- ID can remain if CSS relies on it -->
+                 <thead>
+                     <tr><th>Start date</th><th>End Date</th><th>Allowed %</th><th># of days</th><th>Interest</th></tr>
+                 </thead>
+                 <tbody data-display="postjudgmentTableBody"></tbody> <!-- Hook for JS -->
+                 <tfoot><tr class="subtotal"><td colspan="4">Subtotal</td><td data-display="postjudgmentSubtotal"></td></tr></tfoot> <!-- Hook for JS -->
+            </table>
+        </div>
+
+        <table class="summary-table">
+             <tr class="total-row">
+                <td class="label" data-display="summaryTotalLabel">TOTAL OWING</td> <!-- Hook for JS -->
+                <td class="amount" data-display="summaryTotal"></td> <!-- Hook for JS -->
+             </tr>
+        </table>
+    </div>
+
+    <!-- Load the main script as a module -->
+    <script src="calculator.js" type="module" defer></script>
+</body>
+</html>
