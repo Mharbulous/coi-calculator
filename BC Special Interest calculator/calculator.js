@@ -24,14 +24,44 @@ const addRecurringTableRowBtn = document.getElementById('addRecurringTableRowBtn
 
 // --- Utility Functions ---
 
-// Format number as currency string (e.g., $ 1,234.56)
+// Format number as display currency string (e.g., $1,234.56) - Used for output display
+const currencyFormatter = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD', // Using USD for $, CAD would show CA$
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+});
+
 function formatCurrency(amount) {
     if (typeof amount !== 'number') {
         amount = parseFloat(amount) || 0;
     }
-    // Basic formatting, consider a more robust library for complex needs
-    return `$ ${amount.toFixed(2)}`;
+    return currencyFormatter.format(amount);
 }
+
+// Format the value of an input field as currency on blur
+function formatInputAsCurrency(inputElement) {
+    let value = inputElement.value;
+    // Remove existing formatting ($, commas) before parsing
+    value = value.replace(/[$,]/g, '');
+    const numberValue = parseFloat(value);
+
+    if (!isNaN(numberValue)) {
+        inputElement.value = currencyFormatter.format(numberValue);
+    } else {
+        // Handle cases where input is not a valid number (e.g., clear it or set to $0.00)
+        inputElement.value = currencyFormatter.format(0);
+    }
+}
+
+// Parse a formatted currency string from an input back to a number
+function parseCurrencyInput(value) {
+    if (!value) return 0;
+    // Remove currency symbols and commas
+    const cleanedValue = value.replace(/[$,]/g, '');
+    return parseFloat(cleanedValue) || 0;
+}
+
 
 // Generate a simple unique ID for rules
 function generateId() {
@@ -49,6 +79,14 @@ damagesTbody.addEventListener('click', (event) => {
     }
 });
 
+// Add blur listener for currency formatting on single damages amount
+damagesTbody.addEventListener('blur', (event) => {
+    if (event.target.matches('input[name="damageAmount"]')) {
+        formatInputAsCurrency(event.target);
+    }
+}, true); // Use capture phase to format before other potential blur listeners
+
+
 // New Recurring Damages Table Listeners
 addRecurringTableRowBtn.addEventListener('click', addRecurringTableRow);
 // Add event listener to handle removing recurring rows dynamically
@@ -57,6 +95,13 @@ recurringDamagesTbody.addEventListener('click', (event) => {
         removeRecurringTableRow(event.target);
     }
 });
+
+// Add blur listener for currency formatting on recurring damages amount
+recurringDamagesTbody.addEventListener('blur', (event) => {
+    if (event.target.matches('input[name="recurringAmount"]')) {
+        formatInputAsCurrency(event.target);
+    }
+}, true); // Use capture phase
 
 
 // Add event listener for Tab key navigation enhancements for single damages table
@@ -102,7 +147,7 @@ function createDamageRow() {
     row.innerHTML = `
         <td><input type="date" name="damageDate"></td>
         <td><input type="text" name="damageDescription"></td>
-        <td><input type="number" step="0.01" name="damageAmount"></td>
+        <td><input type="text" name="damageAmount"></td> <!-- Changed type to text -->
         <td><button type="button" class="remove-row-btn">Remove</button></td>
     `;
     return row;
@@ -140,12 +185,12 @@ function createRecurringDamageRow() {
                 <option value="monthly">Monthly</option>
                 <option value="bi-annually" selected>Bi-annually</option>
                 <option value="annually">Annually</option>
-                <option value="Full Term">Full Term</option>
-            </select>
-        </td>
-        <td><input type="number" step="0.01" name="recurringAmount"></td>
-        <td><button type="button" class="remove-recurring-row-btn">Remove</button></td>
-    `;
+                            <option value="Full Term">Full Term</option>
+                        </select>
+                    </td>
+                    <td><input type="text" name="recurringAmount"></td> <!-- Changed type to text -->
+                    <td><button type="button" class="remove-recurring-row-btn">Remove</button></td>
+                `;
     return row;
 }
 
@@ -182,11 +227,14 @@ function getDamagesInput() {
         const descriptionInput = row.querySelector('input[name="damageDescription"]');
         const amountInput = row.querySelector('input[name="damageAmount"]');
 
-        if (dateInput.value && amountInput.value) {
+        // Use parseCurrencyInput to handle formatted values
+        const amountValue = parseCurrencyInput(amountInput.value);
+
+        if (dateInput.value && amountValue > 0) { // Only add if date exists and amount is positive
             damages.push({
                 date: dateInput.value,
                 description: descriptionInput.value || '', // Allow empty description
-                amount: parseFloat(amountInput.value) || 0
+                amount: amountValue
             });
         }
     });
@@ -203,20 +251,22 @@ function getRecurringDamagesInput() {
         const amountInput = row.querySelector('input[name="recurringAmount"]');
         const descriptionInput = row.querySelector('input[name="recurringDescription"]');
 
-        // Basic validation: require start date, end date, and amount
-        if (startDateInput.value && endDateInput.value && amountInput.value) {
+        // Use parseCurrencyInput to handle formatted values
+        const amountValue = parseCurrencyInput(amountInput.value);
+
+        // Basic validation: require start date, end date, and positive amount
+        if (startDateInput.value && endDateInput.value && amountValue > 0) {
             const startDate = startDateInput.value;
             const endDate = endDateInput.value;
-            const amount = parseFloat(amountInput.value) || 0;
 
-            // Additional validation: end date >= start date, amount > 0
-            if (new Date(endDate) >= new Date(startDate) && amount > 0) {
+            // Additional validation: end date >= start date
+            if (new Date(endDate) >= new Date(startDate)) {
                 recurringRules.push({
                     // id: generateId(), // ID might not be needed if we don't manipulate individual rules after reading
                     startDate: startDate,
                     endDate: endDate,
                     frequency: frequencySelect.value,
-                    amount: amount,
+                    amount: amountValue, // Use the parsed amount
                     description: descriptionInput.value || '' // Allow empty description
                 });
             }
@@ -409,7 +459,10 @@ function initializeFormWithDefaults() {
             const row = createDamageRow();
             row.querySelector('input[name="damageDate"]').value = damage.date;
             row.querySelector('input[name="damageDescription"]').value = damage.description;
-            row.querySelector('input[name="damageAmount"]').value = damage.amount.toFixed(2);
+            // Format the default amount correctly on initialization
+            const amountInput = row.querySelector('input[name="damageAmount"]');
+            amountInput.value = damage.amount; // Set raw value first
+            formatInputAsCurrency(amountInput); // Then format it
             damagesTbody.appendChild(row);
         });
     }

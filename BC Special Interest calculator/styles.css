@@ -71,6 +71,19 @@ h1 i {
     font-style: italic;
 }
 
+/* Right-align amount inputs in tables */
+#specialDamagesInputTable input[name="damageAmount"],
+#recurringDamagesInputTable input[name="recurringAmount"] {
+    text-align: right;
+}
+
+/* Set width for all date input fields */
+input[type="date"] {
+    width: 101px !important; /* Use !important to override more specific rules */
+    min-width: 101px !important; /* Ensure it doesn't shrink */
+    box-sizing: border-box; /* Include padding in width calculation */
+}
+
 /* Sections & Input Blocks */
 .editable-fields-section {
     display: flex;
@@ -118,8 +131,8 @@ h1 i {
     /* max-width: 140px; */ /* Removed conflicting rule */
     /* width: 100%; */ /* Removed conflicting rule */
     margin-left: auto;
-    width: 130px; /* Set fixed width */
-    min-width: 130px; /* Prevent shrinking */
+    width: 101px; /* Set fixed width */
+    min-width: 101px; /* Prevent shrinking */
     box-sizing: border-box; /* Include padding in width */
 }
 .dates-block .value input[type="date"]:focus {
@@ -211,8 +224,8 @@ h1 i {
     text-align: center;
 }
 .input-table td input[type="date"] {
-    width: 130px; /* Set fixed width */
-    min-width: 130px; /* Prevent shrinking */
+    width: 101px; /* Set fixed width */
+    min-width: 101px; /* Prevent shrinking */
     box-sizing: border-box; /* Include padding in width */
     border: none;
     background-color: var(--input-background-color);
@@ -252,7 +265,69 @@ h1 i {
     text-align: right;
     padding-top: var(--spacing-unit);
 }
-#addRowBtn, .remove-row-btn {
+
+/* --- Column Width Adjustments for Input Tables --- */
+
+/* Default for Description columns (will take remaining space) */
+#specialDamagesInputTable th:nth-child(2),
+#specialDamagesInputTable td:nth-child(2),
+#recurringDamagesInputTable th:nth-child(3),
+#recurringDamagesInputTable td:nth-child(3) {
+    width: auto; /* Explicitly auto, though default */
+}
+
+/* Shrink-to-fit columns */
+#specialDamagesInputTable th:nth-child(1), /* Date Incurred */
+#specialDamagesInputTable td:nth-child(1),
+#specialDamagesInputTable th:nth-child(3), /* Amount */
+#specialDamagesInputTable td:nth-child(3),
+#specialDamagesInputTable th:nth-child(4), /* Action */
+#specialDamagesInputTable td:nth-child(4),
+#recurringDamagesInputTable th:nth-child(1), /* Start Date */
+#recurringDamagesInputTable td:nth-child(1),
+#recurringDamagesInputTable th:nth-child(2), /* End Date */
+#recurringDamagesInputTable td:nth-child(2),
+#recurringDamagesInputTable th:nth-child(4), /* Frequency */
+#recurringDamagesInputTable td:nth-child(4),
+#recurringDamagesInputTable th:nth-child(5), /* Amount */
+#recurringDamagesInputTable td:nth-child(5),
+#recurringDamagesInputTable th:nth-child(6), /* Action */
+#recurringDamagesInputTable td:nth-child(6) {
+    width: 1%; /* Make column initially very small */
+    white-space: nowrap; /* Prevent content/header wrapping */
+}
+
+/* Ensure inputs within shrink-to-fit columns don't force excessive width */
+/* Date inputs already have fixed width */
+/* Amount inputs */
+#specialDamagesInputTable td:nth-child(3) input[type="number"],
+#recurringDamagesInputTable td:nth-child(5) input[type="number"] {
+     min-width: 60px; /* Prevent amount input becoming too small */
+     /* width: 100%; /* Already set globally */
+}
+/* Frequency select */
+#recurringDamagesInputTable td:nth-child(4) select {
+    min-width: 80px; /* Give select dropdown some base width */
+    width: auto; /* Allow it to size based on content */
+    padding-right: calc(var(--spacing-unit) * 3); /* Add space for dropdown arrow */
+}
+/* Action buttons */
+#specialDamagesInputTable td:nth-child(4) button,
+#recurringDamagesInputTable td:nth-child(6) button {
+    width: auto; /* Allow button to size naturally */
+    margin: 0 auto; /* Center button */
+}
+
+/* Override global input width for description fields to ensure they fill */
+#specialDamagesInputTable td:nth-child(2) input[type="text"],
+#recurringDamagesInputTable td:nth-child(3) input[type="text"] {
+    width: 100%;
+    min-width: 150px; /* Give description a reasonable minimum */
+}
+/* --- End Column Width Adjustments --- */
+
+
+#addRowBtn, #addRecurringTableRowBtn, .remove-row-btn, .remove-recurring-row-btn {
     padding: calc(var(--spacing-unit) * 0.5) var(--spacing-unit);
     font-size: 0.9em;
     cursor: pointer;
