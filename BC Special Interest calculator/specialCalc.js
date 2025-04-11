@@ -110,25 +110,41 @@ function calculateSimpleInterest(principal, annualRate, days) {
  * Calculates special damages interest based on mockup logic.
  * @param {string} causeOfActionDateStr - YYYY-MM-DD
  * @param {string} judgmentDateStr - YYYY-MM-DD
- * @param {Array<{date: string, description: string, amount: number}>} damages - Array of damage objects
+ * @param {Array<{date: string, description: string, amount: number}>} singleDamages - Array of single damage objects
+ * @param {Array<{id: string, startDate: string, endDate: string, frequency: string, amount: number, description: string}>} recurringRules - Array of recurring rule parameters
  * @param {string} jurisdiction - e.g., 'BC'
  * @returns {object} - Contains periodData array and summary totals
  */
-export function calculateSpecialDamagesInterest(causeOfActionDateStr, judgmentDateStr, damages, jurisdiction) {
+export function calculateSpecialDamagesInterest(causeOfActionDateStr, judgmentDateStr, singleDamages, recurringRules, jurisdiction) {
     const causeOfActionDate = parseDateUTC(causeOfActionDateStr);
     const judgmentDate = parseDateUTC(judgmentDateStr);
 
-    if (!causeOfActionDate || !judgmentDate || !damages || damages.length === 0) {
-        return { periodData: [], summary: { totalSpecials: 0, interestOnSpecials: 0, total: 0 } };
+    // Initial validation
+    if (!causeOfActionDate || !judgmentDate) {
+        return { error: "Invalid Cause of Action or Judgment Date", periodData: [], summary: {} };
+    }
+    if ((!singleDamages || singleDamages.length === 0) && (!recurringRules || recurringRules.length === 0)) {
+         return { error: "No damages provided", periodData: [], summary: { totalSpecials: 0, interestOnSpecials: 0, total: 0 } };
     }
 
-    // Sort damages by date
-    const sortedDamages = damages
+    // Prepare single damages
+    const sortedSingleDamages = (singleDamages || [])
         .map(d => ({ ...d, date: parseDateUTC(d.date), amount: Number(d.amount) || 0 }))
-        .filter(d => d.date && d.amount > 0) // Ensure valid date and positive amount
+        .filter(d => d.date && d.amount > 0 && d.date >= causeOfActionDate && d.date <= judgmentDate) // Filter valid dates within range
         .sort((a, b) => a.date - b.date);
 
-    if (sortedDamages.length === 0) {
+    // Prepare recurring rules
+    const processedRecurringRules = (recurringRules || [])
+        .map(rule => ({
+            ...rule,
+            startDate: parseDateUTC(rule.startDate),
+            endDate: parseDateUTC(rule.endDate),
+            amount: Number(rule.amount) || 0
+        }))
+        .filter(rule => rule.startDate && rule.endDate && rule.amount > 0 && rule.endDate >= rule.startDate);
+
+    if (sortedSingleDamages.length === 0 && processedRecurringRules.length === 0) {
+         // If filtering removed all damages/rules
          return { periodData: [], summary: { totalSpecials: 0, interestOnSpecials: 0, total: 0 } };
     }
 
@@ -137,71 +153,158 @@ export function calculateSpecialDamagesInterest(causeOfActionDateStr, judgmentDa
     let cumulativeInterest = 0;
     let totalSpecials = 0;
 
-    // Determine the start date for calculations (cannot be before the first damage)
-    const firstDamageDate = sortedDamages[0].date;
-    let periodStartDate = getPeriodStartDate(firstDamageDate);
-    // Ensure period start is not before cause of action? COIA seems to imply periods start relative to CoA,
-    // but practice (rates.js) uses calendar. Let's stick to calendar periods containing damages.
-    // If first damage is before CoA, that's an input error.
+    // Determine the overall start date for calculations
+    const firstSingleDamageDate = sortedSingleDamages.length > 0 ? sortedSingleDamages[0].date : null;
+    const firstRuleStartDate = processedRecurringRules.length > 0 ? processedRecurringRules.reduce((min, rule) => (rule.startDate < min ? rule.startDate : min), processedRecurringRules[0].startDate) : null;
 
-    let damageIndex = 0;
+    let earliestDate = null;
+    if (firstSingleDamageDate && firstRuleStartDate) {
+        earliestDate = firstSingleDamageDate < firstRuleStartDate ? firstSingleDamageDate : firstRuleStartDate;
+    } else {
+        earliestDate = firstSingleDamageDate || firstRuleStartDate;
+    }
 
-    while (periodStartDate < judgmentDate) {
-        let periodEndDate = getPeriodEndDate(periodStartDate);
+    // Ensure calculation starts no earlier than the cause of action date
+    const calculationStartDate = earliestDate && earliestDate > causeOfActionDate ? earliestDate : causeOfActionDate;
+
+    let periodStartDate = getPeriodStartDate(calculationStartDate);
+    let singleDamageIndex = 0;
+
+    while (periodStartDate <= judgmentDate) { // Use <= to include judgment date period
+        let periodCalendarEndDate = getPeriodEndDate(periodStartDate);
         // Ensure the period end does not go past the judgment date
-        let effectivePeriodEndDate = (periodEndDate > judgmentDate) ? judgmentDate : periodEndDate;
+        let effectivePeriodEndDate = (periodCalendarEndDate > judgmentDate) ? judgmentDate : periodCalendarEndDate;
 
         const periodRate = getInterestRate(jurisdiction, periodStartDate); // Rate for the period
         if (periodRate === null) {
-             console.error(`Could not find rate for period starting ${formatDate(periodStartDate)}`);
-             // Decide how to handle missing rates - skip period? Use 0? Throw error?
-             // For now, let's skip interest calculation for this period if rate is missing.
-             // periodRate = 0; // Or handle differently
              return { error: `Missing rate for period starting ${formatDate(periodStartDate)}`, periodData: [], summary: {} };
         }
 
-        const daysInPeriod = daysBetween(periodStartDate, effectivePeriodEndDate) + 1; // Inclusive end for period duration
+        // Days in this specific calculation period (might be shorter than 6 months if it's the last one)
+        const daysInCalcPeriod = daysBetween(periodStartDate, effectivePeriodEndDate) + 1; // Inclusive end
 
-        // Calculate interest on the starting balance for the *entire* period
-        // (COIA s1(2) - interest calculated FROM end of period, applied TO balance at start of NEXT period)
-        // The mockup applies interest on the *previous* period's subtotal over the *current* period.
-        let interestOnBalance = calculateSimpleInterest(currentBalance, periodRate, daysInPeriod);
+        // Calculate interest on the starting balance for the *entire* calculation period
+        let interestOnBalance = calculateSimpleInterest(currentBalance, periodRate, daysInCalcPeriod);
 
-        let damagesInPeriod = [];
-        let periodSubtotalDamages = 0;
-        let interestOnDamagesInFinalPeriod = 0; // Only used for the last period
+        let damagesInPeriodForDisplay = []; // For the output table
+        let periodDamagesTotal = 0; // Sum of all damages added in this period
+        let interestOnSingleDamagesInFinalPeriod = 0; // Specific interest for COIA s1(3)(b)
 
-        // Process damages incurred within this period [periodStartDate, effectivePeriodEndDate]
-        while (damageIndex < sortedDamages.length && sortedDamages[damageIndex].date <= effectivePeriodEndDate) {
-            const damage = sortedDamages[damageIndex];
-            if (damage.date >= periodStartDate) { // Ensure damage is within the current processing window
-                damagesInPeriod.push({
+        // --- Process Single Damages for this period ---
+        while (singleDamageIndex < sortedSingleDamages.length && sortedSingleDamages[singleDamageIndex].date <= effectivePeriodEndDate) {
+            const damage = sortedSingleDamages[singleDamageIndex];
+            // Ensure damage falls within the current period start/end dates
+            if (damage.date >= periodStartDate) {
+                const displayDamage = {
                     date: formatDate(damage.date),
                     description: damage.description,
-                    amount: damage.amount
-                });
-                periodSubtotalDamages += damage.amount;
-                totalSpecials += damage.amount; // Add to overall total specials
+                    amount: damage.amount,
+                    interestDetail: null // Initialize
+                };
 
-                // Handle final period interest calculation (COIA s. 1(3)(b))
-                if (effectivePeriodEndDate === judgmentDate) {
+                periodDamagesTotal += damage.amount;
+                totalSpecials += damage.amount;
+
+                // Handle final period interest calculation (COIA s. 1(3)(b)) for SINGLE damages
+                if (effectivePeriodEndDate.getTime() === judgmentDate.getTime()) {
                     const daysOfInterest = daysBetween(damage.date, judgmentDate) + 1; // Inclusive end
                     const damageInterest = calculateSimpleInterest(damage.amount, periodRate, daysOfInterest);
-                    interestOnDamagesInFinalPeriod += damageInterest;
+                    interestOnSingleDamagesInFinalPeriod += damageInterest;
                     // Add detail for mockup display
-                     damagesInPeriod[damagesInPeriod.length - 1].interestDetail = { days: daysOfInterest, interest: damageInterest };
+                    displayDamage.interestDetail = { days: daysOfInterest, interest: damageInterest };
                 }
+                damagesInPeriodForDisplay.push(displayDamage);
             }
-            damageIndex++;
+            singleDamageIndex++;
         }
 
+        // --- Process Recurring Rules for this period ---
+        processedRecurringRules.forEach(rule => {
+            // Determine the intersection of the rule's active dates and the current period's dates
+            const ruleEffectiveStart = rule.startDate > periodStartDate ? rule.startDate : periodStartDate;
+            const ruleEffectiveEnd = rule.endDate < effectivePeriodEndDate ? rule.endDate : effectivePeriodEndDate;
+
+            if (ruleEffectiveStart <= ruleEffectiveEnd) { // Rule is active during some part of this period
+                let periodRuleAmount = 0;
+                let isProRated = false;
+                let proRatedEndDateStr = '';
+
+                // Calculate occurrences within the intersection [ruleEffectiveStart, ruleEffectiveEnd]
+                // This requires a more robust date iteration based on frequency
+                // For simplicity here, we'll approximate based on mockup (assuming bi-annual means start of period)
+                // A more precise implementation would iterate dates based on frequency.
+
+                // Simplified Logic based on Mockup (Treats recurring as lump sum at period start):
+                // Check if the rule *starts* within this period or was active before it
+                if (rule.startDate <= effectivePeriodEndDate && rule.endDate >= periodStartDate) {
+                    // Mockup implies bi-annual/annual are added at the start of the relevant 6-month period
+                    // Let's assume 'bi-annually' means Jan 1 and Jul 1 if the rule is active then.
+                    // This simplification avoids complex date iteration for now.
+                    let appliesThisPeriod = false;
+                    if (rule.frequency === 'bi-annually') {
+                        // Applies if rule is active on Jan 1 or Jul 1 within the period dates
+                        const periodStartMonth = periodStartDate.getUTCMonth(); // 0 or 6
+                        if ((periodStartMonth === 0 || periodStartMonth === 6) && rule.startDate <= periodStartDate && rule.endDate >= periodStartDate) {
+                           appliesThisPeriod = true;
+                        }
+                    } else if (rule.frequency === 'annually') {
+                         // Applies if rule is active on Jan 1 within the period dates
+                        const periodStartMonth = periodStartDate.getUTCMonth(); // 0
+                        if (periodStartMonth === 0 && rule.startDate <= periodStartDate && rule.endDate >= periodStartDate) {
+                           appliesThisPeriod = true;
+                        }
+                    }
+                    // TODO: Add logic for daily, weekly, monthly based on actual occurrences within the period intersection
+
+                    if (appliesThisPeriod) {
+                        periodRuleAmount = rule.amount; // Base amount for the occurrence
+
+                        // Check for pro-rating: Does the rule END within this specific 6-month calendar period?
+                        const ruleEndsInThisCalendarPeriod = rule.endDate >= periodStartDate && rule.endDate <= periodCalendarEndDate;
+
+                        if (ruleEndsInThisCalendarPeriod && rule.endDate < periodCalendarEndDate) {
+                            // Pro-rate the amount
+                            const daysInFullPeriod = daysBetween(periodStartDate, periodCalendarEndDate) + 1;
+                            const daysActiveInPeriod = daysBetween(periodStartDate, rule.endDate) + 1;
+                            if (daysInFullPeriod > 0) {
+                                periodRuleAmount = (rule.amount * daysActiveInPeriod) / daysInFullPeriod;
+                                isProRated = true;
+                                proRatedEndDateStr = formatDate(rule.endDate);
+                            } else {
+                                periodRuleAmount = 0; // Avoid division by zero
+                            }
+                        }
+
+                        if (periodRuleAmount > 0) {
+                             periodDamagesTotal += periodRuleAmount;
+                             totalSpecials += periodRuleAmount;
+                             damagesInPeriodForDisplay.push({
+                                 date: formatDate(periodStartDate), // Add recurring at the start of the period
+                                 description: isProRated ? `${rule.description} pro-rated to ${proRatedEndDateStr}` : rule.description,
+                                 amount: periodRuleAmount,
+                                 interestDetail: null // Recurring damages don't get the s.1(3)(b) treatment in the mockup
+                             });
+                        }
+                    }
+                }
+            }
+        });
+
+        // Sort damages for display within the period (recurring first, then single by date)
+        damagesInPeriodForDisplay.sort((a, b) => {
+            const dateA = parseDateUTC(a.date);
+            const dateB = parseDateUTC(b.date);
+            if (dateA.getTime() === dateB.getTime()) {
+                // If dates are same (e.g., recurring added at start), maybe keep original order or sort by description?
+                return 0;
+            }
+            return dateA - dateB;
+        });
+
+
         // Accumulate interest
-        // For the final period, the interest is the sum of interest on the starting balance
-        // PLUS the individually calculated interest on damages within that period.
-        // For other periods, interest is just calculated on the starting balance.
-        let periodInterestAccrued = (effectivePeriodEndDate === judgmentDate)
-            ? interestOnBalance + interestOnDamagesInFinalPeriod
-            : interestOnBalance;
+        // Interest for the period is interest on the starting balance PLUS specific interest on *single* damages incurred in the final period.
+        let periodInterestAccrued = interestOnBalance + interestOnSingleDamagesInFinalPeriod;
 
         cumulativeInterest += periodInterestAccrued;
 
@@ -210,25 +313,25 @@ export function calculateSpecialDamagesInterest(causeOfActionDateStr, judgmentDa
             periodStartDate: formatDate(periodStartDate),
             periodEndDate: formatDate(effectivePeriodEndDate),
             rate: periodRate * 100, // Store as percentage
-            days: daysInPeriod,
+            days: daysInCalcPeriod,
             startingBalance: currentBalance,
-            interestOnBalance: interestOnBalance, // Interest calculated on the opening balance
-            damagesInPeriod: damagesInPeriod,
-            periodDamagesTotal: periodSubtotalDamages,
-            interestOnDamagesInFinalPeriod: interestOnDamagesInFinalPeriod, // Only non-zero for final period
+            interestOnBalance: interestOnBalance, // Interest calculated on the opening balance for the period duration
+            damagesInPeriod: damagesInPeriodForDisplay, // Combined & sorted damages for display
+            periodDamagesTotal: periodDamagesTotal, // Sum of damages added *in* this period
+            interestOnDamagesInFinalPeriod: interestOnSingleDamagesInFinalPeriod, // Only for single damages in final period
             periodInterestTotal: periodInterestAccrued, // Total interest relevant to this period's calculations
-            periodEndingBalance: currentBalance + periodSubtotalDamages, // Balance before adding next period's interest
+            periodEndingBalance: currentBalance + periodDamagesTotal, // Balance before adding next period's interest
             cumulativeInterestAtPeriodEnd: cumulativeInterest // Total interest up to the end of this period
         });
 
         // Update balance for the next period
-        currentBalance += periodSubtotalDamages;
+        currentBalance += periodDamagesTotal;
 
         // Move to the next period
-        if (effectivePeriodEndDate === judgmentDate) {
+        if (effectivePeriodEndDate.getTime() === judgmentDate.getTime()) {
             break; // Calculation finished
         }
-        periodStartDate = getNextPeriodStartDate(periodEndDate);
+        periodStartDate = getNextPeriodStartDate(periodCalendarEndDate); // Get start of next calendar period
     }
 
     // Final Summary

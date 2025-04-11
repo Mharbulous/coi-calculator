@@ -533,3 +533,42 @@ h1 i {
     background-color: #cccccc;
     cursor: not-allowed;
 }
+
+/* Recurring Rules Display Area */
+.recurring-rules-display {
+    margin-top: calc(var(--spacing-unit) * 2); /* 8pt */
+    margin-bottom: calc(var(--spacing-unit) * 2); /* 8pt */
+    padding: var(--spacing-unit); /* 4pt */
+    border: 1px dashed var(--focus-outline-color);
+    background-color: #f9f9f9;
+    font-size: 0.9em;
+}
+.recurring-rules-display ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+.recurring-rules-display li {
+    margin-bottom: calc(var(--spacing-unit) * 0.5); /* 2pt */
+    padding: calc(var(--spacing-unit) * 0.5); /* 2pt */
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.recurring-rules-display li:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+.recurring-rules-display .rule-details {
+    flex-grow: 1;
+    margin-right: var(--spacing-unit); /* 4pt */
+}
+.recurring-rules-display .remove-rule-btn {
+    padding: calc(var(--spacing-unit) * 0.25) calc(var(--spacing-unit) * 0.75); /* 1pt 3pt */
+    font-size: 0.8em;
+    cursor: pointer;
+    background-color: #ffcccc;
+    border: 1px solid #ffaaaa;
+    border-radius: 3px;
+}

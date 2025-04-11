@@ -17,6 +17,23 @@ const summaryTotalSpecialsEl = document.querySelector('[data-display="summaryTot
 const summaryInterestOnSpecialsEl = document.querySelector('[data-display="summaryInterestOnSpecials"]');
 const summaryTotalEl = document.querySelector('[data-display="summaryTotal"]');
 
+// Recurring Damages Modal Elements
+const addRecurringRowBtn = document.getElementById('addRecurringRowBtn');
+const recurringDamageModal = document.getElementById('recurringDamageModal');
+const recurringStartDateInput = document.getElementById('recurringStartDate');
+const recurringEndDateInput = document.getElementById('recurringEndDate');
+const recurringFrequencySelect = document.getElementById('recurringFrequency');
+const recurringAmountInput = document.getElementById('recurringAmount');
+const cancelRecurringBtn = document.getElementById('cancelRecurringBtn');
+const addRecurringConfirmBtn = document.getElementById('addRecurringConfirmBtn');
+const closeModalBtn = recurringDamageModal.querySelector('.close-btn');
+
+// Recurring Rules Display Area
+const recurringRulesDisplayArea = document.getElementById('recurringRulesDisplay');
+
+// --- State ---
+let recurringRulesList = []; // Array to store recurring rule objects {id, startDate, endDate, frequency, amount}
+
 // --- Utility Functions ---
 
 // Format number as currency string (e.g., $ 1,234.56)
@@ -26,6 +43,11 @@ function formatCurrency(amount) {
     }
     // Basic formatting, consider a more robust library for complex needs
     return `$ ${amount.toFixed(2)}`;
+}
+
+// Generate a simple unique ID for rules
+function generateId() {
+    return '_' + Math.random().toString(36).substr(2, 9);
 }
 
 // --- Event Listeners ---
@@ -39,7 +61,28 @@ damagesTbody.addEventListener('click', (event) => {
     }
 });
 
-// Add event listener for Tab key navigation enhancements
+// Recurring Damages Modal Listeners
+addRecurringRowBtn.addEventListener('click', openRecurringModal);
+closeModalBtn.addEventListener('click', closeRecurringModal);
+cancelRecurringBtn.addEventListener('click', closeRecurringModal);
+addRecurringConfirmBtn.addEventListener('click', handleAddRecurringRule);
+
+// Add input listeners to modal fields for validation
+recurringStartDateInput.addEventListener('input', validateRecurringInputs);
+recurringEndDateInput.addEventListener('input', validateRecurringInputs);
+recurringFrequencySelect.addEventListener('change', validateRecurringInputs);
+recurringAmountInput.addEventListener('input', validateRecurringInputs);
+
+// Listener for removing recurring rules (using event delegation)
+recurringRulesDisplayArea.addEventListener('click', (event) => {
+    if (event.target.classList.contains('remove-rule-btn')) {
+        const ruleId = event.target.dataset.ruleId;
+        removeRecurringRule(ruleId);
+    }
+});
+
+
+// Add event listener for Tab key navigation enhancements for single damages table
 damagesTbody.addEventListener('keydown', (event) => {
     const target = event.target;
     const key = event.key;
@@ -126,45 +169,154 @@ function getDamagesInput() {
     return damages.filter(d => d.amount > 0); // Only include rows with a positive amount
 }
 
+// --- Recurring Damages Modal Logic ---
+
+function openRecurringModal() {
+    recurringDamageModal.style.display = 'block';
+    // Optionally clear fields when opening
+    // recurringStartDateInput.value = '';
+    // recurringEndDateInput.value = '';
+    // recurringFrequencySelect.value = 'bi-annually'; // Reset to default
+    // recurringAmountInput.value = '';
+    validateRecurringInputs(); // Ensure button state is correct on open
+}
+
+function closeRecurringModal() {
+    recurringDamageModal.style.display = 'none';
+}
+
+function validateRecurringInputs() {
+    const startDate = recurringStartDateInput.value;
+    const endDate = recurringEndDateInput.value;
+    const amount = recurringAmountInput.value;
+
+    let isValid = true;
+
+    if (!startDate || !endDate || !amount) {
+        isValid = false;
+    } else {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        if (isNaN(start.getTime()) || isNaN(end.getTime()) || end < start) {
+            isValid = false;
+        }
+        if (parseFloat(amount) <= 0) {
+            isValid = false;
+        }
+    }
+
+    addRecurringConfirmBtn.disabled = !isValid;
+    return isValid;
+}
+
+function handleAddRecurringRule() {
+    if (!validateRecurringInputs()) {
+        alert("Please fill in all fields correctly. End date must be after start date, and amount must be positive.");
+        return;
+    }
+
+    const newRule = {
+        id: generateId(), // Assign a unique ID
+        startDate: recurringStartDateInput.value,
+        endDate: recurringEndDateInput.value,
+        frequency: recurringFrequencySelect.value,
+        amount: parseFloat(recurringAmountInput.value),
+        // Use frequency and amount for a basic description
+        description: `${recurringFrequencySelect.options[recurringFrequencySelect.selectedIndex].text} payment of ${formatCurrency(recurringAmountInput.value)}`
+    };
+
+    recurringRulesList.push(newRule);
+    displayRecurringRules();
+    closeRecurringModal();
+
+    // Clear modal fields after adding
+    recurringStartDateInput.value = '';
+    recurringEndDateInput.value = '';
+    recurringFrequencySelect.value = 'bi-annually'; // Reset to default
+    recurringAmountInput.value = '';
+    addRecurringConfirmBtn.disabled = true; // Reset button state
+}
+
+function displayRecurringRules() {
+    recurringRulesDisplayArea.innerHTML = ''; // Clear current display
+
+    if (recurringRulesList.length === 0) {
+        recurringRulesDisplayArea.style.display = 'none'; // Hide if empty
+        return;
+    }
+
+    recurringRulesDisplayArea.style.display = 'block'; // Show if not empty
+    const list = document.createElement('ul');
+
+    recurringRulesList.forEach(rule => {
+        const listItem = document.createElement('li');
+        listItem.innerHTML = `
+            <span class="rule-details">
+                ${rule.description} from ${rule.startDate} to ${rule.endDate}
+            </span>
+            <button type="button" class="remove-rule-btn" data-rule-id="${rule.id}">Remove</button>
+        `;
+        list.appendChild(listItem);
+    });
+
+    recurringRulesDisplayArea.appendChild(list);
+}
+
+function removeRecurringRule(ruleId) {
+    recurringRulesList = recurringRulesList.filter(rule => rule.id !== ruleId);
+    displayRecurringRules(); // Update the display
+}
+
+
+// --- Calculation Handling ---
+
 function handleCalculation() {
     // 1. Get Inputs
     const causeOfActionDate = causeOfActionDateInput.value;
     const judgmentDate = judgmentDateInput.value;
     const jurisdiction = jurisdictionSelect.value;
-    const damages = getDamagesInput();
+    const singleDamages = getDamagesInput(); // Get only damages from the table
 
     // 2. Basic Validation
     if (!causeOfActionDate || !judgmentDate) {
         alert("Please enter both Cause of Action Date and Judgment Date.");
         return;
     }
-    if (damages.length === 0) {
-        alert("Please enter at least one valid special damage entry (Date and Amount).");
+    // Allow calculation even if only recurring rules exist
+    if (singleDamages.length === 0 && recurringRulesList.length === 0) {
+        alert("Please enter at least one single special damage entry or add a recurring damage rule.");
         return;
     }
-     // Validate dates are logical
+     // Validate top-level dates are logical
     if (new Date(judgmentDate) < new Date(causeOfActionDate)) {
         alert("Judgment Date cannot be before Cause of Action Date.");
         return;
     }
-    let invalidDamageDate = false;
-    damages.forEach(d => {
+    // Validate single damage dates (recurring rule dates validated on entry)
+    let invalidSingleDamageDate = false;
+    singleDamages.forEach(d => {
         const damageDate = new Date(d.date);
         if (damageDate < new Date(causeOfActionDate) || damageDate > new Date(judgmentDate)) {
-            invalidDamageDate = true;
+            invalidSingleDamageDate = true;
         }
     });
-    if (invalidDamageDate) {
-         alert("One or more damage dates fall outside the period between Cause of Action and Judgment Date.");
+    if (invalidSingleDamageDate) {
+         alert("One or more single damage dates fall outside the period between Cause of Action and Judgment Date.");
          return;
     }
 
 
-    // 3. Perform Calculation
-    const result = calculateSpecialDamagesInterest(causeOfActionDate, judgmentDate, damages, jurisdiction);
+    // 3. Perform Calculation - Pass both single damages and recurring rules
+    const result = calculateSpecialDamagesInterest(
+        causeOfActionDate,
+        judgmentDate,
+        singleDamages,
+        recurringRulesList, // Pass the list of rule objects
+        jurisdiction
+    );
 
     // 4. Display Results
-    displayCalculationResults(result);
+    displayCalculationResults(result); // Display function likely doesn't need changes
 }
 
 // --- Display Logic ---
@@ -282,12 +434,16 @@ function initializeFormWithDefaults() {
     causeOfActionDateInput.value = defaultCauseOfActionDate;
     judgmentDateInput.value = defaultJudgmentDate;
 
-    // Clear any existing rows (e.g., the initial empty row from HTML)
+    // Clear any existing single damage rows
     damagesTbody.innerHTML = '';
 
-    // Populate with default damages
+    // Clear recurring rules and hide display area
+    recurringRulesList = [];
+    displayRecurringRules();
+
+    // Populate with default single damages
     if (defaultDamages.length === 0) {
-        // If no defaults, add one empty row like before
+        // If no defaults, add one empty row for single damages
         addDamageRow();
     } else {
         defaultDamages.forEach(damage => {
@@ -298,6 +454,12 @@ function initializeFormWithDefaults() {
             damagesTbody.appendChild(row);
         });
     }
+
+    // Ensure calculation output is cleared on init
+    calculationOutputArea.innerHTML = '';
+    summaryTotalSpecialsEl.textContent = formatCurrency(0);
+    summaryInterestOnSpecialsEl.textContent = formatCurrency(0);
+    summaryTotalEl.textContent = formatCurrency(0);
 }
 
 // Initialize the form when the script loads
