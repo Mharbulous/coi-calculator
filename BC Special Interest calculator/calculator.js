@@ -17,22 +17,10 @@ const summaryTotalSpecialsEl = document.querySelector('[data-display="summaryTot
 const summaryInterestOnSpecialsEl = document.querySelector('[data-display="summaryInterestOnSpecials"]');
 const summaryTotalEl = document.querySelector('[data-display="summaryTotal"]');
 
-// Recurring Damages Modal Elements
-const addRecurringRowBtn = document.getElementById('addRecurringRowBtn');
-const recurringDamageModal = document.getElementById('recurringDamageModal');
-const recurringStartDateInput = document.getElementById('recurringStartDate');
-const recurringEndDateInput = document.getElementById('recurringEndDate');
-const recurringFrequencySelect = document.getElementById('recurringFrequency');
-const recurringAmountInput = document.getElementById('recurringAmount');
-const cancelRecurringBtn = document.getElementById('cancelRecurringBtn');
-const addRecurringConfirmBtn = document.getElementById('addRecurringConfirmBtn');
-const closeModalBtn = recurringDamageModal.querySelector('.close-btn');
+// New Recurring Damages Table Elements
+const recurringDamagesTbody = document.querySelector('[data-display="recurringDamagesTbody"]');
+const addRecurringTableRowBtn = document.getElementById('addRecurringTableRowBtn');
 
-// Recurring Rules Display Area
-const recurringRulesDisplayArea = document.getElementById('recurringRulesDisplay');
-
-// --- State ---
-let recurringRulesList = []; // Array to store recurring rule objects {id, startDate, endDate, frequency, amount}
 
 // --- Utility Functions ---
 
@@ -61,23 +49,12 @@ damagesTbody.addEventListener('click', (event) => {
     }
 });
 
-// Recurring Damages Modal Listeners
-addRecurringRowBtn.addEventListener('click', openRecurringModal);
-closeModalBtn.addEventListener('click', closeRecurringModal);
-cancelRecurringBtn.addEventListener('click', closeRecurringModal);
-addRecurringConfirmBtn.addEventListener('click', handleAddRecurringRule);
-
-// Add input listeners to modal fields for validation
-recurringStartDateInput.addEventListener('input', validateRecurringInputs);
-recurringEndDateInput.addEventListener('input', validateRecurringInputs);
-recurringFrequencySelect.addEventListener('change', validateRecurringInputs);
-recurringAmountInput.addEventListener('input', validateRecurringInputs);
-
-// Listener for removing recurring rules (using event delegation)
-recurringRulesDisplayArea.addEventListener('click', (event) => {
-    if (event.target.classList.contains('remove-rule-btn')) {
-        const ruleId = event.target.dataset.ruleId;
-        removeRecurringRule(ruleId);
+// New Recurring Damages Table Listeners
+addRecurringTableRowBtn.addEventListener('click', addRecurringTableRow);
+// Add event listener to handle removing recurring rows dynamically
+recurringDamagesTbody.addEventListener('click', (event) => {
+    if (event.target.classList.contains('remove-recurring-row-btn')) {
+        removeRecurringTableRow(event.target);
     }
 });
 
@@ -148,6 +125,53 @@ function removeDamageRow(button) {
     }
 }
 
+// --- Recurring Damages Table Functions ---
+
+function createRecurringDamageRow() {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+        <td><input type="date" name="recurringStartDate"></td>
+        <td><input type="date" name="recurringEndDate"></td>
+        <td>
+            <select name="recurringFrequency">
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+                <option value="bi-annually" selected>Bi-annually</option>
+                <option value="annually">Annually</option>
+                <option value="Full Term">Full Term</option>
+            </select>
+        </td>
+        <td><input type="number" step="0.01" name="recurringAmount"></td>
+        <td><input type="text" name="recurringDescription"></td>
+        <td><button type="button" class="remove-recurring-row-btn">Remove</button></td>
+    `;
+    return row;
+}
+
+function addRecurringTableRow() {
+    recurringDamagesTbody.appendChild(createRecurringDamageRow());
+}
+
+function removeRecurringTableRow(button) {
+    const row = button.closest('tr');
+    // Prevent removing the last row if desired, or handle accordingly
+    if (recurringDamagesTbody.querySelectorAll('tr').length > 1) {
+        row.remove();
+    } else {
+        // Optionally clear the inputs of the last row instead of removing it
+        const inputs = row.querySelectorAll('input, select');
+        inputs.forEach(input => {
+            if (input.type === 'select-one') {
+                input.value = 'bi-annually'; // Reset select to default
+            } else {
+                input.value = '';
+            }
+        });
+    }
+}
+
+
 // --- Calculation Handling ---
 
 function getDamagesInput() {
@@ -169,102 +193,36 @@ function getDamagesInput() {
     return damages.filter(d => d.amount > 0); // Only include rows with a positive amount
 }
 
-// --- Recurring Damages Modal Logic ---
+function getRecurringDamagesInput() {
+    const rows = recurringDamagesTbody.querySelectorAll('tr');
+    const recurringRules = [];
+    rows.forEach(row => {
+        const startDateInput = row.querySelector('input[name="recurringStartDate"]');
+        const endDateInput = row.querySelector('input[name="recurringEndDate"]');
+        const frequencySelect = row.querySelector('select[name="recurringFrequency"]');
+        const amountInput = row.querySelector('input[name="recurringAmount"]');
+        const descriptionInput = row.querySelector('input[name="recurringDescription"]');
 
-function openRecurringModal() {
-    recurringDamageModal.style.display = 'block';
-    // Optionally clear fields when opening
-    // recurringStartDateInput.value = '';
-    // recurringEndDateInput.value = '';
-    // recurringFrequencySelect.value = 'bi-annually'; // Reset to default
-    // recurringAmountInput.value = '';
-    validateRecurringInputs(); // Ensure button state is correct on open
-}
+        // Basic validation: require start date, end date, and amount
+        if (startDateInput.value && endDateInput.value && amountInput.value) {
+            const startDate = startDateInput.value;
+            const endDate = endDateInput.value;
+            const amount = parseFloat(amountInput.value) || 0;
 
-function closeRecurringModal() {
-    recurringDamageModal.style.display = 'none';
-}
-
-function validateRecurringInputs() {
-    const startDate = recurringStartDateInput.value;
-    const endDate = recurringEndDateInput.value;
-    const amount = recurringAmountInput.value;
-
-    let isValid = true;
-
-    if (!startDate || !endDate || !amount) {
-        isValid = false;
-    } else {
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-        if (isNaN(start.getTime()) || isNaN(end.getTime()) || end < start) {
-            isValid = false;
+            // Additional validation: end date >= start date, amount > 0
+            if (new Date(endDate) >= new Date(startDate) && amount > 0) {
+                recurringRules.push({
+                    // id: generateId(), // ID might not be needed if we don't manipulate individual rules after reading
+                    startDate: startDate,
+                    endDate: endDate,
+                    frequency: frequencySelect.value,
+                    amount: amount,
+                    description: descriptionInput.value || '' // Allow empty description
+                });
+            }
         }
-        if (parseFloat(amount) <= 0) {
-            isValid = false;
-        }
-    }
-
-    addRecurringConfirmBtn.disabled = !isValid;
-    return isValid;
-}
-
-function handleAddRecurringRule() {
-    if (!validateRecurringInputs()) {
-        alert("Please fill in all fields correctly. End date must be after start date, and amount must be positive.");
-        return;
-    }
-
-    const newRule = {
-        id: generateId(), // Assign a unique ID
-        startDate: recurringStartDateInput.value,
-        endDate: recurringEndDateInput.value,
-        frequency: recurringFrequencySelect.value,
-        amount: parseFloat(recurringAmountInput.value),
-        // Use frequency and amount for a basic description
-        description: `${recurringFrequencySelect.options[recurringFrequencySelect.selectedIndex].text} payment of ${formatCurrency(recurringAmountInput.value)}`
-    };
-
-    recurringRulesList.push(newRule);
-    displayRecurringRules();
-    closeRecurringModal();
-
-    // Clear modal fields after adding
-    recurringStartDateInput.value = '';
-    recurringEndDateInput.value = '';
-    recurringFrequencySelect.value = 'bi-annually'; // Reset to default
-    recurringAmountInput.value = '';
-    addRecurringConfirmBtn.disabled = true; // Reset button state
-}
-
-function displayRecurringRules() {
-    recurringRulesDisplayArea.innerHTML = ''; // Clear current display
-
-    if (recurringRulesList.length === 0) {
-        recurringRulesDisplayArea.style.display = 'none'; // Hide if empty
-        return;
-    }
-
-    recurringRulesDisplayArea.style.display = 'block'; // Show if not empty
-    const list = document.createElement('ul');
-
-    recurringRulesList.forEach(rule => {
-        const listItem = document.createElement('li');
-        listItem.innerHTML = `
-            <span class="rule-details">
-                ${rule.description} from ${rule.startDate} to ${rule.endDate}
-            </span>
-            <button type="button" class="remove-rule-btn" data-rule-id="${rule.id}">Remove</button>
-        `;
-        list.appendChild(listItem);
     });
-
-    recurringRulesDisplayArea.appendChild(list);
-}
-
-function removeRecurringRule(ruleId) {
-    recurringRulesList = recurringRulesList.filter(rule => rule.id !== ruleId);
-    displayRecurringRules(); // Update the display
+    return recurringRules; // Return rules with valid dates and positive amount
 }
 
 
@@ -272,10 +230,12 @@ function removeRecurringRule(ruleId) {
 
 function handleCalculation() {
     // 1. Get Inputs
+    // 1. Get Inputs
     const causeOfActionDate = causeOfActionDateInput.value;
     const judgmentDate = judgmentDateInput.value;
     const jurisdiction = jurisdictionSelect.value;
-    const singleDamages = getDamagesInput(); // Get only damages from the table
+    const singleDamages = getDamagesInput();
+    const recurringRules = getRecurringDamagesInput(); // Get recurring rules from the new table
 
     // 2. Basic Validation
     if (!causeOfActionDate || !judgmentDate) {
@@ -283,7 +243,7 @@ function handleCalculation() {
         return;
     }
     // Allow calculation even if only recurring rules exist
-    if (singleDamages.length === 0 && recurringRulesList.length === 0) {
+    if (singleDamages.length === 0 && recurringRules.length === 0) {
         alert("Please enter at least one single special damage entry or add a recurring damage rule.");
         return;
     }
@@ -306,12 +266,12 @@ function handleCalculation() {
     }
 
 
-    // 3. Perform Calculation - Pass both single damages and recurring rules
+    // 3. Perform Calculation - Pass both single damages and recurring rules from tables
     const result = calculateSpecialDamagesInterest(
         causeOfActionDate,
         judgmentDate,
         singleDamages,
-        recurringRulesList, // Pass the list of rule objects
+        recurringRules, // Pass the rules read from the table
         jurisdiction
     );
 
@@ -436,10 +396,8 @@ function initializeFormWithDefaults() {
 
     // Clear any existing single damage rows
     damagesTbody.innerHTML = '';
-
-    // Clear recurring rules and hide display area
-    recurringRulesList = [];
-    displayRecurringRules();
+    // Clear any existing recurring damage rows
+    recurringDamagesTbody.innerHTML = '';
 
     // Populate with default single damages
     if (defaultDamages.length === 0) {
@@ -454,6 +412,10 @@ function initializeFormWithDefaults() {
             damagesTbody.appendChild(row);
         });
     }
+
+    // Add one empty row for recurring damages (assuming no defaults for recurring)
+    addRecurringTableRow();
+
 
     // Ensure calculation output is cleared on init
     calculationOutputArea.innerHTML = '';
