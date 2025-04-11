@@ -97,9 +97,9 @@
 | November 20, 2023 | Prescription | $80.00 |   |
 |   | **Subtotal** | **$ 1218.50** | **$ 63.09** |
 
-### Period ending June 30, 2024
+### **Period ending June 30, 2024** 
 
-**Allowed Rate: 4.50%** | **182 days**
+### Allowed Rate: 4.50% | 182 days
 
 | Date | Description | Amount | Interest |
 | --- | --- | --- | --- |
@@ -107,9 +107,9 @@
 | May 10, 2024 | Acupuncture | $50.00 |   |
 |   | **Subtotal** | **$ 1268.50** | **$ 90.79** |
 
-### Period ending December 25, 2024
+### **Period ending December 25, 2024**
 
-**Allowed Rate: 5.00%** | **178 days**
+Allowed Rate: 5.00% | 178 days
 
 | Date | Description | Amount | Interest |
 | --- | --- | --- | --- |

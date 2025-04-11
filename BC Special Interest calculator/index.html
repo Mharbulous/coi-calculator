@@ -44,7 +44,7 @@
             </div>
         </div>
 
-        <div class="section-title">Special Damages Incurred</div>
+        <div class="section-title">Special Damages List</div>
         <table class="input-table" id="specialDamagesInputTable">
             <thead>
                 <tr>
@@ -75,8 +75,7 @@
         <div class="calculate-section">
              <button type="button" id="calculateBtn">Calculate Interest</button>
         </div>
-
-        <div class="section-title">Interest Calculation Periods</div>
+        
         <div id="calculationOutput" data-display="calculationOutputArea">
             <!-- Calculation tables will be injected here by JS -->
         </div>
@@ -100,8 +99,8 @@
         </table>
     </div>
 
-    <!-- Load the main script as a module -->
-    <!-- Assuming calculator.js will handle UI and import calculation logic -->
+    <!-- Load the default values first, then the main calculator script -->
+    <script src="defaultValues.js" type="module" defer></script>
     <script src="calculator.js" type="module" defer></script>
 </body>
 </html>

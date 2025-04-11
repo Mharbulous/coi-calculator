@@ -1,4 +1,5 @@
 import { calculateSpecialDamagesInterest } from './specialCalc.js';
+import { defaultCauseOfActionDate, defaultJudgmentDate, defaultDamages } from './defaultValues.js';
 
 // --- DOM Elements ---
 const causeOfActionDateInput = document.querySelector('[data-input="causeOfActionDate"]');
@@ -37,6 +38,42 @@ damagesTbody.addEventListener('click', (event) => {
         removeDamageRow(event.target);
     }
 });
+
+// Add event listener for Tab key navigation enhancements
+damagesTbody.addEventListener('keydown', (event) => {
+    const target = event.target;
+    const key = event.key;
+
+    // Case 1: Tab from Amount field adds a new row and focuses its Date field
+    if (target.matches('input[name="damageAmount"]') && key === 'Tab') {
+        event.preventDefault(); // Prevent default Tab behavior
+
+        addDamageRow(); // Add a new row
+
+        // Find the newly added row (last row in the tbody)
+        const newRow = damagesTbody.lastElementChild;
+        if (newRow) {
+            // Find the date input in the new row and focus it
+            const newDateInput = newRow.querySelector('input[name="damageDate"]');
+            if (newDateInput) {
+                newDateInput.focus();
+            }
+        }
+    }
+    // Case 2: Tab from Date field moves focus to Description field in the same row
+    else if (target.matches('input[name="damageDate"]') && key === 'Tab') {
+        event.preventDefault(); // Prevent default Tab behavior
+
+        const currentRow = target.closest('tr');
+        if (currentRow) {
+            const descriptionInput = currentRow.querySelector('input[name="damageDescription"]');
+            if (descriptionInput) {
+                descriptionInput.focus();
+            }
+        }
+    }
+});
+
 
 // --- DOM Manipulation ---
 
@@ -160,16 +197,17 @@ function displayCalculationResults(result) {
         const periodDiv = document.createElement('div');
         periodDiv.classList.add('period-calculation');
 
-        // Period Header (e.g., Period ending June 30, 2019)
+        // Period Header (e.g., Period ending June 30, 2019) - Now Bold
         const header = document.createElement('div');
         header.classList.add('period-header');
-        header.textContent = `Period ending ${period.periodEndDate}`;
+        header.innerHTML = `<strong>Period ending ${period.periodEndDate}</strong>`; // Wrap in <strong>
         periodDiv.appendChild(header);
 
-        // Period Details (Rate, Days)
+        // Period Details (Rate, Days) - Now Regular Font
         const details = document.createElement('div');
         details.classList.add('period-details');
-        details.innerHTML = `<strong>Allowed Rate: ${period.rate.toFixed(2)}%</strong> | <strong>${period.days} days</strong>`;
+        // Remove <strong> tags
+        details.textContent = `Allowed Rate: ${period.rate.toFixed(2)}% | ${period.days} days`;
         periodDiv.appendChild(details);
 
         // Period Table
@@ -234,5 +272,31 @@ function displayCalculationResults(result) {
 }
 
 // --- Initial Setup ---
-// Add one empty row initially for user input
-// addDamageRow(); // Let's start with the one row already in the HTML
+
+// Note: defaultDamages array is now imported from defaultValues.js
+
+function initializeFormWithDefaults() {
+    // Set default dates from imported values
+    causeOfActionDateInput.value = defaultCauseOfActionDate;
+    judgmentDateInput.value = defaultJudgmentDate;
+
+    // Clear any existing rows (e.g., the initial empty row from HTML)
+    damagesTbody.innerHTML = '';
+
+    // Populate with default damages
+    if (defaultDamages.length === 0) {
+        // If no defaults, add one empty row like before
+        addDamageRow();
+    } else {
+        defaultDamages.forEach(damage => {
+            const row = createDamageRow();
+            row.querySelector('input[name="damageDate"]').value = damage.date;
+            row.querySelector('input[name="damageDescription"]').value = damage.description;
+            row.querySelector('input[name="damageAmount"]').value = damage.amount.toFixed(2);
+            damagesTbody.appendChild(row);
+        });
+    }
+}
+
+// Initialize the form when the script loads
+initializeFormWithDefaults();

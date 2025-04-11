@@ -259,7 +259,7 @@ h1 i {
     margin-top: calc(var(--spacing-unit) * 2); /* 8pt */
     margin-bottom: calc(var(--spacing-unit) * 0.5); /* 2pt */
     padding-bottom: calc(var(--spacing-unit) * 0.5); /* 2pt */
-    border-bottom: 1px solid var(--border-color);
+    /* border-bottom: 1px solid var(--border-color); */ /* Removed this line */
 }
 .period-header:first-child {
     margin-top: 0;
