@@ -203,11 +203,11 @@ function displayCalculationResults(result) {
         header.innerHTML = `<strong>Period ending ${period.periodEndDate}</strong>`; // Wrap in <strong>
         periodDiv.appendChild(header);
 
-        // Period Details (Rate, Days) - Now Regular Font
+        // Period Details (Days, Rate) - Now Regular Font, order reversed
         const details = document.createElement('div');
         details.classList.add('period-details');
-        // Remove <strong> tags
-        details.textContent = `Allowed Rate: ${period.rate.toFixed(2)}% | ${period.days} days`;
+        // Order reversed, ensure no bold tags (check CSS too)
+        details.textContent = `${period.days} days | Allowed Rate: ${period.rate.toFixed(2)}%`;
         periodDiv.appendChild(details);
 
         // Period Table
@@ -233,8 +233,10 @@ function displayCalculationResults(result) {
                     </tr>
                     ${damage.interestDetail ? `
                     <tr class="interest-detail-row">
-                        <td colspan="3"><em>${damage.interestDetail.days} days interest*</em></td>
-                        <td class="text-right"><em>${formatCurrency(damage.interestDetail.interest)}</em></td>
+                        <td></td> <!-- Empty cell under Date -->
+                        <td></td> <!-- Empty cell under Description -->
+                        <td>${damage.interestDetail.days} days interest*</td> <!-- Text under Amount, no italics -->
+                        <td class="text-right">${formatCurrency(damage.interestDetail.interest)}</td> <!-- Interest under Interest, no italics -->
                     </tr>
                     ` : ''}
                 `).join('')}

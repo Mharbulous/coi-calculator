@@ -265,7 +265,7 @@ h1 i {
     margin-top: 0;
 }
 .period-details {
-    font-weight: bold;
+    /* font-weight: bold; */ /* Removed bold */
     margin-bottom: var(--spacing-unit); /* 4pt */
     font-size: 0.95em;
 }
@@ -319,21 +319,8 @@ h1 i {
  .output-table tfoot {
     margin-top: 0;
  }
- .output-table .interest-detail-row td {
-    font-style: italic;
-    font-size: 0.9em;
-    color: #555;
-    border: none;
-    padding-top: 0;
-    padding-bottom: calc(var(--spacing-unit) * 0.5);
- }
- .output-table .interest-detail-row td:first-child {
-    text-align: right;
-    padding-right: var(--spacing-unit);
- }
- .output-table .interest-detail-row td:last-child {
-    text-align: right;
- }
+ /* Removed specific .interest-detail-row td styles.
+    It will now inherit from .output-table td */
 
 
  /* Summary Table Styles */
@@ -422,7 +409,7 @@ h1 i {
         border-left: none !important; border-right: none !important; border-bottom: none !important;
         border-top: 1px solid var(--border-color) !important;
     }
-    .output-table .interest-detail-row { display: none !important; } /* Hide italicized interest details */
+    /* Removed: .output-table .interest-detail-row { display: none !important; } */
 
    /* Apply consistent padding & alignment to right-aligned inputs/selects for print */
    .right-info-block input[type="text"],
