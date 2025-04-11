@@ -77,10 +77,8 @@
         <table class="input-table" id="recurringDamagesInputTable">
             <thead>
                 <tr>
-                    <th>Start Date</th>
-                    <th>End Date</th>
+                    <th>Date Range</th>
                     <th>Description</th>
-                    <th>Frequency</th>
                     <th>Amount</th>
                     <th>Action</th>
                 </tr>
@@ -88,10 +86,19 @@
             <tbody data-display="recurringDamagesTbody">
                 <!-- Rows will be added dynamically by JS -->
                 <tr>
-                    <td><input type="date" name="recurringStartDate"></td>
-                    <td><input type="date" name="recurringEndDate"></td>
+                    <td class="date-range-cell">
+                        <div class="date-field">
+                            <span class="date-label">Start:</span>
+                            <input type="date" name="recurringStartDate">
+                        </div>
+                        <div class="date-field">
+                            <span class="date-label">End:</span>
+                            <input type="date" name="recurringEndDate">
+                        </div>
+                    </td>
                     <td><input type="text" name="recurringDescription"></td>
-                    <td>
+                    <td class="amount-frequency-cell">
+                        <input type="text" name="recurringAmount"> <!-- Changed type to text -->
                         <select name="recurringFrequency">
                             <option value="daily">Daily</option>
                             <option value="weekly">Weekly</option>
@@ -101,13 +108,12 @@
                             <option value="Full Term">Full Term</option>
                         </select>
                     </td>
-                    <td><input type="text" name="recurringAmount"></td> <!-- Changed type to text -->
                     <td><button type="button" class="remove-recurring-row-btn">Remove</button></td>
                 </tr>
             </tbody>
             <tfoot>
                 <tr>
-                    <td colspan="6" class="button-cell">
+                    <td colspan="4" class="button-cell">
                         <button type="button" id="addRecurringTableRowBtn">Add Special Damages (recurring)</button>
                     </td>
                 </tr>

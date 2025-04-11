@@ -271,8 +271,8 @@ input[type="date"] {
 /* Default for Description columns (will take remaining space) */
 #specialDamagesInputTable th:nth-child(2),
 #specialDamagesInputTable td:nth-child(2),
-#recurringDamagesInputTable th:nth-child(3),
-#recurringDamagesInputTable td:nth-child(3) {
+#recurringDamagesInputTable th:nth-child(2),
+#recurringDamagesInputTable td:nth-child(2) {
     width: auto; /* Explicitly auto, though default */
 }
 
@@ -283,16 +283,12 @@ input[type="date"] {
 #specialDamagesInputTable td:nth-child(3),
 #specialDamagesInputTable th:nth-child(4), /* Action */
 #specialDamagesInputTable td:nth-child(4),
-#recurringDamagesInputTable th:nth-child(1), /* Start Date */
+#recurringDamagesInputTable th:nth-child(1), /* Date Range */
 #recurringDamagesInputTable td:nth-child(1),
-#recurringDamagesInputTable th:nth-child(2), /* End Date */
-#recurringDamagesInputTable td:nth-child(2),
-#recurringDamagesInputTable th:nth-child(4), /* Frequency */
-#recurringDamagesInputTable td:nth-child(4),
-#recurringDamagesInputTable th:nth-child(5), /* Amount */
-#recurringDamagesInputTable td:nth-child(5),
-#recurringDamagesInputTable th:nth-child(6), /* Action */
-#recurringDamagesInputTable td:nth-child(6) {
+#recurringDamagesInputTable th:nth-child(3), /* Amount */
+#recurringDamagesInputTable td:nth-child(3),
+#recurringDamagesInputTable th:nth-child(4), /* Action */
+#recurringDamagesInputTable td:nth-child(4) {
     width: 1%; /* Make column initially very small */
     white-space: nowrap; /* Prevent content/header wrapping */
 }
@@ -301,30 +297,89 @@ input[type="date"] {
 /* Date inputs already have fixed width */
 /* Amount inputs */
 #specialDamagesInputTable td:nth-child(3) input[type="number"],
-#recurringDamagesInputTable td:nth-child(5) input[type="number"] {
+#recurringDamagesInputTable td:nth-child(3) input[type="text"] {
      min-width: 60px; /* Prevent amount input becoming too small */
-     /* width: 100%; /* Already set globally */
+     width: auto; /* Allow to shrink to content */
 }
-/* Frequency select */
-#recurringDamagesInputTable td:nth-child(4) select {
-    min-width: 80px; /* Give select dropdown some base width */
-    width: auto; /* Allow it to size based on content */
-    padding-right: calc(var(--spacing-unit) * 3); /* Add space for dropdown arrow */
-}
+
 /* Action buttons */
 #specialDamagesInputTable td:nth-child(4) button,
-#recurringDamagesInputTable td:nth-child(6) button {
+#recurringDamagesInputTable td:nth-child(4) button {
     width: auto; /* Allow button to size naturally */
     margin: 0 auto; /* Center button */
 }
 
 /* Override global input width for description fields to ensure they fill */
 #specialDamagesInputTable td:nth-child(2) input[type="text"],
-#recurringDamagesInputTable td:nth-child(3) input[type="text"] {
+#recurringDamagesInputTable td:nth-child(2) input[type="text"] {
     width: 100%;
     min-width: 150px; /* Give description a reasonable minimum */
 }
 /* --- End Column Width Adjustments --- */
+
+/* Style for combined Date Range cell */
+.date-range-cell {
+    padding: 2px !important; /* Override default cell padding */
+}
+
+.date-range-cell .date-field {
+    display: flex;
+    align-items: center;
+    margin-bottom: 2px;
+}
+
+.date-range-cell .date-field:last-child {
+    margin-bottom: 0;
+}
+
+.date-range-cell .date-label {
+    font-weight: bold;
+    margin-right: 4px;
+    min-width: 35px; /* Ensure consistent width for labels */
+}
+
+.date-range-cell input[type="date"] {
+    flex: 1;
+}
+
+/* Style for combined Amount/Frequency cell */
+.amount-frequency-cell {
+    width: auto; /* Allow cell to shrink to content */
+}
+
+/* Common styles for both amount input and frequency select */
+.amount-frequency-cell input[name="recurringAmount"],
+.amount-frequency-cell select[name="recurringFrequency"] {
+    display: block; /* Force onto separate lines */
+    width: 150px;   /* Fixed width for both elements */
+    box-sizing: border-box; /* Include padding/border in width */
+    margin-bottom: 2px; /* Small gap between elements */
+    text-align: right; /* Align text/value to the right */
+}
+
+/* Remove bottom margin from the select (last element) */
+.amount-frequency-cell select[name="recurringFrequency"] {
+    margin-bottom: 0;
+    padding-right: calc(var(--spacing-unit) * 3); /* Keep space for dropdown arrow */
+    text-align-last: right; /* Align selected option right */
+}
+
+/* Ensure the input keeps its background */
+.amount-frequency-cell input[name="recurringAmount"] {
+     background-color: var(--input-background-color);
+     padding: var(--spacing-unit); /* Ensure padding is applied */
+}
+
+/* Ensure the select keeps its background and border */
+.amount-frequency-cell select[name="recurringFrequency"] {
+    background-color: var(--input-background-color);
+    border: 1px solid var(--focus-outline-color); /* Add border similar to other selects */
+    padding: calc(var(--spacing-unit) * 0.5) var(--spacing-unit); /* Adjust padding if needed */
+    padding-right: calc(var(--spacing-unit) * 3); /* Keep space for dropdown arrow */
+    appearance: none; /* Remove default appearance */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
 
 
 #addRowBtn, #addRecurringTableRowBtn, .remove-row-btn, .remove-recurring-row-btn {

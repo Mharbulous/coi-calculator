@@ -175,22 +175,30 @@ function removeDamageRow(button) {
 function createRecurringDamageRow() {
     const row = document.createElement('tr');
     row.innerHTML = `
-        <td><input type="date" name="recurringStartDate"></td>
-        <td><input type="date" name="recurringEndDate"></td>
+        <td class="date-range-cell">
+            <div class="date-field">
+                <span class="date-label">Start:</span>
+                <input type="date" name="recurringStartDate">
+            </div>
+            <div class="date-field">
+                <span class="date-label">End:</span>
+                <input type="date" name="recurringEndDate">
+            </div>
+        </td>
         <td><input type="text" name="recurringDescription"></td>
-        <td>
+        <td class="amount-frequency-cell">
+            <input type="text" name="recurringAmount"> <!-- Changed type to text -->
             <select name="recurringFrequency">
                 <option value="daily">Daily</option>
                 <option value="weekly">Weekly</option>
                 <option value="monthly">Monthly</option>
                 <option value="bi-annually" selected>Bi-annually</option>
                 <option value="annually">Annually</option>
-                            <option value="Full Term">Full Term</option>
-                        </select>
-                    </td>
-                    <td><input type="text" name="recurringAmount"></td> <!-- Changed type to text -->
-                    <td><button type="button" class="remove-recurring-row-btn">Remove</button></td>
-                `;
+                <option value="Full Term">Full Term</option>
+            </select>
+        </td>
+        <td><button type="button" class="remove-recurring-row-btn">Remove</button></td>
+    `;
     return row;
 }
 

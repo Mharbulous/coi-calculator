@@ -147,3 +147,5 @@
 | **TOTAL** | $ | **373,371.31** |
 
 *   Special damages incurred in the six month period in which the order was made accrue interest from the date special damages were incurred to the date of the order. See COIA section 1(3)
+
+<table><tbody><tr><td>Date Range</td><td>&nbsp;</td></tr><tr><td>Start: &nbsp;[date]<br>End: &nbsp; [date]</td><td>&nbsp;</td></tr></tbody></table>
