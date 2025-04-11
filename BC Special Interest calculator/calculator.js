@@ -132,6 +132,7 @@ function createRecurringDamageRow() {
     row.innerHTML = `
         <td><input type="date" name="recurringStartDate"></td>
         <td><input type="date" name="recurringEndDate"></td>
+        <td><input type="text" name="recurringDescription"></td>
         <td>
             <select name="recurringFrequency">
                 <option value="daily">Daily</option>
@@ -143,7 +144,6 @@ function createRecurringDamageRow() {
             </select>
         </td>
         <td><input type="number" step="0.01" name="recurringAmount"></td>
-        <td><input type="text" name="recurringDescription"></td>
         <td><button type="button" class="remove-recurring-row-btn">Remove</button></td>
     `;
     return row;
@@ -355,7 +355,8 @@ function displayCalculationResults(result) {
             </tbody>
             <tfoot>
                 <tr class="subtotal">
-                    <td colspan="2"><strong>Subtotal</strong></td>
+                    <td></td> <!-- Empty cell under Date -->
+                    <td><strong>Subtotal</strong></td> <!-- Label moved to second column -->
                     <td class="text-right"><strong>${formatCurrency(period.periodEndingBalance)}</strong></td>
                     <td class="text-right"><strong>${formatCurrency(period.cumulativeInterestAtPeriodEnd)}</strong></td>
                 </tr>

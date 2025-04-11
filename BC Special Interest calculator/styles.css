@@ -115,9 +115,12 @@ h1 i {
     font-size: inherit;
     box-sizing: border-box;
     text-align: right;
-    max-width: 140px;
-    width: 100%;
+    /* max-width: 140px; */ /* Removed conflicting rule */
+    /* width: 100%; */ /* Removed conflicting rule */
     margin-left: auto;
+    width: 130px; /* Set fixed width */
+    min-width: 130px; /* Prevent shrinking */
+    box-sizing: border-box; /* Include padding in width */
 }
 .dates-block .value input[type="date"]:focus {
     outline: 1px solid var(--focus-outline-color);
@@ -190,10 +193,16 @@ h1 i {
     border-collapse: collapse;
     margin-bottom: var(--spacing-unit); /* 4pt */
     line-height: var(--table-line-height);
+    /* table-layout: fixed; */ /* Reverted */
 }
-.input-table th, .input-table td {
+.input-table th { /* Keep original padding for headers */
     border: 1px solid var(--border-color);
     padding: calc(var(--spacing-unit) * 0.75) calc(var(--spacing-unit) * 1.5); /* 3pt 6pt */
+    vertical-align: middle; /* Align vertically centered */
+}
+.input-table td { /* Apply reduced padding to data cells */
+    border: 1px solid var(--border-color);
+    padding: 1px;
     vertical-align: middle; /* Align vertically centered */
 }
 .input-table th {
@@ -201,10 +210,19 @@ h1 i {
     font-weight: bold;
     text-align: center;
 }
-.input-table td input[type="date"],
+.input-table td input[type="date"] {
+    width: 130px; /* Set fixed width */
+    min-width: 130px; /* Prevent shrinking */
+    box-sizing: border-box; /* Include padding in width */
+    border: none;
+    background-color: var(--input-background-color);
+    padding: var(--spacing-unit); /* 4pt */
+    font-family: inherit;
+    font-size: inherit;
+}
 .input-table td input[type="text"],
 .input-table td input[type="number"] {
-    width: 100%;
+    width: 100%; /* Keep other inputs at 100% */
     border: none;
     background-color: var(--input-background-color);
     padding: var(--spacing-unit); /* 4pt */
@@ -218,10 +236,16 @@ h1 i {
 .input-table td input:focus {
     outline: 1px solid var(--focus-outline-color);
 }
-.input-table th:nth-child(1) { width: 20%; } /* Date */
-.input-table th:nth-child(2) { width: 45%; } /* Description */
-.input-table th:nth-child(3) { width: 20%; } /* Amount */
-.input-table th:nth-child(4) { width: 15%; } /* Action */
+.input-table th:nth-child(1) { /* width: 20%; */ } /* Date - Width controlled by .date-column-standard */
+.input-table th:nth-child(2) { /* width: 45%; */ } /* Description - General width removed */
+.input-table th:nth-child(3) { /* width: 20%; */ } /* Amount - General width removed */
+.input-table th:nth-child(4) { /* width: 15%; */ } /* Action - General width removed */
+
+/* Specific widths for Single Damages Table to help layout - REVERTED */
+/* #specialDamagesInputTable th:nth-child(2) { width: 45%; } */ /* Description */
+/* #specialDamagesInputTable th:nth-child(3) { width: 25%; } */ /* Amount */
+/* #specialDamagesInputTable th:nth-child(4) { width: auto; } */  /* Action */
+
 
 .input-table tfoot td {
     border: none;
@@ -276,6 +300,7 @@ h1 i {
     border-collapse: collapse;
     margin-bottom: var(--spacing-unit); /* 4pt */
     line-height: var(--table-line-height);
+    /* table-layout: fixed; */ /* Reverted */
  }
 .output-table th, .output-table td {
     border: 1px solid var(--border-color);
@@ -290,7 +315,7 @@ h1 i {
  }
 
  /* Column Widths & Alignment for Output Table */
- .output-table th:nth-child(1), .output-table td:nth-child(1) { width: 15%; text-align: left; } /* Date */
+ .output-table th:nth-child(1), .output-table td:nth-child(1) { /* width: 15%; */ text-align: left; } /* Date - Width controlled by .date-column-standard */
  .output-table th:nth-child(2), .output-table td:nth-child(2) { width: auto; text-align: left; } /* Description */
  .output-table th:nth-child(3), .output-table td:nth-child(3) { width: var(--currency-column-width); text-align: right; } /* Amount */
  .output-table th:nth-child(4), .output-table td:nth-child(4) { width: var(--currency-column-width); text-align: right; } /* Interest */
@@ -371,6 +396,17 @@ h1 i {
 
  .bold { font-weight: bold !important; }
  .hidden { display: none !important; }
+
+ /* Standardized Date Column Width - REMOVED */
+ /* .date-column-standard {
+    width: 130px !important;
+    min-width: 130px !important;
+    white-space: nowrap;
+    box-sizing: border-box;
+ } */
+ /* input[type="date"].date-column-standard {
+    max-width: 130px;
+ } */
 
 
 /* --- PRINT STYLES --- */
