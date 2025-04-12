@@ -123,7 +123,7 @@ input[type="date"] {
 .dates-block .value input[type="date"] {
     border: none;
     background-color: var(--input-background-color);
-    padding: var(--spacing-unit); /* 4pt */
+    padding: 0; /* Removed padding */
     font-family: inherit;
     font-size: inherit;
     box-sizing: border-box;
@@ -163,7 +163,7 @@ input[type="date"] {
     font-family: inherit;
     font-size: inherit;
     border: 1px solid var(--focus-outline-color);
-    padding: calc(var(--spacing-unit) * 0.5) var(--spacing-unit); /* 2pt 4pt */
+    padding: 0; /* Removed padding */
     background-color: var(--input-background-color);
     border-radius: 0;
     width: 100%;
@@ -177,7 +177,7 @@ input[type="date"] {
 .right-info-block input[type="text"] {
     border: none;
     background-color: var(--input-background-color);
-    padding: var(--spacing-unit); /* 4pt */
+    padding: 0; /* Removed padding */
     font-family: inherit;
     font-size: inherit;
     box-sizing: border-box;
@@ -229,7 +229,7 @@ input[type="date"] {
     box-sizing: border-box; /* Include padding in width */
     border: none;
     background-color: var(--input-background-color);
-    padding: var(--spacing-unit); /* 4pt */
+    padding: 0; /* Removed padding */
     font-family: inherit;
     font-size: inherit;
 }
@@ -238,7 +238,7 @@ input[type="date"] {
     width: 100%; /* Keep other inputs at 100% */
     border: none;
     background-color: var(--input-background-color);
-    padding: var(--spacing-unit); /* 4pt */
+    padding: 0; /* Removed padding */
     font-family: inherit;
     font-size: inherit;
     box-sizing: border-box;
@@ -301,8 +301,8 @@ input[type="date"] {
      width: auto;
 }
 #recurringDamagesInputTable td:nth-child(3) input[type="text"] { /* Set recurring damages amount fixed */
-     width: 90px !important; /* Force width */
-     min-width: 90px !important; /* Force min-width */
+     width: 85px;
+     min-width: 85px; /* Ensure it doesn't shrink */
      box-sizing: border-box; /* Ensure padding is included in width */
 }
 
@@ -356,7 +356,7 @@ input[type="date"] {
 /* Common styles for amount input - Width is now handled by the more specific rule above */
 .amount-frequency-cell input[name="recurringAmount"] {
     display: block; /* Force onto separate lines */
-    /* width: 90px; */ /* Removed width from here */
+    /* width: 85px; */ /* Removed width from here */
     box-sizing: border-box; /* Include padding/border in width */
     margin-bottom: 2px; /* Small gap between elements */
     text-align: right; /* Align text/value to the right */
@@ -377,14 +377,14 @@ input[type="date"] {
 /* Ensure the input keeps its background */
 .amount-frequency-cell input[name="recurringAmount"] {
      background-color: var(--input-background-color);
-     padding: var(--spacing-unit); /* Ensure padding is applied */
+     padding: 0; /* Removed padding */
 }
 
 /* Ensure the select keeps its background and border */
 .amount-frequency-cell select[name="recurringFrequency"] {
     background-color: var(--input-background-color);
     border: 1px solid var(--focus-outline-color); /* Add border similar to other selects */
-    padding: calc(var(--spacing-unit) * 0.5) 12px calc(var(--spacing-unit) * 0.5) var(--spacing-unit); /* Adjust right padding */
+    padding: 0 12px 0 0; /* Removed padding but kept right padding for arrow */
     appearance: none; /* Remove default appearance */
     -webkit-appearance: none;
     -moz-appearance: none;
