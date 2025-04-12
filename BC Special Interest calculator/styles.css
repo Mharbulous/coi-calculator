@@ -196,7 +196,7 @@ input[type="date"] {
     margin-top: 0; /* Keep this for the first section title */
  }
 
-/* Special Damages Input Table */
+/* General Input Table Styles (to be overridden by specific tables) */
 .input-table {
     width: 100%;
     border-collapse: collapse;
@@ -244,12 +244,7 @@ input[type="date"] {
 .input-table td input:focus {
     outline: 1px solid var(--focus-outline-color);
 }
-.input-table th:nth-child(1) { }
-.input-table th:nth-child(2) { }
-.input-table th:nth-child(3) { }
-.input-table th:nth-child(4) { }
-
-
+/* Remove old tfoot styling if needed */
 .input-table tfoot td {
     border: none;
     text-align: right;
@@ -257,7 +252,6 @@ input[type="date"] {
 }
 
 /* --- Column Width Adjustments for Input Tables --- */
-
 /* Default for Description columns (will take remaining space) */
 #specialDamagesInputTable th:nth-child(2),
 #specialDamagesInputTable td:nth-child(2),
@@ -271,8 +265,8 @@ input[type="date"] {
 #specialDamagesInputTable td:nth-child(1),
 #specialDamagesInputTable th:nth-child(3), /* Amount */
 #specialDamagesInputTable td:nth-child(3),
-#specialDamagesInputTable th:nth-child(4), /* Action */
-#specialDamagesInputTable td:nth-child(4),
+/* #specialDamagesInputTable th:nth-child(4), Action column removed */
+/* #specialDamagesInputTable td:nth-child(4), Action column removed */
 #recurringDamagesInputTable th:nth-child(1), /* Date Range */
 #recurringDamagesInputTable td:nth-child(1),
 #recurringDamagesInputTable th:nth-child(3), /* Amount */
@@ -286,10 +280,10 @@ input[type="date"] {
 /* Ensure inputs within shrink-to-fit columns don't force excessive width */
 /* Date inputs already have fixed width */
 /* Amount inputs */
-#specialDamagesInputTable td:nth-child(3) input[type="number"] { /* Keep single damages amount auto */
-     min-width: 60px;
-     width: auto;
-}
+/* #specialDamagesInputTable td:nth-child(3) input[type="number"] { /* Handled by .amount-input now */
+/*     min-width: 60px; */
+/*     width: auto; */
+/* } */
 #recurringDamagesInputTable td:nth-child(3) input[type="text"] { /* Set recurring damages amount fixed */
      width: 85px;
      min-width: 85px; /* Ensure it doesn't shrink */
@@ -298,14 +292,14 @@ input[type="date"] {
 
 
 /* Action buttons */
-#specialDamagesInputTable td:nth-child(4) button,
+/* #specialDamagesInputTable td:nth-child(4) button, /* Handled by .delete-icon now */
 #recurringDamagesInputTable td:nth-child(4) button {
     width: auto; /* Allow button to size naturally */
     margin: 0 auto; /* Center button */
 }
 
 /* Override global input width for description fields to ensure they fill */
-#specialDamagesInputTable td:nth-child(2) input[type="text"],
+#specialDamagesInputTable td:nth-child(2) input[type="text"], /* Handled by .inline-editable-input now */
 #recurringDamagesInputTable td:nth-child(2) input[type="text"] {
     width: 100%;
     min-width: 150px; /* Give description a reasonable minimum */
@@ -318,17 +312,14 @@ input[type="date"] {
     align-items: center;
     margin-bottom: 2px;
 }
-
 .date-range-cell .date-field:last-child {
     margin-bottom: 0;
 }
-
 .date-range-cell .date-label {
     font-weight: bold;
     margin-right: 4px;
     min-width: 35px; /* Ensure consistent width for labels */
 }
-
 .date-range-cell input[type="date"] {
     flex: 1;
 }
@@ -338,7 +329,6 @@ input[type="date"] {
     width: auto; /* Allow cell to shrink to content */
     position: relative; /* Needed for absolute positioning of the custom arrow */
 }
-
 /* Common styles for amount input - Width is now handled by the more specific rule above */
 .amount-frequency-cell input[name="recurringAmount"] {
     display: block;
@@ -346,7 +336,6 @@ input[type="date"] {
     margin-bottom: 2px;
     text-align: right; /* Align text/value to the right */
 }
-
 /* Styles for frequency select */
 .amount-frequency-cell select[name="recurringFrequency"] {
     display: block; /* Force onto separate lines */
@@ -358,13 +347,11 @@ input[type="date"] {
     padding-right: 12px; /* Adjust padding for text-arrow gap (7px arrow start + 5px gap) */
     text-align-last: right; /* Align selected option right */
 }
-
 /* Ensure the input keeps its background */
 .amount-frequency-cell input[name="recurringAmount"] {
      background-color: var(--input-background-color);
      padding: 0;
 }
-
 /* Ensure the select keeps its background and border */
 .amount-frequency-cell select[name="recurringFrequency"] {
     background-color: var(--input-background-color);
@@ -379,7 +366,6 @@ input[type="date"] {
     background-size: 5px 5px, 5px 5px;
     background-repeat: no-repeat;
 }
-
 /* Hide custom arrow in print where appearance: none is also applied */
 @media print {
     .amount-frequency-cell select[name="recurringFrequency"] {
@@ -387,12 +373,13 @@ input[type="date"] {
     }
 }
 
-
+/* General Button Styles (Add/Remove) */
 #addRowBtn, #addRecurringTableRowBtn, .remove-row-btn, .remove-recurring-row-btn {
     padding: calc(var(--spacing-unit) * 0.5) var(--spacing-unit);
     font-size: 0.9em;
     cursor: pointer;
 }
+/* Specific centering for old remove button (if needed) */
 .remove-row-btn {
     display: block;
     margin: 0 auto; /* Center button */
@@ -555,7 +542,7 @@ input[type="date"] {
         -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
     }
     /* Hide input elements and buttons meant for interaction */
-    .input-table input, .input-table button, #addRowBtn, #calculateBtn {
+    .input-table input, .input-table button, #addRowBtn, #addRecurringTableRowBtn, #calculateBtn {
         display: none !important;
     }
     /* Display the values from inputs if needed (requires JS to populate spans) */
@@ -589,3 +576,296 @@ input[type="date"] {
           display: none;
       }
   } /* End @media print */
+
+
+/* --- START: Modern Styles for Special Damages Table --- */
+
+#specialDamagesInputTable {
+    width: 100%;
+    border-collapse: collapse;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border: none; /* Override general .input-table border */
+    margin-bottom: 0; /* Override general .input-table margin */
+    line-height: var(--base-line-height); /* Use base line height */
+}
+
+#specialDamagesInputTable th {
+    background-color: #f8f8f8;
+    text-align: left;
+    padding: 12px 15px;
+    border: none; /* Override general .input-table border */
+    border-bottom: 2px solid #ddd;
+    font-weight: 600;
+    vertical-align: middle; /* Keep middle alignment */
+}
+
+#specialDamagesInputTable td {
+    padding: 10px 15px;
+    border: none; /* Override general .input-table border */
+    border-bottom: 1px solid #eee;
+    position: relative;
+    vertical-align: middle; /* Keep middle alignment */
+}
+
+/* Remove hover effect from general input table if it exists */
+/* Add specific hover for the new table */
+#specialDamagesInputTable tr:hover {
+    background-color: #f9f9f9;
+}
+#specialDamagesInputTable tr:hover td {
+    background-color: inherit; /* Ensure td inherits hover color */
+}
+
+
+/* Editable field styling */
+#specialDamagesInputTable .editable {
+    cursor: text;
+    position: relative;
+    display: inline-block;
+    padding: 2px 4px;
+    min-width: 50px;
+    border-radius: 3px; /* Prepare for hover outline */
+    transition: outline 0.1s ease-in-out; /* Smooth transition for outline */
+}
+
+#specialDamagesInputTable .editable:hover {
+    outline: 2px solid #4a90e2;
+    outline-offset: -2px;
+}
+
+/* Style the actual input elements to appear as plain text */
+#specialDamagesInputTable .inline-editable-input,
+#specialDamagesInputTable .inline-date-input {
+    border: none !important; /* Override general input styles */
+    background-color: transparent !important; /* Override general input styles */
+    padding: 0 !important; /* Override general input styles */
+    margin: 0;
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+    width: 100%; /* Make input fill the span */
+    min-width: auto !important; /* Override fixed widths */
+    display: inline;
+    outline: none;
+    box-shadow: none;
+    box-sizing: border-box;
+    vertical-align: middle; /* Align input text vertically */
+}
+/* Specific styling for date input */
+#specialDamagesInputTable .inline-date-input {
+     width: auto; /* Let it size naturally */
+     text-align: left;
+     /* Hide the default date picker icon */
+     appearance: none;
+     -webkit-appearance: none;
+     -moz-appearance: none;
+}
+/* Hide Chrome/Edge date picker icon */
+#specialDamagesInputTable .inline-date-input::-webkit-calendar-picker-indicator {
+    display: none;
+    -webkit-appearance: none;
+}
+
+
+/* Icons - Generalize for both tables */
+/* Date icon specific to single table */
+#specialDamagesInputTable .icon.date-icon {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    /* margin-right: 5px; Handled by .editable margin */
+    vertical-align: middle;
+    cursor: pointer; /* Added cursor */
+}
+
+/* Delete Icon - Apply to both tables */
+#specialDamagesInputTable .delete-icon,
+#recurringDamagesInputTable .delete-icon {
+    color: #e74c3c;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    padding: 5px; /* Hit area */
+    z-index: 1;
+}
+
+/* Delete Icon Hover - Apply to both tables */
+#specialDamagesInputTable tr:hover .delete-icon,
+#recurringDamagesInputTable tr:hover .delete-icon {
+    opacity: 1;
+}
+
+
+/* Date Cell Specifics (Single Table Only) */
+#specialDamagesInputTable .date-cell {
+    white-space: nowrap;
+    /* position: relative; Inherited from td */
+}
+#specialDamagesInputTable .date-cell .editable {
+    margin-right: 5px; /* Space between date text and icon */
+}
+
+#specialDamagesInputTable .date-icon {
+    /* position: static; Default */
+    margin-left: 0; /* Reset margin */
+    vertical-align: middle;
+    /* cursor: pointer; Moved to general .icon.date-icon rule */
+}
+
+/* Amount Cell Specifics (Single Table Only) */
+#specialDamagesInputTable .amount-cell {
+    text-align: right;
+    /* position: relative; Inherited from td */
+    padding-right: 60px !important; /* Override general td padding, ensure enough space for icon */
+    /* Ensure the cell itself takes up appropriate space if needed, though usually handled by content */
+}
+#specialDamagesInputTable .amount-cell .editable {
+    /* Let the editable span size naturally or fill available space */
+    /* width: calc(100% - 8px); /* REMOVE this rule - likely causing the issue */
+    display: block; /* Make the span take block-level characteristics */
+    text-align: right; /* Align the text (and thus the input) within the span */
+    margin-right: 0; /* Ensure no extra margin pushes it */
+}
+#specialDamagesInputTable .amount-cell .amount-input {
+    text-align: right; /* Keep input text right-aligned */
+    width: auto; /* Allow input to size based on content, or set a min-width if needed */
+    min-width: 80px; /* Provide a minimum width to prevent excessive shrinking */
+    display: inline-block; /* Allow it to sit naturally within the flow */
+    /* box-sizing: border-box; Already set globally for inputs */
+}
+
+/* Amount Header Specifics */
+#specialDamagesInputTable th.amount-header {
+    text-align: right;
+    padding-right: 60px !important; /* Override general th padding */
+}
+
+/* Remove Action Column Header/Cell if it exists (HTML already changed) */
+#specialDamagesInputTable th:last-child,
+#specialDamagesInputTable td:last-child {
+    /* If the action column wasn't removed from HTML, hide it */
+    /* display: none; */ /* HTML was changed, so this isn't strictly needed */
+}
+
+/* Add button styling (moved outside table) */
+#addRowBtn.add-button,
+#addRecurringTableRowBtn.add-button { /* Apply to both buttons */
+    margin-top: 15px;
+    background-color: #4a90e2;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s;
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+    font-size: var(--base-font-size); /* Match base font size */
+}
+
+#addRowBtn.add-button:hover,
+#addRecurringTableRowBtn.add-button:hover { /* Apply to both buttons */
+    background-color: #3a7bc8;
+}
+
+/* Override old button styles specifically for #addRowBtn if needed */
+#addRowBtn, #addRecurringTableRowBtn {
+    padding: 8px 15px !important; /* Override old padding */
+    font-size: var(--base-font-size) !important; /* Override old font size */
+}
+
+/* Hide the old remove button if it somehow still exists */
+#specialDamagesInputTable .remove-row-btn {
+    display: none !important;
+}
+
+/* Remove tfoot styling for this table */
+#specialDamagesInputTable tfoot {
+    display: none; /* Hide the tfoot entirely */
+}
+
+/* --- END: Modern Styles for Special Damages Table --- */
+
+
+/* --- START: Consistent Styles for Recurring Damages Table --- */
+
+#recurringDamagesInputTable {
+    width: 100%;
+    border-collapse: collapse;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1); /* Match shadow */
+    border: none; /* Override general .input-table border */
+    margin-bottom: 0; /* Override general .input-table margin */
+    line-height: var(--base-line-height); /* Match line height */
+}
+
+#recurringDamagesInputTable th {
+    background-color: #f8f8f8; /* Match header background */
+    text-align: center; /* Keep centered alignment for recurring headers */
+    padding: 12px 15px; /* Match padding */
+    border: none; /* Override general .input-table border */
+    border-bottom: 2px solid #ddd; /* Match header bottom border */
+    font-weight: 600; /* Match font weight */
+    vertical-align: middle; /* Match vertical alignment */
+}
+
+#recurringDamagesInputTable td {
+    padding: 10px 15px; /* Match padding */
+    border: none; /* Override general .input-table border */
+    border-bottom: 1px solid #eee; /* Match row bottom border */
+    vertical-align: middle; /* Match vertical alignment */
+}
+
+/* Add specific hover for the recurring table */
+#recurringDamagesInputTable tr:hover {
+    background-color: #f9f9f9; /* Match hover background */
+}
+#recurringDamagesInputTable tr:hover td {
+    background-color: inherit; /* Ensure td inherits hover color */
+}
+
+/* Style inputs within recurring table to look less like inputs (optional, but improves consistency) */
+#recurringDamagesInputTable input[type="date"],
+#recurringDamagesInputTable input[type="text"],
+#recurringDamagesInputTable select[name="recurringFrequency"] {
+    border: 1px solid #ccc; /* Lighter border than default */
+    background-color: #fdfdfd; /* Slightly off-white background */
+    padding: 2px 4px; /* Add some padding */
+    border-radius: 3px;
+}
+#recurringDamagesInputTable input:focus,
+#recurringDamagesInputTable select:focus {
+    outline: 1px solid #4a90e2; /* Blue outline on focus */
+    border-color: #4a90e2;
+}
+/* Keep specific recurring cell styles */
+#recurringDamagesInputTable .date-range-cell,
+#recurringDamagesInputTable .amount-frequency-cell {
+    /* Keep existing styles */
+}
+/* Remove old recurring remove button style */
+#recurringDamagesInputTable .remove-recurring-row-btn {
+     display: none !important; /* Hide old button if it still exists */
+}
+
+/* Adjust padding for the last cell (Action column) in recurring table to center icon */
+#recurringDamagesInputTable td:last-child {
+    text-align: center; /* Center the icon horizontally */
+    position: relative; /* Needed for absolute positioning of icon */
+    padding-right: 15px; /* Reset padding to default */
+}
+
+
+/* Remove tfoot styling for recurring table */
+#recurringDamagesInputTable tfoot {
+    display: none; /* Hide the tfoot entirely */
+}
+
+/* --- END: Consistent Styles for Recurring Damages Table --- */

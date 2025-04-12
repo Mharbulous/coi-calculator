@@ -50,27 +50,38 @@
                 <tr>
                     <th>Date Incurred</th>
                     <th>Description</th>
-                    <th>Amount</th>
-                    <th>Action</th>
+                    <th class="amount-header">Amount</th>
+                    <!-- Action column removed -->
                 </tr>
             </thead>
             <tbody data-display="specialDamagesTbody">
-                <!-- Rows will be added dynamically by JS -->
+                <!-- Rows will be added dynamically by JS, structure below is a template -->
                 <tr>
-                    <td><input type="date" name="damageDate"></td>
-                    <td><input type="text" name="damageDescription"></td>
-                    <td><input type="text" name="damageAmount"></td> <!-- Changed type to text -->
-                    <td><button type="button" class="remove-row-btn">Remove</button></td>
+                    <td class="date-cell">
+                        <span class="editable">
+                            <!-- Keep input for JS compatibility, hide visually later if needed -->
+                            <input type="date" name="damageDate" class="inline-date-input">
+                        </span>
+                        <span class="icon date-icon">📅</span>
+                    </td>
+                    <td>
+                        <span class="editable">
+                            <input type="text" name="damageDescription" class="inline-editable-input">
+                        </span>
+                    </td>
+                    <td class="amount-cell">
+                        <span class="editable">
+                            <input type="text" name="damageAmount" class="inline-editable-input amount-input"> <!-- Added amount-input class -->
+                        </span>
+                        <span class="delete-icon">🗑️</span>
+                    </td>
+                    <!-- Remove button cell removed -->
                 </tr>
             </tbody>
-            <tfoot>
-                <tr>
-                    <td colspan="4" class="button-cell">
-                        <button type="button" id="addRowBtn">Add Special Damages (single)</button>
-                    </td>
-                </tr>
-            </tfoot>
+            <!-- tfoot removed -->
         </table>
+        <!-- Add button moved below table -->
+        <button type="button" id="addRowBtn" class="add-button">Add Special Damages (single)</button>
 
         <!-- New Recurring Damages Table -->
         <div class="section-title">Special Damages (Recurring)</div>
@@ -108,17 +119,14 @@
                             <option value="Full Term">Full Term</option>
                         </select>
                     </td>
-                    <td><button type="button" class="remove-recurring-row-btn">Remove</button></td>
+                    <!-- Replace button with delete icon -->
+                    <td><span class="delete-icon">🗑️</span></td>
                 </tr>
             </tbody>
-            <tfoot>
-                <tr>
-                    <td colspan="4" class="button-cell">
-                        <button type="button" id="addRecurringTableRowBtn">Add Special Damages (recurring)</button>
-                    </td>
-                </tr>
-            </tfoot>
+            <!-- tfoot removed -->
         </table>
+        <!-- Add button moved below table -->
+        <button type="button" id="addRecurringTableRowBtn" class="add-button">Add Special Damages (recurring)</button>
 
         <div class="calculate-section">
              <button type="button" id="calculateBtn">Calculate Interest</button>

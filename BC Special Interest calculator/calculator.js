@@ -72,16 +72,35 @@ function generateId() {
 
 addRowBtn.addEventListener('click', addDamageRow);
 calculateBtn.addEventListener('click', handleCalculation);
-// Add event listener to handle removing rows dynamically
+
+// Add event listener for clicks within the single damages table body
 damagesTbody.addEventListener('click', (event) => {
-    if (event.target.classList.contains('remove-row-btn')) {
+    // Handle removing rows via the delete icon
+    if (event.target.classList.contains('delete-icon')) {
         removeDamageRow(event.target);
+    }
+    // Handle clicking the date icon to trigger the date picker
+    else if (event.target.classList.contains('date-icon')) {
+        const dateCell = event.target.closest('.date-cell');
+        if (dateCell) {
+            const dateInput = dateCell.querySelector('input[name="damageDate"]');
+            if (dateInput) {
+                try {
+                    dateInput.showPicker();
+                } catch (error) {
+                    console.warn("Browser doesn't support showPicker(), falling back to click().", error);
+                    // Fallback for browsers that don't support showPicker()
+                    dateInput.click();
+                }
+            }
+        }
     }
 });
 
 // Add blur listener for currency formatting on single damages amount
 damagesTbody.addEventListener('blur', (event) => {
-    if (event.target.matches('input[name="damageAmount"]')) {
+    // Target the input within the editable span
+    if (event.target.matches('.editable > input[name="damageAmount"]')) {
         formatInputAsCurrency(event.target);
     }
 }, true); // Use capture phase to format before other potential blur listeners
@@ -89,10 +108,10 @@ damagesTbody.addEventListener('blur', (event) => {
 
 // New Recurring Damages Table Listeners
 addRecurringTableRowBtn.addEventListener('click', addRecurringTableRow);
-// Add event listener to handle removing recurring rows dynamically
+// Add event listener to handle removing recurring rows dynamically via delete icon
 recurringDamagesTbody.addEventListener('click', (event) => {
-    if (event.target.classList.contains('remove-recurring-row-btn')) {
-        removeRecurringTableRow(event.target);
+    if (event.target.classList.contains('delete-icon')) { // Target the delete icon
+        removeRecurringTableRow(event.target); // Pass the icon element
     }
 });
 
@@ -118,22 +137,22 @@ damagesTbody.addEventListener('keydown', (event) => {
     const key = event.key;
 
     // Case 1: Tab from Amount field - behavior depends on whether it's the last row
-    if (target.matches('input[name="damageAmount"]') && key === 'Tab') {
+    if (target.matches('.editable > input[name="damageAmount"]') && key === 'Tab' && !event.shiftKey) {
         event.preventDefault(); // Prevent default Tab behavior
-        
+
         // Get the current row and check if it's the last row
         const currentRow = target.closest('tr');
         const isLastRow = currentRow === damagesTbody.lastElementChild;
-        
+
         if (isLastRow) {
-            // If it's the last row, add a new row (original behavior)
+            // If it's the last row, add a new row
             addDamageRow();
-            
+
             // Find the newly added row (last row in the tbody)
             const newRow = damagesTbody.lastElementChild;
             if (newRow) {
                 // Find the date input in the new row and focus it
-                const newDateInput = newRow.querySelector('input[name="damageDate"]');
+                const newDateInput = newRow.querySelector('.editable > input[name="damageDate"]');
                 if (newDateInput) {
                     newDateInput.focus();
                 }
@@ -142,7 +161,7 @@ damagesTbody.addEventListener('keydown', (event) => {
             // If it's not the last row, focus the date field in the next row
             const nextRow = currentRow.nextElementSibling;
             if (nextRow) {
-                const nextDateInput = nextRow.querySelector('input[name="damageDate"]');
+                const nextDateInput = nextRow.querySelector('.editable > input[name="damageDate"]');
                 if (nextDateInput) {
                     nextDateInput.focus();
                 }
@@ -150,17 +169,30 @@ damagesTbody.addEventListener('keydown', (event) => {
         }
     }
     // Case 2: Tab from Date field moves focus to Description field in the same row
-    else if (target.matches('input[name="damageDate"]') && key === 'Tab') {
+    else if (target.matches('.editable > input[name="damageDate"]') && key === 'Tab' && !event.shiftKey) {
         event.preventDefault(); // Prevent default Tab behavior
 
         const currentRow = target.closest('tr');
         if (currentRow) {
-            const descriptionInput = currentRow.querySelector('input[name="damageDescription"]');
+            const descriptionInput = currentRow.querySelector('.editable > input[name="damageDescription"]');
             if (descriptionInput) {
                 descriptionInput.focus();
             }
         }
     }
+    // Case 3: Tab from Description field moves focus to Amount field in the same row
+    else if (target.matches('.editable > input[name="damageDescription"]') && key === 'Tab' && !event.shiftKey) {
+        event.preventDefault(); // Prevent default Tab behavior
+
+        const currentRow = target.closest('tr');
+        if (currentRow) {
+            const amountInput = currentRow.querySelector('.editable > input[name="damageAmount"]');
+            if (amountInput) {
+                amountInput.focus();
+            }
+        }
+    }
+    // Add Shift+Tab handling if needed (optional)
 });
 
 
@@ -168,28 +200,53 @@ damagesTbody.addEventListener('keydown', (event) => {
 
 function createDamageRow() {
     const row = document.createElement('tr');
+    // Use the new HTML structure matching index.html and the mockup
     row.innerHTML = `
-        <td><input type="date" name="damageDate"></td>
-        <td><input type="text" name="damageDescription"></td>
-        <td><input type="text" name="damageAmount"></td> <!-- Changed type to text -->
-        <td><button type="button" class="remove-row-btn">Remove</button></td>
+        <td class="date-cell">
+            <span class="editable">
+                <input type="date" name="damageDate" class="inline-date-input">
+            </span>
+            <span class="icon date-icon">📅</span>
+        </td>
+        <td>
+            <span class="editable">
+                <input type="text" name="damageDescription" class="inline-editable-input">
+            </span>
+        </td>
+        <td class="amount-cell">
+            <span class="editable">
+                <input type="text" name="damageAmount" class="inline-editable-input amount-input">
+            </span>
+            <span class="delete-icon">🗑️</span>
+        </td>
     `;
     return row;
 }
 
 function addDamageRow() {
-    damagesTbody.appendChild(createDamageRow());
+    const newRow = createDamageRow();
+    damagesTbody.appendChild(newRow);
+    // Optional: Focus the date input of the newly added row
+    const dateInput = newRow.querySelector('.editable > input[name="damageDate"]');
+    if (dateInput) {
+        // dateInput.focus(); // Focusing might be disruptive, consider if needed
+    }
 }
 
-function removeDamageRow(button) {
-    const row = button.closest('tr');
-    // Prevent removing the last row if desired, or handle accordingly
+function removeDamageRow(deleteIcon) {
+    const row = deleteIcon.closest('tr');
+    // Prevent removing the last row
     if (damagesTbody.querySelectorAll('tr').length > 1) {
         row.remove();
     } else {
-        // Optionally clear the inputs of the last row instead of removing it
+        // Clear the inputs of the last row instead of removing it
         const inputs = row.querySelectorAll('input');
         inputs.forEach(input => input.value = '');
+        // Optionally reset description/amount to default or empty state
+        const amountInput = row.querySelector('input[name="damageAmount"]');
+        if (amountInput) {
+            amountInput.value = formatCurrency(0); // Reset to $0.00
+        }
     }
 }
 
@@ -220,7 +277,7 @@ function createRecurringDamageRow() {
                 <option value="Full Term">Full Term</option>
             </select>
         </td>
-        <td><button type="button" class="remove-recurring-row-btn">Remove</button></td>
+        <td><span class="delete-icon">🗑️</span></td> <!-- Use delete icon span -->
     `;
     return row;
 }
@@ -229,9 +286,9 @@ function addRecurringTableRow() {
     recurringDamagesTbody.appendChild(createRecurringDamageRow());
 }
 
-function removeRecurringTableRow(button) {
-    const row = button.closest('tr');
-    // Prevent removing the last row if desired, or handle accordingly
+function removeRecurringTableRow(deleteIcon) { // Function now receives the icon
+    const row = deleteIcon.closest('tr');
+    // Prevent removing the last row
     if (recurringDamagesTbody.querySelectorAll('tr').length > 1) {
         row.remove();
     } else {
@@ -254,17 +311,18 @@ function getDamagesInput() {
     const rows = damagesTbody.querySelectorAll('tr');
     const damages = [];
     rows.forEach(row => {
-        const dateInput = row.querySelector('input[name="damageDate"]');
-        const descriptionInput = row.querySelector('input[name="damageDescription"]');
-        const amountInput = row.querySelector('input[name="damageAmount"]');
+        // Find inputs within the .editable spans
+        const dateInput = row.querySelector('.editable > input[name="damageDate"]');
+        const descriptionInput = row.querySelector('.editable > input[name="damageDescription"]');
+        const amountInput = row.querySelector('.editable > input[name="damageAmount"]');
 
         // Use parseCurrencyInput to handle formatted values
         const amountValue = parseCurrencyInput(amountInput.value);
 
-        if (dateInput.value && amountValue > 0) { // Only add if date exists and amount is positive
+        if (dateInput && dateInput.value && amountInput && amountValue > 0) { // Check inputs exist and have valid values
             damages.push({
                 date: dateInput.value,
-                description: descriptionInput.value || '', // Allow empty description
+                description: descriptionInput ? descriptionInput.value || '' : '', // Allow empty description
                 amount: amountValue
             });
         }
