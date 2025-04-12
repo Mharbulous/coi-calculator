@@ -332,7 +332,7 @@ export function calculateSpecialDamagesInterest(causeOfActionDateStr, judgmentDa
         // Days in this specific calculation period
         const daysInCalcPeriod = daysBetween(periodStartDate, effectivePeriodEndDate) + 1; // Inclusive end
 
-        // Calculate interest on the starting balance for the *entire* calculation period
+        // Calculate interest on the Carry over for the *entire* calculation period
         let interestOnBalance = calculateSimpleInterest(currentBalance, periodRate, daysInCalcPeriod);
 
         let damagesInPeriodForDisplay = []; // For the output table
@@ -370,7 +370,7 @@ export function calculateSpecialDamagesInterest(causeOfActionDateStr, judgmentDa
         }
 
         // Accumulate interest
-        // Interest for the period = interest on starting balance + specific interest on damages incurred in the final period.
+        // Interest for the period = interest on Carry over + specific interest on damages incurred in the final period.
         let periodInterestAccrued = interestOnBalance + interestOnDamagesInFinalPeriod;
         cumulativeInterest += periodInterestAccrued;
 

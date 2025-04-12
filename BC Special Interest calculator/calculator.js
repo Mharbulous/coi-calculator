@@ -469,7 +469,7 @@ function displayCalculationResults(result) {
             <tbody>
                 <tr>
                     <td>${period.periodStartDate}</td>
-                    <td>Starting balance</td>
+                    <td>Carry over</td>
                     <td class="text-right">${formatCurrency(period.startingBalance)}</td>
                     <td class="text-right">${formatCurrency(period.interestOnBalance)}</td>
                 </tr>
