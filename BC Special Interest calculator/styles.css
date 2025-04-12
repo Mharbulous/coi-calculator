@@ -296,11 +296,16 @@ input[type="date"] {
 /* Ensure inputs within shrink-to-fit columns don't force excessive width */
 /* Date inputs already have fixed width */
 /* Amount inputs */
-#specialDamagesInputTable td:nth-child(3) input[type="number"],
-#recurringDamagesInputTable td:nth-child(3) input[type="text"] {
-     min-width: 60px; /* Prevent amount input becoming too small */
-     width: auto; /* Allow to shrink to content */
+#specialDamagesInputTable td:nth-child(3) input[type="number"] { /* Keep single damages amount auto */
+     min-width: 60px;
+     width: auto;
 }
+#recurringDamagesInputTable td:nth-child(3) input[type="text"] { /* Set recurring damages amount fixed */
+     width: 90px !important; /* Force width */
+     min-width: 90px !important; /* Force min-width */
+     box-sizing: border-box; /* Ensure padding is included in width */
+}
+
 
 /* Action buttons */
 #specialDamagesInputTable td:nth-child(4) button,
@@ -345,22 +350,27 @@ input[type="date"] {
 /* Style for combined Amount/Frequency cell */
 .amount-frequency-cell {
     width: auto; /* Allow cell to shrink to content */
+    position: relative; /* Needed for absolute positioning of the custom arrow */
 }
 
-/* Common styles for both amount input and frequency select */
-.amount-frequency-cell input[name="recurringAmount"],
-.amount-frequency-cell select[name="recurringFrequency"] {
+/* Common styles for amount input - Width is now handled by the more specific rule above */
+.amount-frequency-cell input[name="recurringAmount"] {
     display: block; /* Force onto separate lines */
-    width: 150px;   /* Fixed width for both elements */
+    /* width: 90px; */ /* Removed width from here */
     box-sizing: border-box; /* Include padding/border in width */
     margin-bottom: 2px; /* Small gap between elements */
     text-align: right; /* Align text/value to the right */
 }
 
-/* Remove bottom margin from the select (last element) */
+/* Styles for frequency select */
 .amount-frequency-cell select[name="recurringFrequency"] {
-    margin-bottom: 0;
-    padding-right: calc(var(--spacing-unit) * 3); /* Keep space for dropdown arrow */
+    display: block; /* Force onto separate lines */
+    width: auto;    /* Allow dropdown to size based on content */
+    min-width: fit-content; /* Ensure it's at least as wide as its longest option */
+    box-sizing: border-box; /* Include padding/border in width */
+    text-align: right; /* Align text/value to the right */
+    margin-bottom: 0; /* Remove bottom margin */
+    padding-right: 12px; /* Adjust padding for text-arrow gap (7px arrow start + 5px gap) */
     text-align-last: right; /* Align selected option right */
 }
 
@@ -374,11 +384,22 @@ input[type="date"] {
 .amount-frequency-cell select[name="recurringFrequency"] {
     background-color: var(--input-background-color);
     border: 1px solid var(--focus-outline-color); /* Add border similar to other selects */
-    padding: calc(var(--spacing-unit) * 0.5) var(--spacing-unit); /* Adjust padding if needed */
-    padding-right: calc(var(--spacing-unit) * 3); /* Keep space for dropdown arrow */
+    padding: calc(var(--spacing-unit) * 0.5) 12px calc(var(--spacing-unit) * 0.5) var(--spacing-unit); /* Adjust right padding */
     appearance: none; /* Remove default appearance */
     -webkit-appearance: none;
     -moz-appearance: none;
+    /* Add background image for arrow - simple CSS triangle */
+    background-image: linear-gradient(45deg, transparent 50%, black 50%), linear-gradient(135deg, black 50%, transparent 50%);
+    background-position: calc(100% - 7px) center, calc(100% - 2px) center; /* Position arrow 2px from right edge */
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+}
+
+/* Hide custom arrow in print where appearance: none is also applied */
+@media print {
+    .amount-frequency-cell select[name="recurringFrequency"] {
+        background-image: none !important;
+    }
 }
 
 

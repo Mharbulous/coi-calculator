@@ -103,6 +103,14 @@ recurringDamagesTbody.addEventListener('blur', (event) => {
     }
 }, true); // Use capture phase
 
+// Event listener for frequency dropdown changes using event delegation
+recurringDamagesTbody.addEventListener('change', (event) => {
+    if (event.target && event.target.matches('select[name="recurringFrequency"]')) {
+        const dropdown = event.target;
+        console.log(`Frequency dropdown width: ${dropdown.offsetWidth}px`);
+    }
+});
+
 
 // Add event listener for Tab key navigation enhancements for single damages table
 damagesTbody.addEventListener('keydown', (event) => {
