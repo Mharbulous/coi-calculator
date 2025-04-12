@@ -117,19 +117,35 @@ damagesTbody.addEventListener('keydown', (event) => {
     const target = event.target;
     const key = event.key;
 
-    // Case 1: Tab from Amount field adds a new row and focuses its Date field
+    // Case 1: Tab from Amount field - behavior depends on whether it's the last row
     if (target.matches('input[name="damageAmount"]') && key === 'Tab') {
         event.preventDefault(); // Prevent default Tab behavior
-
-        addDamageRow(); // Add a new row
-
-        // Find the newly added row (last row in the tbody)
-        const newRow = damagesTbody.lastElementChild;
-        if (newRow) {
-            // Find the date input in the new row and focus it
-            const newDateInput = newRow.querySelector('input[name="damageDate"]');
-            if (newDateInput) {
-                newDateInput.focus();
+        
+        // Get the current row and check if it's the last row
+        const currentRow = target.closest('tr');
+        const isLastRow = currentRow === damagesTbody.lastElementChild;
+        
+        if (isLastRow) {
+            // If it's the last row, add a new row (original behavior)
+            addDamageRow();
+            
+            // Find the newly added row (last row in the tbody)
+            const newRow = damagesTbody.lastElementChild;
+            if (newRow) {
+                // Find the date input in the new row and focus it
+                const newDateInput = newRow.querySelector('input[name="damageDate"]');
+                if (newDateInput) {
+                    newDateInput.focus();
+                }
+            }
+        } else {
+            // If it's not the last row, focus the date field in the next row
+            const nextRow = currentRow.nextElementSibling;
+            if (nextRow) {
+                const nextDateInput = nextRow.querySelector('input[name="damageDate"]');
+                if (nextDateInput) {
+                    nextDateInput.focus();
+                }
             }
         }
     }
