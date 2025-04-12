@@ -190,7 +190,6 @@ function removeDamageRow(button) {
         // Optionally clear the inputs of the last row instead of removing it
         const inputs = row.querySelectorAll('input');
         inputs.forEach(input => input.value = '');
-        // alert("Cannot remove the last row.");
     }
 }
 
@@ -294,7 +293,6 @@ function getRecurringDamagesInput() {
             // Additional validation: end date >= start date
             if (new Date(endDate) >= new Date(startDate)) {
                 recurringRules.push({
-                    // id: generateId(), // ID might not be needed if we don't manipulate individual rules after reading
                     startDate: startDate,
                     endDate: endDate,
                     frequency: frequencySelect.value,
@@ -311,7 +309,6 @@ function getRecurringDamagesInput() {
 // --- Calculation Handling ---
 
 function handleCalculation() {
-    // 1. Get Inputs
     // 1. Get Inputs
     const causeOfActionDate = causeOfActionDateInput.value;
     const judgmentDate = judgmentDateInput.value;

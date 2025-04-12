@@ -20,7 +20,7 @@
 
     --label-width-dates: 1.2in;
     --value-width-right: 1.5in;
-    --currency-column-width: 1.5in; /* May need adjustment for special damages output */
+    --currency-column-width: 1.5in;
 
     --base-line-height: 1.2;
     --table-line-height: 1.3;
@@ -123,15 +123,13 @@ input[type="date"] {
 .dates-block .value input[type="date"] {
     border: none;
     background-color: var(--input-background-color);
-    padding: 0; /* Removed padding */
+    padding: 0;
     font-family: inherit;
     font-size: inherit;
     box-sizing: border-box;
     text-align: right;
-    /* max-width: 140px; */ /* Removed conflicting rule */
-    /* width: 100%; */ /* Removed conflicting rule */
     margin-left: auto;
-    width: 101px; /* Set fixed width */
+    width: 101px;
     min-width: 101px; /* Prevent shrinking */
     box-sizing: border-box; /* Include padding in width */
 }
@@ -145,7 +143,6 @@ input[type="date"] {
 .right-info-block .registry-row {
     margin-bottom: calc(var(--spacing-unit) * 0.75); /* 3pt */
 }
-/* Removed judgment-amount-row margin adjustment as it's not present */
 .right-info-block .label {
     font-weight: bold;
     text-align: right;
@@ -163,7 +160,7 @@ input[type="date"] {
     font-family: inherit;
     font-size: inherit;
     border: 1px solid var(--focus-outline-color);
-    padding: 0; /* Removed padding */
+    padding: 0;
     background-color: var(--input-background-color);
     border-radius: 0;
     width: 100%;
@@ -177,7 +174,7 @@ input[type="date"] {
 .right-info-block input[type="text"] {
     border: none;
     background-color: var(--input-background-color);
-    padding: 0; /* Removed padding */
+    padding: 0;
     font-family: inherit;
     font-size: inherit;
     box-sizing: border-box;
@@ -187,7 +184,6 @@ input[type="date"] {
 .right-info-block input[type="text"]:focus {
     outline: 1px solid var(--focus-outline-color);
 }
-/* Removed [data-input="judgmentAwarded"] style */
 
 /* Section Titles */
  .section-title {
@@ -206,16 +202,15 @@ input[type="date"] {
     border-collapse: collapse;
     margin-bottom: var(--spacing-unit); /* 4pt */
     line-height: var(--table-line-height);
-    /* table-layout: fixed; */ /* Reverted */
 }
-.input-table th { /* Keep original padding for headers */
+.input-table th {
     border: 1px solid var(--border-color);
     padding: calc(var(--spacing-unit) * 0.75) calc(var(--spacing-unit) * 1.5); /* 3pt 6pt */
     vertical-align: middle; /* Align vertically centered */
 }
-.input-table td { /* Apply reduced padding to data cells */
+.input-table td { /* Apply standard 4px padding to data cells */
     border: 1px solid var(--border-color);
-    padding: 1px;
+    padding: 4px; /* Standardized padding */
     vertical-align: middle; /* Align vertically centered */
 }
 .input-table th {
@@ -224,21 +219,21 @@ input[type="date"] {
     text-align: center;
 }
 .input-table td input[type="date"] {
-    width: 101px; /* Set fixed width */
-    min-width: 101px; /* Prevent shrinking */
-    box-sizing: border-box; /* Include padding in width */
+    width: 101px;
+    min-width: 101px;
+    box-sizing: border-box;
     border: none;
     background-color: var(--input-background-color);
-    padding: 0; /* Removed padding */
+    padding: 0;
     font-family: inherit;
     font-size: inherit;
 }
 .input-table td input[type="text"],
 .input-table td input[type="number"] {
-    width: 100%; /* Keep other inputs at 100% */
+    width: 100%;
     border: none;
     background-color: var(--input-background-color);
-    padding: 0; /* Removed padding */
+    padding: 0;
     font-family: inherit;
     font-size: inherit;
     box-sizing: border-box;
@@ -249,15 +244,10 @@ input[type="date"] {
 .input-table td input:focus {
     outline: 1px solid var(--focus-outline-color);
 }
-.input-table th:nth-child(1) { /* width: 20%; */ } /* Date - Width controlled by .date-column-standard */
-.input-table th:nth-child(2) { /* width: 45%; */ } /* Description - General width removed */
-.input-table th:nth-child(3) { /* width: 20%; */ } /* Amount - General width removed */
-.input-table th:nth-child(4) { /* width: 15%; */ } /* Action - General width removed */
-
-/* Specific widths for Single Damages Table to help layout - REVERTED */
-/* #specialDamagesInputTable th:nth-child(2) { width: 45%; } */ /* Description */
-/* #specialDamagesInputTable th:nth-child(3) { width: 25%; } */ /* Amount */
-/* #specialDamagesInputTable th:nth-child(4) { width: auto; } */  /* Action */
+.input-table th:nth-child(1) { }
+.input-table th:nth-child(2) { }
+.input-table th:nth-child(3) { }
+.input-table th:nth-child(4) { }
 
 
 .input-table tfoot td {
@@ -323,10 +313,6 @@ input[type="date"] {
 /* --- End Column Width Adjustments --- */
 
 /* Style for combined Date Range cell */
-.date-range-cell {
-    padding: 2px !important; /* Override default cell padding */
-}
-
 .date-range-cell .date-field {
     display: flex;
     align-items: center;
@@ -355,10 +341,9 @@ input[type="date"] {
 
 /* Common styles for amount input - Width is now handled by the more specific rule above */
 .amount-frequency-cell input[name="recurringAmount"] {
-    display: block; /* Force onto separate lines */
-    /* width: 85px; */ /* Removed width from here */
-    box-sizing: border-box; /* Include padding/border in width */
-    margin-bottom: 2px; /* Small gap between elements */
+    display: block;
+    box-sizing: border-box;
+    margin-bottom: 2px;
     text-align: right; /* Align text/value to the right */
 }
 
@@ -377,15 +362,15 @@ input[type="date"] {
 /* Ensure the input keeps its background */
 .amount-frequency-cell input[name="recurringAmount"] {
      background-color: var(--input-background-color);
-     padding: 0; /* Removed padding */
+     padding: 0;
 }
 
 /* Ensure the select keeps its background and border */
 .amount-frequency-cell select[name="recurringFrequency"] {
     background-color: var(--input-background-color);
-    border: 1px solid var(--focus-outline-color); /* Add border similar to other selects */
-    padding: 0 12px 0 0; /* Removed padding but kept right padding for arrow */
-    appearance: none; /* Remove default appearance */
+    border: 1px solid var(--focus-outline-color);
+    padding: 0 12px 0 0;
+    appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;
     /* Add background image for arrow - simple CSS triangle */
@@ -434,13 +419,11 @@ input[type="date"] {
     margin-top: calc(var(--spacing-unit) * 2); /* 8pt */
     margin-bottom: calc(var(--spacing-unit) * 0.5); /* 2pt */
     padding-bottom: calc(var(--spacing-unit) * 0.5); /* 2pt */
-    /* border-bottom: 1px solid var(--border-color); */ /* Removed this line */
 }
 .period-header:first-child {
     margin-top: 0;
 }
 .period-details {
-    /* font-weight: bold; */ /* Removed bold */
     margin-bottom: var(--spacing-unit); /* 4pt */
     font-size: 0.95em;
 }
@@ -451,13 +434,17 @@ input[type="date"] {
     border-collapse: collapse;
     margin-bottom: var(--spacing-unit); /* 4pt */
     line-height: var(--table-line-height);
-    /* table-layout: fixed; */ /* Reverted */
  }
-.output-table th, .output-table td {
+.output-table th {
     border: 1px solid var(--border-color);
     padding: calc(var(--spacing-unit) * 0.75) calc(var(--spacing-unit) * 1.5); /* 3pt 6pt */
     vertical-align: top;
  }
+.output-table td { /* Apply standard 4px padding to data cells */
+    border: 1px solid var(--border-color);
+    padding: 4px; /* Standardized padding */
+    vertical-align: top;
+}
 .output-table th {
     background-color: var(--table-header-background-color);
     font-weight: bold;
@@ -466,7 +453,7 @@ input[type="date"] {
  }
 
  /* Column Widths & Alignment for Output Table */
- .output-table th:nth-child(1), .output-table td:nth-child(1) { /* width: 15%; */ text-align: left; } /* Date - Width controlled by .date-column-standard */
+ .output-table th:nth-child(1), .output-table td:nth-child(1) { text-align: left; }
  .output-table th:nth-child(2), .output-table td:nth-child(2) { width: auto; text-align: left; } /* Description */
  .output-table th:nth-child(3), .output-table td:nth-child(3) { width: var(--currency-column-width); text-align: right; } /* Amount */
  .output-table th:nth-child(4), .output-table td:nth-child(4) { width: var(--currency-column-width); text-align: right; } /* Interest */
@@ -495,8 +482,6 @@ input[type="date"] {
  .output-table tfoot {
     margin-top: 0;
  }
- /* Removed specific .interest-detail-row td styles.
-    It will now inherit from .output-table td */
 
 
  /* Summary Table Styles */
@@ -508,7 +493,7 @@ input[type="date"] {
  }
  .summary-table td {
     border: none;
-    padding: calc(var(--spacing-unit) * 0.5) calc(var(--spacing-unit) * 1.5); /* 2pt 6pt */
+    padding: 4px; /* Standardized padding */
     vertical-align: middle;
  }
  .summary-table .label {
@@ -548,17 +533,6 @@ input[type="date"] {
  .bold { font-weight: bold !important; }
  .hidden { display: none !important; }
 
- /* Standardized Date Column Width - REMOVED */
- /* .date-column-standard {
-    width: 130px !important;
-    min-width: 130px !important;
-    white-space: nowrap;
-    box-sizing: border-box;
- } */
- /* input[type="date"].date-column-standard {
-    max-width: 130px;
- } */
-
 
 /* --- PRINT STYLES --- */
 @media print {
@@ -596,7 +570,6 @@ input[type="date"] {
         border-left: none !important; border-right: none !important; border-bottom: none !important;
         border-top: 1px solid var(--border-color) !important;
     }
-    /* Removed: .output-table .interest-detail-row { display: none !important; } */
 
    /* Apply consistent padding & alignment to right-aligned inputs/selects for print */
    .right-info-block input[type="text"],
@@ -616,5 +589,3 @@ input[type="date"] {
           display: none;
       }
   } /* End @media print */
-
-/* Modal and Recurring Rules Display Styles Removed */
