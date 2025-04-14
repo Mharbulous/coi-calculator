@@ -285,8 +285,9 @@ function initializeCalculator() {
     defaultPrejudgmentStartDate.setFullYear(today.getFullYear() - 2); // Default start date: 2 years ago
 
     const defaultAmount = 0; // Default amount for all judgments initially
+    const pecuniaryDefaultAmount = 10000; // Default amount for pecuniary judgment
     const initialSummaryItems = [
-        { item: 'Pecuniary Judgment', dateValue: defaultJudgmentDate, amount: defaultAmount, isEditable: true },
+        { item: 'Pecuniary Judgment', dateValue: defaultJudgmentDate, amount: pecuniaryDefaultAmount, isEditable: true },
         { item: 'Non-Pecuniary Judgment', dateValue: defaultJudgmentDate, amount: defaultAmount, isEditable: true }, // Now editable
         { item: 'Costs Awarded', dateValue: defaultJudgmentDate, amount: defaultAmount, isEditable: true }, // Now editable
         { item: 'Prejudgment Interest', dateValue: defaultPrejudgmentStartDate, amount: 0, isDateEditable: true }, // Date editable
