@@ -23,14 +23,12 @@ export const elements = {
 
     // Table Bodies
     prejudgmentTableBody: document.querySelector('[data-display="prejudgmentTableBody"]'),
-    judgmentTableBody: document.querySelector('[data-display="judgmentTableBody"]'), // Added
     postjudgmentTableBody: document.querySelector('[data-display="postjudgmentTableBody"]'),
     summaryTableBody: document.querySelector('[data-display="summaryTableBody"]'), // Added
 
     // Table Footers / Totals
     prejudgmentPrincipalTotalEl: document.querySelector('[data-display="prejudgmentPrincipalTotal"]'), // Added
     prejudgmentInterestTotalEl: document.querySelector('[data-display="prejudgmentInterestTotal"]'), // Added (replaces prejudgmentSubtotalEl)
-    judgmentTotalEl: document.querySelector('[data-display="judgmentTotal"]'), // Added
     postjudgmentInterestTotalEl: document.querySelector('[data-display="postjudgmentInterestTotal"]'), // Added (replaces postjudgmentSubtotalEl)
     summaryTotalLabelEl: document.querySelector('[data-display="summaryTotalLabel"]'), // Keep for text part
     summaryTotalEl: document.querySelector('[data-display="summaryTotal"]'), // Keep for amount part
@@ -155,33 +153,6 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
     interestTotalElement.innerHTML = formatCurrencyForDisplay(interestTotal);
 }
 
-/**
- * Updates the Judgment table.
- * @param {Array<object>} items - Array of objects { date: Date, description: string, amount: number }.
- * @param {number} totalJudgment - The total calculated judgment amount.
- */
-export function updateJudgmentTable(items, totalJudgment) {
-    if (!elements.judgmentTableBody || !elements.judgmentTotalEl) {
-        console.error("Missing Judgment table elements for updateJudgmentTable");
-        return;
-    }
-    elements.judgmentTableBody.innerHTML = ''; // Clear previous rows
-
-    items.forEach(item => {
-        const row = elements.judgmentTableBody.insertRow();
-        row.insertCell().textContent = formatDateForInput(item.date); // Format date as YYYY-MM-DD
-        row.insertCell().textContent = item.description;
-        row.insertCell().innerHTML = formatCurrencyForDisplay(item.amount);
-
-        // Apply alignment
-        row.cells[0].classList.add('text-left');
-        row.cells[1].classList.add('text-left');
-        row.cells[2].classList.add('text-right');
-    });
-
-    elements.judgmentTotalEl.innerHTML = formatCurrencyForDisplay(totalJudgment);
-}
-
 
 /**
  * Updates the Summary table.
@@ -225,14 +196,14 @@ export function clearResults() {
 
     // Clear table bodies
     if (elements.prejudgmentTableBody) elements.prejudgmentTableBody.innerHTML = '';
-    if (elements.judgmentTableBody) elements.judgmentTableBody.innerHTML = '';
+    // if (elements.judgmentTableBody) elements.judgmentTableBody.innerHTML = ''; // Removed
     if (elements.postjudgmentTableBody) elements.postjudgmentTableBody.innerHTML = '';
     if (elements.summaryTableBody) elements.summaryTableBody.innerHTML = '';
 
     // Clear table footers/totals
     if (elements.prejudgmentPrincipalTotalEl) elements.prejudgmentPrincipalTotalEl.innerHTML = zeroCurrency;
     if (elements.prejudgmentInterestTotalEl) elements.prejudgmentInterestTotalEl.innerHTML = zeroCurrency;
-    if (elements.judgmentTotalEl) elements.judgmentTotalEl.innerHTML = zeroCurrency;
+    // if (elements.judgmentTotalEl) elements.judgmentTotalEl.innerHTML = zeroCurrency; // Removed
     if (elements.postjudgmentInterestTotalEl) elements.postjudgmentInterestTotalEl.innerHTML = zeroCurrency;
     if (elements.summaryTotalEl) elements.summaryTotalEl.innerHTML = zeroCurrency;
     if (elements.summaryPerDiemEl) elements.summaryPerDiemEl.innerHTML = zeroCurrency;

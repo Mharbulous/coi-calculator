@@ -63,17 +63,20 @@
             </div>
         </div>
 
-        <!-- Added Judgment Section -->
+        <!-- Restructured Summary Table -->
         <div class="section-title">Judgment</div>
-        <table class="judgment-table interest-table" data-display="judgmentTable"> <!-- Added interest-table class for styling -->
-             <thead>
-                 <tr><th>Date</th><th>Description</th><th>Amount</th></tr>
-             </thead>
-             <tbody data-display="judgmentTableBody"></tbody>
+        <table class="summary-table">             
+             <tbody data-display="summaryTableBody">
+                 <!-- Rows will be populated by JS -->
+             </tbody>
              <tfoot>
-                 <tr class="total">
-                     <td colspan="2" class="text-right bold">Total Judgment</td>
-                     <td data-display="judgmentTotal" class="text-right bold"></td>
+                 <tr class="total-row">
+                     <td colspan="2" class="label text-right bold" data-display="summaryTotalLabel">TOTAL AS OF</td>
+                     <td class="amount text-right bold" data-display="summaryTotal"></td>
+                 </tr>
+                 <tr class="per-diem-row">
+                     <td colspan="2" class="label text-right italic">Per Diem</td>
+                     <td class="amount text-right italic" data-display="summaryPerDiem"></td>
                  </tr>
              </tfoot>
         </table>
@@ -131,27 +134,6 @@
                  </tfoot>
             </table>
         </div>
-
-        <!-- Restructured Summary Table -->
-        <div class="section-title">Summary</div>
-        <table class="summary-table">
-             <thead>
-                 <tr><th>Item</th><th>Date/Value</th><th>Amount</th></tr>
-             </thead>
-             <tbody data-display="summaryTableBody">
-                 <!-- Rows will be populated by JS -->
-             </tbody>
-             <tfoot>
-                 <tr class="total-row">
-                     <td colspan="2" class="label text-right bold" data-display="summaryTotalLabel">TOTAL AS OF</td>
-                     <td class="amount text-right bold" data-display="summaryTotal"></td>
-                 </tr>
-                 <tr class="per-diem-row">
-                     <td colspan="2" class="label text-right italic">Per Diem</td>
-                     <td class="amount text-right italic" data-display="summaryPerDiem"></td>
-                 </tr>
-             </tfoot>
-        </table>
     </div>
 
     <!-- Load the main script as a module -->

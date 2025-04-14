@@ -6,7 +6,7 @@ import {
     getInputValues, // Assumes this is updated to return nonPecuniaryAwarded, showPrejudgment
     updateInterestTable, // Assumes this is updated for new total row structure
     // updateSummary, // This will likely be replaced by updateSummaryTable
-    updateJudgmentTable, // New function needed in domUtils
+    // updateJudgmentTable, // Removed
     updateSummaryTable, // New function needed in domUtils
     clearResults, // May need updates for new tables
     togglePrejudgmentVisibility, // New function needed in domUtils
@@ -31,7 +31,7 @@ function recalculate() {
     // Show base total (Judgment + Non-Pecuniary + Costs) even if dates are invalid
     const baseTotal = (inputs.judgmentAwarded || 0) + (inputs.nonPecuniaryAwarded || 0) + (inputs.costsAwarded || 0);
     // Update summary table with zeros or base values if possible
-    updateJudgmentTable([], baseTotal); // Show base total in judgment table?
+    // updateJudgmentTable([], baseTotal); // Removed
     updateSummaryTable([], baseTotal, 0, new Date()); // Update new summary table
     elements.summaryTotalLabelEl.textContent = 'TOTAL OWING (Inputs Invalid)'; // Keep this label update
     return;
@@ -44,7 +44,7 @@ function recalculate() {
         alert(message);
         clearResults(); // Assumes clearResults handles new tables
         const baseTotal = inputs.judgmentAwarded + inputs.nonPecuniaryAwarded + inputs.costsAwarded;
-        updateJudgmentTable([], baseTotal); // Show base total in judgment table?
+        // updateJudgmentTable([], baseTotal); // Removed
         updateSummaryTable([], baseTotal, 0, new Date()); // Update new summary table
         elements.summaryTotalLabelEl.textContent = `TOTAL OWING (${inputs.jurisdiction} Rates Unavailable)`;
         return;
@@ -84,15 +84,9 @@ function recalculate() {
         prejudgmentResult.total // Pass interest total
     );
 
-    // 3. Calculate Judgment Details
-    const judgmentItems = [
-        { date: inputs.dateOfJudgment, description: 'Pecuniary Judgment', amount: inputs.judgmentAwarded },
-        { date: inputs.dateOfJudgment, description: 'Prejudgment Interest', amount: prejudgmentResult.total },
-        { date: inputs.dateOfJudgment, description: 'Non-pecuniary Judgment', amount: inputs.nonPecuniaryAwarded },
-        { date: inputs.dateOfJudgment, description: 'Costs Awarded', amount: inputs.costsAwarded },
-    ];
+    // 3. Calculate Base Total for Postjudgment and Summary
+    // This total includes the original awards and any calculated prejudgment interest
     const judgmentTotal = inputs.judgmentAwarded + prejudgmentResult.total + inputs.nonPecuniaryAwarded + inputs.costsAwarded;
-    updateJudgmentTable(judgmentItems, judgmentTotal); // Assumes new function in domUtils
 
     // 4. Calculate Postjudgment Interest (Conditional on Checkbox)
     let postjudgmentResult = { details: [], total: 0 };
@@ -218,7 +212,7 @@ function initializeCalculator() {
          // Display Sections & Tables
          elements.prejudgmentSection, elements.postjudgmentSection, elements.accrualDateRow,
          elements.prejudgmentTableBody, elements.prejudgmentPrincipalTotalEl, elements.prejudgmentInterestTotalEl,
-         elements.judgmentTableBody, elements.judgmentTotalEl,
+         // elements.judgmentTableBody, elements.judgmentTotalEl, // Removed
          elements.postjudgmentTableBody, elements.postjudgmentInterestTotalEl,
          elements.summaryTableBody, elements.summaryTotalLabelEl, elements.summaryTotalEl, elements.summaryPerDiemEl
      ];
