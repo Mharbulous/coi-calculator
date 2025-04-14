@@ -4,12 +4,12 @@ import { formatCurrencyForDisplay, formatCurrencyForInput, formatDateLong, parse
 // Using data attributes for more robust selection
 export const elements = {
     // Inputs
-    causeOfActionDateInput: document.querySelector('[data-input="causeOfActionDate"]'),
-    dateOfJudgmentInput: document.querySelector('[data-input="dateOfJudgment"]'),
-    dateOfCalculationInput: document.querySelector('[data-input="dateOfCalculation"]'),
-    judgmentAwardedInput: document.querySelector('[data-input="judgmentAwarded"]'),
-    nonPecuniaryAwardedInput: document.querySelector('[data-input="nonPecuniaryAwarded"]'), // Added
-    costsAwardedInput: document.querySelector('[data-input="costsAwarded"]'),
+    // causeOfActionDateInput: document.querySelector('[data-input="causeOfActionDate"]'), // Removed - Moved to summary table (Prejudgment Interest Date)
+    // dateOfJudgmentInput: document.querySelector('[data-input="dateOfJudgment"]'), // Removed - Moved to summary table
+    // dateOfCalculationInput: document.querySelector('[data-input="dateOfCalculation"]'), // Removed - Moved to summary table (Post Judgment Interest Date)
+    // judgmentAwardedInput: document.querySelector('[data-input="judgmentAwarded"]'), // Removed - Moved to summary table
+    // nonPecuniaryAwardedInput: document.querySelector('[data-input="nonPecuniaryAwarded"]'), // Removed - Moved to summary table
+    // costsAwardedInput: document.querySelector('[data-input="costsAwarded"]'), // Removed - Moved to summary table
     jurisdictionSelect: document.querySelector('[data-input="jurisdictionSelect"]'),
     fileNoInput: document.querySelector('[data-input="fileNo"]'),
     registryInput: document.querySelector('[data-input="registry"]'),
@@ -17,7 +17,7 @@ export const elements = {
     showPostjudgmentCheckbox: document.querySelector('[data-input="showPostjudgmentCheckbox"]'),
 
     // Display Sections & Containers
-    accrualDateRow: document.querySelector('[data-display="accrualDateRow"]'),
+    // accrualDateRow: document.querySelector('[data-display="accrualDateRow"]'), // Removed - Date moved to summary table
     prejudgmentSection: document.querySelector('[data-display="prejudgmentSection"]'), // Added
     postjudgmentSection: document.querySelector('[data-display="postjudgmentSection"]'),
 
@@ -37,37 +37,69 @@ export const elements = {
     // Containers (optional, if needed for broader manipulation)
     editableFieldsSection: document.querySelector('.editable-fields-section'),
     paperContainer: document.querySelector('.paper'),
+
+    // Dynamically created inputs in summary table (will be selected after creation)
+    pecuniaryJudgmentDateInput: null,
+    pecuniaryJudgmentAmountInput: null,
+    nonPecuniaryJudgmentDateInput: null, // Added for editable non-pecuniary date
+    nonPecuniaryJudgmentAmountInput: null, // Added for editable non-pecuniary amount
+    costsAwardedDateInput: null, // Added for editable costs date
+    costsAwardedAmountInput: null, // Added for editable costs amount
+    prejudgmentInterestDateInput: null, // Added for editable prejudgment start date
+    postjudgmentInterestDateInput: null, // Added for editable postjudgment end date
 };
 
+
 /**
- * Retrieves the current values from the input fields.
+ * Retrieves the current values from the input fields, including those dynamically added to the summary table.
  * @returns {object} An object containing the parsed input values and validity status.
  */
 export function getInputValues() {
-    // Check if all required input elements are loaded
-    const requiredInputs = [
-        elements.causeOfActionDateInput, elements.dateOfJudgmentInput, elements.dateOfCalculationInput,
-        elements.judgmentAwardedInput, elements.nonPecuniaryAwardedInput, elements.costsAwardedInput,
+    // Check if all required input elements are loaded (including dynamically created ones)
+    const requiredStaticInputs = [
+        // elements.causeOfActionDateInput, // Removed - Now dynamic (prejudgmentInterestDateInput)
+        // elements.dateOfCalculationInput, // Removed - Now dynamic (postjudgmentInterestDateInput)
+        // elements.nonPecuniaryAwardedInput, elements.costsAwardedInput, // Removed - Now dynamic
         elements.jurisdictionSelect, elements.showPrejudgmentCheckbox, elements.showPostjudgmentCheckbox
+        // Note: fileNoInput and registryInput are not strictly required for calculation
     ];
-    if (requiredInputs.some(el => !el)) {
-        console.error("One or more essential input elements not found in DOM.");
-        return { isValid: false, validationMessage: "Initialization error: Missing input elements." };
-    }
+     // Check dynamic inputs separately as they might not exist on initial load error
+     const requiredDynamicInputs = [
+         elements.pecuniaryJudgmentDateInput, elements.pecuniaryJudgmentAmountInput,
+         elements.nonPecuniaryJudgmentDateInput, elements.nonPecuniaryJudgmentAmountInput, // Added
+         elements.costsAwardedDateInput, elements.costsAwardedAmountInput, // Added
+         elements.prejudgmentInterestDateInput, // Added
+         elements.postjudgmentInterestDateInput // Added
+     ];
 
-    const causeOfActionDateStr = elements.causeOfActionDateInput.value;
-    const dateOfJudgmentStr = elements.dateOfJudgmentInput.value;
-    const dateOfCalculationStr = elements.dateOfCalculationInput.value;
-    const judgmentAwardedStr = elements.judgmentAwardedInput.value;
-    const nonPecuniaryAwardedStr = elements.nonPecuniaryAwardedInput.value; // Added
-    const costsAwardedStr = elements.costsAwardedInput.value;
+    // Check static inputs first
+    if (requiredStaticInputs.some(el => !el)) {
+        console.error("One or more essential static input/control elements not found in DOM.");
+         return { isValid: false, validationMessage: "Initialization error: Missing static input elements." };
+     }
+     // Removed the early return check for dynamic inputs.
+     // If they don't exist when this is called, parsing/validation below will handle it.
 
-    const causeOfActionDate = parseDateInput(causeOfActionDateStr);
-    const dateOfJudgment = parseDateInput(dateOfJudgmentStr);
-    const dateOfCalculation = parseDateInput(dateOfCalculationStr);
-    const judgmentAwarded = parseCurrency(judgmentAwardedStr);
-    const nonPecuniaryAwarded = parseCurrency(nonPecuniaryAwardedStr); // Added
-    const costsAwarded = parseCurrency(costsAwardedStr);
+
+    // Read from dynamic inputs, provide default empty string if elements don't exist yet
+    const prejudgmentStartDateStr = elements.prejudgmentInterestDateInput ? elements.prejudgmentInterestDateInput.value : ''; // Replaces causeOfActionDate
+    const postjudgmentEndDateStr = elements.postjudgmentInterestDateInput ? elements.postjudgmentInterestDateInput.value : ''; // Replaces dateOfCalculation
+    const dateOfJudgmentStr = elements.pecuniaryJudgmentDateInput ? elements.pecuniaryJudgmentDateInput.value : '';
+    const judgmentAwardedStr = elements.pecuniaryJudgmentAmountInput ? elements.pecuniaryJudgmentAmountInput.value : '';
+    const nonPecuniaryAwardedStr = elements.nonPecuniaryJudgmentAmountInput ? elements.nonPecuniaryJudgmentAmountInput.value : ''; // Read from dynamic
+    const costsAwardedStr = elements.costsAwardedAmountInput ? elements.costsAwardedAmountInput.value : ''; // Read from dynamic
+    const nonPecuniaryDateStr = elements.nonPecuniaryJudgmentDateInput ? elements.nonPecuniaryJudgmentDateInput.value : ''; // Read from dynamic
+    const costsDateStr = elements.costsAwardedDateInput ? elements.costsAwardedDateInput.value : ''; // Read from dynamic
+
+
+    const prejudgmentStartDate = parseDateInput(prejudgmentStartDateStr); // Replaces causeOfActionDate
+    const postjudgmentEndDate = parseDateInput(postjudgmentEndDateStr); // Replaces dateOfCalculation
+    const dateOfJudgment = parseDateInput(dateOfJudgmentStr); // Parse from dynamic input (Pecuniary)
+    const nonPecuniaryJudgmentDate = parseDateInput(nonPecuniaryDateStr); // Parse from dynamic input
+    const costsAwardedDate = parseDateInput(costsDateStr); // Parse from dynamic input
+    const judgmentAwarded = parseCurrency(judgmentAwardedStr); // Parse from dynamic input (Pecuniary)
+    const nonPecuniaryAwarded = parseCurrency(nonPecuniaryAwardedStr); // Parse from dynamic input
+    const costsAwarded = parseCurrency(costsAwardedStr); // Parse from dynamic input
     const jurisdiction = elements.jurisdictionSelect.value;
     const showPrejudgment = elements.showPrejudgmentCheckbox.checked; // Added
     const showPostjudgment = elements.showPostjudgmentCheckbox.checked;
@@ -76,33 +108,56 @@ export function getInputValues() {
     let isValid = true;
     let validationMessage = "";
 
-    if (!causeOfActionDate || !dateOfJudgment || !dateOfCalculation) {
-        validationMessage = "One or more dates are missing or invalid.";
+    // --- Input Validation ---
+    // Check all required dates exist (now includes dynamic interest dates)
+    if (!prejudgmentStartDate || !dateOfJudgment || !nonPecuniaryJudgmentDate || !costsAwardedDate || !postjudgmentEndDate) {
+        validationMessage = "One or more required dates (Prejudgment Start, Judgments, Postjudgment End) are missing or invalid.";
         isValid = false;
     } else {
-        if (dateOfJudgment < causeOfActionDate) {
-            validationMessage = "Date of Judgment cannot be before Cause of Action Date.";
+        // Check judgment dates against prejudgment start date
+        if (dateOfJudgment < prejudgmentStartDate) {
+            validationMessage = "Pecuniary Judgment Date cannot be before Prejudgment Start Date.";
             isValid = false;
         }
-        // Use the *actual* calculation date for this check, but only if postjudgment is shown
-        if (showPostjudgment && dateOfCalculation < dateOfJudgment) {
-            validationMessage = "Date of Calculation cannot be before Date of Judgment when showing Postjudgment Interest.";
+        if (nonPecuniaryJudgmentDate < prejudgmentStartDate) {
+            validationMessage = "Non-Pecuniary Judgment Date cannot be before Prejudgment Start Date.";
             isValid = false;
         }
+        if (costsAwardedDate < prejudgmentStartDate) {
+            validationMessage = "Costs Awarded Date cannot be before Prejudgment Start Date.";
+            isValid = false;
+        }
+
+        // Use the *actual* postjudgment end date for this check, only if postjudgment is shown
+        // Postjudgment interest runs from the *latest* of the judgment dates up to the postjudgment end date
+        const latestJudgmentDate = new Date(Math.max(dateOfJudgment, nonPecuniaryJudgmentDate, costsAwardedDate));
+        if (showPostjudgment && postjudgmentEndDate < latestJudgmentDate) {
+            validationMessage = "Postjudgment End Date cannot be before the latest Judgment Date when showing Postjudgment Interest.";
+            isValid = false;
+        }
+        // Also check that prejudgment start date is not after the earliest judgment date
+        const earliestJudgmentDate = new Date(Math.min(dateOfJudgment, nonPecuniaryJudgmentDate, costsAwardedDate));
+        if (prejudgmentStartDate > earliestJudgmentDate) {
+             validationMessage = "Prejudgment Start Date cannot be after the earliest Judgment Date.";
+             isValid = false;
+        }
+
     }
-     // Check all currency amounts
+     // Check all currency amounts (judgment amounts are dynamic, interest amounts are calculated)
      if (judgmentAwarded < 0 || nonPecuniaryAwarded < 0 || costsAwarded < 0) {
-         validationMessage = "Judgment, Non-pecuniary, and Costs amounts cannot be negative.";
+         validationMessage = "Pecuniary Judgment, Non-pecuniary, and Costs amounts cannot be negative.";
          isValid = false;
      }
 
     return {
-        causeOfActionDate,
-        dateOfJudgment,
-        dateOfCalculation,
-        judgmentAwarded,
-        nonPecuniaryAwarded, // Added
-        costsAwarded,
+        prejudgmentStartDate, // Replaces causeOfActionDate
+        postjudgmentEndDate, // Replaces dateOfCalculation
+        dateOfJudgment, // Pecuniary Judgment Date
+        nonPecuniaryJudgmentDate, // Added
+        costsAwardedDate, // Added
+        judgmentAwarded, // Pecuniary Judgment Amount
+        nonPecuniaryAwarded, // Non-Pecuniary Amount
+        costsAwarded, // Costs Amount
         jurisdiction,
         showPrejudgment, // Added
         showPostjudgment,
@@ -155,33 +210,133 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
 
 
 /**
- * Updates the Summary table.
- * @param {Array<object>} items - Array of objects { item: string, dateValue: string, amount: number }.
+ * Updates the Summary table, creating editable fields for Pecuniary Judgment.
+ * @param {Array<object>} items - Array of objects { item: string, dateValue: Date | string, amount: number, isEditable?: boolean, inputType?: 'date'|'text', dataAttrDate?: string, dataAttrAmount?: string }.
  * @param {number} totalOwing - The final calculated total amount.
  * @param {number} perDiem - The calculated per diem rate.
  * @param {Date} finalCalculationDate - The date up to which the calculation runs.
+ * @param {function} recalculateCallback - Function to call when editable fields change.
  */
-export function updateSummaryTable(items, totalOwing, perDiem, finalCalculationDate) {
+export function updateSummaryTable(items, totalOwing, perDiem, finalCalculationDate, recalculateCallback) {
     if (!elements.summaryTableBody || !elements.summaryTotalLabelEl || !elements.summaryTotalEl || !elements.summaryPerDiemEl) {
         console.error("Missing Summary table elements for updateSummaryTable");
         return;
     }
     elements.summaryTableBody.innerHTML = ''; // Clear previous rows
 
+    // Reset dynamic element references before recreating them
+    elements.pecuniaryJudgmentDateInput = null;
+    elements.pecuniaryJudgmentAmountInput = null;
+    elements.nonPecuniaryJudgmentDateInput = null; // Added
+    elements.nonPecuniaryJudgmentAmountInput = null; // Added
+    elements.costsAwardedDateInput = null; // Added
+    elements.costsAwardedAmountInput = null; // Added
+    elements.prejudgmentInterestDateInput = null; // Added
+    elements.postjudgmentInterestDateInput = null; // Added
+
     items.forEach(item => {
         const row = elements.summaryTableBody.insertRow();
-        row.insertCell().textContent = item.item;
-        row.insertCell().textContent = item.dateValue; // Expect formatted date or value string
-        row.insertCell().innerHTML = formatCurrencyForDisplay(item.amount);
+        const cellItem = row.insertCell();
+        const cellDate = row.insertCell();
+        const cellAmount = row.insertCell();
+
+        cellItem.textContent = item.item;
+
+        if (item.isEditable && item.item === 'Pecuniary Judgment') {
+            // Create Date Input
+            const dateInput = document.createElement('input');
+            dateInput.type = 'date';
+            dateInput.dataset.input = 'pecuniaryJudgmentDate'; // Use specific data attribute
+            dateInput.value = item.dateValue instanceof Date ? formatDateForInput(item.dateValue) : item.dateValue;
+            dateInput.addEventListener('change', recalculateCallback); // Add listener
+            cellDate.appendChild(dateInput);
+            elements.pecuniaryJudgmentDateInput = dateInput; // Store reference
+
+            // Create Amount Input
+            const amountInput = document.createElement('input');
+            amountInput.type = 'text'; // Use text for currency formatting
+            amountInput.dataset.input = 'pecuniaryJudgmentAmount'; // Use specific data attribute
+            amountInput.value = formatCurrencyForInput(item.amount); // Format initial value
+            setupCurrencyInputListeners(amountInput, recalculateCallback); // Setup currency listeners
+            cellAmount.appendChild(amountInput);
+            elements.pecuniaryJudgmentAmountInput = amountInput; // Store reference
+
+        } else if (item.isEditable && item.item === 'Non-Pecuniary Judgment') {
+            // Create Date Input for Non-Pecuniary
+            const dateInput = document.createElement('input');
+            dateInput.type = 'date';
+            dateInput.dataset.input = 'nonPecuniaryJudgmentDate'; // Specific data attribute
+            dateInput.value = item.dateValue instanceof Date ? formatDateForInput(item.dateValue) : item.dateValue;
+            dateInput.addEventListener('change', recalculateCallback);
+            cellDate.appendChild(dateInput);
+            elements.nonPecuniaryJudgmentDateInput = dateInput; // Store reference
+
+            // Create Amount Input for Non-Pecuniary
+            const amountInput = document.createElement('input');
+            amountInput.type = 'text';
+            amountInput.dataset.input = 'nonPecuniaryJudgmentAmount'; // Specific data attribute
+            amountInput.value = formatCurrencyForInput(item.amount);
+            setupCurrencyInputListeners(amountInput, recalculateCallback);
+            cellAmount.appendChild(amountInput);
+            elements.nonPecuniaryJudgmentAmountInput = amountInput; // Store reference
+
+        } else if (item.isEditable && item.item === 'Costs Awarded') {
+            // Create Date Input for Costs
+            const dateInput = document.createElement('input');
+            dateInput.type = 'date';
+            dateInput.dataset.input = 'costsAwardedDate'; // Specific data attribute
+            dateInput.value = item.dateValue instanceof Date ? formatDateForInput(item.dateValue) : item.dateValue;
+            dateInput.addEventListener('change', recalculateCallback);
+            cellDate.appendChild(dateInput);
+            elements.costsAwardedDateInput = dateInput; // Store reference
+
+            // Create Amount Input for Costs
+            const amountInput = document.createElement('input');
+            amountInput.type = 'text';
+            amountInput.dataset.input = 'costsAwardedAmount'; // Specific data attribute
+            amountInput.value = formatCurrencyForInput(item.amount);
+            setupCurrencyInputListeners(amountInput, recalculateCallback);
+            cellAmount.appendChild(amountInput);
+            elements.costsAwardedAmountInput = amountInput; // Store reference
+
+        } else if (item.isDateEditable && item.item === 'Prejudgment Interest') {
+             // Create Date Input for Prejudgment Start Date
+             const dateInput = document.createElement('input');
+             dateInput.type = 'date';
+             dateInput.dataset.input = 'prejudgmentInterestDate'; // Specific data attribute
+             dateInput.value = item.dateValue instanceof Date ? formatDateForInput(item.dateValue) : item.dateValue;
+             dateInput.addEventListener('change', recalculateCallback);
+             cellDate.appendChild(dateInput);
+             elements.prejudgmentInterestDateInput = dateInput; // Store reference
+             // Amount is calculated, not editable
+             cellAmount.innerHTML = formatCurrencyForDisplay(item.amount);
+
+        } else if (item.isDateEditable && item.item === 'Post Judgment Interest') {
+             // Create Date Input for Postjudgment End Date
+             const dateInput = document.createElement('input');
+             dateInput.type = 'date';
+             dateInput.dataset.input = 'postjudgmentInterestDate'; // Specific data attribute
+             dateInput.value = item.dateValue instanceof Date ? formatDateForInput(item.dateValue) : item.dateValue;
+             dateInput.addEventListener('change', recalculateCallback);
+             cellDate.appendChild(dateInput);
+             elements.postjudgmentInterestDateInput = dateInput; // Store reference
+             // Amount is calculated, not editable
+             cellAmount.innerHTML = formatCurrencyForDisplay(item.amount);
+
+        } else {
+            // Fully non-editable rows (currently none, but could be added)
+            cellDate.textContent = item.dateValue instanceof Date ? formatDateForInput(item.dateValue) : item.dateValue; // Format date if needed
+            cellAmount.innerHTML = formatCurrencyForDisplay(item.amount);
+        }
 
         // Apply alignment (based on CSS)
-        row.cells[0].classList.add('text-left');
-        row.cells[1].classList.add('text-center');
-        row.cells[2].classList.add('text-right');
+        cellItem.classList.add('text-left');
+        cellDate.classList.add('text-center');
+        cellAmount.classList.add('text-right');
     });
 
     // Update footer
-    const formattedAccrualDate = formatDateLong(finalCalculationDate); // Use long date format
+    const formattedAccrualDate = formatDateLong(finalCalculationDate);
     elements.summaryTotalLabelEl.textContent = `TOTAL AS OF ${formattedAccrualDate}`;
     elements.summaryTotalEl.innerHTML = formatCurrencyForDisplay(totalOwing);
     elements.summaryPerDiemEl.innerHTML = formatCurrencyForDisplay(perDiem);
@@ -234,26 +389,23 @@ export function togglePrejudgmentVisibility(isInitializing = false, recalculateC
 
 /**
  * Toggles the visibility of the postjudgment section based on the checkbox state.
- * Also updates the calculation date input value if hiding the section.
+ * Note: The accrual date input is removed, so this only toggles the section visibility.
  * @param {boolean} isInitializing - Flag to indicate if this is during initial page load.
  * @param {function|null} recalculateCallback - Function to call after toggling (usually recalculate).
  */
 export function togglePostjudgmentVisibility(isInitializing = false, recalculateCallback) {
-    if (!elements.showPostjudgmentCheckbox || !elements.accrualDateRow || !elements.postjudgmentSection || !elements.dateOfCalculationInput || !elements.dateOfJudgmentInput) {
+    // Removed checks for accrualDateRow and dateOfCalculationInput
+    if (!elements.showPostjudgmentCheckbox || !elements.postjudgmentSection) {
         console.error("Required elements for toggling postjudgment visibility not found.");
         return;
     }
     const isChecked = elements.showPostjudgmentCheckbox.checked;
 
-    // Toggle visibility of the date row AND the section
-    elements.accrualDateRow.style.display = isChecked ? '' : 'none';
+    // Toggle visibility of the section ONLY
+    // elements.accrualDateRow.style.display = isChecked ? '' : 'none'; // Removed
     elements.postjudgmentSection.style.display = isChecked ? '' : 'none';
 
-    // If hiding postjudgment, set calculation date to judgment date visually
-    // Check if judgment date input exists before accessing its value
-    if (!isChecked && elements.dateOfJudgmentInput.value) {
-        elements.dateOfCalculationInput.value = elements.dateOfJudgmentInput.value;
-    }
+    // Removed logic that updated the static dateOfCalculationInput
 
     // Trigger recalculation unless it's the initial setup phase
     if (!isInitializing && typeof recalculateCallback === 'function') {
@@ -265,31 +417,14 @@ export function togglePostjudgmentVisibility(isInitializing = false, recalculate
  * Sets the default values for input fields on page load.
  */
 export function setDefaultInputValues() {
-    const today = new Date();
-    const todayStr = formatDateForInput(today);
+    // const today = new Date(); // No longer needed here
+    // const todayStr = formatDateForInput(today); // No longer needed here
 
-    // Set default dates
-    if (elements.causeOfActionDateInput && !elements.causeOfActionDateInput.value) {
-        const defaultCauseDate = new Date(today);
-        defaultCauseDate.setFullYear(today.getFullYear() - 2);
-        elements.causeOfActionDateInput.value = formatDateForInput(defaultCauseDate);
-    }
-    if (elements.dateOfJudgmentInput && !elements.dateOfJudgmentInput.value) {
-         const defaultJudgmentDate = new Date(today);
-         defaultJudgmentDate.setMonth(today.getMonth() - 1);
-         elements.dateOfJudgmentInput.value = formatDateForInput(defaultJudgmentDate);
-    }
-    if (elements.dateOfCalculationInput && !elements.dateOfCalculationInput.value) {
-        elements.dateOfCalculationInput.value = todayStr;
-    }
+    // Removed setting default dates for causeOfActionDateInput and dateOfCalculationInput
+    // These defaults are now handled during the initial summary table population in calculator.js
 
-    // Format initial currency fields
-    [elements.judgmentAwardedInput, elements.nonPecuniaryAwardedInput, elements.costsAwardedInput].forEach(input => { // Added nonPecuniary
-        if (input) {
-            const value = parseCurrency(input.value || '0'); // Default to 0 if empty
-            input.value = formatCurrencyForInput(value);
-        }
-    });
+    // Removed formatting for static nonPecuniaryAwardedInput and costsAwardedInput
+    // Their values will be set and formatted when the summary table is initially populated
 
      // Set default jurisdiction
      if (elements.jurisdictionSelect && !elements.jurisdictionSelect.value) {

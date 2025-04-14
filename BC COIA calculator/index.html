@@ -12,21 +12,7 @@
         <h1><i>Court Order Interest Act</i> Calculations</h1>
 
         <div class="editable-fields-section">
-            <div class="dates-block">
-                 <!-- Using data-input for JS hooks -->
-                 <div class="field-pair">
-                     <span class="label">Cause of Action</span>
-                     <span class="value"><input type="date" data-input="causeOfActionDate" value=""></span>
-                 </div>
-                 <div class="field-pair">
-                     <span class="label">Judgment Date</span>
-                     <span class="value"><input type="date" data-input="dateOfJudgment" value=""></span>
-                 </div>
-                 <div class="field-pair" data-display="accrualDateRow">
-                     <span class="label">Accrual Date</span>
-                     <span class="value"><input type="date" data-input="dateOfCalculation" value=""></span>
-                 </div>
-            </div>
+            <!-- Removed dates-block as dates are now in the summary table -->
             <div class="right-info-block">
                  <div class="field-pair">
                      <span class="label">Jurisdiction</span>
@@ -46,19 +32,6 @@
                  <div class="field-pair registry-row">
                      <span class="label">Registry</span>
                      <span class="value"><input type="text" data-input="registry" value="Vancouver"></span> <!-- Keeping default registry for now -->
-                 </div>
-                 <div class="field-pair judgment-amount-row">
-                     <span class="label">Judgment Amount</span>
-                     <span class="value"><input type="text" data-input="judgmentAwarded" value=""></span>
-                 </div>
-                 <!-- Added Non-Pecuniary Input -->
-                 <div class="field-pair non-pecuniary-row">
-                     <span class="label">Non-pecuniary Damages</span>
-                     <span class="value"><input type="text" data-input="nonPecuniaryAwarded" value=""></span>
-                 </div>
-                 <div class="field-pair costs-row">
-                     <span class="label">Costs Awarded</span>
-                     <span class="value"><input type="text" data-input="costsAwarded" value=""></span>
                  </div>
             </div>
         </div>
