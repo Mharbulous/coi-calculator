@@ -259,9 +259,9 @@ h1 i {
  }
  
  #prejudgmentTable tbody tr td:first-child::before {
-    content: "+"; /* Plus symbol */
+    content: "+ special"; /* Plus symbol */
     position: absolute;
-    left: -10px; /* Position to the left of the first cell */
+    left: -65px; /* Position to the left of the first cell */
     top: 50%; /* Center vertically */
     transform: translateY(-50%);
     font-size: 14px;
