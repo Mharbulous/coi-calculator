@@ -9,6 +9,7 @@ import {
     clearResults,
     togglePrejudgmentVisibility,
     togglePostjudgmentVisibility,
+    togglePerDiemVisibility,
     setDefaultInputValues,
     setupCurrencyInputListeners
 } from './domUtils.js';
@@ -233,6 +234,12 @@ function setupEventListeners() {
         togglePostjudgmentVisibility(false, recalculate);
     });
 
+    // Show Per Diem checkbox
+    elements.showPerDiemCheckbox.addEventListener('change', () => {
+        // Pass 'recalculate' as the callback function
+        togglePerDiemVisibility(false, recalculate);
+    });
+
     // Optional: Listeners for File No and Registry (if they should trigger anything)
     // elements.fileNoInput.addEventListener('change', someFunction);
     // elements.registryInput.addEventListener('change', someFunction);
@@ -267,6 +274,7 @@ function initializeCalculator() {
     setupEventListeners(); // Add input listeners for static fields (Jurisdiction, checkboxes)
     togglePrejudgmentVisibility(true, null); // Set initial visibility without recalculating
     togglePostjudgmentVisibility(true, null); // Set initial visibility without recalculating
+    togglePerDiemVisibility(true, null); // Set initial visibility without recalculating
 
     // --- Perform initial population of summary table to create dynamic inputs ---
     const today = new Date();

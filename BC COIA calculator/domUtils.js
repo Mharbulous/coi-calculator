@@ -15,6 +15,7 @@ export const elements = {
     registryInput: document.querySelector('[data-input="registry"]'),
     showPrejudgmentCheckbox: document.querySelector('[data-input="showPrejudgmentCheckbox"]'), // Added
     showPostjudgmentCheckbox: document.querySelector('[data-input="showPostjudgmentCheckbox"]'),
+    showPerDiemCheckbox: document.querySelector('[data-input="showPerDiemCheckbox"]'), // Added for per diem control
 
     // Display Sections & Containers
     // accrualDateRow: document.querySelector('[data-display="accrualDateRow"]'), // Removed - Date moved to summary table
@@ -103,6 +104,7 @@ export function getInputValues() {
     const jurisdiction = elements.jurisdictionSelect.value;
     const showPrejudgment = elements.showPrejudgmentCheckbox.checked; // Added
     const showPostjudgment = elements.showPostjudgmentCheckbox.checked;
+    const showPerDiem = elements.showPerDiemCheckbox ? elements.showPerDiemCheckbox.checked : true; // Added for per diem control
 
     // --- Input Validation ---
     let isValid = true;
@@ -161,6 +163,7 @@ export function getInputValues() {
         jurisdiction,
         showPrejudgment, // Added
         showPostjudgment,
+        showPerDiem, // Added for per diem control
         isValid,
         validationMessage
     };
@@ -411,6 +414,30 @@ export function togglePostjudgmentVisibility(isInitializing = false, recalculate
 }
 
 /**
+ * Toggles the visibility of the per diem row based on the checkbox state.
+ * @param {boolean} isInitializing - Flag to indicate if this is during initial page load.
+ * @param {function|null} recalculateCallback - Function to call after toggling (usually recalculate).
+ */
+export function togglePerDiemVisibility(isInitializing = false, recalculateCallback) {
+    if (!elements.showPerDiemCheckbox) {
+        console.error("Required elements for toggling per diem visibility not found.");
+        return;
+    }
+    
+    const isChecked = elements.showPerDiemCheckbox.checked;
+    const perDiemRow = document.querySelector('.per-diem-row');
+    
+    if (perDiemRow) {
+        perDiemRow.style.display = isChecked ? '' : 'none';
+    }
+
+    // Trigger recalculation unless it's the initial setup phase
+    if (!isInitializing && typeof recalculateCallback === 'function') {
+        recalculateCallback();
+    }
+}
+
+/**
  * Sets the default values for input fields on page load.
  */
 export function setDefaultInputValues() {
@@ -433,6 +460,9 @@ export function setDefaultInputValues() {
      }
      if (elements.showPostjudgmentCheckbox && !elements.showPostjudgmentCheckbox.checked) {
           elements.showPostjudgmentCheckbox.checked = true;
+     }
+     if (elements.showPerDiemCheckbox && !elements.showPerDiemCheckbox.checked) {
+          elements.showPerDiemCheckbox.checked = true;
      }
 }
 
