@@ -63,6 +63,21 @@
             </div>
         </div>
 
+        <!-- Added Judgment Section -->
+        <div class="section-title">Judgment</div>
+        <table class="judgment-table interest-table" data-display="judgmentTable"> <!-- Added interest-table class for styling -->
+             <thead>
+                 <tr><th>Date</th><th>Description</th><th>Amount</th></tr>
+             </thead>
+             <tbody data-display="judgmentTableBody"></tbody>
+             <tfoot>
+                 <tr class="total">
+                     <td colspan="2" class="text-right bold">Total Judgment</td>
+                     <td data-display="judgmentTotal" class="text-right bold"></td>
+                 </tr>
+             </tfoot>
+        </table>
+
         <!-- Wrapped Prejudgment Section -->
         <div data-display="prejudgmentSection">
             <!-- Added Prejudgment Checkbox -->
@@ -90,21 +105,6 @@
                  </tfoot>
             </table>
         </div>
-
-        <!-- Added Judgment Section -->
-        <div class="section-title">Judgment</div>
-        <table class="judgment-table interest-table" data-display="judgmentTable"> <!-- Added interest-table class for styling -->
-             <thead>
-                 <tr><th>Date</th><th>Description</th><th>Amount</th></tr>
-             </thead>
-             <tbody data-display="judgmentTableBody"></tbody>
-             <tfoot>
-                 <tr class="total">
-                     <td colspan="2" class="text-right bold">Total Judgment</td>
-                     <td data-display="judgmentTotal" class="text-right bold"></td>
-                 </tr>
-             </tfoot>
-        </table>
 
         <!-- Moved Postjudgment Checkbox and updated section -->
         <div data-display="postjudgmentSection">

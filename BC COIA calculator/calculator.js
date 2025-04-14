@@ -86,9 +86,9 @@ function recalculate() {
 
     // 3. Calculate Judgment Details
     const judgmentItems = [
-        { date: inputs.dateOfJudgment, description: 'Pecuniary award', amount: inputs.judgmentAwarded },
+        { date: inputs.dateOfJudgment, description: 'Pecuniary Judgment', amount: inputs.judgmentAwarded },
         { date: inputs.dateOfJudgment, description: 'Prejudgment Interest', amount: prejudgmentResult.total },
-        { date: inputs.dateOfJudgment, description: 'Non-pecuniary Damages Awarded', amount: inputs.nonPecuniaryAwarded },
+        { date: inputs.dateOfJudgment, description: 'Non-pecuniary Judgment', amount: inputs.nonPecuniaryAwarded },
         { date: inputs.dateOfJudgment, description: 'Costs Awarded', amount: inputs.costsAwarded },
     ];
     const judgmentTotal = inputs.judgmentAwarded + prejudgmentResult.total + inputs.nonPecuniaryAwarded + inputs.costsAwarded;
