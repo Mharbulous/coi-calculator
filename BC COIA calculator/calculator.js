@@ -279,10 +279,8 @@ function initializeCalculator() {
     // --- Perform initial population of summary table to create dynamic inputs ---
     const today = new Date();
     const defaultPostjudgmentEndDate = new Date(today); // Default end date is today
-    const defaultJudgmentDate = new Date(today);
-    defaultJudgmentDate.setMonth(today.getMonth() - 1); // Default judgment date: 1 month ago
-    const defaultPrejudgmentStartDate = new Date(today);
-    defaultPrejudgmentStartDate.setFullYear(today.getFullYear() - 2); // Default start date: 2 years ago
+    const defaultJudgmentDate = new Date(2023, 4, 1); // Default judgment date: 2023-05-01 (months are 0-indexed)
+    const defaultPrejudgmentStartDate = new Date(2019, 2, 1); // Default start date: 2019-03-01 (months are 0-indexed)
 
     const defaultAmount = 0; // Default amount for all judgments initially
     const pecuniaryDefaultAmount = 10000; // Default amount for pecuniary judgment
