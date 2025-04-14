@@ -38,83 +38,136 @@ function getInterestRateForDate(date, type, jurisdiction, ratesData) {
  * @param {'prejudgment' | 'postjudgment'} interestType - The type of interest to calculate.
  * @param {string} jurisdiction - The jurisdiction code (e.g., 'BC').
  * @param {object} ratesData - The processed interest rates object.
- * @returns {{details: Array<object>, total: number, principal: number}} An object containing detailed breakdown, total interest, and the principal used.
+ * @param {Array<object>} [specialDamages=[]] - Optional array of special damage objects { date: Date, description: string, amount: number }.
+ * @returns {{details: Array<object>, total: number, principal: number}} An object containing detailed breakdown, total interest, and the final principal (including specials).
  */
-export function calculateInterestPeriods(principal, startDate, endDate, interestType, jurisdiction, ratesData) {
+export function calculateInterestPeriods(principal, startDate, endDate, interestType, jurisdiction, ratesData, specialDamages = []) {
     // Basic validation
-    // Allow principal to be 0 for cases where only non-pecuniary/costs exist initially for post-judgment, though interest would be 0.
     if (principal < 0 || !startDate || !endDate || isNaN(startDate.getTime()) || isNaN(endDate.getTime()) || endDate < startDate || !ratesData[jurisdiction]) {
         console.warn("Invalid input for calculateInterestPeriods", { principal, startDate, endDate, interestType, jurisdiction, hasRates: !!ratesData[jurisdiction] });
-        return { details: [], total: 0, principal: principal }; // Return principal even if invalid dates
+        return { details: [], total: 0, principal: principal };
     }
-     // If principal is 0, no interest accrues
-     if (principal === 0) {
-         return { details: [], total: 0, principal: 0 };
-     }
 
+    // If principal is 0 and there are no special damages, no interest accrues.
+    if (principal === 0 && (!specialDamages || specialDamages.length === 0)) {
+        return { details: [], total: 0, principal: 0 };
+    }
 
-    let currentCalcDate = new Date(startDate); // Start from the beginning of the period
+    let currentPrincipal = principal;
     let totalInterest = 0;
     const details = [];
     const jurisdictionRates = ratesData[jurisdiction];
 
-    while (currentCalcDate <= endDate) {
-        const currentCalcTime = currentCalcDate.getTime();
+    // --- Create a sorted list of all relevant dates ---
+    const eventDates = new Set();
+    eventDates.add(startDate.getTime()); // Overall start date
+    eventDates.add(endDate.getTime() + 86400000); // Day *after* overall end date for loop termination
 
-        // Find the rate period applicable to the current calculation date
-        const ratePeriod = jurisdictionRates.find(rate =>
-            currentCalcTime >= rate.start.getTime() && currentCalcTime <= rate.end.getTime()
-        );
+    // Add rate period start/end dates within the calculation range
+    jurisdictionRates.forEach(rate => {
+        if (rate.start >= startDate && rate.start <= endDate) eventDates.add(rate.start.getTime());
+        // Add day *after* rate end date if it's within the range
+        const rateEndPlusOne = new Date(rate.end);
+        rateEndPlusOne.setUTCDate(rateEndPlusOne.getUTCDate() + 1);
+        if (rateEndPlusOne > startDate && rateEndPlusOne <= endDate) eventDates.add(rateEndPlusOne.getTime());
+    });
 
-        if (!ratePeriod) {
-            console.warn(`No rate period found for date: ${formatDateForDisplay(currentCalcDate)} in ${jurisdiction}. Skipping day.`);
-            // Move to the next day if no rate period covers the current date
-            currentCalcDate.setUTCDate(currentCalcDate.getUTCDate() + 1);
+    // Add special damage dates if applicable (only for prejudgment)
+    let sortedSpecials = [];
+    if (interestType === 'prejudgment' && specialDamages && specialDamages.length > 0) {
+        sortedSpecials = [...specialDamages].sort((a, b) => a.date - b.date); // Sort specials by date
+        sortedSpecials.forEach(special => {
+            if (special.date >= startDate && special.date <= endDate) {
+                eventDates.add(special.date.getTime());
+            }
+        });
+    }
+
+    const sortedEventTimes = Array.from(eventDates).sort((a, b) => a - b);
+
+    // --- Iterate through date intervals ---
+    let loopStartDate = new Date(startDate);
+    let finalPrincipal = principal; // Track the principal including specials for the final return value
+
+    for (let i = 0; i < sortedEventTimes.length - 1; i++) {
+        const intervalStartTime = sortedEventTimes[i];
+        const intervalEndTime = sortedEventTimes[i + 1]; // This is the start of the *next* interval
+
+        // Ensure the interval start is not before the overall start date
+        let currentIntervalStart = new Date(Math.max(intervalStartTime, startDate.getTime()));
+        // Ensure the interval end is not after the overall end date
+        // The interval end date for calculation is the day *before* intervalEndTime
+        let currentIntervalEnd = new Date(intervalEndTime);
+        currentIntervalEnd.setUTCDate(currentIntervalEnd.getUTCDate() - 1);
+        currentIntervalEnd = new Date(Math.min(currentIntervalEnd.getTime(), endDate.getTime()));
+
+
+        // Skip if interval is invalid or outside the main range
+        if (currentIntervalEnd < currentIntervalStart) {
             continue;
         }
 
-        // Determine the end date for this specific rate segment
-        // It's the earlier of the rate period's end date or the overall calculation end date
-        const segmentEndDate = ratePeriod.end < endDate ? new Date(ratePeriod.end) : new Date(endDate);
+        // Find the rate period applicable to the *start* of this interval
+        const ratePeriod = jurisdictionRates.find(rate =>
+            currentIntervalStart.getTime() >= rate.start.getTime() && currentIntervalStart.getTime() <= rate.end.getTime()
+        );
 
-        // Calculate the number of days within this segment
-        const daysInSegment = daysBetween(currentCalcDate, segmentEndDate);
+        if (!ratePeriod) {
+            console.warn(`No rate period found for interval start: ${formatDateForDisplay(currentIntervalStart)} in ${jurisdiction}. Skipping interval.`);
+            continue;
+        }
 
-        // Get the specific interest rate for this period and type
         const rate = ratePeriod[interestType];
+        const daysInInterval = daysBetween(currentIntervalStart, currentIntervalEnd);
 
-        if (daysInSegment > 0 && rate !== undefined) {
-            const year = currentCalcDate.getUTCFullYear(); // Year for calculating days in year
+        if (daysInInterval > 0 && rate !== undefined && currentPrincipal > 0) {
+            const year = currentIntervalStart.getUTCFullYear();
             const days_in_year = daysInYear(year);
 
             if (days_in_year > 0) {
-                const interestForSegment = (principal * (rate / 100) * daysInSegment) / days_in_year;
+                const interestForInterval = (currentPrincipal * (rate / 100) * daysInInterval) / days_in_year;
 
                 details.push({
-                    start: formatDateForDisplay(currentCalcDate), // Matches 'Date' or 'Period Ending' start
-                    description: `${daysInSegment} days`, // Matches 'Description' column
+                    start: formatDateForDisplay(currentIntervalStart),
+                    description: `${daysInInterval} days`,
                     rate: rate,
-                    principal: principal, // Add principal for the period
-                    interest: interestForSegment,
-                    // Keep original end/days for potential debugging if needed, but not directly used by updateInterestTable
-                    _endDate: formatDateForDisplay(segmentEndDate),
-                    _days: daysInSegment
+                    principal: currentPrincipal, // Principal *during* this interval
+                    interest: interestForInterval,
+                    isSpecial: false // Mark as regular interest row
                 });
-                totalInterest += interestForSegment;
+                totalInterest += interestForInterval;
             } else {
-                 console.error(`Error: Days in year calculated as zero for year ${year}`);
+                console.error(`Error: Days in year calculated as zero for year ${year}`);
             }
         } else if (rate === undefined) {
-            console.warn(`Interest type '${interestType}' not found for period starting ${formatDateForDisplay(ratePeriod.start)} in ${jurisdiction}`);
+             console.warn(`Interest type '${interestType}' not found for period starting ${formatDateForDisplay(ratePeriod.start)} in ${jurisdiction}`);
         }
 
-        // Move the calculation date to the day after the current segment ends
-        currentCalcDate = new Date(segmentEndDate);
-        currentCalcDate.setUTCDate(currentCalcDate.getUTCDate() + 1);
-    }
+        // --- Check for and add special damages occurring *at the end* of this interval ---
+        // The end date of the interval is currentIntervalEnd
+        if (interestType === 'prejudgment') {
+            const specialsOnThisDate = sortedSpecials.filter(special =>
+                special.date.getTime() === currentIntervalEnd.getTime()
+            );
 
-    // Return principal along with details and total
-    return { details, total: totalInterest, principal: principal };
+            specialsOnThisDate.forEach(special => {
+                details.push({
+                    start: formatDateForDisplay(special.date), // Date of the special
+                    description: special.description || 'Special Damages', // Description
+                    rate: null, // No rate for special
+                    principal: special.amount, // The amount of the special damage itself
+                    interest: null, // No interest calculated *on* the special row
+                    isSpecial: true // Mark as special row
+                });
+                currentPrincipal += special.amount; // Add to principal for *next* interval
+                finalPrincipal += special.amount; // Add to the final total principal
+                console.log(`Added special: ${special.amount} on ${formatDateForDisplay(special.date)}. New principal: ${currentPrincipal}`);
+            });
+        }
+    } // End loop through intervals
+
+    // Return final principal (including specials) along with details and total interest
+    return { details, total: totalInterest, principal: finalPrincipal };
 }
 
 

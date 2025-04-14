@@ -1,4 +1,4 @@
-import { formatCurrencyForDisplay, formatCurrencyForInput, formatDateLong, parseCurrency, parseDateInput, formatDateForInput, formatDateForDisplay } from './utils.js';
+import { formatCurrencyForDisplay, formatCurrencyForInput, formatDateLong, parseCurrency, parseDateInput, formatDateForInput, formatDateForDisplay, parseDisplayDate } from './utils.js'; // Import parseDisplayDate
 
 // --- DOM Element Selectors ---
 // Using data attributes for more robust selection
@@ -180,8 +180,9 @@ export function getInputValues() {
  * @param {Array<object>} details - Array of interest period details (expects properties like start, description, rate, principal, interest).
  * @param {number|null} principalTotal - Total principal (null if not applicable).
  * @param {number} interestTotal - The total calculated interest for the table.
+ * @param {function} [recalculateCallback] - Optional callback function to trigger recalculation, needed for special rows.
  */
-export function updateInterestTable(tableBody, principalTotalElement, interestTotalElement, details, principalTotal, interestTotal) {
+export function updateInterestTable(tableBody, principalTotalElement, interestTotalElement, details, principalTotal, interestTotal, recalculateCallback) {
     if (!tableBody || !interestTotalElement) {
         console.error("Missing required table elements for updateInterestTable");
         return;
@@ -195,35 +196,41 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
         const firstCell = row.insertCell();
         firstCell.textContent = item.start; // Expect formatted date/period start
         row.insertCell().textContent = item.description; // Expect description (e.g., days, period end)
-        row.insertCell().textContent = item.rate.toFixed(2) + '%';
+        row.insertCell().textContent = item.rate !== null ? item.rate.toFixed(2) + '%' : ''; // Handle null rate for special rows
         row.insertCell().innerHTML = formatCurrencyForDisplay(item.principal); // Principal for the period
-        row.insertCell().innerHTML = formatCurrencyForDisplay(item.interest); // Interest for the period
+        row.insertCell().innerHTML = item.interest !== null ? formatCurrencyForDisplay(item.interest) : ''; // Handle null interest for special rows
 
-        // Add special button to prejudgment table rows
-        if (tableBody.id === 'prejudgmentTableBody' || tableBody.closest('#prejudgmentTable')) {
-            const specialButton = document.createElement('button');
-            specialButton.className = 'special-button';
-            
-            // Create a bold element for the text
-            const boldText = document.createElement('b');
-            boldText.textContent = '+ special';
-            specialButton.appendChild(boldText);
-            
-            specialButton.setAttribute('type', 'button');
-            specialButton.setAttribute('aria-label', 'Add special interest');
-            specialButton.addEventListener('click', function() {
-                alert('Special interest button clicked');
-                // Add actual functionality here
-            });
-            firstCell.appendChild(specialButton);
+        // Add action cell ONLY for the prejudgment table
+        const isPrejudgmentTable = tableBody.closest('#prejudgmentTable');
+        if (isPrejudgmentTable) {
+            const actionCell = row.insertCell(); // Add a 6th cell for actions
+            actionCell.classList.add('text-center'); // Center align action cell
+
+            // Add "+ special" button ONLY to regular interest rows in the prejudgment table
+            if (!item.isSpecial) {
+                const specialButton = document.createElement('button');
+                specialButton.className = 'special-button button-small'; // Add button-small for styling
+                specialButton.innerHTML = '+ special'; // Use innerHTML for bold
+                specialButton.type = 'button';
+                specialButton.title = 'Add special damages entry below this row'; // Tooltip
+                specialButton.setAttribute('aria-label', 'Add special damages entry below this row');
+                specialButton.addEventListener('click', (event) => {
+                    addSpecialRow(event.target.closest('tr'), recalculateCallback); // Pass the parent row and callback
+                });
+                actionCell.appendChild(specialButton); // Add button to the new action cell
+            }
+            // Add Delete button for special rows (can be added here if needed, or handled in addSpecialRow)
+            // Currently, delete button is added in addSpecialRow
         }
 
-        // Apply text alignment via CSS classes (adjust indices if needed)
+
+        // Apply text alignment via CSS classes (adjust indices for the new action cell)
         row.cells[0].classList.add('text-left');   // Date/Period
         row.cells[1].classList.add('text-left');   // Description
         row.cells[2].classList.add('text-center'); // Rate
         row.cells[3].classList.add('text-right');  // Principal
         row.cells[4].classList.add('text-right');  // Interest
+        // No alignment needed for action cell if it doesn't exist for postjudgment
     });
 
     // Update totals in the footer
@@ -233,10 +240,86 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
     interestTotalElement.innerHTML = formatCurrencyForDisplay(interestTotal);
 }
 
+/**
+ * Adds a new row for special damages below the specified row.
+ * @param {HTMLTableRowElement} parentRow - The table row above which the new row should be inserted.
+ * @param {function} recalculateCallback - Function to call when inputs change.
+ */
+function addSpecialRow(parentRow, recalculateCallback) {
+    if (!parentRow || !recalculateCallback) {
+        console.error("Cannot add special row: Parent row or recalculate callback missing.");
+        return;
+    }
+    const tableBody = parentRow.parentNode;
+    const newRow = tableBody.insertRow(parentRow.rowIndex); // Insert *after* parentRow (rowIndex is 0-based, insertRow index is 1-based relative to parent)
+    newRow.className = 'special-damage-row'; // Add class for identification and styling
+
+    // --- Create Cells ---
+    const cellDate = newRow.insertCell();
+    const cellDesc = newRow.insertCell();
+    const cellRate = newRow.insertCell(); // Empty rate cell
+    const cellPrincipal = newRow.insertCell();
+    const cellInterest = newRow.insertCell(); // Empty interest cell
+    const cellAction = newRow.insertCell();
+
+    // --- Populate Cells ---
+
+    // Date Input
+    const dateInput = document.createElement('input');
+    dateInput.type = 'date';
+    dateInput.className = 'special-input';
+    // Try to get the date from the parent row's first cell (which should be in DD/MM/YYYY format)
+    const parentDateStr = parentRow.cells[0]?.textContent?.trim(); // Get date text (e.g., "01/03/2019")
+    const parentDate = parentDateStr ? parseDisplayDate(parentDateStr) : new Date(); // Use parseDisplayDate
+    dateInput.value = formatDateForInput(parentDate || new Date()); // Format as YYYY-MM-DD for the input
+    dateInput.addEventListener('change', recalculateCallback);
+    cellDate.appendChild(dateInput);
+
+    // Description Input
+    const descInput = document.createElement('input');
+    descInput.type = 'text';
+    descInput.className = 'special-input';
+    descInput.placeholder = 'Describe special damages';
+    descInput.addEventListener('change', recalculateCallback); // Recalc might be needed if description affects logic later
+    cellDesc.appendChild(descInput);
+
+    // Principal Input
+    const principalInput = document.createElement('input');
+    principalInput.type = 'text'; // Use text for currency formatting
+    principalInput.className = 'special-input currency-input';
+    principalInput.value = formatCurrencyForInput(0); // Default to $0.00
+    setupCurrencyInputListeners(principalInput, recalculateCallback); // Add formatting and recalc listener
+    cellPrincipal.appendChild(principalInput);
+
+    // Delete Button
+    const deleteButton = document.createElement('button');
+    deleteButton.textContent = 'Delete';
+    deleteButton.className = 'delete-button button-small';
+    deleteButton.type = 'button';
+    deleteButton.title = 'Delete this special damages entry';
+    deleteButton.setAttribute('aria-label', 'Delete this special damages entry');
+    deleteButton.addEventListener('click', () => {
+        newRow.remove();
+        recalculateCallback(); // Recalculate after deleting
+    });
+    cellAction.appendChild(deleteButton);
+
+    // --- Apply Styles/Alignment ---
+    cellDate.classList.add('text-left');
+    cellDesc.classList.add('text-left');
+    cellRate.classList.add('text-center'); // Empty but align
+    cellPrincipal.classList.add('text-right');
+    cellInterest.classList.add('text-right'); // Empty but align
+    cellAction.classList.add('text-center');
+
+    // Focus the description input for convenience
+    descInput.focus();
+}
+
 
 /**
- * Updates the Summary table, creating editable fields for Pecuniary Judgment.
- * @param {Array<object>} items - Array of objects { item: string, dateValue: Date | string, amount: number, isEditable?: boolean, inputType?: 'date'|'text', dataAttrDate?: string, dataAttrAmount?: string }.
+ * Updates the Summary table, creating editable fields.
+ * @param {Array<object>} items - Array of objects { item: string, dateValue: Date | string, amount: number, isEditable?: boolean, isDateEditable?: boolean }.
  * @param {number} totalOwing - The final calculated total amount.
  * @param {number} perDiem - The calculated per diem rate.
  * @param {Date} finalCalculationDate - The date up to which the calculation runs.
@@ -280,12 +363,12 @@ export function updateSummaryTable(items, totalOwing, perDiem, finalCalculationD
             const helpIcon = document.createElement('span');
             helpIcon.className = 'help-icon';
             helpIcon.textContent = '?';
-            helpIcon.setAttribute('tabindex', '0'); // Make focusable for accessibility
+            helpIcon.setAttribute('tabindex', '0'); // Make focusable
             helpIcon.setAttribute('role', 'button');
             helpIcon.setAttribute('aria-label', `Help for ${item.item}`);
-            
+
             const tooltip = document.createElement('span');
-            tooltip.className = 'tooltip';
+            tooltip.className = 'tooltip'; // Ensure CSS targets this
             tooltip.textContent = helpTexts[item.item];
             
             helpIcon.appendChild(tooltip);

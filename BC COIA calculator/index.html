@@ -87,15 +87,16 @@
                 <table class="interest-table" id="prejudgmentTable">
                  <thead>
                      <!-- Updated Headers -->
-                     <tr><th>Date</th><th>Description</th><th>Rate</th><th>Principal</th><th>Interest</th></tr>
+                     <tr><th>Date</th><th>Description</th><th>Rate</th><th>Principal</th><th>Interest</th><th><!-- Action Column --></th></tr> <!-- Added empty header -->
                  </thead>
                  <tbody data-display="prejudgmentTableBody"></tbody>
                  <!-- Updated Footer -->
                  <tfoot>
                      <tr class="total">
-                         <td colspan="3" class="text-right bold">Total</td>
-                         <td data-display="prejudgmentPrincipalTotal" class="text-right bold"></td>
-                         <td data-display="prejudgmentInterestTotal" class="text-right bold"></td>
+                         <td colspan="3" class="text-right bold">Total</td> <!-- Spans first 3 columns -->
+                         <td data-display="prejudgmentPrincipalTotal" class="text-right bold"></td> <!-- Principal Total -->
+                         <td data-display="prejudgmentInterestTotal" class="text-right bold"></td> <!-- Interest Total -->
+                         <td></td> <!-- Empty cell for action column -->
                      </tr>
                  </tfoot>
                 </table>

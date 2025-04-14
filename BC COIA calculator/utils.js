@@ -22,8 +22,33 @@ export function parseDateInput(dateString) {
         }
     }
     console.warn("Invalid date string format for input:", dateString);
+    console.warn("Invalid date string format for input:", dateString);
     return null;
 }
+
+/**
+ * Parses a date string in DD/MM/YYYY format into a UTC Date object.
+ * @param {string} dateString - The date string to parse.
+ * @returns {Date|null} The parsed Date object in UTC, or null if invalid.
+ */
+export function parseDisplayDate(dateString) {
+    if (!dateString) return null;
+    const parts = dateString.split('/');
+    if (parts.length === 3) {
+        const day = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
+        const year = parseInt(parts[2], 10);
+        // Create date in UTC
+        const date = new Date(Date.UTC(year, month, day));
+        // Basic validation
+        if (!isNaN(date.getTime()) && date.getUTCFullYear() === year && date.getUTCMonth() === month && date.getUTCDate() === day) {
+            return date;
+        }
+    }
+    console.warn("Invalid date string format for display date parsing:", dateString);
+    return null;
+}
+
 
 /**
  * Formats a Date object into DD/MM/YYYY string (UTC).

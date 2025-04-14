@@ -217,11 +217,12 @@ h1 i {
 }
 
 /* Interest Table Styles */
- table:not(.dates-table) { /* Assuming .dates-table doesn't exist or isn't relevant */
+ table.interest-table { /* Target specifically */
     width: 100%;
     border-collapse: collapse;
     margin-bottom: var(--spacing-unit); /* 4pt */
     line-height: var(--table-line-height);
+    table-layout: fixed; /* Force fixed layout */
  }
  th, td {
     padding: calc(var(--spacing-unit) * 0.75) calc(var(--spacing-unit) * 1.5); /* 3pt 6pt */
@@ -237,51 +238,25 @@ h1 i {
     white-space: nowrap;
  }
 
- /* Column Widths & Alignment - Prejudgment & Postjudgment (5 columns) */
- #prejudgmentTable th:nth-child(1), #prejudgmentTable td:nth-child(1), /* Date / Period Ending */
- #postjudgmentTable th:nth-child(1), #postjudgmentTable td:nth-child(1) { width: 15%; text-align: left; }
+ /* --- Column Widths & Alignment --- */
 
- #prejudgmentTable th:nth-child(2), #prejudgmentTable td:nth-child(2), /* Description */
- #postjudgmentTable th:nth-child(2), #postjudgmentTable td:nth-child(2) { width: auto; text-align: left; } /* Let description take space */
+ /* Prejudgment Table (6 columns) - Explicit Percentages v2 */
+ #prejudgmentTable th:nth-child(1), #prejudgmentTable td:nth-child(1) { width: 15%; text-align: left; }  /* Date */
+ #prejudgmentTable th:nth-child(2), #prejudgmentTable td:nth-child(2) { width: 35%; text-align: left; }  /* Description */
+ #prejudgmentTable th:nth-child(3), #prejudgmentTable td:nth-child(3) { width: 10%; text-align: center; } /* Rate */
+ #prejudgmentTable th:nth-child(4), #prejudgmentTable td:nth-child(4) { width: 15%; text-align: right; } /* Principal */
+ #prejudgmentTable th:nth-child(5), #prejudgmentTable td:nth-child(5) { width: 15%; text-align: right; } /* Interest */
+ #prejudgmentTable th:nth-child(6), #prejudgmentTable td:nth-child(6) { width: 10%; text-align: center;} /* Action */
 
- #prejudgmentTable th:nth-child(3), #prejudgmentTable td:nth-child(3), /* Rate */
- #postjudgmentTable th:nth-child(3), #postjudgmentTable td:nth-child(3) { width: 10%; text-align: center; }
+ /* Postjudgment Table (5 columns) */
+ #postjudgmentTable th:nth-child(1), #postjudgmentTable td:nth-child(1) { width: 15%; text-align: left; }  /* Period Ending */
+ #postjudgmentTable th:nth-child(2), #postjudgmentTable td:nth-child(2) { width: auto; text-align: left; }  /* Description */
+ #postjudgmentTable th:nth-child(3), #postjudgmentTable td:nth-child(3) { width: 10%; text-align: center; } /* Rate */
+ #postjudgmentTable th:nth-child(4), #postjudgmentTable td:nth-child(4) { width: var(--currency-column-width); text-align: right; } /* Principal */
+ #postjudgmentTable th:nth-child(5), #postjudgmentTable td:nth-child(5) { width: var(--currency-column-width); text-align: right; } /* Interest */
 
- #prejudgmentTable th:nth-child(4), #prejudgmentTable td:nth-child(4), /* Principal */
- #postjudgmentTable th:nth-child(4), #postjudgmentTable td:nth-child(4) { width: var(--currency-column-width); text-align: right; }
-
- #prejudgmentTable th:nth-child(5), #prejudgmentTable td:nth-child(5), /* Interest */
- #postjudgmentTable th:nth-child(5), #postjudgmentTable td:nth-child(5) { width: var(--currency-column-width); text-align: right; }
-
- /* Special button for Prejudgment Interest table rows */
- #prejudgmentTable tbody tr td:first-child {
-    position: relative; /* For positioning the special button */
- }
- 
- .special-button {
-    position: absolute;
-    left: -70px; /* Moved 5px to the right */
-    top: calc(50% + 15px); /* Moved 15px down */
-    transform: translateY(-50%);
-    font-size: 14px;
-    font-weight: normal; /* Changed from bold to normal */
-    color: #333;
-    background-color: #f0f0f0;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    padding: 2px 3px; /* Reduced horizontal padding */
-    cursor: pointer;
-    opacity: 0; /* Hidden by default */
-    transition: opacity 0.2s ease, background-color 0.2s ease; /* Smooth transition */
- }
- 
- .special-button:hover {
-    background-color: #e0e0e0;
- }
- 
- #prejudgmentTable tbody tr:hover .special-button {
-    opacity: 1; /* Visible on hover */
- }
+ /* Styling for buttons within table cells is handled by .button-small below */
+ /* Removed incorrect absolute positioning rules for .special-button here */
 
  /* Column Widths & Alignment - Judgment Table (3 columns) */
  .judgment-table th:nth-child(1), .judgment-table td:nth-child(1) { width: 15%; text-align: left; } /* Date */
@@ -449,6 +424,62 @@ h1 i {
     pointer-events: auto;
 }
 
+/* --- Special Damage Row Styles --- */
+.special-damage-row td {
+    background-color: #f9f9f9; /* Slightly different background */
+}
+
+.special-damage-row input.special-input {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    padding: calc(var(--spacing-unit) * 0.5); /* 2pt */
+    font-size: inherit; /* Use table font size */
+    background-color: white; /* White background for inputs */
+}
+.special-damage-row input.special-input:focus {
+    outline: 1px solid var(--focus-outline-color);
+    border-color: var(--focus-outline-color);
+}
+.special-damage-row input[type="date"].special-input {
+    text-align: left; /* Date input usually left-aligned */
+}
+.special-damage-row input.currency-input {
+    text-align: right;
+}
+
+/* --- Button Styles --- */
+button.button-small {
+    font-size: 10pt; /* Smaller font */
+    padding: 1px 4px; /* Smaller padding */
+    margin: 0 2px; /* Small margin */
+    cursor: pointer;
+    border: 1px solid #aaa;
+    background-color: #eee;
+    border-radius: 3px;
+    line-height: 1.1; /* Adjust line height */
+}
+button.button-small:hover {
+    background-color: #ddd;
+}
+button.special-button {
+    /* Inherits from button-small */
+}
+button.delete-button {
+    /* Inherits from button-small */
+    color: #c00; /* Reddish text */
+}
+button.delete-button:hover {
+    background-color: #fdd; /* Light red background on hover */
+}
+
+/* Adjust interest table action column width */
+#prejudgmentTable th:nth-child(6), #prejudgmentTable td:nth-child(6) { /* Action Column */
+    width: 10%; /* Adjust width as needed */
+    text-align: center;
+    vertical-align: middle; /* Vertically center content in action cell */
+}
+
 
 /* --- PRINT STYLES --- */
 @media print {
@@ -508,6 +539,21 @@ input[type="date"], input[type="text"], select {
     .summary-table tfoot td { border-top: 1px solid var(--border-color) !important; }
     .summary-table tfoot .per-diem-row td { border-top: none !important; }
     .summary-table .total-row td { font-weight: bold !important; }
+
+    /* Hide buttons and inputs in special rows for print */
+    .special-damage-row input.special-input {
+        background-color: transparent !important;
+        border: none !important;
+        padding: 0 !important;
+    }
+    .special-damage-row button {
+        display: none !important;
+    }
+    /* Hide the action column header and cell content in print */
+     #prejudgmentTable th:nth-child(6), #prejudgmentTable td:nth-child(6) {
+         display: none !important;
+     }
+
 
       /* Hide date picker icon in print */
       input[type="date"]::-webkit-calendar-picker-indicator {

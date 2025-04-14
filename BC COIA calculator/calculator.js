@@ -72,6 +72,33 @@ function recalculate() {
         return;
     }
 
+    // --- Read Special Damages from Prejudgment Table ---
+    const specialDamages = [];
+    if (elements.prejudgmentTableBody) {
+        const specialRows = elements.prejudgmentTableBody.querySelectorAll('.special-damage-row');
+        specialRows.forEach(row => {
+            const dateInput = row.querySelector('input[type="date"]');
+            const descInput = row.querySelector('input[type="text"]:not(.currency-input)'); // Exclude principal input
+            const principalInput = row.querySelector('input.currency-input');
+
+            if (dateInput && descInput && principalInput) {
+                const date = parseDateInput(dateInput.value);
+                const description = descInput.value || descInput.placeholder; // Use placeholder if empty
+                const amount = parseCurrency(principalInput.value);
+
+                if (date && amount >= 0) { // Only add valid entries
+                    specialDamages.push({ date, description, amount });
+                } else {
+                    console.warn("Skipping invalid special damage row:", { date: dateInput.value, description: descInput.value, amount: principalInput.value });
+                }
+            }
+        });
+        // Sort specials by date ascending
+        specialDamages.sort((a, b) => a.date - b.date);
+        console.log("Parsed Special Damages:", specialDamages); // For debugging
+    }
+    // --- End Read Special Damages ---
+
 
     // 2. Calculate Prejudgment Interest (Conditional on Checkbox)
     // Prejudgment interest in BC COIA applies ONLY to pecuniary damages.
@@ -90,10 +117,13 @@ function recalculate() {
                 prejudgmentEndDate,
                 'prejudgment',
                 inputs.jurisdiction,
-                interestRatesData
+                interestRatesData,
+                specialDamages // Pass the collected special damages
             );
         } else {
             console.warn("Prejudgment calculation skipped: Invalid date range (start date vs judgment date) or zero pecuniary judgment amount.");
+            // Still need to clear/update table even if calculation is skipped
+            prejudgmentResult = { details: [], total: 0, principal: inputs.judgmentAwarded }; // Reset result
         }
     } else {
         console.log("Prejudgment calculation skipped: Checkbox unchecked.");
@@ -105,7 +135,8 @@ function recalculate() {
         elements.prejudgmentInterestTotalEl,
         prejudgmentResult.details,
         prejudgmentResult.principal, // Pass pecuniary principal total
-        prejudgmentResult.total // Pass interest total
+        prejudgmentResult.total, // Pass interest total
+        recalculate // Pass the recalculate function as the callback for special rows
     );
 
     // 3. Calculate Base Total for Postjudgment and Summary
