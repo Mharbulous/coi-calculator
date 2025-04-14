@@ -42,9 +42,9 @@ function recalculate() {
 
         const errorSummaryItems = [
              { item: 'Pecuniary Judgment', dateValue: defaultJudgmentDate, amount: inputs.judgmentAwarded || 0, isEditable: true },
-             { item: 'Prejudgment Interest', dateValue: defaultPrejudgmentStartDate, amount: 0, isDateEditable: true }, // Date editable
              { item: 'Non-Pecuniary Judgment', dateValue: defaultNonPecDate, amount: inputs.nonPecuniaryAwarded || 0, isEditable: true },
              { item: 'Costs Awarded', dateValue: defaultCostsDate, amount: inputs.costsAwarded || 0, isEditable: true },
+             { item: 'Prejudgment Interest', dateValue: defaultPrejudgmentStartDate, amount: 0, isDateEditable: true }, // Date editable
              { item: 'Postjudgment Interest', dateValue: defaultPostjudgmentEndDate, amount: 0, isDateEditable: true }, // Date editable
         ];
         updateSummaryTable(errorSummaryItems, baseTotal, 0, defaultPostjudgmentEndDate, recalculate); // Pass recalculate
@@ -62,9 +62,9 @@ function recalculate() {
         // Update summary table with zeros or base values if possible, passing recalculate
         const errorSummaryItems = [ // Use current input values for amounts/dates
              { item: 'Pecuniary Judgment', dateValue: inputs.dateOfJudgment, amount: inputs.judgmentAwarded, isEditable: true },
-             { item: 'Prejudgment Interest', dateValue: inputs.prejudgmentStartDate, amount: 0, isDateEditable: true }, // Date editable
              { item: 'Non-Pecuniary Judgment', dateValue: inputs.nonPecuniaryJudgmentDate, amount: inputs.nonPecuniaryAwarded, isEditable: true },
              { item: 'Costs Awarded', dateValue: inputs.costsAwardedDate, amount: inputs.costsAwarded, isEditable: true },
+             { item: 'Prejudgment Interest', dateValue: inputs.prejudgmentStartDate, amount: 0, isDateEditable: true }, // Date editable
              { item: 'Postjudgment Interest', dateValue: inputs.postjudgmentEndDate, amount: 0, isDateEditable: true }, // Date editable
         ];
         updateSummaryTable(errorSummaryItems, baseTotal, 0, inputs.postjudgmentEndDate, recalculate); // Pass recalculate
@@ -171,12 +171,12 @@ function recalculate() {
     const summaryItems = [
         // Mark Pecuniary Judgment as editable, pass the Date object for formatting
         { item: 'Pecuniary Judgment', dateValue: inputs.dateOfJudgment, amount: inputs.judgmentAwarded, isEditable: true },
-        // Prejudgment interest date is now editable (start date)
-        { item: 'Prejudgment Interest', dateValue: inputs.prejudgmentStartDate, amount: prejudgmentResult.total, isDateEditable: true },
         // Mark Non-Pecuniary as editable, pass its specific Date object
         { item: 'Non-Pecuniary Judgment', dateValue: inputs.nonPecuniaryJudgmentDate, amount: inputs.nonPecuniaryAwarded, isEditable: true },
         // Mark Costs as editable, pass its specific Date object
         { item: 'Costs Awarded', dateValue: inputs.costsAwardedDate, amount: inputs.costsAwarded, isEditable: true },
+        // Prejudgment interest date is now editable (start date)
+        { item: 'Prejudgment Interest', dateValue: inputs.prejudgmentStartDate, amount: prejudgmentResult.total, isDateEditable: true },
         // Postjudgment Interest date is now editable (end date)
         { item: 'Postjudgment Interest', dateValue: inputs.postjudgmentEndDate, amount: postjudgmentResult.total, isDateEditable: true },
     ];
@@ -287,9 +287,9 @@ function initializeCalculator() {
     const defaultAmount = 0; // Default amount for all judgments initially
     const initialSummaryItems = [
         { item: 'Pecuniary Judgment', dateValue: defaultJudgmentDate, amount: defaultAmount, isEditable: true },
-        { item: 'Prejudgment Interest', dateValue: defaultPrejudgmentStartDate, amount: 0, isDateEditable: true }, // Date editable
         { item: 'Non-Pecuniary Judgment', dateValue: defaultJudgmentDate, amount: defaultAmount, isEditable: true }, // Now editable
         { item: 'Costs Awarded', dateValue: defaultJudgmentDate, amount: defaultAmount, isEditable: true }, // Now editable
+        { item: 'Prejudgment Interest', dateValue: defaultPrejudgmentStartDate, amount: 0, isDateEditable: true }, // Date editable
         { item: 'Postjudgment Interest', dateValue: defaultPostjudgmentEndDate, amount: 0, isDateEditable: true }, // Date editable
     ];
     // Call updateSummaryTable directly to create the elements, passing recalculate as the callback
