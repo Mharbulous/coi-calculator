@@ -192,11 +192,31 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
     // Populate new rows (assuming 5 columns: Date/Period, Description, Rate, Principal, Interest)
     details.forEach(item => {
         const row = tableBody.insertRow();
-        row.insertCell().textContent = item.start; // Expect formatted date/period start
+        const firstCell = row.insertCell();
+        firstCell.textContent = item.start; // Expect formatted date/period start
         row.insertCell().textContent = item.description; // Expect description (e.g., days, period end)
         row.insertCell().textContent = item.rate.toFixed(2) + '%';
         row.insertCell().innerHTML = formatCurrencyForDisplay(item.principal); // Principal for the period
         row.insertCell().innerHTML = formatCurrencyForDisplay(item.interest); // Interest for the period
+
+        // Add special button to prejudgment table rows
+        if (tableBody.id === 'prejudgmentTableBody' || tableBody.closest('#prejudgmentTable')) {
+            const specialButton = document.createElement('button');
+            specialButton.className = 'special-button';
+            
+            // Create a bold element for the text
+            const boldText = document.createElement('b');
+            boldText.textContent = '+ special';
+            specialButton.appendChild(boldText);
+            
+            specialButton.setAttribute('type', 'button');
+            specialButton.setAttribute('aria-label', 'Add special interest');
+            specialButton.addEventListener('click', function() {
+                alert('Special interest button clicked');
+                // Add actual functionality here
+            });
+            firstCell.appendChild(specialButton);
+        }
 
         // Apply text alignment via CSS classes (adjust indices if needed)
         row.cells[0].classList.add('text-left');   // Date/Period
