@@ -237,13 +237,42 @@ export function updateSummaryTable(items, totalOwing, perDiem, finalCalculationD
     elements.prejudgmentInterestDateInput = null; // Added
     elements.postjudgmentInterestDateInput = null; // Added
 
+    // Help text for tooltips
+    const helpTexts = {
+        'Pecuniary Judgment': "Enter the date that prejudgment interest accrued to. Typically accrues up to the date judgment is pronounced.",
+        'Prejudgment Interest': "Enter the date that prejudgment interest accrues from. Prejudgment interest typically accrues from the date the cause of action accrued, but the judge may order that interest accrues from another date.",
+        'Postjudgment Interest': "Enter the date to accrue postjudgment interest to. Typically this will be to today's date, but you may specify another date."
+    };
+
     items.forEach(item => {
         const row = elements.summaryTableBody.insertRow();
         const cellItem = row.insertCell();
         const cellDate = row.insertCell();
         const cellAmount = row.insertCell();
 
-        cellItem.textContent = item.item;
+        // Create label with help icon for specific items
+        if (helpTexts[item.item]) {
+            const labelSpan = document.createElement('span');
+            labelSpan.textContent = item.item;
+            
+            const helpIcon = document.createElement('span');
+            helpIcon.className = 'help-icon';
+            helpIcon.textContent = '?';
+            helpIcon.setAttribute('tabindex', '0'); // Make focusable for accessibility
+            helpIcon.setAttribute('role', 'button');
+            helpIcon.setAttribute('aria-label', `Help for ${item.item}`);
+            
+            const tooltip = document.createElement('span');
+            tooltip.className = 'tooltip';
+            tooltip.textContent = helpTexts[item.item];
+            
+            helpIcon.appendChild(tooltip);
+            
+            cellItem.appendChild(labelSpan);
+            cellItem.appendChild(helpIcon);
+        } else {
+            cellItem.textContent = item.item;
+        }
 
         if (item.isEditable && item.item === 'Pecuniary Judgment') {
             // Create Date Input

@@ -8,6 +8,9 @@
     --focus-outline-color: #a0a0a0;
     --text-color: black;
     --negative-currency-color: red;
+    --tooltip-background-color: #f8f8f8;
+    --tooltip-border-color: #ccc;
+    --help-icon-color: #666;
 
     --font-family: Arial, sans-serif;
     --base-font-size: 11pt;
@@ -363,6 +366,49 @@ h1 i {
 
  .bold { font-weight: bold !important; }
  .hidden { display: none !important; }
+
+/* Help Icon and Tooltip Styles */
+.help-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background-color: var(--help-icon-color);
+    color: white;
+    font-size: 10px;
+    font-weight: bold;
+    margin-left: 5px;
+    cursor: help;
+    vertical-align: middle;
+    position: relative;
+}
+
+.tooltip {
+    position: absolute;
+    z-index: 100;
+    width: 250px;
+    background-color: var(--tooltip-background-color);
+    border: 1px solid var(--tooltip-border-color);
+    border-radius: 4px;
+    padding: 8px;
+    font-size: 10pt;
+    font-weight: normal;
+    color: var(--text-color);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+    text-align: left;
+    line-height: 1.3;
+}
+
+.help-icon:hover .tooltip,
+.help-icon:focus .tooltip {
+    opacity: 1;
+    pointer-events: auto;
+}
 
 
 /* --- PRINT STYLES --- */
