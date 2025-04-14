@@ -9,7 +9,7 @@
     --text-color: black;
     --negative-currency-color: red;
 
-    --font-family: 'Times New Roman', Times, serif;
+    --font-family: Arial, sans-serif;
     --base-font-size: 11pt;
     --title-font-size: 12pt;
     --print-font-size: 10pt;
@@ -46,6 +46,12 @@ body {
     font-family: var(--font-family);
     font-size: var(--base-font-size);
     color: var(--text-color);
+}
+
+/* Ensure all input elements use Arial font and 11pt size */
+input, select, textarea, button {
+    font-family: var(--font-family);
+    font-size: var(--base-font-size);
 }
 .paper {
     background-color: var(--paper-background-color);
@@ -111,7 +117,7 @@ h1 i {
     border: none;
     background-color: var(--input-background-color);
     padding: var(--spacing-unit); /* 4pt */
-    font-family: inherit;
+    font-family: var(--font-family);
     font-size: inherit;
     box-sizing: border-box;
     text-align: right;
@@ -153,7 +159,7 @@ h1 i {
 }
 #jurisdictionSelect, /* Keep ID selector for now if needed */
 [data-input="jurisdictionSelect"] {
-    font-family: inherit;
+    font-family: var(--font-family);
     font-size: inherit;
     border: 1px solid var(--focus-outline-color);
     padding: calc(var(--spacing-unit) * 0.5) var(--spacing-unit); /* 2pt 4pt */
@@ -171,7 +177,7 @@ h1 i {
     border: none;
     background-color: var(--input-background-color);
     padding: var(--spacing-unit); /* 4pt */
-    font-family: inherit;
+    font-family: var(--font-family);
     font-size: inherit;
     box-sizing: border-box;
     text-align: right;
@@ -215,6 +221,7 @@ h1 i {
      margin: 0 5px 0 0;
 }
 .checkbox-container label {
+    font-family: var(--font-family);
     font-weight: normal;
     cursor: pointer;
     white-space: nowrap;
@@ -317,6 +324,12 @@ h1 i {
  .summary-table tbody td:nth-child(2) {
     text-align: center; /* Date centered */
  }
+ /* Ensure all inputs in the summary table use Arial font and 11pt size */
+ .summary-table input[type="date"],
+ .summary-table input[type="text"] {
+    font-family: var(--font-family);
+    font-size: var(--base-font-size);
+ }
 
  /* Summary Footer Rows */
  .summary-table tfoot td {
@@ -369,11 +382,11 @@ h1 i {
         border: none !important; box-sizing: border-box !important;
         page-break-after: auto !important; position: static !important; overflow: visible !important;
     }
-    input[type="date"], input[type="text"], select {
+input[type="date"], input[type="text"], select {
         border: none !important; background-color: transparent !important; padding: 0 !important;
         box-sizing: border-box !important; color: var(--text-color) !important; appearance: none !important;
         -webkit-appearance: none !important; -moz-appearance: none !important;
-        font-family: inherit !important; font-size: inherit !important; text-align: inherit !important;
+        font-family: var(--font-family) !important; font-size: inherit !important; text-align: inherit !important;
         -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
     }
     .checkbox-row { display: none !important; }
