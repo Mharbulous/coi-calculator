@@ -74,6 +74,6 @@
 | Prejudgment Interest | 2023-05-01 | $645.78 |
 | Non-Pecuniary Judgment | 2023-05-01 | $20,000.00 |
 | Costs Awarded | 2023-05-01 | $1,000.00 |
-| Post Judgment Interest | 2025-05-12 | $4,315.66 |
+| Postjudgment Interest | 2025-05-12 | $4,315.66 |
 | **Total as of** | **2025-05-12** | **$35,961.44** |
 |   | _Per Diem_ | $4.72 |

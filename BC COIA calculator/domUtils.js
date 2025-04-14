@@ -6,7 +6,7 @@ export const elements = {
     // Inputs
     // causeOfActionDateInput: document.querySelector('[data-input="causeOfActionDate"]'), // Removed - Moved to summary table (Prejudgment Interest Date)
     // dateOfJudgmentInput: document.querySelector('[data-input="dateOfJudgment"]'), // Removed - Moved to summary table
-    // dateOfCalculationInput: document.querySelector('[data-input="dateOfCalculation"]'), // Removed - Moved to summary table (Post Judgment Interest Date)
+    // dateOfCalculationInput: document.querySelector('[data-input="dateOfCalculation"]'), // Removed - Moved to summary table (Postjudgment Interest Date)
     // judgmentAwardedInput: document.querySelector('[data-input="judgmentAwarded"]'), // Removed - Moved to summary table
     // nonPecuniaryAwardedInput: document.querySelector('[data-input="nonPecuniaryAwarded"]'), // Removed - Moved to summary table
     // costsAwardedInput: document.querySelector('[data-input="costsAwarded"]'), // Removed - Moved to summary table
@@ -314,7 +314,7 @@ export function updateSummaryTable(items, totalOwing, perDiem, finalCalculationD
              // Amount is calculated, not editable
              cellAmount.innerHTML = formatCurrencyForDisplay(item.amount);
 
-        } else if (item.isDateEditable && item.item === 'Post Judgment Interest') {
+        } else if (item.isDateEditable && item.item === 'Postjudgment Interest') {
              // Create Date Input for Postjudgment End Date
              const dateInput = document.createElement('input');
              dateInput.type = 'date';
