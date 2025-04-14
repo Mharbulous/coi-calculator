@@ -155,6 +155,105 @@
         </table>
     </div>
 
+    <!-- Templates for dynamic HTML generation -->
+    <template id="special-damage-row-template">
+        <tr>
+            <td class="date-cell">
+                <span class="editable">
+                    <input type="date" name="damageDate" class="inline-date-input">
+                </span>
+                <span class="icon date-icon">📅</span>
+            </td>
+            <td>
+                <span class="editable">
+                    <input type="text" name="damageDescription" class="inline-editable-input">
+                </span>
+            </td>
+            <td class="amount-cell">
+                <span class="editable">
+                    <input type="text" name="damageAmount" class="inline-editable-input amount-input">
+                </span>
+                <span class="delete-icon">🗑️</span>
+            </td>
+        </tr>
+    </template>
+
+    <template id="recurring-damage-row-template">
+        <tr>
+            <td class="date-range-cell">
+                <div class="date-field">
+                    <span class="date-label">Start:</span>
+                    <input type="date" name="recurringStartDate">
+                </div>
+                <div class="date-field">
+                    <span class="date-label">End:</span>
+                    <input type="date" name="recurringEndDate">
+                </div>
+            </td>
+            <td><input type="text" name="recurringDescription"></td>
+            <td class="amount-frequency-cell">
+                <input type="text" name="recurringAmount">
+                <select name="recurringFrequency">
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="bi-annually" selected>Bi-annually</option>
+                    <option value="annually">Annually</option>
+                    <option value="Full Term">Full Term</option>
+                </select>
+            </td>
+            <td><span class="delete-icon">🗑️</span></td>
+        </tr>
+    </template>
+
+    <template id="period-calculation-template">
+        <div class="period-calculation">
+            <div class="period-header"><strong></strong></div>
+            <div class="period-details"></div>
+            <table class="output-table">
+                <thead>
+                    <tr><th>Date</th><th>Description</th><th>Amount</th><th>Interest</th></tr>
+                </thead>
+                <tbody></tbody>
+                <tfoot>
+                    <tr class="subtotal">
+                        <td></td>
+                        <td><strong>Subtotal</strong></td>
+                        <td class="text-right"><strong></strong></td>
+                        <td class="text-right"><strong></strong></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </template>
+
+    <template id="period-carryover-row-template">
+        <tr>
+            <td></td>
+            <td>Carry over</td>
+            <td class="text-right"></td>
+            <td class="text-right"></td>
+        </tr>
+    </template>
+
+    <template id="period-damage-row-template">
+        <tr>
+            <td></td>
+            <td></td>
+            <td class="text-right"></td>
+            <td></td>
+        </tr>
+    </template>
+
+    <template id="period-interest-detail-row-template">
+        <tr class="interest-detail-row">
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="text-right"></td>
+        </tr>
+    </template>
+
     <!-- Load the default values first, then the main calculator script -->
     <script src="defaultValues.js" type="module" defer></script>
     <script src="calculator.js" type="module" defer></script>

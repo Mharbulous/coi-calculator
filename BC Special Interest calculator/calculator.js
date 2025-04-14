@@ -199,28 +199,8 @@ damagesTbody.addEventListener('keydown', (event) => {
 // --- DOM Manipulation ---
 
 function createDamageRow() {
-    const row = document.createElement('tr');
-    // Use the new HTML structure matching index.html and the mockup
-    row.innerHTML = `
-        <td class="date-cell">
-            <span class="editable">
-                <input type="date" name="damageDate" class="inline-date-input">
-            </span>
-            <span class="icon date-icon">📅</span>
-        </td>
-        <td>
-            <span class="editable">
-                <input type="text" name="damageDescription" class="inline-editable-input">
-            </span>
-        </td>
-        <td class="amount-cell">
-            <span class="editable">
-                <input type="text" name="damageAmount" class="inline-editable-input amount-input">
-            </span>
-            <span class="delete-icon">🗑️</span>
-        </td>
-    `;
-    return row;
+    const template = document.getElementById('special-damage-row-template');
+    return template.content.cloneNode(true).querySelector('tr');
 }
 
 function addDamageRow() {
@@ -253,33 +233,8 @@ function removeDamageRow(deleteIcon) {
 // --- Recurring Damages Table Functions ---
 
 function createRecurringDamageRow() {
-    const row = document.createElement('tr');
-    row.innerHTML = `
-        <td class="date-range-cell">
-            <div class="date-field">
-                <span class="date-label">Start:</span>
-                <input type="date" name="recurringStartDate">
-            </div>
-            <div class="date-field">
-                <span class="date-label">End:</span>
-                <input type="date" name="recurringEndDate">
-            </div>
-        </td>
-        <td><input type="text" name="recurringDescription"></td>
-        <td class="amount-frequency-cell">
-            <input type="text" name="recurringAmount"> <!-- Changed type to text -->
-            <select name="recurringFrequency">
-                <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-                <option value="monthly">Monthly</option>
-                <option value="bi-annually" selected>Bi-annually</option>
-                <option value="annually">Annually</option>
-                <option value="Full Term">Full Term</option>
-            </select>
-        </td>
-        <td><span class="delete-icon">🗑️</span></td> <!-- Use delete icon span -->
-    `;
-    return row;
+    const template = document.getElementById('recurring-damage-row-template');
+    return template.content.cloneNode(true).querySelector('tr');
 }
 
 function addRecurringTableRow() {
@@ -439,83 +394,128 @@ function displayCalculationResults(result) {
          return;
     }
 
-
     let runningInterestSubtotal = 0;
 
+    // Get templates
+    const periodTemplate = document.getElementById('period-calculation-template');
+    const carryoverRowTemplate = document.getElementById('period-carryover-row-template');
+    const damageRowTemplate = document.getElementById('period-damage-row-template');
+    const interestDetailRowTemplate = document.getElementById('period-interest-detail-row-template');
+
     result.periodData.forEach(period => {
-        const periodDiv = document.createElement('div');
-        periodDiv.classList.add('period-calculation');
-
-        // Period Header (e.g., Period ending June 30, 2019) - Now Bold
-        const header = document.createElement('div');
-        header.classList.add('period-header');
-        header.innerHTML = `<strong>Period ending ${period.periodEndDate}</strong>`; // Wrap in <strong>
-        periodDiv.appendChild(header);
-
-        // Period Details (Days, Rate) - Now Regular Font, order reversed
-        const details = document.createElement('div');
-        details.classList.add('period-details');
-        // Order reversed, ensure no bold tags (check CSS too)
-        details.textContent = `${period.days} days | Allowed Rate: ${period.rate.toFixed(2)}%`;
-        periodDiv.appendChild(details);
-
-        // Period Table
-        const table = document.createElement('table');
-        table.classList.add('output-table');
-        table.innerHTML = `
-            <thead>
-                <tr><th>Date</th><th>Description</th><th>Amount</th><th>Interest</th></tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>${period.periodStartDate}</td>
-                    <td>Carry over</td>
-                    <td class="text-right">${formatCurrency(period.startingBalance)}</td>
-                    <td class="text-right">${formatCurrency(period.interestOnBalance)}</td>
-                </tr>
-                ${period.damagesInPeriod.map(damage => `
-                    <tr>
-                        <td>${damage.date}</td>
-                        <td>${damage.description}</td>
-                        <td class="text-right">${formatCurrency(damage.amount)}</td>
-                        <td></td> <!-- Placeholder for interest column on damage row -->
-                    </tr>
-                    ${damage.interestDetail ? `
-                    <tr class="interest-detail-row">
-                        <td></td> <!-- Empty cell under Date -->
-                        <td></td> <!-- Empty cell under Description -->
-                        <td>${damage.interestDetail.days} days interest*</td> <!-- Text under Amount, no italics -->
-                        <td class="text-right">${formatCurrency(damage.interestDetail.interest)}</td> <!-- Interest under Interest, no italics -->
-                    </tr>
-                    ` : ''}
-                `).join('')}
-            </tbody>
-            <tfoot>
-                <tr class="subtotal">
-                    <td></td> <!-- Empty cell under Date -->
-                    <td><strong>Subtotal</strong></td> <!-- Label moved to second column -->
-                    <td class="text-right"><strong>${formatCurrency(period.periodEndingBalance)}</strong></td>
-                    <td class="text-right"><strong>${formatCurrency(period.cumulativeInterestAtPeriodEnd)}</strong></td>
-                </tr>
-            </tfoot>
-        `;
-        periodDiv.appendChild(table);
-
-        calculationOutputArea.appendChild(periodDiv);
-
+        // Clone the period template
+        const periodElement = periodTemplate.content.cloneNode(true);
+        
+        // Set period header and details
+        const periodHeader = periodElement.querySelector('.period-header strong');
+        periodHeader.textContent = `Period ending ${period.periodEndDate}`;
+        
+        const periodDetails = periodElement.querySelector('.period-details');
+        periodDetails.textContent = `${period.days} days | Allowed Rate: ${period.rate.toFixed(2)}%`;
+        
+        // Get the table body to append rows
+        const tableBody = periodElement.querySelector('tbody');
+        
+        // Add carryover row
+        const carryoverRow = carryoverRowTemplate.content.cloneNode(true);
+        const carryoverCells = carryoverRow.querySelectorAll('td');
+        carryoverCells[0].textContent = period.periodStartDate;
+        carryoverCells[2].textContent = formatCurrency(period.startingBalance);
+        carryoverCells[2].classList.add('text-right');
+        carryoverCells[3].textContent = formatCurrency(period.interestOnBalance);
+        carryoverCells[3].classList.add('text-right');
+        tableBody.appendChild(carryoverRow);
+        
+        // Add damage rows
+        period.damagesInPeriod.forEach(damage => {
+            // Add main damage row
+            const damageRow = damageRowTemplate.content.cloneNode(true);
+            const damageCells = damageRow.querySelectorAll('td');
+            damageCells[0].textContent = damage.date;
+            
+            // Create a container for description and button
+            const descriptionContainer = document.createElement('div');
+            descriptionContainer.className = 'description-container';
+            descriptionContainer.style.display = 'flex';
+            descriptionContainer.style.justifyContent = 'space-between';
+            descriptionContainer.style.alignItems = 'center';
+            
+            // Add the description text
+            const descriptionText = document.createElement('span');
+            descriptionText.textContent = damage.description;
+            descriptionContainer.appendChild(descriptionText);
+            
+            // Add the "add special damages" button only for rows with interest
+            if (damage.interestDetail && damage.interestDetail.interest > 0) {
+                const addButton = document.createElement('button');
+                addButton.textContent = 'add special damages';
+                addButton.className = 'add-special-damages-btn';
+                addButton.style.backgroundColor = '#4a90e2';
+                addButton.style.color = 'white';
+                addButton.style.border = 'none';
+                addButton.style.borderRadius = '4px';
+                addButton.style.padding = '4px 8px';
+                addButton.style.fontSize = '0.85em';
+                addButton.style.cursor = 'pointer';
+                addButton.style.marginLeft = '10px';
+                addButton.style.fontWeight = '500';
+                addButton.style.transition = 'background-color 0.2s';
+                
+                // Add hover effect using event listeners
+                addButton.addEventListener('mouseover', function() {
+                    this.style.backgroundColor = '#3a7bc8';
+                });
+                addButton.addEventListener('mouseout', function() {
+                    this.style.backgroundColor = '#4a90e2';
+                });
+                
+                // Add click event listener (placeholder for now)
+                addButton.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    console.log('Add special damages clicked for:', damage);
+                    // Implement the actual functionality here
+                });
+                
+                descriptionContainer.appendChild(addButton);
+            }
+            
+            damageCells[1].appendChild(descriptionContainer);
+            damageCells[2].textContent = formatCurrency(damage.amount);
+            damageCells[2].classList.add('text-right');
+            tableBody.appendChild(damageRow);
+            
+            // Add interest detail row if applicable
+            if (damage.interestDetail) {
+                const interestDetailRow = interestDetailRowTemplate.content.cloneNode(true);
+                const interestDetailCells = interestDetailRow.querySelectorAll('td');
+                interestDetailCells[2].textContent = `${damage.interestDetail.days} days interest*`;
+                interestDetailCells[3].textContent = formatCurrency(damage.interestDetail.interest);
+                interestDetailCells[3].classList.add('text-right');
+                tableBody.appendChild(interestDetailRow);
+            }
+        });
+        
+        // Set subtotal values
+        const subtotalRow = periodElement.querySelector('tfoot tr.subtotal');
+        const subtotalCells = subtotalRow.querySelectorAll('td strong');
+        subtotalCells[1].textContent = formatCurrency(period.periodEndingBalance);
+        subtotalCells[2].textContent = formatCurrency(period.cumulativeInterestAtPeriodEnd);
+        
+        // Append the completed period to the output area
+        calculationOutputArea.appendChild(periodElement);
+        
         runningInterestSubtotal = period.cumulativeInterestAtPeriodEnd; // Keep track for summary
     });
 
-     // Add footnote for final period interest detail if applicable
-     const hasInterestDetail = result.periodData.some(p => p.damagesInPeriod.some(d => d.interestDetail));
-     if (hasInterestDetail) {
-         const footnote = document.createElement('p');
-         footnote.style.fontSize = '0.9em';
-         footnote.style.marginTop = '1em';
-         footnote.innerHTML = `* Special damages incurred in the six month period in which the order was made accrue interest from the date special damages were incurred to the date of the order. See COIA section 1(3)`;
-         calculationOutputArea.appendChild(footnote);
-     }
-
+    // Add footnote for final period interest detail if applicable
+    const hasInterestDetail = result.periodData.some(p => p.damagesInPeriod.some(d => d.interestDetail));
+    if (hasInterestDetail) {
+        const footnote = document.createElement('p');
+        footnote.style.fontSize = '0.9em';
+        footnote.style.marginTop = '1em';
+        footnote.innerHTML = `* Special damages incurred in the six month period in which the order was made accrue interest from the date special damages were incurred to the date of the order. See COIA section 1(3)`;
+        calculationOutputArea.appendChild(footnote);
+    }
 
     // Update Summary Table
     summaryTotalSpecialsEl.textContent = formatCurrency(result.summary.totalSpecials);

@@ -186,6 +186,30 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
         console.error("Missing required table elements for updateInterestTable");
         return;
     }
+    
+    // Determine if this is the prejudgment table
+    const isPrejudgmentTable = tableBody.id === 'prejudgmentTableBody' || 
+                              tableBody.closest('table')?.id === 'prejudgmentTable';
+    
+    // If this is the prejudgment table, save any existing special damages rows
+    const existingSpecialDamagesRows = [];
+    if (isPrejudgmentTable) {
+        const specialRows = tableBody.querySelectorAll('.special-damages-row');
+        specialRows.forEach(row => {
+            const dateInput = row.querySelector('.special-damages-date');
+            const descInput = row.querySelector('.special-damages-description');
+            const amountInput = row.querySelector('.special-damages-amount');
+            
+            if (dateInput && descInput && amountInput) {
+                existingSpecialDamagesRows.push({
+                    date: dateInput.value,
+                    description: descInput.value.trim() || descInput.placeholder,
+                    amount: amountInput.value
+                });
+            }
+        });
+    }
+    
     // Clear previous rows
     tableBody.innerHTML = '';
 
@@ -193,7 +217,45 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
     details.forEach(item => {
         const row = tableBody.insertRow();
         row.insertCell().textContent = item.start; // Expect formatted date/period start
-        row.insertCell().textContent = item.description; // Expect description (e.g., days, period end)
+        
+        // Description cell with potential button
+        const descCell = row.insertCell();
+        
+        // Create a container for description and button
+        const descriptionContainer = document.createElement('div');
+        descriptionContainer.className = 'description-container';
+        
+        // Add the description text
+        const descriptionText = document.createElement('span');
+        descriptionText.textContent = item.description;
+        descriptionContainer.appendChild(descriptionText);
+        
+        // Add the "add special damages" button only for rows with interest in prejudgment table
+        if (isPrejudgmentTable && item.interest > 0) {
+            const addButton = document.createElement('button');
+            addButton.textContent = 'add special damages';
+            addButton.className = 'add-special-damages-btn';
+            addButton.dataset.date = item.start;
+            addButton.dataset.amount = item.interest;
+            
+            // Add click event listener
+            addButton.addEventListener('click', function(event) {
+                event.preventDefault();
+                console.log('Add special damages clicked for:', item);
+                
+                // Get the current row
+                const currentRow = this.closest('tr');
+                if (!currentRow) return;
+                
+                // Create a new special damages row
+                insertSpecialDamagesRow(tableBody, currentRow, item.start);
+            });
+            
+            descriptionContainer.appendChild(addButton);
+        }
+        
+        descCell.appendChild(descriptionContainer);
+        
         row.insertCell().textContent = item.rate.toFixed(2) + '%';
         row.insertCell().innerHTML = formatCurrencyForDisplay(item.principal); // Principal for the period
         row.insertCell().innerHTML = formatCurrencyForDisplay(item.interest); // Interest for the period
@@ -205,6 +267,67 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
         row.cells[3].classList.add('text-right');  // Principal
         row.cells[4].classList.add('text-right');  // Interest
     });
+
+    // Re-insert existing special damages rows in correct sorted order
+    if (isPrejudgmentTable && existingSpecialDamagesRows.length > 0) {
+        // Sort the special damages rows themselves by date first
+        existingSpecialDamagesRows.sort((a, b) => {
+            const dateA = parseDateInput(a.date); // YYYY-MM-DD
+            const dateB = parseDateInput(b.date); // YYYY-MM-DD
+            if (!dateA || !dateB) return 0;
+            return dateA - dateB;
+        });
+
+        existingSpecialDamagesRows.forEach(rowData => {
+            let inserted = false;
+            const newRowDate = parseDateInput(rowData.date); // YYYY-MM-DD
+            if (!newRowDate) return; // Skip if date is invalid
+
+            // Iterate through the *current* rows in the table body
+            for (let i = 0; i < tableBody.rows.length; i++) {
+                const currentRow = tableBody.rows[i];
+                const currentRowDateCell = currentRow.cells[0];
+                let currentRowDate = null;
+
+                // Check if the current row is a special damages row (already re-inserted)
+                const dateInput = currentRow.querySelector('.special-damages-date');
+                if (dateInput) {
+                    currentRowDate = parseDateInput(dateInput.value); // YYYY-MM-DD
+                } else {
+                    // Otherwise, it's a calculated row (DD/MM/YYYY text)
+                    const dateStr = currentRowDateCell.textContent.trim();
+                    const parts = dateStr.split('/');
+                    if (parts.length === 3) {
+                        // Ensure correct parsing for DD/MM/YYYY
+                        const day = parseInt(parts[0], 10);
+                        const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
+                        const year = parseInt(parts[2], 10);
+                        const parsedDate = new Date(Date.UTC(year, month, day));
+                        // Validate parsed date
+                        if (!isNaN(parsedDate.getTime()) && parsedDate.getUTCDate() === day && parsedDate.getUTCMonth() === month && parsedDate.getUTCFullYear() === year) {
+                             currentRowDate = parsedDate;
+                        } else {
+                             console.warn("Could not parse date from calculated row:", dateStr);
+                        }
+                    } else {
+                         console.warn("Unexpected date format in calculated row:", dateStr);
+                    }
+                }
+
+                // If we have a valid date for the current row and the new row's date is earlier
+                if (currentRowDate && newRowDate < currentRowDate) {
+                    insertSpecialDamagesRowFromData(tableBody, i, rowData); // Insert before this row
+                    inserted = true;
+                    break; // Move to the next special damages row
+                }
+            }
+            // If not inserted yet (it's the latest date among all rows), append at the end
+            if (!inserted) {
+                insertSpecialDamagesRowFromData(tableBody, -1, rowData); // -1 appends
+            }
+        });
+    }
+
 
     // Update totals in the footer
     if (principalTotalElement && principalTotal !== null) {
@@ -489,6 +612,160 @@ export function setDefaultInputValues() {
           elements.showPerDiemCheckbox.checked = true;
      }
 }
+
+/**
+ * Inserts a new special damages row immediately after the specified row.
+ * @param {HTMLTableSectionElement} tableBody - The tbody element of the table.
+ * @param {HTMLTableRowElement} currentRow - The row after which to insert the new row.
+ * @param {string} date - The date to pre-populate in the new row (DD/MM/YYYY format).
+ */
+function insertSpecialDamagesRow(tableBody, currentRow, date) {
+    // Get the index of the current row
+    const rowIndex = currentRow.rowIndex; // Use rowIndex directly for insertion after
+    
+    // Create a new row and insert it after the current row
+    const newRow = tableBody.insertRow(rowIndex); // Insert at the correct index
+    newRow.className = 'special-damages-row highlight-new-row';
+    
+    // Date cell (editable, pre-populated with the date from the current row)
+    const dateCell = newRow.insertCell();
+    const dateInput = document.createElement('input');
+    dateInput.type = 'date';
+    dateInput.className = 'special-damages-date';
+    dateInput.dataset.type = 'special-damages-date';
+    
+    // Convert the passed date (DD/MM/YYYY) to YYYY-MM-DD for the input
+    const dateParts = date.split('/');
+    let inputDateValue = date; // Default fallback
+    if (dateParts.length === 3) {
+        const day = dateParts[0];
+        const month = dateParts[1];
+        const year = dateParts[2];
+        inputDateValue = `${year}-${month}-${day}`;
+    }
+    dateInput.value = inputDateValue;
+    
+    dateInput.addEventListener('change', function() {
+        // When the date changes, trigger recalculation
+        const event = new CustomEvent('special-damages-updated');
+        document.dispatchEvent(event);
+    });
+    
+    dateCell.appendChild(dateInput);
+    dateCell.classList.add('text-left');
+    
+    // Description cell with placeholder
+    const descCell = newRow.insertCell();
+    const descInput = document.createElement('input');
+    descInput.type = 'text';
+    descInput.className = 'special-damages-description';
+    descInput.placeholder = 'Describe special damages here';
+    descInput.dataset.type = 'special-damages-description';
+    descCell.appendChild(descInput);
+    descCell.classList.add('text-left');
+    
+    // Rate cell (empty)
+    const rateCell = newRow.insertCell();
+    rateCell.textContent = '';
+    rateCell.classList.add('text-center');
+    
+    // Principal/Amount cell (editable)
+    const principalCell = newRow.insertCell();
+    const principalInput = document.createElement('input');
+    principalInput.type = 'text';
+    principalInput.className = 'special-damages-amount';
+    principalInput.dataset.type = 'special-damages-amount';
+    principalInput.value = '';
+    setupCurrencyInputListeners(principalInput, function() {
+        // When the amount changes, trigger recalculation
+        // We need to access the recalculate function from calculator.js
+        // For now, we'll dispatch a custom event that calculator.js can listen for
+        const event = new CustomEvent('special-damages-updated');
+        document.dispatchEvent(event);
+    });
+    principalCell.appendChild(principalInput);
+    principalCell.classList.add('text-right');
+    
+    // Interest cell (empty)
+    const interestCell = newRow.insertCell();
+    interestCell.textContent = '';
+    interestCell.classList.add('text-right');
+    
+    // Set focus to the description field
+    setTimeout(() => {
+        descInput.focus();
+        
+        // Remove highlight class after a delay
+        setTimeout(() => {
+            newRow.classList.remove('highlight-new-row');
+        }, 2000);
+    }, 100);
+    
+    // Trigger recalculation after adding the row
+    const event = new CustomEvent('special-damages-updated');
+    document.dispatchEvent(event);
+}
+
+/**
+ * Helper function to insert a special damages row from saved data during table update.
+ * @param {HTMLTableSectionElement} tableBody - The tbody element of the table.
+ * @param {number} index - The index at which to insert the row (-1 to append).
+ * @param {object} rowData - Object containing date (YYYY-MM-DD), description, and amount.
+ */
+function insertSpecialDamagesRowFromData(tableBody, index, rowData) {
+    const newRow = tableBody.insertRow(index);
+    newRow.className = 'special-damages-row'; // No highlight on re-insertion
+
+    // Date cell
+    const dateCell = newRow.insertCell();
+    const dateInput = document.createElement('input');
+    dateInput.type = 'date';
+    dateInput.className = 'special-damages-date';
+    dateInput.dataset.type = 'special-damages-date';
+    dateInput.value = rowData.date; // Already in YYYY-MM-DD
+    dateInput.addEventListener('change', function() {
+        const event = new CustomEvent('special-damages-updated');
+        document.dispatchEvent(event);
+    });
+    dateCell.appendChild(dateInput);
+    dateCell.classList.add('text-left');
+
+    // Description cell
+    const descCell = newRow.insertCell();
+    const descInput = document.createElement('input');
+    descInput.type = 'text';
+    descInput.className = 'special-damages-description';
+    descInput.placeholder = 'Describe special damages here';
+    descInput.dataset.type = 'special-damages-description';
+    descInput.value = (rowData.description === descInput.placeholder) ? '' : rowData.description; // Set value, handle placeholder case
+    descCell.appendChild(descInput);
+    descCell.classList.add('text-left');
+
+    // Rate cell
+    const rateCell = newRow.insertCell();
+    rateCell.textContent = '';
+    rateCell.classList.add('text-center');
+
+    // Principal/Amount cell
+    const principalCell = newRow.insertCell();
+    const principalInput = document.createElement('input');
+    principalInput.type = 'text';
+    principalInput.className = 'special-damages-amount';
+    principalInput.dataset.type = 'special-damages-amount';
+    principalInput.value = rowData.amount; // Already formatted potentially
+    setupCurrencyInputListeners(principalInput, function() {
+        const event = new CustomEvent('special-damages-updated');
+        document.dispatchEvent(event);
+    });
+    principalCell.appendChild(principalInput);
+    principalCell.classList.add('text-right');
+
+    // Interest cell
+    const interestCell = newRow.insertCell();
+    interestCell.textContent = '';
+    interestCell.classList.add('text-right');
+}
+
 
 /**
  * Sets up event listeners for currency input fields (blur, focus, Enter key).

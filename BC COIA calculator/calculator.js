@@ -14,7 +14,54 @@ import {
     setupCurrencyInputListeners
 } from './domUtils.js';
 // Import formatDateLong if needed for display, keep formatDateForInput for input values
-import { formatDateForInput, formatDateLong } from './utils.js';
+import { formatDateForInput, formatDateLong, parseCurrency, parseDateInput } from './utils.js';
+
+/**
+ * Collects special damages data from the prejudgment table.
+ * @returns {Array<object>} Array of special damages objects with date, description, and amount.
+ */
+function collectSpecialDamages() {
+    const specialDamages = [];
+    const rows = elements.prejudgmentTableBody.querySelectorAll('.special-damages-row');
+    
+    rows.forEach(row => {
+        const dateInput = row.querySelector('.special-damages-date');
+        const descInput = row.querySelector('.special-damages-description');
+        const amountInput = row.querySelector('.special-damages-amount');
+        
+        if (dateInput && descInput && amountInput) {
+            // Get the date from the input field in YYYY-MM-DD format
+            const dateValue = dateInput.value;
+            
+            // Convert to DD/MM/YYYY format for display consistency
+            let formattedDate = '';
+            if (dateValue) {
+                const dateParts = dateValue.split('-');
+                if (dateParts.length === 3) {
+                    const year = dateParts[0];
+                    const month = dateParts[1];
+                    const day = dateParts[2];
+                    formattedDate = `${day}/${month}/${year}`;
+                } else {
+                    formattedDate = dateValue; // Fallback
+                }
+            }
+            
+            const description = descInput.value.trim() || descInput.placeholder;
+            const amount = parseCurrency(amountInput.value);
+            
+            if (formattedDate && amount > 0) {
+                specialDamages.push({
+                    date: formattedDate,
+                    description,
+                    amount
+                });
+            }
+        }
+    });
+    
+    return specialDamages;
+}
 
 /**
  * Main function to recalculate interest based on current inputs.
@@ -98,19 +145,27 @@ function recalculate() {
     } else {
         console.log("Prejudgment calculation skipped: Checkbox unchecked.");
     }
-    // Update Prejudgment Table
+    // Collect special damages data *only* for calculating totals
+    const specialDamages = collectSpecialDamages();
+    const specialDamagesTotal = specialDamages.reduce((sum, damage) => sum + damage.amount, 0);
+
+    // Calculate the total principal including special damages for the footer display
+    const totalPrincipal = inputs.judgmentAwarded + specialDamagesTotal; // Use initial pecuniary + special damages
+
+    // Update Prejudgment Table ONLY with calculated interest details.
+    // Special damages rows will be re-inserted by updateInterestTable itself.
     updateInterestTable(
         elements.prejudgmentTableBody,
         elements.prejudgmentPrincipalTotalEl,
         elements.prejudgmentInterestTotalEl,
-        prejudgmentResult.details,
-        prejudgmentResult.principal, // Pass pecuniary principal total
-        prejudgmentResult.total // Pass interest total
+        prejudgmentResult.details, // Pass only calculated details
+        totalPrincipal, // Pass the correct total principal for the footer
+        prejudgmentResult.total // Pass interest total (calculated only on pecuniary)
     );
 
     // 3. Calculate Base Total for Postjudgment and Summary
-    // This total includes the original awards (pecuniary, non-pecuniary, costs) AND any calculated prejudgment interest (which was only on pecuniary)
-    const judgmentTotal = inputs.judgmentAwarded + prejudgmentResult.total + inputs.nonPecuniaryAwarded + inputs.costsAwarded;
+    // This total includes the original awards, calculated prejudgment interest, AND special damages total
+    const judgmentTotal = inputs.judgmentAwarded + prejudgmentResult.total + inputs.nonPecuniaryAwarded + inputs.costsAwarded + specialDamagesTotal;
 
     // 4. Calculate Postjudgment Interest (Conditional on Checkbox)
     let postjudgmentResult = { details: [], total: 0 };
@@ -192,6 +247,11 @@ function recalculate() {
  * Sets up all event listeners for the calculator inputs.
  */
 function setupEventListeners() {
+    // Listen for the special-damages-updated custom event
+    document.addEventListener('special-damages-updated', () => {
+        console.log('Special damages updated, recalculating...');
+        recalculate();
+    });
     // Check if elements exist before adding listeners (Remove checks for deleted elements)
     const requiredElements = [
         // elements.causeOfActionDateInput, // Removed

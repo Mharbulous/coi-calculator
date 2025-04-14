@@ -869,3 +869,37 @@ input[type="date"] {
 }
 
 /* --- END: Consistent Styles for Recurring Damages Table --- */
+
+/* --- START: Styles for Add Special Damages Button in Prejudgment Interest Table --- */
+.description-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.add-special-damages-btn {
+    background-color: #4a90e2;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 0.85em;
+    cursor: pointer;
+    margin-left: 10px;
+    font-weight: 500;
+    transition: background-color 0.2s;
+    white-space: nowrap;
+}
+
+.add-special-damages-btn:hover {
+    background-color: #3a7bc8;
+}
+
+/* Ensure the button is hidden in print mode */
+@media print {
+    .add-special-damages-btn {
+        display: none !important;
+    }
+}
+/* --- END: Styles for Add Special Damages Button in Prejudgment Interest Table --- */
