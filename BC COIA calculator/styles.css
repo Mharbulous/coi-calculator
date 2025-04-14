@@ -330,6 +330,12 @@ h1 i {
     padding-right: 0; /* Remove right padding for perfect alignment */
  }
 
+ /* Right align date input fields in summary table */
+ .summary-table input[type="date"] {
+    text-align: right;
+    padding-right: 10px; /* Add padding to match text date displays */
+ }
+
  /* Summary Footer Rows */
  .summary-table tfoot td {
     padding-top: var(--spacing-unit); /* 4pt */

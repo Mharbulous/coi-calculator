@@ -171,9 +171,9 @@ function recalculate() {
     const summaryItems = [
         // Mark Pecuniary Judgment as editable, pass the Date object for formatting
         { item: 'Pecuniary Judgment', dateValue: inputs.dateOfJudgment, amount: inputs.judgmentAwarded, isEditable: true },
-        // Mark Non-Pecuniary as editable, pass its specific Date object
+        // Non-Pecuniary Judgment - keep amount editable but not date
         { item: 'Non-Pecuniary Judgment', dateValue: inputs.nonPecuniaryJudgmentDate, amount: inputs.nonPecuniaryAwarded, isEditable: true },
-        // Mark Costs as editable, pass its specific Date object
+        // Costs Awarded - keep amount editable but not date
         { item: 'Costs Awarded', dateValue: inputs.costsAwardedDate, amount: inputs.costsAwarded, isEditable: true },
         // Prejudgment interest date is now editable (start date)
         { item: 'Prejudgment Interest', dateValue: inputs.prejudgmentStartDate, amount: prejudgmentResult.total, isDateEditable: true },

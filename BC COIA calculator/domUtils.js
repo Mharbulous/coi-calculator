@@ -1,4 +1,4 @@
-import { formatCurrencyForDisplay, formatCurrencyForInput, formatDateLong, parseCurrency, parseDateInput, formatDateForInput } from './utils.js';
+import { formatCurrencyForDisplay, formatCurrencyForInput, formatDateLong, parseCurrency, parseDateInput, formatDateForInput, formatDateForDisplay } from './utils.js';
 
 // --- DOM Element Selectors ---
 // Using data attributes for more robust selection
@@ -67,8 +67,8 @@ export function getInputValues() {
      // Check dynamic inputs separately as they might not exist on initial load error
      const requiredDynamicInputs = [
          elements.pecuniaryJudgmentDateInput, elements.pecuniaryJudgmentAmountInput,
-         elements.nonPecuniaryJudgmentDateInput, elements.nonPecuniaryJudgmentAmountInput, // Added
-         elements.costsAwardedDateInput, elements.costsAwardedAmountInput, // Added
+         elements.nonPecuniaryJudgmentAmountInput, // Only amount input is needed for Non-Pecuniary
+         elements.costsAwardedAmountInput, // Only amount input is needed for Costs
          elements.prejudgmentInterestDateInput, // Added
          elements.postjudgmentInterestDateInput // Added
      ];
@@ -89,8 +89,10 @@ export function getInputValues() {
     const judgmentAwardedStr = elements.pecuniaryJudgmentAmountInput ? elements.pecuniaryJudgmentAmountInput.value : '';
     const nonPecuniaryAwardedStr = elements.nonPecuniaryJudgmentAmountInput ? elements.nonPecuniaryJudgmentAmountInput.value : ''; // Read from dynamic
     const costsAwardedStr = elements.costsAwardedAmountInput ? elements.costsAwardedAmountInput.value : ''; // Read from dynamic
-    const nonPecuniaryDateStr = elements.nonPecuniaryJudgmentDateInput ? elements.nonPecuniaryJudgmentDateInput.value : ''; // Read from dynamic
-    const costsDateStr = elements.costsAwardedDateInput ? elements.costsAwardedDateInput.value : ''; // Read from dynamic
+    
+    // For Non-Pecuniary and Costs dates, use the Pecuniary date since they're no longer editable
+    const nonPecuniaryDateStr = dateOfJudgmentStr;
+    const costsDateStr = dateOfJudgmentStr;
 
 
     const prejudgmentStartDate = parseDateInput(prejudgmentStartDateStr); // Replaces causeOfActionDate
@@ -239,7 +241,7 @@ export function updateSummaryTable(items, totalOwing, perDiem, finalCalculationD
 
     // Help text for tooltips
     const helpTexts = {
-        'Pecuniary Judgment': "Enter the date that prejudgment interest accrued to. Typically accrues up to the date judgment is pronounced.",
+        'Pecuniary Judgment': "Enter the date that judgment was pronounced.",
         'Prejudgment Interest': "Enter the date that prejudgment interest accrues from. Prejudgment interest typically accrues from the date the cause of action accrued, but the judge may order that interest accrues from another date.",
         'Postjudgment Interest': "Enter the date to accrue postjudgment interest to. Typically this will be to today's date, but you may specify another date."
     };
@@ -294,16 +296,10 @@ export function updateSummaryTable(items, totalOwing, perDiem, finalCalculationD
             elements.pecuniaryJudgmentAmountInput = amountInput; // Store reference
 
         } else if (item.isEditable && item.item === 'Non-Pecuniary Judgment') {
-            // Create Date Input for Non-Pecuniary
-            const dateInput = document.createElement('input');
-            dateInput.type = 'date';
-            dateInput.dataset.input = 'nonPecuniaryJudgmentDate'; // Specific data attribute
-            dateInput.value = item.dateValue instanceof Date ? formatDateForInput(item.dateValue) : item.dateValue;
-            dateInput.addEventListener('change', recalculateCallback);
-            cellDate.appendChild(dateInput);
-            elements.nonPecuniaryJudgmentDateInput = dateInput; // Store reference
+            // Leave date cell empty for Non-Pecuniary Judgment
+            elements.nonPecuniaryJudgmentDateInput = null; // No date input reference
 
-            // Create Amount Input for Non-Pecuniary
+            // Create Amount Input for Non-Pecuniary (keep amount editable)
             const amountInput = document.createElement('input');
             amountInput.type = 'text';
             amountInput.dataset.input = 'nonPecuniaryJudgmentAmount'; // Specific data attribute
@@ -313,16 +309,10 @@ export function updateSummaryTable(items, totalOwing, perDiem, finalCalculationD
             elements.nonPecuniaryJudgmentAmountInput = amountInput; // Store reference
 
         } else if (item.isEditable && item.item === 'Costs Awarded') {
-            // Create Date Input for Costs
-            const dateInput = document.createElement('input');
-            dateInput.type = 'date';
-            dateInput.dataset.input = 'costsAwardedDate'; // Specific data attribute
-            dateInput.value = item.dateValue instanceof Date ? formatDateForInput(item.dateValue) : item.dateValue;
-            dateInput.addEventListener('change', recalculateCallback);
-            cellDate.appendChild(dateInput);
-            elements.costsAwardedDateInput = dateInput; // Store reference
+            // Leave date cell empty for Costs Awarded
+            elements.costsAwardedDateInput = null; // No date input reference
 
-            // Create Amount Input for Costs
+            // Create Amount Input for Costs (keep amount editable)
             const amountInput = document.createElement('input');
             amountInput.type = 'text';
             amountInput.dataset.input = 'costsAwardedAmount'; // Specific data attribute
