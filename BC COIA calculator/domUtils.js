@@ -369,6 +369,7 @@ export function clearResults() {
 
 /**
  * Toggles the visibility of the prejudgment section based on the checkbox state.
+ * Only hides the table part, not the section title or checkbox.
  * @param {boolean} isInitializing - Flag to indicate if this is during initial page load.
  * @param {function|null} recalculateCallback - Function to call after toggling (usually recalculate).
  */
@@ -389,23 +390,19 @@ export function togglePrejudgmentVisibility(isInitializing = false, recalculateC
 
 /**
  * Toggles the visibility of the postjudgment section based on the checkbox state.
- * Note: The accrual date input is removed, so this only toggles the section visibility.
+ * Only hides the table part, not the section title or checkbox.
  * @param {boolean} isInitializing - Flag to indicate if this is during initial page load.
  * @param {function|null} recalculateCallback - Function to call after toggling (usually recalculate).
  */
 export function togglePostjudgmentVisibility(isInitializing = false, recalculateCallback) {
-    // Removed checks for accrualDateRow and dateOfCalculationInput
     if (!elements.showPostjudgmentCheckbox || !elements.postjudgmentSection) {
         console.error("Required elements for toggling postjudgment visibility not found.");
         return;
     }
     const isChecked = elements.showPostjudgmentCheckbox.checked;
 
-    // Toggle visibility of the section ONLY
-    // elements.accrualDateRow.style.display = isChecked ? '' : 'none'; // Removed
+    // Toggle visibility of the table section only
     elements.postjudgmentSection.style.display = isChecked ? '' : 'none';
-
-    // Removed logic that updated the static dateOfCalculationInput
 
     // Trigger recalculation unless it's the initial setup phase
     if (!isInitializing && typeof recalculateCallback === 'function') {

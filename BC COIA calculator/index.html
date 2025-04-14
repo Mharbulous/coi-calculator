@@ -12,27 +12,45 @@
         <h1><i>Court Order Interest Act</i> Calculations</h1>
 
         <div class="editable-fields-section">
-            <!-- Removed dates-block as dates are now in the summary table -->
+            <!-- Top row with Jurisdiction and Prejudgment checkbox -->
+            <div class="field-row">
+                <div class="checkbox-container left">
+                    <input type="checkbox" data-input="showPrejudgmentCheckbox" id="showPrejudgmentCheckbox" checked>
+                    <label for="showPrejudgmentCheckbox">Show prejudgment interest</label>
+                </div>
+                <div class="right-field">
+                    <span class="label">Jurisdiction</span>
+                    <span class="value">
+                        <select data-input="jurisdictionSelect">
+                            <option value="BC" selected>British Columbia</option>
+                            <option value="ON">Ontario</option>
+                            <option value="AB">Alberta</option>
+                            <!-- Add other jurisdictions as needed -->
+                        </select>
+                    </span>
+                </div>
+            </div>
+            
+            <!-- Second row with File No and Postjudgment checkbox -->
+            <div class="field-row">
+                <div class="checkbox-container left">
+                    <input type="checkbox" data-input="showPostjudgmentCheckbox" id="showPostjudgmentCheckbox" checked>
+                    <label for="showPostjudgmentCheckbox">Show postjudgment interest</label>
+                </div>
+                <div class="right-field">
+                    <span class="label">File No.</span>
+                    <span class="value">
+                        <input type="text" data-input="fileNo" value="">
+                    </span>
+                </div>
+            </div>
+            
+            <!-- Registry row -->
             <div class="right-info-block">
-                 <div class="field-pair">
-                     <span class="label">Jurisdiction</span>
-                     <span class="value">
-                         <select data-input="jurisdictionSelect">
-                             <option value="BC" selected>British Columbia</option>
-                             <option value="ON">Ontario</option>
-                             <option value="AB">Alberta</option>
-                             <!-- Add other jurisdictions as needed -->
-                         </select>
-                     </span>
-                 </div>
-                 <div class="field-pair file-no-row">
-                     <span class="label">File No</span>
-                     <span class="value"><input type="text" data-input="fileNo" value=""></span>
-                 </div>
-                 <div class="field-pair registry-row">
-                     <span class="label">Registry</span>
-                     <span class="value"><input type="text" data-input="registry" value="Vancouver"></span> <!-- Keeping default registry for now -->
-                 </div>
+                <div class="field-pair registry-row">
+                    <span class="label">Registry</span>
+                    <span class="value"><input type="text" data-input="registry" value="Vancouver"></span> <!-- Keeping default registry for now -->
+                </div>
             </div>
         </div>
 
@@ -55,17 +73,12 @@
         </table>
 
         <!-- Wrapped Prejudgment Section -->
-        <div data-display="prejudgmentSection">
-            <!-- Added Prejudgment Checkbox -->
-            <div class="checkbox-row">
-                 <span class="checkbox-container">
-                     <input type="checkbox" data-input="showPrejudgmentCheckbox" id="showPrejudgmentCheckbox" checked>
-                     <label for="showPrejudgmentCheckbox">Show prejudgment interest</label>
-                 </span>
-            </div>
+        <div>
+            <!-- Prejudgment section header is always visible -->
             <div class="section-title">Prejudgment Interest</div>
-            <!-- Restructured Prejudgment Table -->
-            <table class="interest-table" id="prejudgmentTable">
+            <!-- Restructured Prejudgment Table - only this part will be hidden -->
+            <div data-display="prejudgmentSection">
+                <table class="interest-table" id="prejudgmentTable">
                  <thead>
                      <!-- Updated Headers -->
                      <tr><th>Date</th><th>Description</th><th>Rate</th><th>Principal</th><th>Interest</th></tr>
@@ -79,20 +92,17 @@
                          <td data-display="prejudgmentInterestTotal" class="text-right bold"></td>
                      </tr>
                  </tfoot>
-            </table>
+                </table>
+            </div>
         </div>
 
-        <!-- Moved Postjudgment Checkbox and updated section -->
-        <div data-display="postjudgmentSection">
-             <div class="checkbox-row">
-                 <span class="checkbox-container">
-                     <input type="checkbox" data-input="showPostjudgmentCheckbox" id="showPostjudgmentCheckbox" checked>
-                     <label for="showPostjudgmentCheckbox">Show Postjudgment Interest</label>
-                 </span>
-             </div>
+        <!-- Postjudgment section -->
+        <div>
+            <!-- Postjudgment section header is always visible -->
             <div class="section-title">Postjudgment Interest</div>
-            <!-- Restructured Postjudgment Table -->
-            <table class="interest-table" id="postjudgmentTable">
+            <!-- Restructured Postjudgment Table - only this part will be hidden -->
+            <div data-display="postjudgmentSection">
+                <table class="interest-table" id="postjudgmentTable">
                  <thead>
                      <!-- Updated Headers -->
                      <tr><th>Period Ending</th><th>Description</th><th>Rate</th><th>Principal</th><th>Interest</th></tr>
@@ -105,7 +115,8 @@
                          <td data-display="postjudgmentInterestTotal" class="text-right bold"></td>
                      </tr>
                  </tfoot>
-            </table>
+                </table>
+            </div>
         </div>
     </div>
 

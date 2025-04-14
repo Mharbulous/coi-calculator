@@ -79,58 +79,36 @@ h1 i {
 
 /* Sections & Input Blocks */
 .editable-fields-section {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
     margin-bottom: calc(var(--spacing-unit) * 3); /* 12pt */
 }
-.dates-block {
-    flex: 1;
-    padding-right: calc(var(--spacing-unit) * 5); /* 20px */
+.field-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: calc(var(--spacing-unit) * 1.5); /* 6pt */
 }
 .right-info-block {
-    flex: 1;
     text-align: right;
 }
-.dates-block .field-pair,
+.right-field {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
 .right-info-block .field-pair {
     display: flex;
     align-items: center;
     margin-bottom: calc(var(--spacing-unit) * 0.75); /* 3pt */
     line-height: var(--base-line-height);
     min-height: 26px; /* Keep min-height for alignment */
+    justify-content: flex-end;
 }
-.dates-block .label {
-    width: var(--label-width-dates);
-    text-align: left;
+
+.right-field .label {
     font-weight: bold;
+    text-align: right;
     margin-right: calc(var(--spacing-unit) * 2); /* 8px */
     flex-shrink: 0;
-}
-.dates-block .value {
-    display: flex;
-    align-items: center;
-    flex-grow: 1;
-}
-
-.dates-block .value input[type="date"] {
-    border: none;
-    background-color: var(--input-background-color);
-    padding: var(--spacing-unit); /* 4pt */
-    font-family: var(--font-family);
-    font-size: inherit;
-    box-sizing: border-box;
-    text-align: right;
-    max-width: 140px;
-    width: 100%;
-    margin-left: auto;
-}
-.dates-block .value input[type="date"]:focus {
-    outline: 1px solid var(--focus-outline-color);
-}
-
-.right-info-block .field-pair {
-    justify-content: flex-end;
 }
 .right-info-block .registry-row {
     margin-bottom: calc(var(--spacing-unit) * 0.75); /* 3pt */
@@ -145,17 +123,33 @@ h1 i {
     margin-top: 1.2em;
     margin-bottom: calc(var(--spacing-unit) * 0.75); /* 3pt */
 }
-.right-info-block .label {
-    font-weight: bold;
-    text-align: right;
-    margin-right: calc(var(--spacing-unit) * 2); /* 8px */
-    flex-shrink: 0;
-}
+.right-field .value,
 .right-info-block .value {
     width: var(--value-width-right);
     flex-shrink: 0;
     display: flex;
     justify-content: flex-end;
+}
+
+/* Ensure File No field has enough space */
+.right-field .label {
+    min-width: 60px; /* Ensure enough space for "File No." text */
+}
+
+/* Ensure input fields have proper width */
+.right-field input[type="text"] {
+    border: none;
+    background-color: var(--input-background-color);
+    padding: var(--spacing-unit); /* 4pt */
+    font-family: var(--font-family);
+    font-size: inherit;
+    box-sizing: border-box;
+    text-align: right;
+    width: 100%;
+}
+
+.right-field input[type="text"]:focus {
+    outline: 1px solid var(--focus-outline-color);
 }
 #jurisdictionSelect, /* Keep ID selector for now if needed */
 [data-input="jurisdictionSelect"] {
@@ -201,21 +195,13 @@ h1 i {
  }
  /* Removed specific costs-row styles as it's now a field-pair */
 
-/* Checkbox Styles (Placed before section titles) */
-.checkbox-row {
-    margin-top: calc(var(--spacing-unit) * 1.5); /* 6pt */
-    margin-bottom: calc(var(--spacing-unit) * 0.5); /* Reduced bottom margin */
-    display: flex;
-    justify-content: flex-start; /* Align left now */
-    min-height: 22px;
-}
-/* Adjust section title margin if preceded by checkbox */
-.checkbox-row + .section-title {
-    margin-top: var(--spacing-unit); /* 4pt */
-}
+/* Checkbox Styles */
 .checkbox-container {
     display: flex;
     align-items: center;
+}
+.checkbox-container.left {
+    justify-content: flex-start;
 }
 .checkbox-container input[type="checkbox"] {
      margin: 0 5px 0 0;
@@ -329,6 +315,16 @@ h1 i {
  .summary-table input[type="text"] {
     font-family: var(--font-family);
     font-size: var(--base-font-size);
+    border: none; /* Remove borders from all editable fields */
+    background-color: var(--input-background-color);
+ }
+ 
+ /* Right align text in amount input fields */
+ .summary-table input[data-input="pecuniaryJudgmentAmount"],
+ .summary-table input[data-input="nonPecuniaryJudgmentAmount"],
+ .summary-table input[data-input="costsAwardedAmount"] {
+    text-align: right;
+    padding-right: 0; /* Remove right padding for perfect alignment */
  }
 
  /* Summary Footer Rows */
@@ -399,7 +395,11 @@ input[type="date"], input[type="text"], select {
 
     [data-input="judgmentAwarded"],
     [data-input="nonPecuniaryAwarded"], /* Added */
-    [data-input="costsAwarded"] { font-weight: bold !important; text-align: right !important; }
+    [data-input="costsAwarded"],
+    /* Add dynamic input fields for print mode */
+    [data-input="pecuniaryJudgmentAmount"],
+    [data-input="nonPecuniaryJudgmentAmount"],
+    [data-input="costsAwardedAmount"] { font-weight: bold !important; text-align: right !important; }
     select { padding-right: 0 !important; } /* Remove padding for select arrow space */
 
     .interest-table th, .interest-table td { border: 1px solid var(--border-color) !important; }
