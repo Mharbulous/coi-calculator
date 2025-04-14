@@ -253,6 +253,28 @@ h1 i {
  #prejudgmentTable th:nth-child(5), #prejudgmentTable td:nth-child(5), /* Interest */
  #postjudgmentTable th:nth-child(5), #postjudgmentTable td:nth-child(5) { width: var(--currency-column-width); text-align: right; }
 
+ /* Plus symbols for Prejudgment Interest table rows */
+ #prejudgmentTable tbody tr td:first-child {
+    position: relative; /* For positioning the plus symbol */
+ }
+ 
+ #prejudgmentTable tbody tr td:first-child::before {
+    content: "+"; /* Plus symbol */
+    position: absolute;
+    left: -10px; /* Position to the left of the first cell */
+    top: 50%; /* Center vertically */
+    transform: translateY(-50%);
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+    opacity: 0; /* Hidden by default */
+    transition: opacity 0.2s ease; /* Smooth transition */
+ }
+ 
+ #prejudgmentTable tbody tr:hover td:first-child::before {
+    opacity: 1; /* Visible on hover */
+ }
+
  /* Column Widths & Alignment - Judgment Table (3 columns) */
  .judgment-table th:nth-child(1), .judgment-table td:nth-child(1) { width: 15%; text-align: left; } /* Date */
  .judgment-table th:nth-child(2), .judgment-table td:nth-child(2) { width: auto; text-align: left; } /* Description */
