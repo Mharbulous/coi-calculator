@@ -129,8 +129,14 @@ h1 i {
 .right-info-block .registry-row {
     margin-bottom: calc(var(--spacing-unit) * 0.75); /* 3pt */
 }
-.right-info-block .judgment-amount-row {
+.right-info-block .judgment-amount-row,
+.right-info-block .non-pecuniary-row { /* Added non-pecuniary */
     margin-top: 1.2em; /* Keep relative margin */
+    margin-bottom: calc(var(--spacing-unit) * 0.75); /* 3pt */
+}
+/* Style for moved costs row */
+.right-info-block .costs-row {
+    margin-top: 1.2em;
     margin-bottom: calc(var(--spacing-unit) * 0.75); /* 3pt */
 }
 .right-info-block .label {
@@ -174,62 +180,32 @@ h1 i {
 .right-info-block input[type="text"]:focus {
     outline: 1px solid var(--focus-outline-color);
 }
-[data-input="judgmentAwarded"] {
+[data-input="judgmentAwarded"],
+[data-input="nonPecuniaryAwarded"], /* Added non-pecuniary */
+[data-input="costsAwarded"] { /* Added costs */
     font-weight: bold;
 }
 
-/* Costs Row & Section Titles */
- .costs-row {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    margin-top: calc(var(--spacing-unit) * 0.5); /* 2pt */
-    margin-bottom: 0;
-    line-height: var(--base-line-height);
- }
+/* Section Titles */
  .section-title {
     font-weight: bold;
-    margin-top: var(--spacing-unit); /* 4pt */
+    margin-top: calc(var(--spacing-unit) * 3); /* Increased top margin for sections */
     margin-bottom: var(--spacing-unit); /* 4pt */
     line-height: var(--base-line-height);
  }
- .editable-fields-section + .section-title {
-    margin-top: 0;
- }
- .costs-row .label {
-    font-weight: bold;
-    text-align: right;
-    margin-right: calc(var(--spacing-unit) * 2); /* 8px */
-    flex-grow: 1;
-    flex-shrink: 1;
- }
- .costs-row .value {
-    width: var(--value-width-right);
-    flex-shrink: 0;
- }
- .costs-row .value input {
-    border: none;
-    background-color: var(--input-background-color);
-    /* Matched right padding to table header (6pt) */
-    padding: var(--spacing-unit) calc(var(--spacing-unit) * 1.5) var(--spacing-unit) var(--spacing-unit);
-    font-family: inherit;
-    font-size: inherit;
-    font-weight: bold;
-    box-sizing: border-box;
-    text-align: right;
-    width: 100%;
- }
- .costs-row .value input:focus {
-    outline: 1px solid var(--focus-outline-color);
- }
+ /* Removed specific costs-row styles as it's now a field-pair */
 
-/* Updated Checkbox Styles (Global) */
+/* Checkbox Styles (Placed before section titles) */
 .checkbox-row {
     margin-top: calc(var(--spacing-unit) * 1.5); /* 6pt */
-    margin-bottom: var(--spacing-unit); /* 4pt */
+    margin-bottom: calc(var(--spacing-unit) * 0.5); /* Reduced bottom margin */
     display: flex;
-    justify-content: flex-end; /* Aligned right */
+    justify-content: flex-start; /* Align left now */
     min-height: 22px;
+}
+/* Adjust section title margin if preceded by checkbox */
+.checkbox-row + .section-title {
+    margin-top: var(--spacing-unit); /* 4pt */
 }
 .checkbox-container {
     display: flex;
@@ -265,58 +241,102 @@ h1 i {
     white-space: nowrap;
  }
 
- /* Column Widths & Alignment */
- .interest-table th:nth-child(1), .interest-table td:nth-child(1) { width: 15%; text-align: left; }
- .interest-table th:nth-child(2), .interest-table td:nth-child(2) { width: 15%; text-align: center; }
- .interest-table th:nth-child(3), .interest-table td:nth-child(3) { width: 15%; text-align: center; }
- .interest-table th:nth-child(4), .interest-table td:nth-child(4) { width: 12%; text-align: center; }
- .interest-table th:nth-child(5), .interest-table td:nth-child(5) { width: var(--currency-column-width); text-align: right; }
+ /* Column Widths & Alignment - Prejudgment & Postjudgment (5 columns) */
+ #prejudgmentTable th:nth-child(1), #prejudgmentTable td:nth-child(1), /* Date / Period Ending */
+ #postjudgmentTable th:nth-child(1), #postjudgmentTable td:nth-child(1) { width: 15%; text-align: left; }
 
- /* Subtotal Alignment */
- .interest-table .subtotal td {
+ #prejudgmentTable th:nth-child(2), #prejudgmentTable td:nth-child(2), /* Description */
+ #postjudgmentTable th:nth-child(2), #postjudgmentTable td:nth-child(2) { width: auto; text-align: left; } /* Let description take space */
+
+ #prejudgmentTable th:nth-child(3), #prejudgmentTable td:nth-child(3), /* Rate */
+ #postjudgmentTable th:nth-child(3), #postjudgmentTable td:nth-child(3) { width: 10%; text-align: center; }
+
+ #prejudgmentTable th:nth-child(4), #prejudgmentTable td:nth-child(4), /* Principal */
+ #postjudgmentTable th:nth-child(4), #postjudgmentTable td:nth-child(4) { width: var(--currency-column-width); text-align: right; }
+
+ #prejudgmentTable th:nth-child(5), #prejudgmentTable td:nth-child(5), /* Interest */
+ #postjudgmentTable th:nth-child(5), #postjudgmentTable td:nth-child(5) { width: var(--currency-column-width); text-align: right; }
+
+ /* Column Widths & Alignment - Judgment Table (3 columns) */
+ .judgment-table th:nth-child(1), .judgment-table td:nth-child(1) { width: 15%; text-align: left; } /* Date */
+ .judgment-table th:nth-child(2), .judgment-table td:nth-child(2) { width: auto; text-align: left; } /* Description */
+ .judgment-table th:nth-child(3), .judgment-table td:nth-child(3) { width: var(--currency-column-width); text-align: right; } /* Amount */
+
+
+ /* Total Row Alignment (Applies to Prejudgment, Judgment, Postjudgment) */
+ .interest-table tfoot .total td {
     border: none;
+    border-top: 1px solid var(--border-color);
     font-weight: bold;
     padding-top: var(--spacing-unit); /* 4pt */
  }
- .interest-table .subtotal td:first-child {
+ /* Align the text label part of the total row */
+ .interest-table tfoot .total td[colspan] {
      text-align: right;
-     border-top: 1px solid var(--border-color);
      padding-right: calc(var(--spacing-unit) * 2); /* 8px */
  }
-  .interest-table .subtotal td:last-child {
+ /* Ensure amount cells in total row align right */
+ .interest-table tfoot .total td:not([colspan]) {
      text-align: right;
-     border-top: 1px solid var(--border-color);
-     width: var(--currency-column-width); /* Ensure width matches column */
-  }
+ }
  .interest-table tfoot {
     margin-top: 0;
  }
 
- /* Summary Table Styles */
+ /* Summary Table Styles - Updated for new structure */
  .summary-table {
-    margin-top: calc(var(--spacing-unit) * 3); /* 12pt */
+    margin-top: calc(var(--spacing-unit) * 1); /* Reduced margin */
     margin-bottom: 0;
+    width: 100%; /* Ensure it takes full width */
+    border-collapse: collapse; /* Needed if adding borders */
  }
- .summary-table td {
-    border: none;
-    padding: calc(var(--spacing-unit) * 0.5) calc(var(--spacing-unit) * 1.5); /* 2pt 6pt */
+ .summary-table th, .summary-table td {
+    border: none; /* Keep borderless for now */
+    padding: calc(var(--spacing-unit) * 0.75) calc(var(--spacing-unit) * 1.5); /* 3pt 6pt - consistent padding */
+    vertical-align: top;
+    line-height: var(--table-line-height);
  }
- .summary-table .label {
-    width: auto;
-    font-weight: normal; /* Label for total row set below */
-    text-align: left;
- }
- .summary-table .amount {
-    text-align: right;
-    width: var(--currency-column-width);
- }
- .summary-table .total-row td {
+ .summary-table thead th {
     font-weight: bold;
-    padding-top: var(--spacing-unit); /* 4pt */
+    text-align: center;
+    background-color: var(--table-header-background-color);
+    border: 1px solid var(--border-color); /* Add border to header */
  }
- .summary-table .total-row .label {
-    font-weight: bold; /* Keep total label bold */
-    width: auto;
+ /* Summary Column Widths */
+ .summary-table th:nth-child(1), .summary-table td:nth-child(1) { width: auto; text-align: left; } /* Item */
+ .summary-table th:nth-child(2), .summary-table td:nth-child(2) { width: 20%; text-align: center; } /* Date/Value */
+ .summary-table th:nth-child(3), .summary-table td:nth-child(3) { width: var(--currency-column-width); text-align: right; } /* Amount */
+
+ /* Summary Body Rows */
+ .summary-table tbody td {
+    text-align: right; /* Default right align for amounts */
+ }
+ .summary-table tbody td:first-child {
+    text-align: left; /* Item name left aligned */
+ }
+ .summary-table tbody td:nth-child(2) {
+    text-align: center; /* Date centered */
+ }
+
+ /* Summary Footer Rows */
+ .summary-table tfoot td {
+    padding-top: var(--spacing-unit); /* 4pt */
+    border-top: 1px solid var(--border-color);
+ }
+ .summary-table tfoot .total-row td {
+    font-weight: bold;
+ }
+ .summary-table tfoot .per-diem-row td {
+    font-style: italic;
+    border-top: none; /* No top border for per-diem */
+    padding-top: calc(var(--spacing-unit) * 0.5); /* 2pt */
+ }
+ .summary-table tfoot td[colspan] {
+    text-align: right;
+    padding-right: calc(var(--spacing-unit) * 2); /* 8px */
+ }
+ .summary-table tfoot td:not([colspan]) {
+    text-align: right;
  }
 
  /* Utility Styles */
@@ -364,38 +384,32 @@ h1 i {
          display: none !important;
     }
 
-    [data-input="judgmentAwarded"], .costs-row .value input { font-weight: bold !important; text-align: right !important; }
+    [data-input="judgmentAwarded"],
+    [data-input="nonPecuniaryAwarded"], /* Added */
+    [data-input="costsAwarded"] { font-weight: bold !important; text-align: right !important; }
     select { padding-right: 0 !important; } /* Remove padding for select arrow space */
 
     .interest-table th, .interest-table td { border: 1px solid var(--border-color) !important; }
     .interest-table th { background-color: #eee !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } /* Keep light gray for header */
-    .interest-table .subtotal td {
+    /* Updated footer selector for print */
+    .interest-table tfoot .total td {
         border-left: none !important; border-right: none !important; border-bottom: none !important;
         border-top: 1px solid var(--border-color) !important;
     }
-    .costs-row {
-        display: flex !important; justify-content: flex-end !important; align-items: center !important;
-        line-height: var(--base-line-height) !important; margin-top: calc(var(--spacing-unit) * 0.5) !important; margin-bottom: 0 !important;
-    }
-    .costs-row .label {
-        flex-grow: 1 !important; margin-right: calc(var(--spacing-unit) * 2) !important; font-weight: bold !important;
-        text-align: right !important;
-   }
-   .costs-row .value { width: var(--value-width-right) !important; flex-shrink: 0 !important; display: flex !important; justify-content: flex-end !important; }
+    /* Removed print styles for old .costs-row div */
 
    /* Apply consistent padding & alignment to right-aligned inputs/selects for print */
    .right-info-block input[type="text"],
-   .right-info-block select,
-   .costs-row .value input {
+   .right-info-block select {
        padding: calc(var(--spacing-unit) * 0.75) calc(var(--spacing-unit) * 1.5) !important; /* 3pt 6pt */
        text-align: right !important; /* Ensure right alignment */
    }
 
-   /* Remove border-top from total row in print */
-    .summary-table .total-row td {
-          font-weight: bold !important;
-          border-top: none !important; /* Explicitly remove border */
-      }
+   /* Summary table print styles */
+    .summary-table th { border: 1px solid var(--border-color) !important; background-color: #eee !important; }
+    .summary-table tfoot td { border-top: 1px solid var(--border-color) !important; }
+    .summary-table tfoot .per-diem-row td { border-top: none !important; }
+    .summary-table .total-row td { font-weight: bold !important; }
 
       /* Hide date picker icon in print */
       input[type="date"]::-webkit-calendar-picker-indicator {

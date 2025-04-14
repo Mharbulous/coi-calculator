@@ -51,49 +51,106 @@
                      <span class="label">Judgment Amount</span>
                      <span class="value"><input type="text" data-input="judgmentAwarded" value=""></span>
                  </div>
+                 <!-- Added Non-Pecuniary Input -->
+                 <div class="field-pair non-pecuniary-row">
+                     <span class="label">Non-pecuniary Damages</span>
+                     <span class="value"><input type="text" data-input="nonPecuniaryAwarded" value=""></span>
+                 </div>
+                 <div class="field-pair costs-row">
+                     <span class="label">Costs Awarded</span>
+                     <span class="value"><input type="text" data-input="costsAwarded" value=""></span>
+                 </div>
             </div>
         </div>
 
-        <div class="section-title">Prejudgment Interest</div>
-        <table class="interest-table" id="prejudgmentTable"> <!-- ID can remain if CSS relies on it, or switch to data-display -->
-             <thead>
-                 <tr><th>Start date</th><th>End Date</th><th>Allowed %</th><th># of days</th><th>Interest</th></tr>
-             </thead>
-             <tbody data-display="prejudgmentTableBody"></tbody> <!-- Hook for JS -->
-             <tfoot><tr class="subtotal"><td colspan="4">Subtotal</td><td data-display="prejudgmentSubtotal"></td></tr></tfoot> <!-- Hook for JS -->
-        </table>
-
-        <div class="costs-row">
-             <span class="label">Costs Awarded</span>
-             <span class="value"><input type="text" data-input="costsAwarded" value=""></span>
-        </div>
-
-        <div class="checkbox-row">
-             <span class="checkbox-container">
-                 <input type="checkbox" data-input="showPostjudgmentCheckbox" checked>
-                 <label for="showPostjudgmentCheckbox">Show Postjudgment Interest</label> <!-- `for` needs matching ID -->
-             </span>
-         </div>
-         <!-- Re-add ID to checkbox for the label's `for` attribute -->
-         <script>document.querySelector('[data-input="showPostjudgmentCheckbox"]').id = 'showPostjudgmentCheckbox';</script>
-
-
-        <div data-display="postjudgmentSection">
-            <div class="section-title">Postjudgment Interest</div>
-            <table class="interest-table" id="postjudgmentTable"> <!-- ID can remain if CSS relies on it -->
+        <!-- Wrapped Prejudgment Section -->
+        <div data-display="prejudgmentSection">
+            <!-- Added Prejudgment Checkbox -->
+            <div class="checkbox-row">
+                 <span class="checkbox-container">
+                     <input type="checkbox" data-input="showPrejudgmentCheckbox" id="showPrejudgmentCheckbox" checked>
+                     <label for="showPrejudgmentCheckbox">Show prejudgment interest</label>
+                 </span>
+            </div>
+            <div class="section-title">Prejudgment Interest</div>
+            <!-- Restructured Prejudgment Table -->
+            <table class="interest-table" id="prejudgmentTable">
                  <thead>
-                     <tr><th>Start date</th><th>End Date</th><th>Allowed %</th><th># of days</th><th>Interest</th></tr>
+                     <!-- Updated Headers -->
+                     <tr><th>Date</th><th>Description</th><th>Rate</th><th>Principal</th><th>Interest</th></tr>
                  </thead>
-                 <tbody data-display="postjudgmentTableBody"></tbody> <!-- Hook for JS -->
-                 <tfoot><tr class="subtotal"><td colspan="4">Subtotal</td><td data-display="postjudgmentSubtotal"></td></tr></tfoot> <!-- Hook for JS -->
+                 <tbody data-display="prejudgmentTableBody"></tbody>
+                 <!-- Updated Footer -->
+                 <tfoot>
+                     <tr class="total">
+                         <td colspan="3" class="text-right bold">Total</td>
+                         <td data-display="prejudgmentPrincipalTotal" class="text-right bold"></td>
+                         <td data-display="prejudgmentInterestTotal" class="text-right bold"></td>
+                     </tr>
+                 </tfoot>
             </table>
         </div>
 
+        <!-- Added Judgment Section -->
+        <div class="section-title">Judgment</div>
+        <table class="judgment-table interest-table" data-display="judgmentTable"> <!-- Added interest-table class for styling -->
+             <thead>
+                 <tr><th>Date</th><th>Description</th><th>Amount</th></tr>
+             </thead>
+             <tbody data-display="judgmentTableBody"></tbody>
+             <tfoot>
+                 <tr class="total">
+                     <td colspan="2" class="text-right bold">Total Judgment</td>
+                     <td data-display="judgmentTotal" class="text-right bold"></td>
+                 </tr>
+             </tfoot>
+        </table>
+
+        <!-- Moved Postjudgment Checkbox and updated section -->
+        <div data-display="postjudgmentSection">
+             <div class="checkbox-row">
+                 <span class="checkbox-container">
+                     <input type="checkbox" data-input="showPostjudgmentCheckbox" id="showPostjudgmentCheckbox" checked>
+                     <label for="showPostjudgmentCheckbox">Show Postjudgment Interest</label>
+                 </span>
+             </div>
+            <div class="section-title">Postjudgment Interest</div>
+            <!-- Restructured Postjudgment Table -->
+            <table class="interest-table" id="postjudgmentTable">
+                 <thead>
+                     <!-- Updated Headers -->
+                     <tr><th>Period Ending</th><th>Description</th><th>Rate</th><th>Principal</th><th>Interest</th></tr>
+                 </thead>
+                 <tbody data-display="postjudgmentTableBody"></tbody>
+                 <!-- Updated Footer -->
+                 <tfoot>
+                     <tr class="total">
+                         <td colspan="4" class="text-right bold">Total</td>
+                         <td data-display="postjudgmentInterestTotal" class="text-right bold"></td>
+                     </tr>
+                 </tfoot>
+            </table>
+        </div>
+
+        <!-- Restructured Summary Table -->
+        <div class="section-title">Summary</div>
         <table class="summary-table">
-             <tr class="total-row">
-                <td class="label" data-display="summaryTotalLabel">TOTAL OWING</td> <!-- Hook for JS -->
-                <td class="amount" data-display="summaryTotal"></td> <!-- Hook for JS -->
-             </tr>
+             <thead>
+                 <tr><th>Item</th><th>Date/Value</th><th>Amount</th></tr>
+             </thead>
+             <tbody data-display="summaryTableBody">
+                 <!-- Rows will be populated by JS -->
+             </tbody>
+             <tfoot>
+                 <tr class="total-row">
+                     <td colspan="2" class="label text-right bold" data-display="summaryTotalLabel">TOTAL AS OF</td>
+                     <td class="amount text-right bold" data-display="summaryTotal"></td>
+                 </tr>
+                 <tr class="per-diem-row">
+                     <td colspan="2" class="label text-right italic">Per Diem</td>
+                     <td class="amount text-right italic" data-display="summaryPerDiem"></td>
+                 </tr>
+             </tfoot>
         </table>
     </div>
 

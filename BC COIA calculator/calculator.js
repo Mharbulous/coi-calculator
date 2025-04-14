@@ -1,12 +1,16 @@
 import interestRatesData from './interestRates.js';
-import { calculateInterestPeriods } from './calculations.js';
+// Import calculatePerDiem as well
+import { calculateInterestPeriods, calculatePerDiem } from './calculations.js';
 import {
-    elements,
-    getInputValues,
-    updateInterestTable,
-    updateSummary,
-    clearResults,
-    togglePostjudgmentVisibility,
+    elements, // Assumes elements for new inputs/tables/checkboxes are added here
+    getInputValues, // Assumes this is updated to return nonPecuniaryAwarded, showPrejudgment
+    updateInterestTable, // Assumes this is updated for new total row structure
+    // updateSummary, // This will likely be replaced by updateSummaryTable
+    updateJudgmentTable, // New function needed in domUtils
+    updateSummaryTable, // New function needed in domUtils
+    clearResults, // May need updates for new tables
+    togglePrejudgmentVisibility, // New function needed in domUtils
+    togglePostjudgmentVisibility, // Assumes this is updated or uses a generic toggle
     setDefaultInputValues,
     setupCurrencyInputListeners
 } from './domUtils.js';
@@ -20,15 +24,17 @@ function recalculate() {
     const inputs = getInputValues();
 
     if (!inputs.isValid) {
-        // Clear previous results and display base total if inputs are invalid
-        console.warn("Recalculation skipped due to invalid inputs:", inputs.validationMessage);
-        alert(inputs.validationMessage || "Please check the input values."); // Show validation message
-        clearResults();
-        // Show base total (Judgment + Costs) even if dates are invalid
-        const baseTotal = (inputs.judgmentAwarded || 0) + (inputs.costsAwarded || 0);
-        updateSummary(baseTotal, new Date()); // Use current date for label if inputs invalid
-        elements.summaryTotalLabelEl.textContent = 'TOTAL OWING (Inputs Invalid)';
-        return;
+    // Clear previous results and display base total if inputs are invalid
+    console.warn("Recalculation skipped due to invalid inputs:", inputs.validationMessage);
+    alert(inputs.validationMessage || "Please check the input values."); // Show validation message
+    clearResults(); // Assumes clearResults handles new tables
+    // Show base total (Judgment + Non-Pecuniary + Costs) even if dates are invalid
+    const baseTotal = (inputs.judgmentAwarded || 0) + (inputs.nonPecuniaryAwarded || 0) + (inputs.costsAwarded || 0);
+    // Update summary table with zeros or base values if possible
+    updateJudgmentTable([], baseTotal); // Show base total in judgment table?
+    updateSummaryTable([], baseTotal, 0, new Date()); // Update new summary table
+    elements.summaryTotalLabelEl.textContent = 'TOTAL OWING (Inputs Invalid)'; // Keep this label update
+    return;
     }
 
     // Check if rates exist for the selected jurisdiction
@@ -36,39 +42,59 @@ function recalculate() {
         const message = `Interest rates are not available for the selected jurisdiction: ${inputs.jurisdiction}.`;
         console.error(message);
         alert(message);
-        clearResults();
-        const baseTotal = inputs.judgmentAwarded + inputs.costsAwarded;
-        updateSummary(baseTotal, new Date());
+        clearResults(); // Assumes clearResults handles new tables
+        const baseTotal = inputs.judgmentAwarded + inputs.nonPecuniaryAwarded + inputs.costsAwarded;
+        updateJudgmentTable([], baseTotal); // Show base total in judgment table?
+        updateSummaryTable([], baseTotal, 0, new Date()); // Update new summary table
         elements.summaryTotalLabelEl.textContent = `TOTAL OWING (${inputs.jurisdiction} Rates Unavailable)`;
         return;
     }
 
 
-    // 2. Calculate Prejudgment Interest
-    // Prejudgment ends the day *before* the judgment date
-    const prejudgmentEndDate = new Date(inputs.dateOfJudgment);
-    prejudgmentEndDate.setUTCDate(prejudgmentEndDate.getUTCDate() - 1);
+    // 2. Calculate Prejudgment Interest (Conditional on Checkbox)
+    let prejudgmentResult = { details: [], total: 0, principal: inputs.judgmentAwarded }; // Include principal
+    if (inputs.showPrejudgment) {
+        // Prejudgment ends the day *before* the judgment date
+        const prejudgmentEndDate = new Date(inputs.dateOfJudgment);
+        prejudgmentEndDate.setUTCDate(prejudgmentEndDate.getUTCDate() - 1);
 
-    let prejudgmentResult = { details: [], total: 0 };
-    // Only calculate if the period is valid (at least one day)
-    if (prejudgmentEndDate >= inputs.causeOfActionDate) {
-        prejudgmentResult = calculateInterestPeriods(
-            inputs.judgmentAwarded,
-            inputs.causeOfActionDate,
-            prejudgmentEndDate,
-            'prejudgment',
-            inputs.jurisdiction,
-            interestRatesData
-        );
+        // Only calculate if the period is valid (at least one day)
+        if (prejudgmentEndDate >= inputs.causeOfActionDate && inputs.judgmentAwarded > 0) {
+            prejudgmentResult = calculateInterestPeriods(
+                inputs.judgmentAwarded,
+                inputs.causeOfActionDate,
+                prejudgmentEndDate,
+                'prejudgment',
+                inputs.jurisdiction,
+                interestRatesData
+            );
+        } else {
+            console.warn("Prejudgment calculation skipped: Invalid date range or zero judgment amount.");
+        }
+    } else {
+        console.log("Prejudgment calculation skipped: Checkbox unchecked.");
     }
+    // Update Prejudgment Table (Assumes updateInterestTable handles the new structure and data attributes)
     updateInterestTable(
         elements.prejudgmentTableBody,
-        elements.prejudgmentSubtotalEl,
+        elements.prejudgmentPrincipalTotalEl, // New element hook needed in domUtils
+        elements.prejudgmentInterestTotalEl, // New element hook needed in domUtils
         prejudgmentResult.details,
-        prejudgmentResult.total
+        prejudgmentResult.principal, // Pass principal total
+        prejudgmentResult.total // Pass interest total
     );
 
-    // 3. Calculate Postjudgment Interest (Conditional)
+    // 3. Calculate Judgment Details
+    const judgmentItems = [
+        { date: inputs.dateOfJudgment, description: 'Pecuniary award', amount: inputs.judgmentAwarded },
+        { date: inputs.dateOfJudgment, description: 'Prejudgment Interest', amount: prejudgmentResult.total },
+        { date: inputs.dateOfJudgment, description: 'Non-pecuniary Damages Awarded', amount: inputs.nonPecuniaryAwarded },
+        { date: inputs.dateOfJudgment, description: 'Costs Awarded', amount: inputs.costsAwarded },
+    ];
+    const judgmentTotal = inputs.judgmentAwarded + prejudgmentResult.total + inputs.nonPecuniaryAwarded + inputs.costsAwarded;
+    updateJudgmentTable(judgmentItems, judgmentTotal); // Assumes new function in domUtils
+
+    // 4. Calculate Postjudgment Interest (Conditional on Checkbox)
     let postjudgmentResult = { details: [], total: 0 };
     let finalCalculationDate = inputs.dateOfJudgment; // Default to judgment date if postjudgment is off
 
@@ -78,8 +104,8 @@ function recalculate() {
 
         // Ensure calculation date is valid and on or after judgment date
         if (inputs.dateOfCalculation && inputs.dateOfCalculation >= postjudgmentStartDate) {
-            // Postjudgment principal includes judgment, prejudgment interest, and costs
-            const postjudgmentPrincipal = inputs.judgmentAwarded + prejudgmentResult.total + inputs.costsAwarded;
+            // Postjudgment principal is the total judgment amount
+            const postjudgmentPrincipal = judgmentTotal;
 
             if (postjudgmentPrincipal > 0) {
                  postjudgmentResult = calculateInterestPeriods(
@@ -93,24 +119,41 @@ function recalculate() {
             }
         } else {
              console.warn("Postjudgment calculation skipped: Calculation date is before judgment date or invalid.");
+             // Reset calculation date visually if invalid relative to judgment date
+             if (elements.dateOfCalculationInput.value !== formatDateForInput(inputs.dateOfJudgment)) {
+                 elements.dateOfCalculationInput.value = formatDateForInput(inputs.dateOfJudgment);
+                 finalCalculationDate = inputs.dateOfJudgment; // Use judgment date for summary
+             }
         }
     } else {
          // If postjudgment is hidden, ensure the calculation date input reflects the judgment date visually
-         if (elements.dateOfCalculationInput.value !== elements.dateOfJudgmentInput.value) {
-              elements.dateOfCalculationInput.value = elements.dateOfJudgmentInput.value;
+         if (elements.dateOfCalculationInput.value !== formatDateForInput(inputs.dateOfJudgment)) {
+              elements.dateOfCalculationInput.value = formatDateForInput(inputs.dateOfJudgment);
+              finalCalculationDate = inputs.dateOfJudgment; // Use judgment date for summary
          }
     }
-
+    // Update Postjudgment Table (Assumes updateInterestTable handles the new structure)
     updateInterestTable(
         elements.postjudgmentTableBody,
-        elements.postjudgmentSubtotalEl,
+        null, // No principal total element for postjudgment
+        elements.postjudgmentInterestTotalEl, // New element hook needed in domUtils
         postjudgmentResult.details,
-        postjudgmentResult.total
+        null, // No principal total
+        postjudgmentResult.total // Pass interest total
     );
 
-    // 4. Update Summary
-    const totalOwing = inputs.judgmentAwarded + prejudgmentResult.total + inputs.costsAwarded + postjudgmentResult.total;
-    updateSummary(totalOwing, finalCalculationDate); // Pass the effective final date
+    // 5. Update Summary Table
+    const summaryItems = [
+        { item: 'Pecuniary Judgment', dateValue: formatDateForInput(inputs.dateOfJudgment), amount: inputs.judgmentAwarded },
+        { item: 'Prejudgment Interest', dateValue: formatDateForInput(inputs.dateOfJudgment), amount: prejudgmentResult.total },
+        { item: 'Non-Pecuniary Judgment', dateValue: formatDateForInput(inputs.dateOfJudgment), amount: inputs.nonPecuniaryAwarded },
+        { item: 'Costs Awarded', dateValue: formatDateForInput(inputs.dateOfJudgment), amount: inputs.costsAwarded },
+        { item: 'Post Judgment Interest', dateValue: formatDateForInput(finalCalculationDate), amount: postjudgmentResult.total },
+    ];
+    const totalOwing = judgmentTotal + postjudgmentResult.total;
+    // Calculate Per Diem using the total owing and final date
+    const perDiem = calculatePerDiem(totalOwing, finalCalculationDate, inputs.jurisdiction, interestRatesData);
+    updateSummaryTable(summaryItems, totalOwing, perDiem, finalCalculationDate); // Pass calculated per diem
 }
 
 
@@ -118,9 +161,14 @@ function recalculate() {
  * Sets up all event listeners for the calculator inputs.
  */
 function setupEventListeners() {
-    // Check if elements exist before adding listeners
-    if (!elements.causeOfActionDateInput || !elements.dateOfJudgmentInput || !elements.dateOfCalculationInput || !elements.judgmentAwardedInput || !elements.costsAwardedInput || !elements.jurisdictionSelect || !elements.showPostjudgmentCheckbox) {
-        console.error("Cannot setup listeners: One or more essential elements are missing.");
+    // Check if elements exist before adding listeners (Add new elements to check)
+    const requiredElements = [
+        elements.causeOfActionDateInput, elements.dateOfJudgmentInput, elements.dateOfCalculationInput,
+        elements.judgmentAwardedInput, elements.nonPecuniaryAwardedInput, elements.costsAwardedInput, // Added nonPecuniary
+        elements.jurisdictionSelect, elements.showPrejudgmentCheckbox, elements.showPostjudgmentCheckbox // Added showPrejudgment
+    ];
+    if (requiredElements.some(el => !el)) {
+        console.error("Cannot setup listeners: One or more essential input/control elements are missing.");
         return;
     }
 
@@ -129,8 +177,9 @@ function setupEventListeners() {
         input.addEventListener('change', recalculate);
     });
 
-    // Currency inputs (Judgment and Costs)
+    // Currency inputs (Judgment, Non-Pecuniary, Costs)
     setupCurrencyInputListeners(elements.judgmentAwardedInput, recalculate);
+    setupCurrencyInputListeners(elements.nonPecuniaryAwardedInput, recalculate); // Added listener
     setupCurrencyInputListeners(elements.costsAwardedInput, recalculate);
 
     // Jurisdiction select
@@ -139,10 +188,16 @@ function setupEventListeners() {
         recalculate(); // Recalculate when jurisdiction changes
     });
 
+    // Show Prejudgment checkbox
+    elements.showPrejudgmentCheckbox.addEventListener('change', () => {
+        // Pass 'recalculate' as the callback function
+        togglePrejudgmentVisibility(false, recalculate); // Assumes new function in domUtils
+    });
+
     // Show Postjudgment checkbox
     elements.showPostjudgmentCheckbox.addEventListener('change', () => {
         // Pass 'recalculate' as the callback function
-        togglePostjudgmentVisibility(false, recalculate);
+        togglePostjudgmentVisibility(false, recalculate); // Assumes this uses generic toggle or is updated
     });
 
     // Optional: Listeners for File No and Registry (if they should trigger anything)
@@ -154,17 +209,22 @@ function setupEventListeners() {
  * Initializes the calculator when the DOM is fully loaded.
  */
 function initializeCalculator() {
-    // Ensure all essential elements are present before proceeding
+    // Ensure all essential elements are present before proceeding (Add new elements)
      const essentialElements = [
+         // Inputs & Controls
          elements.causeOfActionDateInput, elements.dateOfJudgmentInput, elements.dateOfCalculationInput,
-         elements.judgmentAwardedInput, elements.costsAwardedInput, elements.jurisdictionSelect,
-         elements.showPostjudgmentCheckbox, elements.prejudgmentTableBody, elements.prejudgmentSubtotalEl,
-         elements.postjudgmentTableBody, elements.postjudgmentSubtotalEl, elements.summaryTotalLabelEl,
-         elements.summaryTotalEl, elements.accrualDateRow, elements.postjudgmentSection
+         elements.judgmentAwardedInput, elements.nonPecuniaryAwardedInput, elements.costsAwardedInput,
+         elements.jurisdictionSelect, elements.showPrejudgmentCheckbox, elements.showPostjudgmentCheckbox,
+         // Display Sections & Tables
+         elements.prejudgmentSection, elements.postjudgmentSection, elements.accrualDateRow,
+         elements.prejudgmentTableBody, elements.prejudgmentPrincipalTotalEl, elements.prejudgmentInterestTotalEl,
+         elements.judgmentTableBody, elements.judgmentTotalEl,
+         elements.postjudgmentTableBody, elements.postjudgmentInterestTotalEl,
+         elements.summaryTableBody, elements.summaryTotalLabelEl, elements.summaryTotalEl, elements.summaryPerDiemEl
      ];
 
      if (essentialElements.some(el => !el)) {
-         console.error("Initialization failed: Essential DOM elements are missing. Check HTML structure and data attributes.");
+         console.error("Initialization failed: Essential DOM elements are missing. Check HTML structure, data attributes, and domUtils.js element mapping.");
          alert("Error initializing the calculator. Please check the console for details.");
          return; // Stop initialization
      }
@@ -172,7 +232,8 @@ function initializeCalculator() {
     console.log("Initializing Calculator...");
     setDefaultInputValues(); // Set defaults (e.g., dates, format currency)
     setupEventListeners(); // Add input listeners
-    togglePostjudgmentVisibility(true, recalculate); // Set initial visibility without recalculating yet
+    togglePrejudgmentVisibility(true, null); // Set initial visibility without recalculating yet
+    togglePostjudgmentVisibility(true, null); // Set initial visibility without recalculating yet
     recalculate(); // Perform the initial calculation
     console.log("Calculator Initialized.");
 }

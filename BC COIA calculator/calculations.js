@@ -38,14 +38,20 @@ function getInterestRateForDate(date, type, jurisdiction, ratesData) {
  * @param {'prejudgment' | 'postjudgment'} interestType - The type of interest to calculate.
  * @param {string} jurisdiction - The jurisdiction code (e.g., 'BC').
  * @param {object} ratesData - The processed interest rates object.
- * @returns {{details: Array<object>, total: number}} An object containing detailed breakdown and total interest.
+ * @returns {{details: Array<object>, total: number, principal: number}} An object containing detailed breakdown, total interest, and the principal used.
  */
 export function calculateInterestPeriods(principal, startDate, endDate, interestType, jurisdiction, ratesData) {
     // Basic validation
-    if (!principal || principal <= 0 || !startDate || !endDate || isNaN(startDate.getTime()) || isNaN(endDate.getTime()) || endDate < startDate || !ratesData[jurisdiction]) {
+    // Allow principal to be 0 for cases where only non-pecuniary/costs exist initially for post-judgment, though interest would be 0.
+    if (principal < 0 || !startDate || !endDate || isNaN(startDate.getTime()) || isNaN(endDate.getTime()) || endDate < startDate || !ratesData[jurisdiction]) {
         console.warn("Invalid input for calculateInterestPeriods", { principal, startDate, endDate, interestType, jurisdiction, hasRates: !!ratesData[jurisdiction] });
-        return { details: [], total: 0 };
+        return { details: [], total: 0, principal: principal }; // Return principal even if invalid dates
     }
+     // If principal is 0, no interest accrues
+     if (principal === 0) {
+         return { details: [], total: 0, principal: 0 };
+     }
+
 
     let currentCalcDate = new Date(startDate); // Start from the beginning of the period
     let totalInterest = 0;
@@ -85,11 +91,14 @@ export function calculateInterestPeriods(principal, startDate, endDate, interest
                 const interestForSegment = (principal * (rate / 100) * daysInSegment) / days_in_year;
 
                 details.push({
-                    start: formatDateForDisplay(currentCalcDate),
-                    end: formatDateForDisplay(segmentEndDate),
+                    start: formatDateForDisplay(currentCalcDate), // Matches 'Date' or 'Period Ending' start
+                    description: `${daysInSegment} days`, // Matches 'Description' column
                     rate: rate,
-                    days: daysInSegment,
-                    interest: interestForSegment
+                    principal: principal, // Add principal for the period
+                    interest: interestForSegment,
+                    // Keep original end/days for potential debugging if needed, but not directly used by updateInterestTable
+                    _endDate: formatDateForDisplay(segmentEndDate),
+                    _days: daysInSegment
                 });
                 totalInterest += interestForSegment;
             } else {
@@ -104,5 +113,40 @@ export function calculateInterestPeriods(principal, startDate, endDate, interest
         currentCalcDate.setUTCDate(currentCalcDate.getUTCDate() + 1);
     }
 
-    return { details, total: totalInterest };
+    // Return principal along with details and total
+    return { details, total: totalInterest, principal: principal };
+}
+
+
+/**
+ * Calculates the per diem interest rate based on a principal amount and the rate applicable on a specific date.
+ * @param {number} principal - The principal amount (usually the total owing).
+ * @param {Date} calculationDate - The date for which to find the applicable rate (UTC).
+ * @param {string} jurisdiction - The jurisdiction code (e.g., 'BC').
+ * @param {object} ratesData - The processed interest rates object.
+ * @returns {number} The calculated per diem interest amount, or 0 if calculation is not possible.
+ */
+export function calculatePerDiem(principal, calculationDate, jurisdiction, ratesData) {
+    if (principal <= 0 || !calculationDate || isNaN(calculationDate.getTime())) {
+        return 0; // No per diem if principal is zero/negative or date is invalid
+    }
+
+    // Per diem is typically based on the postjudgment rate applicable *on* the calculation date
+    const rate = getInterestRateForDate(calculationDate, 'postjudgment', jurisdiction, ratesData);
+
+    if (rate === undefined || rate <= 0) {
+        console.warn(`Could not find a valid postjudgment rate for per diem calculation on ${formatDateForDisplay(calculationDate)} in ${jurisdiction}`);
+        return 0; // No per diem if rate is not found or zero
+    }
+
+    const year = calculationDate.getUTCFullYear();
+    const days_in_year = daysInYear(year);
+
+    if (days_in_year <= 0) {
+        console.error(`Error calculating days in year for per diem: Year ${year}`);
+        return 0;
+    }
+
+    const perDiemAmount = (principal * (rate / 100)) / days_in_year;
+    return perDiemAmount;
 }
