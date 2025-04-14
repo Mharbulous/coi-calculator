@@ -232,12 +232,12 @@ export function updateSummaryTable(items, totalOwing, perDiem, finalCalculationD
     // Reset dynamic element references before recreating them
     elements.pecuniaryJudgmentDateInput = null;
     elements.pecuniaryJudgmentAmountInput = null;
-    elements.nonPecuniaryJudgmentDateInput = null; // Added
-    elements.nonPecuniaryJudgmentAmountInput = null; // Added
-    elements.costsAwardedDateInput = null; // Added
-    elements.costsAwardedAmountInput = null; // Added
-    elements.prejudgmentInterestDateInput = null; // Added
-    elements.postjudgmentInterestDateInput = null; // Added
+    elements.nonPecuniaryJudgmentDateInput = null;
+    elements.nonPecuniaryJudgmentAmountInput = null;
+    elements.costsAwardedDateInput = null;
+    elements.costsAwardedAmountInput = null;
+    elements.prejudgmentInterestDateInput = null;
+    elements.postjudgmentInterestDateInput = null;
 
     // Help text for tooltips
     const helpTexts = {
@@ -246,118 +246,123 @@ export function updateSummaryTable(items, totalOwing, perDiem, finalCalculationD
         'Postjudgment Interest': "Enter the date to accrue postjudgment interest to. Typically this will be to today's date, but you may specify another date."
     };
 
+    // Get template elements once
+    const templatePecuniary = document.getElementById('summary-row-editable-pecuniary');
+    const templateAmountOnly = document.getElementById('summary-row-editable-amount');
+    const templateDateOnly = document.getElementById('summary-row-editable-date');
+    const templateDisplayOnly = document.getElementById('summary-row-display-only'); // Added for completeness
+
+    if (!templatePecuniary || !templateAmountOnly || !templateDateOnly || !templateDisplayOnly) {
+        console.error("One or more summary table row templates not found in DOM.");
+        return;
+    }
+
     items.forEach(item => {
-        const row = elements.summaryTableBody.insertRow();
-        const cellItem = row.insertCell();
-        const cellDate = row.insertCell();
-        const cellAmount = row.insertCell();
+        let template;
+        let rowClone;
 
-        // Create label with help icon for specific items
-        if (helpTexts[item.item]) {
-            const labelSpan = document.createElement('span');
-            labelSpan.textContent = item.item;
-            
-            const helpIcon = document.createElement('span');
-            helpIcon.className = 'help-icon';
-            helpIcon.textContent = '?';
-            helpIcon.setAttribute('tabindex', '0'); // Make focusable for accessibility
-            helpIcon.setAttribute('role', 'button');
-            helpIcon.setAttribute('aria-label', `Help for ${item.item}`);
-            
-            const tooltip = document.createElement('span');
-            tooltip.className = 'tooltip';
-            tooltip.textContent = helpTexts[item.item];
-            
-            helpIcon.appendChild(tooltip);
-            
-            cellItem.appendChild(labelSpan);
-            cellItem.appendChild(helpIcon);
-        } else {
-            cellItem.textContent = item.item;
-        }
-
+        // 1. Determine which template to use
         if (item.isEditable && item.item === 'Pecuniary Judgment') {
-            // Create Date Input
-            const dateInput = document.createElement('input');
-            dateInput.type = 'date';
-            dateInput.dataset.input = 'pecuniaryJudgmentDate'; // Use specific data attribute
-            dateInput.value = item.dateValue instanceof Date ? formatDateForInput(item.dateValue) : item.dateValue;
-            dateInput.addEventListener('change', recalculateCallback); // Add listener
-            cellDate.appendChild(dateInput);
-            elements.pecuniaryJudgmentDateInput = dateInput; // Store reference
-
-            // Create Amount Input
-            const amountInput = document.createElement('input');
-            amountInput.type = 'text'; // Use text for currency formatting
-            amountInput.dataset.input = 'pecuniaryJudgmentAmount'; // Use specific data attribute
-            amountInput.value = formatCurrencyForInput(item.amount); // Format initial value
-            setupCurrencyInputListeners(amountInput, recalculateCallback); // Setup currency listeners
-            cellAmount.appendChild(amountInput);
-            elements.pecuniaryJudgmentAmountInput = amountInput; // Store reference
-
-        } else if (item.isEditable && item.item === 'Non-Pecuniary Judgment') {
-            // Leave date cell empty for Non-Pecuniary Judgment
-            elements.nonPecuniaryJudgmentDateInput = null; // No date input reference
-
-            // Create Amount Input for Non-Pecuniary (keep amount editable)
-            const amountInput = document.createElement('input');
-            amountInput.type = 'text';
-            amountInput.dataset.input = 'nonPecuniaryJudgmentAmount'; // Specific data attribute
-            amountInput.value = formatCurrencyForInput(item.amount);
-            setupCurrencyInputListeners(amountInput, recalculateCallback);
-            cellAmount.appendChild(amountInput);
-            elements.nonPecuniaryJudgmentAmountInput = amountInput; // Store reference
-
-        } else if (item.isEditable && item.item === 'Costs Awarded') {
-            // Leave date cell empty for Costs Awarded
-            elements.costsAwardedDateInput = null; // No date input reference
-
-            // Create Amount Input for Costs (keep amount editable)
-            const amountInput = document.createElement('input');
-            amountInput.type = 'text';
-            amountInput.dataset.input = 'costsAwardedAmount'; // Specific data attribute
-            amountInput.value = formatCurrencyForInput(item.amount);
-            setupCurrencyInputListeners(amountInput, recalculateCallback);
-            cellAmount.appendChild(amountInput);
-            elements.costsAwardedAmountInput = amountInput; // Store reference
-
-        } else if (item.isDateEditable && item.item === 'Prejudgment Interest') {
-             // Create Date Input for Prejudgment Start Date
-             const dateInput = document.createElement('input');
-             dateInput.type = 'date';
-             dateInput.dataset.input = 'prejudgmentInterestDate'; // Specific data attribute
-             dateInput.value = item.dateValue instanceof Date ? formatDateForInput(item.dateValue) : item.dateValue;
-             dateInput.addEventListener('change', recalculateCallback);
-             cellDate.appendChild(dateInput);
-             elements.prejudgmentInterestDateInput = dateInput; // Store reference
-             // Amount is calculated, not editable
-             cellAmount.innerHTML = formatCurrencyForDisplay(item.amount);
-
-        } else if (item.isDateEditable && item.item === 'Postjudgment Interest') {
-             // Create Date Input for Postjudgment End Date
-             const dateInput = document.createElement('input');
-             dateInput.type = 'date';
-             dateInput.dataset.input = 'postjudgmentInterestDate'; // Specific data attribute
-             dateInput.value = item.dateValue instanceof Date ? formatDateForInput(item.dateValue) : item.dateValue;
-             dateInput.addEventListener('change', recalculateCallback);
-             cellDate.appendChild(dateInput);
-             elements.postjudgmentInterestDateInput = dateInput; // Store reference
-             // Amount is calculated, not editable
-             cellAmount.innerHTML = formatCurrencyForDisplay(item.amount);
-
+            template = templatePecuniary;
+        } else if (item.isEditable && (item.item === 'Non-Pecuniary Judgment' || item.item === 'Costs Awarded')) {
+            template = templateAmountOnly;
+        } else if (item.isDateEditable && (item.item === 'Prejudgment Interest' || item.item === 'Postjudgment Interest')) {
+            template = templateDateOnly;
         } else {
-            // Fully non-editable rows (currently none, but could be added)
-            cellDate.textContent = item.dateValue instanceof Date ? formatDateForInput(item.dateValue) : item.dateValue; // Format date if needed
-            cellAmount.innerHTML = formatCurrencyForDisplay(item.amount);
+            template = templateDisplayOnly; // Fallback or for non-editable items
         }
 
-        // Apply alignment (based on CSS)
-        cellItem.classList.add('text-left');
-        cellDate.classList.add('text-center');
-        cellAmount.classList.add('text-right');
+        // 2. Clone the template
+        rowClone = template.content.cloneNode(true);
+
+        // 3. Find elements within the clone
+        const itemLabelContainer = rowClone.querySelector('[data-display="itemLabel"]');
+        const itemTextSpan = rowClone.querySelector('[data-display="itemText"]');
+        const helpIconSpan = rowClone.querySelector('[data-display="helpIcon"]');
+        const tooltipSpan = rowClone.querySelector('[data-display="tooltipText"]');
+        const dateInput = rowClone.querySelector('[data-input="dateValue"]');
+        const amountInput = rowClone.querySelector('[data-input="amountValue"]');
+        const dateDisplay = rowClone.querySelector('[data-display="dateValue"]');
+        const amountDisplay = rowClone.querySelector('[data-display="amountValue"]');
+
+        // 4. Populate Item Label and Help Text/Icon
+        if (itemTextSpan) {
+            itemTextSpan.textContent = item.item;
+        }
+        if (helpTexts[item.item] && helpIconSpan && tooltipSpan) {
+            helpIconSpan.style.display = ''; // Make sure it's visible
+            helpIconSpan.setAttribute('aria-label', `Help for ${item.item}`);
+            tooltipSpan.textContent = helpTexts[item.item];
+        } else if (helpIconSpan) {
+            helpIconSpan.style.display = 'none'; // Hide if no help text
+        }
+
+        // 5. Populate Date and Amount (Inputs or Display) and Attach Listeners
+        const formattedDate = item.dateValue instanceof Date ? formatDateForInput(item.dateValue) : item.dateValue;
+        const formattedAmount = formatCurrencyForDisplay(item.amount);
+        const formattedAmountInput = formatCurrencyForInput(item.amount);
+
+        if (template === templatePecuniary) {
+            if (dateInput) {
+                dateInput.value = formattedDate;
+                dateInput.addEventListener('change', recalculateCallback);
+                elements.pecuniaryJudgmentDateInput = dateInput; // Store reference
+            }
+            if (amountInput) {
+                amountInput.value = formattedAmountInput;
+                setupCurrencyInputListeners(amountInput, recalculateCallback);
+                elements.pecuniaryJudgmentAmountInput = amountInput; // Store reference
+            }
+        } else if (template === templateAmountOnly) {
+            if (dateDisplay) {
+                 // Display the Pecuniary Judgment date for Non-Pecuniary/Costs
+                 // We need access to the Pecuniary date here. Let's assume it's the first item's dateValue for now.
+                 // A better approach might be to pass the pecuniary date explicitly or find it in the items array.
+                 // For simplicity, let's find it:
+                 const pecuniaryItem = items.find(i => i.item === 'Pecuniary Judgment');
+                 const pecuniaryDateStr = pecuniaryItem && pecuniaryItem.dateValue instanceof Date ? formatDateForDisplay(pecuniaryItem.dateValue) : '';
+                 dateDisplay.textContent = pecuniaryDateStr;
+            }
+            if (amountInput) {
+                amountInput.value = formattedAmountInput;
+                setupCurrencyInputListeners(amountInput, recalculateCallback);
+                if (item.item === 'Non-Pecuniary Judgment') {
+                    elements.nonPecuniaryJudgmentAmountInput = amountInput; // Store reference
+                } else if (item.item === 'Costs Awarded') {
+                    elements.costsAwardedAmountInput = amountInput; // Store reference
+                }
+            }
+             // Set null references for dates as they are not editable here
+             if (item.item === 'Non-Pecuniary Judgment') elements.nonPecuniaryJudgmentDateInput = null;
+             if (item.item === 'Costs Awarded') elements.costsAwardedDateInput = null;
+
+        } else if (template === templateDateOnly) {
+            if (dateInput) {
+                dateInput.value = formattedDate;
+                dateInput.addEventListener('change', recalculateCallback);
+                if (item.item === 'Prejudgment Interest') {
+                    elements.prejudgmentInterestDateInput = dateInput; // Store reference
+                } else if (item.item === 'Postjudgment Interest') {
+                    elements.postjudgmentInterestDateInput = dateInput; // Store reference
+                }
+            }
+            if (amountDisplay) {
+                amountDisplay.innerHTML = formattedAmount; // Display calculated amount
+            }
+        } else { // templateDisplayOnly
+            if (dateDisplay) {
+                dateDisplay.textContent = formattedDate;
+            }
+            if (amountDisplay) {
+                amountDisplay.innerHTML = formattedAmount;
+            }
+        }
+
+        // 6. Append the populated clone to the table body
+        elements.summaryTableBody.appendChild(rowClone);
     });
 
-    // Update footer
+    // Update footer (remains the same)
     const formattedAccrualDate = formatDateLong(finalCalculationDate);
     elements.summaryTotalLabelEl.textContent = `TOTAL AS OF ${formattedAccrualDate}`;
     elements.summaryTotalEl.innerHTML = formatCurrencyForDisplay(totalOwing);
