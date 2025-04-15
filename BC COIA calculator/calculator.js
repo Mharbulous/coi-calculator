@@ -135,7 +135,8 @@ function recalculate() {
 
         // Only calculate if the period is valid (at least one day) and pecuniary amount > 0
         if (prejudgmentEndDate >= inputs.prejudgmentStartDate && inputs.judgmentAwarded > 0) {
-            prejudgmentResult = calculateInterestPeriods(
+            // Capture the new finalPeriodDamageInterestDetails array
+            const { details: preDetails, total: preTotal, principal: prePrincipal, finalPeriodDamageInterestDetails } = calculateInterestPeriods(
                 inputs.judgmentAwarded, // Base principal for prejudgment is pecuniary only
                 inputs.prejudgmentStartDate, // Use dynamic start date
                 prejudgmentEndDate,
@@ -144,13 +145,19 @@ function recalculate() {
                 interestRatesData,
                 specialDamages // Pass collected special damages here
             );
+            // Assign results back to prejudgmentResult for consistency, including the new array
+            prejudgmentResult = { details: preDetails, total: preTotal, principal: prePrincipal, finalPeriodDamageInterestDetails };
         } else {
             console.warn("Prejudgment calculation skipped: Invalid date range (start date vs judgment date) or zero pecuniary judgment amount.");
+            // Ensure finalPeriodDamageInterestDetails exists even if calculation skipped
+            prejudgmentResult.finalPeriodDamageInterestDetails = [];
         }
     } else {
         console.log("Prejudgment calculation skipped: Checkbox unchecked.");
         // Even if skipped, the principal used for the total row includes special damages
         prejudgmentResult.principal = inputs.judgmentAwarded + specialDamagesTotal;
+        // Ensure finalPeriodDamageInterestDetails exists even if calculation skipped
+        prejudgmentResult.finalPeriodDamageInterestDetails = [];
     }
 
     // Calculate the total principal including special damages for the footer display
@@ -166,7 +173,8 @@ function recalculate() {
         elements.prejudgmentInterestTotalEl,
         prejudgmentResult.details, // Pass only calculated details
         totalPrincipalForFooter, // Pass the correct total principal for the footer
-        prejudgmentResult.total // Pass interest total (calculated only on pecuniary, but principal adjusted)
+        prejudgmentResult.total, // Pass interest total (calculated only on pecuniary, but principal adjusted)
+        prejudgmentResult.finalPeriodDamageInterestDetails // Pass the new array here
     );
 
     // Update Prejudgment Table Footer Label

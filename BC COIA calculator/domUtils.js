@@ -181,8 +181,9 @@ export function getInputValues() {
  * @param {Array<object>} details - Array of interest period details (expects properties like start, description, rate, principal, interest).
  * @param {number|null} principalTotal - Total principal (null if not applicable).
  * @param {number} interestTotal - The total calculated interest for the table.
+ * @param {Array<object>} [finalPeriodDamageInterestDetails=[]] - Optional array of calculated interest details for special damages in the final period.
  */
-export function updateInterestTable(tableBody, principalTotalElement, interestTotalElement, details, principalTotal, interestTotal) {
+export function updateInterestTable(tableBody, principalTotalElement, interestTotalElement, details, principalTotal, interestTotal, finalPeriodDamageInterestDetails = []) { // ADDED finalPeriodDamageInterestDetails parameter
     if (!tableBody || !interestTotalElement) {
         console.error("Missing required table elements for updateInterestTable");
         return;
@@ -280,9 +281,24 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
             return dateA - dateB;
         });
 
+        // Determine Final Period Start Date for comparison later
+        let finalPeriodStartDate = null;
+        if (details.length > 0) {
+            const lastDetail = details[details.length - 1];
+            // Assuming lastDetail.start is in DD/MM/YYYY format from formatDateForDisplay
+            const parts = lastDetail.start.split('/');
+            if (parts.length === 3) {
+                // Convert DD/MM/YYYY to Date object for comparison (UTC)
+                finalPeriodStartDate = new Date(Date.UTC(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0])));
+            }
+        }
+        // Make a mutable copy of the final period details for safe removal during iteration
+        const mutableFinalPeriodDetails = [...finalPeriodDamageInterestDetails];
+
+
         existingSpecialDamagesRows.forEach(rowData => {
             let inserted = false;
-            const newRowDate = parseDateInput(rowData.date); // YYYY-MM-DD
+            const newRowDate = parseDateInput(rowData.date); // YYYY-MM-DD (expects utils.js parseDateInput to handle this)
             if (!newRowDate) return; // Skip if date is invalid
 
             // Iterate through the *current* rows in the table body
@@ -318,14 +334,18 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
 
                 // If we have a valid date for the current row and the new row's date is earlier
                 if (currentRowDate && newRowDate < currentRowDate) {
-                    insertSpecialDamagesRowFromData(tableBody, i, rowData); // Insert before this row
+                    const insertedUserRow = insertSpecialDamagesRowFromData(tableBody, i, rowData); // Insert user row before currentRow
+                    const referenceNode = currentRow; // The node to insert the calculated row before
+                    insertCalculatedRowIfNeeded(tableBody, referenceNode, rowData, finalPeriodStartDate, mutableFinalPeriodDetails); // Pass referenceNode
                     inserted = true;
                     break; // Move to the next special damages row
                 }
             }
             // If not inserted yet (it's the latest date among all rows), append at the end
             if (!inserted) {
-                insertSpecialDamagesRowFromData(tableBody, -1, rowData); // -1 appends
+                const insertedUserRow = insertSpecialDamagesRowFromData(tableBody, -1, rowData); // -1 appends user row
+                const referenceNode = null; // No node to insert before, so it will append
+                insertCalculatedRowIfNeeded(tableBody, referenceNode, rowData, finalPeriodStartDate, mutableFinalPeriodDetails); // Pass null referenceNode
             }
         });
     }
@@ -713,6 +733,7 @@ function insertSpecialDamagesRow(tableBody, currentRow, date) {
  * @param {HTMLTableSectionElement} tableBody - The tbody element of the table.
  * @param {number} index - The index at which to insert the row (-1 to append).
  * @param {object} rowData - Object containing date (YYYY-MM-DD), description, and amount.
+ * @returns {HTMLTableRowElement} The newly inserted row element.
  */
 function insertSpecialDamagesRowFromData(tableBody, index, rowData) {
     const newRow = tableBody.insertRow(index);
@@ -768,6 +789,8 @@ function insertSpecialDamagesRowFromData(tableBody, index, rowData) {
     const interestCell = newRow.insertCell();
     interestCell.textContent = '';
     interestCell.classList.add('text-right');
+
+    return newRow; // Return the created row element
 }
 
 
@@ -807,4 +830,59 @@ export function setupCurrencyInputListeners(inputElement, recalculateCallback) {
             event.target.blur(); // Remove focus after Enter
         }
     });
+}
+
+
+/**
+ * Helper function to insert the calculated special interest row if applicable, before a reference node.
+ * @param {HTMLTableSectionElement} tableBody - The tbody element.
+ * @param {Node|null} referenceNode - The node before which to insert the calculated row (null to append).
+ * @param {object} rowData - The data object for the user-entered row that triggered this check.
+ * @param {Date|null} finalPeriodStartDate - The start date of the final regular interest period.
+ * @param {Array<object>} mutableFinalPeriodDetails - The mutable array of calculated final period interest details.
+ */
+function insertCalculatedRowIfNeeded(tableBody, referenceNode, rowData, finalPeriodStartDate, mutableFinalPeriodDetails) {
+    // No need to check referenceNode here, insertBefore handles null correctly
+    if (!finalPeriodStartDate || mutableFinalPeriodDetails.length === 0) {
+        return; // Nothing to do if prerequisites are missing
+    }
+
+    const damageDate = parseDateInput(rowData.date); // Get Date object for comparison (expects YYYY-MM-DD)
+    const damageAmount = parseCurrency(rowData.amount); // Get numeric amount for matching
+
+    // Check if this damage falls within the final period
+    if (damageDate && finalPeriodStartDate && damageDate >= finalPeriodStartDate) {
+        // Find the matching calculated interest detail
+        const detailIndex = mutableFinalPeriodDetails.findIndex(detail =>
+            detail.damageDate.getTime() === damageDate.getTime() && // Match date precisely
+            detail.principal === damageAmount // Match original principal amount
+        );
+
+        if (detailIndex > -1) {
+            const calculatedDetail = mutableFinalPeriodDetails[detailIndex];
+
+            // Create the calculated interest row
+            const calculatedRow = document.createElement('tr'); // Create row element
+            calculatedRow.classList.add('calculated-special-interest-row'); // Add a class for potential styling
+
+            calculatedRow.insertCell().textContent = calculatedDetail.start; // Formatted Date
+            calculatedRow.insertCell().textContent = calculatedDetail.description; // Description (e.g., "Physiotherapy (119 days)")
+            calculatedRow.insertCell().textContent = calculatedDetail.rate.toFixed(2) + '%'; // Rate
+            calculatedRow.insertCell().innerHTML = formatCurrencyForDisplay(calculatedDetail.principal); // Principal (original damage amount)
+            calculatedRow.insertCell().innerHTML = formatCurrencyForDisplay(calculatedDetail.interest); // Calculated Interest
+
+            // Apply text alignment
+            calculatedRow.cells[0].classList.add('text-left'); // Date
+            calculatedRow.cells[1].classList.add('text-left'); // Description
+            calculatedRow.cells[2].classList.add('text-center'); // Rate
+            calculatedRow.cells[3].classList.add('text-right'); // Principal
+            calculatedRow.cells[4].classList.add('text-right'); // Interest
+
+            // Insert the row before the referenceNode (or append if referenceNode is null)
+            tableBody.insertBefore(calculatedRow, referenceNode);
+
+            // Remove the matched detail from the mutable array to prevent duplicate insertion
+            mutableFinalPeriodDetails.splice(detailIndex, 1);
+        }
+    }
 }

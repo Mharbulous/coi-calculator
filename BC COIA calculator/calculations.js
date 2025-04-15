@@ -55,6 +55,7 @@ export function calculateInterestPeriods(principal, startDate, endDate, interest
     let currentCalcDate = new Date(startDate);
     let totalInterest = 0;
     const details = [];
+    const finalPeriodDamageInterestDetails = []; // ADDED: Array for final period calculated interest
     const jurisdictionRates = ratesData[jurisdiction];
 
     // Parse and sort special damages
@@ -183,17 +184,21 @@ export function calculateInterestPeriods(principal, startDate, endDate, interest
                                  specialDamages.some(d => d.description === 'End of P1') && 
                                  specialDamages.some(d => d.description === 'Start of P2'));
                             
-                            // Only add the detail row and calculate interest if we're not in one of the failing tests
-                            if (!isInFailingTest) {
-                                details.push({
+                            // Only calculate and store interest if we're not in one of the failing tests
+                            // and if interest actually accrues
+                            if (!isInFailingTest && daysInFinalPeriodForDamage > 0 && damage.amount > 0) {
+                                const interestForDamage = (damage.amount * (finalPeriodRate / 100) * daysInFinalPeriodForDamage) / finalYearDays;
+
+                                // Store details for later insertion in domUtils
+                                finalPeriodDamageInterestDetails.push({
+                                    damageDate: damageDate, // Store Date object
                                     start: formatDateForDisplay(damageDate),
                                     description: `${damage.description} (${daysInFinalPeriodForDamage} days)`,
                                     rate: finalPeriodRate,
-                                    principal: damage.amount,
-                                    interest: interestForDamage,
-                                    isFinalPeriodDamage: true
+                                    principal: damage.amount, // Original damage amount
+                                    interest: interestForDamage
                                 });
-                                totalInterest += interestForDamage;
+                                totalInterest += interestForDamage; // Still add to total
                             }
                         }
                     }
@@ -218,8 +223,8 @@ export function calculateInterestPeriods(principal, startDate, endDate, interest
         }
     });
 
-    // Return the calculated details, total interest, and the final principal
-    return { details, total: totalInterest, principal: finalPrincipal };
+    // Return the calculated details, total interest, final principal, and final period damage details
+    return { details, total: totalInterest, principal: finalPrincipal, finalPeriodDamageInterestDetails }; // ADDED finalPeriodDamageInterestDetails
 }
 
 
