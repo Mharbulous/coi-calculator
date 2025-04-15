@@ -285,12 +285,8 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
         let finalPeriodStartDate = null;
         if (details.length > 0) {
             const lastDetail = details[details.length - 1];
-            // Assuming lastDetail.start is in DD/MM/YYYY format from formatDateForDisplay
-            const parts = lastDetail.start.split('/');
-            if (parts.length === 3) {
-                // Convert DD/MM/YYYY to Date object for comparison (UTC)
-                finalPeriodStartDate = new Date(Date.UTC(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0])));
-            }
+            // lastDetail.start is now in YYYY-MM-DD format from formatDateForDisplay
+            finalPeriodStartDate = parseDateInput(lastDetail.start); // Use parseDateInput
         }
         // Make a mutable copy of the final period details for safe removal during iteration
         const mutableFinalPeriodDetails = [...finalPeriodDamageInterestDetails];
@@ -310,25 +306,13 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
                 // Check if the current row is a special damages row (already re-inserted)
                 const dateInput = currentRow.querySelector('.special-damages-date');
                 if (dateInput) {
-                    currentRowDate = parseDateInput(dateInput.value); // YYYY-MM-DD
+                    currentRowDate = parseDateInput(dateInput.value); // YYYY-MM-DD from input
                 } else {
-                    // Otherwise, it's a calculated row (DD/MM/YYYY text)
+                    // Otherwise, it's a calculated row (YYYY-MM-DD text)
                     const dateStr = currentRowDateCell.textContent.trim();
-                    const parts = dateStr.split('/');
-                    if (parts.length === 3) {
-                        // Ensure correct parsing for DD/MM/YYYY
-                        const day = parseInt(parts[0], 10);
-                        const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
-                        const year = parseInt(parts[2], 10);
-                        const parsedDate = new Date(Date.UTC(year, month, day));
-                        // Validate parsed date
-                        if (!isNaN(parsedDate.getTime()) && parsedDate.getUTCDate() === day && parsedDate.getUTCMonth() === month && parsedDate.getUTCFullYear() === year) {
-                             currentRowDate = parsedDate;
-                        } else {
-                             console.warn("Could not parse date from calculated row:", dateStr);
-                        }
-                    } else {
-                         console.warn("Unexpected date format in calculated row:", dateStr);
+                    currentRowDate = parseDateInput(dateStr); // Parse YYYY-MM-DD text
+                    if (!currentRowDate) {
+                        console.warn("Could not parse date from calculated row:", dateStr);
                     }
                 }
 
@@ -460,12 +444,9 @@ export function updateSummaryTable(items, totalOwing, perDiem, finalCalculationD
             }
         } else if (template === templateAmountOnly) {
             if (dateDisplay) {
-                 // Display the Pecuniary Judgment date for Non-Pecuniary/Costs
-                 // We need access to the Pecuniary date here. Let's assume it's the first item's dateValue for now.
-                 // A better approach might be to pass the pecuniary date explicitly or find it in the items array.
-                 // For simplicity, let's find it:
+                 // Display the Pecuniary Judgment date (now YYYY-MM-DD) for Non-Pecuniary/Costs
                  const pecuniaryItem = items.find(i => i.item === 'Pecuniary Judgment');
-                 const pecuniaryDateStr = pecuniaryItem && pecuniaryItem.dateValue instanceof Date ? formatDateForDisplay(pecuniaryItem.dateValue) : '';
+                 const pecuniaryDateStr = pecuniaryItem && pecuniaryItem.dateValue instanceof Date ? formatDateForDisplay(pecuniaryItem.dateValue) : ''; // formatDateForDisplay now returns YYYY-MM-DD
                  dateDisplay.textContent = pecuniaryDateStr;
             }
             if (amountInput) {
@@ -656,16 +637,8 @@ function insertSpecialDamagesRow(tableBody, currentRow, date) {
     dateInput.className = 'special-damages-date';
     dateInput.dataset.type = 'special-damages-date';
     
-    // Convert the passed date (DD/MM/YYYY) to YYYY-MM-DD for the input
-    const dateParts = date.split('/');
-    let inputDateValue = date; // Default fallback
-    if (dateParts.length === 3) {
-        const day = dateParts[0];
-        const month = dateParts[1];
-        const year = dateParts[2];
-        inputDateValue = `${year}-${month}-${day}`;
-    }
-    dateInput.value = inputDateValue;
+    // Passed date is already YYYY-MM-DD from formatDateForDisplay
+    dateInput.value = date; 
     
     dateInput.addEventListener('change', function() {
         // When the date changes, trigger recalculation

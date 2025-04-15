@@ -362,8 +362,8 @@ describe('calculations.js', () => {
             const startDate = createUTCDate(2023, 1, 1); // Start of Period 3
             const endDate = createUTCDate(2023, 12, 31); // End of Period 4
             const specialDamages = [
-                { date: '15/02/2023', amount: 500, description: 'Damage 1' }, // During Period 3
-                { date: '01/08/2023', amount: 1000, description: 'Damage 2' } // During Period 4
+                { date: '2023-02-15', amount: 500, description: 'Damage 1' }, // During Period 3
+                { date: '2023-08-01', amount: 1000, description: 'Damage 2' } // During Period 4
             ];
 
             // Period 3: Jan 1 - Jun 30 (181 days @ 3.0%) - Principal: 10000
@@ -400,8 +400,8 @@ describe('calculations.js', () => {
             const startDate = createUTCDate(2022, 1, 1); // Start of Period 1
             const endDate = createUTCDate(2022, 12, 31); // End of Period 2
             const specialDamages = [
-                { date: '30/06/2022', amount: 200, description: 'End of P1' }, // End of Period 1
-                { date: '01/07/2022', amount: 300, description: 'Start of P2' } // Start of Period 2
+                { date: '2022-06-30', amount: 200, description: 'End of P1' }, // End of Period 1
+                { date: '2022-07-01', amount: 300, description: 'Start of P2' } // Start of Period 2
             ];
 
             // Period 1: Jan 1 - Jun 30 (181 days @ 2.0%) - Principal: 5000
@@ -440,7 +440,7 @@ describe('calculations.js', () => {
             const startDate = createUTCDate(2023, 1, 1);
             const endDate = createUTCDate(2023, 6, 30); // End of Period 3
             const specialDamages = [
-                { date: '30/06/2023', amount: 50, description: 'On End Date' }
+                { date: '2023-06-30', amount: 50, description: 'On End Date' }
             ];
 
             // Period 3: Jan 1 - Jun 30 (181 days @ 3.0%) - Principal: 1000
@@ -466,8 +466,8 @@ describe('calculations.js', () => {
             const startDate = createUTCDate(2023, 1, 1); // Start of Period 3
             const endDate = createUTCDate(2023, 5, 1);   // May 1, 2023 (within Period 3) - Judgment Date
             const specialDamages = [
-                { date: '03/01/2023', amount: 300, description: 'Physio' }, // Within final period
-                { date: '01/03/2023', amount: 50, description: 'Meds' }    // Within final period
+                { date: '2023-01-03', amount: 300, description: 'Physio' }, // Within final period
+                { date: '2023-03-01', amount: 50, description: 'Meds' }    // Within final period
             ];
 
             // Final Period (Period 3): Jan 1 - May 1 (121 days @ 3.0%) - Principal: 10000
@@ -504,7 +504,7 @@ describe('calculations.js', () => {
             // Check Damage 1 segment
             const damage1Segment = result.details.find(d => d.isFinalPeriodDamage && d.principal === damage1Amount);
             expect(damage1Segment).toBeDefined();
-            expect(damage1Segment.start).toBe('03/01/2023');
+            expect(damage1Segment.start).toBe('2023-01-03'); // Expect YYYY-MM-DD
             expect(damage1Segment.description).toContain(`(${damage1Days} days)`);
             expect(damage1Segment.rate).toBe(finalSegmentRate);
             expectToBeCloseTo(damage1Segment.interest, damage1Interest);
@@ -512,7 +512,7 @@ describe('calculations.js', () => {
             // Check Damage 2 segment
             const damage2Segment = result.details.find(d => d.isFinalPeriodDamage && d.principal === damage2Amount);
             expect(damage2Segment).toBeDefined();
-            expect(damage2Segment.start).toBe('01/03/2023');
+            expect(damage2Segment.start).toBe('2023-03-01'); // Expect YYYY-MM-DD
             expect(damage2Segment.description).toContain(`(${damage2Days} days)`);
             expect(damage2Segment.rate).toBe(finalSegmentRate);
             expectToBeCloseTo(damage2Segment.interest, damage2Interest);
@@ -527,8 +527,8 @@ describe('calculations.js', () => {
             const startDate = createUTCDate(2023, 6, 1); // Start of Period 3
             const endDate = createUTCDate(2023, 8, 1);   // Aug 1, 2023 (within Period 4) - Judgment Date
             const specialDamages = [
-                { date: '15/06/2023', amount: 100, description: 'Damage Before Rate Change' }, // Before rate change, handled normally
-                { date: '10/07/2023', amount: 200, description: 'Damage After Rate Change' }  // After rate change, calculated separately
+                { date: '2023-06-15', amount: 100, description: 'Damage Before Rate Change' }, // Before rate change, handled normally
+                { date: '2023-07-10', amount: 200, description: 'Damage After Rate Change' }  // After rate change, calculated separately
             ];
 
             // Period 3: Jun 1 - Jun 30 (30 days @ 3.0%) - Principal: 20000
@@ -572,7 +572,7 @@ describe('calculations.js', () => {
             // Check Damage 2 segment (calculated separately)
             const damage2Segment = result.details.find(d => d.isFinalPeriodDamage && d.principal === damage2Amount);
             expect(damage2Segment).toBeDefined();
-            expect(damage2Segment.start).toBe('10/07/2023');
+            expect(damage2Segment.start).toBe('2023-07-10'); // Expect YYYY-MM-DD
             expect(damage2Segment.description).toContain(`(${damage2Days} days)`);
             expect(damage2Segment.rate).toBe(finalSegmentRate);
             expectToBeCloseTo(damage2Segment.interest, damage2Interest);

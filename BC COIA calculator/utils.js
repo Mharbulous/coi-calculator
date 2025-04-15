@@ -26,16 +26,16 @@ export function parseDateInput(dateString) {
 }
 
 /**
- * Formats a Date object into DD/MM/YYYY string (UTC).
+ * Formats a Date object into YYYY-MM-DD string (UTC).
  * @param {Date} date - The Date object to format.
  * @returns {string} The formatted date string, or '' if invalid.
  */
 export function formatDateForDisplay(date) {
     if (!date || isNaN(date.getTime())) return '';
-    const day = date.getUTCDate().toString().padStart(2, '0');
-    const month = (date.getUTCMonth() + 1).toString().padStart(2, '0'); // Month is 0-indexed
     const year = date.getUTCFullYear();
-    return `${day}/${month}/${year}`;
+    const month = (date.getUTCMonth() + 1).toString().padStart(2, '0'); // Month is 0-indexed
+    const day = date.getUTCDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`; // Changed format to YYYY-MM-DD
 }
 
 /**
@@ -53,16 +53,13 @@ export function formatDateForInput(date) {
 
 
 /**
- * Formats a Date object into a long format string (e.g., "April 9, 2025") (UTC).
+ * Formats a Date object into YYYY-MM-DD string (UTC).
  * @param {Date} date - The Date object to format.
  * @returns {string} The formatted date string, or '' if invalid.
  */
 export function formatDateLong(date) {
-    if (!date || isNaN(date.getTime())) return '';
-    // Using 'en-CA' locale for consistency, but could be 'en-US' etc.
-    // timeZone: 'UTC' is crucial here.
-    const options = { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' };
-    return date.toLocaleDateString('en-CA', options);
+    // Standardize to YYYY-MM-DD
+    return formatDateForDisplay(date); 
 }
 
 /**

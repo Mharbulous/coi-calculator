@@ -31,28 +31,16 @@ function collectSpecialDamages() {
         
         if (dateInput && descInput && amountInput) {
             // Get the date from the input field in YYYY-MM-DD format
-            const dateValue = dateInput.value;
+            const dateValue = dateInput.value; // Date is already YYYY-MM-DD from input
             
-            // Convert to DD/MM/YYYY format for display consistency
-            let formattedDate = '';
-            if (dateValue) {
-                const dateParts = dateValue.split('-');
-                if (dateParts.length === 3) {
-                    const year = dateParts[0];
-                    const month = dateParts[1];
-                    const day = dateParts[2];
-                    formattedDate = `${day}/${month}/${year}`;
-                } else {
-                    formattedDate = dateValue; // Fallback
-                }
-            }
+            // No conversion needed, store directly as YYYY-MM-DD
             
             const description = descInput.value.trim() || descInput.placeholder;
             const amount = parseCurrency(amountInput.value);
             
-            if (formattedDate && amount > 0) {
+            if (dateValue && amount > 0) { // Use dateValue directly
                 specialDamages.push({
-                    date: formattedDate,
+                    date: dateValue, // Store as YYYY-MM-DD
                     description,
                     amount
                 });
@@ -180,7 +168,7 @@ function recalculate() {
     // Update Prejudgment Table Footer Label
     if (elements.prejudgmentTotalLabel) {
         if (inputs.isValid && inputs.dateOfJudgment) {
-            // Use formatDateForDisplay for DD/MM/YYYY format as requested
+            // formatDateForDisplay now returns YYYY-MM-DD
             const formattedJudgmentDate = formatDateForDisplay(inputs.dateOfJudgment); 
             elements.prejudgmentTotalLabel.textContent = `Total at date of judgment (${formattedJudgmentDate})`;
         } else {

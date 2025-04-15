@@ -250,8 +250,8 @@ function calculateSimpleInterest(principal, annualRate, days) {
  * Calculates special damages interest based on mockup logic.
  * @param {string} causeOfActionDateStr - YYYY-MM-DD
  * @param {string} judgmentDateStr - YYYY-MM-DD
- * @param {Array<{date: string, description: string, amount: number}>} singleDamages - Array of single damage objects
- * @param {Array<{id: string, startDate: string, endDate: string, frequency: string, amount: number, description: string}>} recurringRules - Array of recurring rule parameters
+ * @param {Array<{date: string (YYYY-MM-DD), description: string, amount: number}>} singleDamages - Array of single damage objects
+ * @param {Array<{id: string, startDate: string (YYYY-MM-DD), endDate: string (YYYY-MM-DD), frequency: string, amount: number, description: string}>} recurringRules - Array of recurring rule parameters
  * @param {string} jurisdiction - e.g., 'BC'
  * @returns {object} - Contains periodData array and summary totals
  */

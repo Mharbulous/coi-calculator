@@ -57,14 +57,14 @@ describe('utils.js', () => {
     });
 
     describe('formatDateForDisplay', () => {
-        it('should format a UTC Date object into DD/MM/YYYY string', () => {
+        it('should format a UTC Date object into YYYY-MM-DD string', () => {
             const date = createUTCDate(2024, 3, 15); // March 15, 2024
-            expect(formatDateForDisplay(date)).toBe('15/03/2024');
+            expect(formatDateForDisplay(date)).toBe('2024-03-15'); // Changed expected format
         });
 
         it('should handle single-digit day and month with padding', () => {
             const date = createUTCDate(2024, 1, 5); // January 5, 2024
-            expect(formatDateForDisplay(date)).toBe('05/01/2024');
+            expect(formatDateForDisplay(date)).toBe('2024-01-05'); // Changed expected format
         });
 
         it('should return an empty string for invalid Date objects', () => {
@@ -75,12 +75,12 @@ describe('utils.js', () => {
 
         it('should handle date at the beginning of the year', () => {
             const date = createUTCDate(2025, 1, 1);
-            expect(formatDateForDisplay(date)).toBe('01/01/2025');
+            expect(formatDateForDisplay(date)).toBe('2025-01-01'); // Changed expected format
         });
 
         it('should handle date at the end of the year', () => {
             const date = createUTCDate(2024, 12, 31);
-            expect(formatDateForDisplay(date)).toBe('31/12/2024');
+            expect(formatDateForDisplay(date)).toBe('2024-12-31'); // Changed expected format
         });
     });
 
@@ -113,18 +113,16 @@ describe('utils.js', () => {
     });
 
     describe('formatDateLong', () => {
-        it('should format a UTC Date object into a long format string (Month Day, Year)', () => {
+        it('should format a UTC Date object into YYYY-MM-DD string', () => {
             const date = createUTCDate(2024, 4, 9); // April 9, 2024
-            // Note: The exact output depends on the Node.js Intl implementation and locale data.
-            // 'en-CA' typically produces "Month Day, Year". Adjust if needed.
-            expect(formatDateLong(date)).toBe('April 9, 2024');
+            expect(formatDateLong(date)).toBe('2024-04-09'); // Changed expected format
         });
 
         it('should handle different dates', () => {
             const date1 = createUTCDate(2025, 1, 1); // January 1, 2025
-            expect(formatDateLong(date1)).toBe('January 1, 2025');
+            expect(formatDateLong(date1)).toBe('2025-01-01'); // Changed expected format
             const date2 = createUTCDate(2023, 12, 31); // December 31, 2023
-            expect(formatDateLong(date2)).toBe('December 31, 2023');
+            expect(formatDateLong(date2)).toBe('2024-12-31'); // Changed expected format
         });
 
         it('should return an empty string for invalid Date objects', () => {

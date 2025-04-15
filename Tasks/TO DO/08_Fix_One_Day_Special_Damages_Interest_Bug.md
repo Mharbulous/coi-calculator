@@ -12,8 +12,8 @@ When a special damages entry is dated exactly 1 day before the Judgment Date, th
 
 ## Visual Evidence
 Two screenshots demonstrate the issue:
-1. When a special damages entry is dated 29/04/2023 (2 days before Judgment Date of 01/05/2023), the system correctly shows "test (2 days)" with interest of $0.08
-2. When a special damages entry is dated 30/04/2023 (1 day before Judgment Date of 01/05/2023), the system only shows "test" with no interest calculation
+1. When a special damages entry is dated 2023-04-29 (2 days before Judgment Date of 2023-05-01), the system correctly shows "test (2 days)" with interest of $0.08
+2. When a special damages entry is dated 2023-04-30 (1 day before Judgment Date of 2023-05-01), the system only shows "test" with no interest calculation
 
 ## Technical Details
 This is likely a logic issue in the code that calculates or renders interest for special damages. The problem might be:

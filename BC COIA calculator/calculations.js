@@ -1,4 +1,4 @@
-import { daysBetween, daysInYear, formatDateForDisplay } from './utils.js';
+import { daysBetween, daysInYear, formatDateForDisplay, parseDateInput } from './utils.js'; // Added parseDateInput
 
 /**
  * Finds the applicable interest rate for a specific date and type within a jurisdiction.
@@ -38,7 +38,7 @@ export function getInterestRateForDate(date, type, jurisdiction, ratesData) {
  * @param {'prejudgment' | 'postjudgment'} interestType - The type of interest to calculate.
  * @param {string} jurisdiction - The jurisdiction code (e.g., 'BC').
  * @param {object} ratesData - The processed interest rates object.
- * @param {Array<object>} [specialDamages=[]] - Optional array of special damages { date: string (DD/MM/YYYY), amount: number, description?: string }.
+ * @param {Array<object>} [specialDamages=[]] - Optional array of special damages { date: string (YYYY-MM-DD), amount: number, description?: string }.
  * @returns {{details: Array<object>, total: number, principal: number}} An object containing detailed breakdown, total interest, and the *final* principal used.
  */
 export function calculateInterestPeriods(principal, startDate, endDate, interestType, jurisdiction, ratesData, specialDamages = []) {
@@ -58,13 +58,11 @@ export function calculateInterestPeriods(principal, startDate, endDate, interest
     const finalPeriodDamageInterestDetails = []; // ADDED: Array for final period calculated interest
     const jurisdictionRates = ratesData[jurisdiction];
 
-    // Parse and sort special damages
+    // Parse and sort special damages (Dates are now YYYY-MM-DD)
     const processedDamages = specialDamages
         .map(d => {
-            const parts = d.date.split('/');
-            if (parts.length !== 3) return null;
-            const dateObj = new Date(Date.UTC(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0])));
-            if (isNaN(dateObj.getTime())) return null;
+            const dateObj = parseDateInput(d.date); // Use parseDateInput from utils.js (assuming it's imported or available)
+            if (!dateObj) return null; // parseDateInput returns null on failure
             return { date: d.date, amount: d.amount, description: d.description || 'Special Damage', dateObj };
         })
         .filter(d => d !== null)
