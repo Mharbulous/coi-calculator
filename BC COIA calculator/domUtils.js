@@ -28,6 +28,7 @@ export const elements = {
     summaryTableBody: document.querySelector('[data-display="summaryTableBody"]'), // Added
 
     // Table Footers / Totals
+    prejudgmentTotalLabel: document.querySelector('[data-display="prejudgmentTotalLabel"]'), // Added for dynamic label
     prejudgmentPrincipalTotalEl: document.querySelector('[data-display="prejudgmentPrincipalTotal"]'), // Added
     prejudgmentInterestTotalEl: document.querySelector('[data-display="prejudgmentInterestTotal"]'), // Added (replaces prejudgmentSubtotalEl)
     postjudgmentInterestTotalEl: document.querySelector('[data-display="postjudgmentInterestTotal"]'), // Added (replaces postjudgmentSubtotalEl)

@@ -13,8 +13,8 @@ import {
     setDefaultInputValues,
     setupCurrencyInputListeners
 } from './domUtils.js';
-// Import formatDateLong if needed for display, keep formatDateForInput for input values
-import { formatDateForInput, formatDateLong, parseCurrency, parseDateInput } from './utils.js';
+// Import necessary date formatting functions
+import { formatDateForInput, formatDateLong, formatDateForDisplay, parseCurrency, parseDateInput } from './utils.js';
 
 /**
  * Collects special damages data from the prejudgment table.
@@ -168,6 +168,20 @@ function recalculate() {
         totalPrincipalForFooter, // Pass the correct total principal for the footer
         prejudgmentResult.total // Pass interest total (calculated only on pecuniary, but principal adjusted)
     );
+
+    // Update Prejudgment Table Footer Label
+    if (elements.prejudgmentTotalLabel) {
+        if (inputs.isValid && inputs.dateOfJudgment) {
+            // Use formatDateForDisplay for DD/MM/YYYY format as requested
+            const formattedJudgmentDate = formatDateForDisplay(inputs.dateOfJudgment); 
+            elements.prejudgmentTotalLabel.textContent = `Total at date of judgment (${formattedJudgmentDate})`;
+        } else {
+            // Fallback if date is invalid or not available
+            elements.prejudgmentTotalLabel.textContent = 'Total'; 
+        }
+    } else {
+        console.warn("Prejudgment total label element not found.");
+    }
 
     // 4. Calculate Base Total for Postjudgment and Summary
     // This total includes the original awards, calculated prejudgment interest, AND special damages total
