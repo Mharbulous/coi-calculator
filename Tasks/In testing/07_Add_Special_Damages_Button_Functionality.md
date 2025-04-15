@@ -10,7 +10,7 @@ Implement functionality for the "add special damages" button in the Prejudgment 
    - The new row should follow the format shown in the mockup.md file (with empty cells for Rate and Interest)
    - The Date cell should be pre-populated with the date from the row where the button was clicked
    - The Description cell should be empty initially
-   - When the Description cell is empty, it should display placeholder text "Describe special damages here"
+   - When the Description cell is empty, it should display placeholder text "Describe special damages"
    - The Principal/Amount cell should be empty initially
 
 2. The new row should be properly integrated into the calculation flow:

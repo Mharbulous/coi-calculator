@@ -659,7 +659,7 @@ function insertSpecialDamagesRow(tableBody, currentRow, date) {
     const descInput = document.createElement('input');
     descInput.type = 'text';
     descInput.className = 'special-damages-description';
-    descInput.placeholder = 'Describe special damages here';
+    descInput.placeholder = 'Describe special damages';
     descInput.dataset.type = 'special-damages-description';
     descCell.appendChild(descInput);
     descCell.classList.add('text-left');
@@ -735,7 +735,7 @@ function insertSpecialDamagesRowFromData(tableBody, index, rowData) {
     const descInput = document.createElement('input');
     descInput.type = 'text';
     descInput.className = 'special-damages-description';
-    descInput.placeholder = 'Describe special damages here';
+    descInput.placeholder = 'Describe special damages';
     descInput.dataset.type = 'special-damages-description';
     descInput.value = (rowData.description === descInput.placeholder) ? '' : rowData.description; // Set value, handle placeholder case
     descCell.appendChild(descInput);
