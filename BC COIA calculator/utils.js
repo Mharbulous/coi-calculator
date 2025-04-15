@@ -136,6 +136,24 @@ export function formatCurrencyForInput(value) {
 }
 
 /**
+ * Formats a number into a currency string with commas for input fields (e.g., "1,234.56").
+ * Suitable for display within an input field when not focused.
+ * @param {number} value - The number to format.
+ * @returns {string} The formatted currency string with commas, no symbol.
+ */
+export function formatCurrencyForInputWithCommas(value) {
+    if (isNaN(value) || value === null) return "0.00";
+    // Use Intl.NumberFormat but without currency style to get commas
+    const formatter = new Intl.NumberFormat('en-CA', {
+        minimumFractionDigits: 2,
+         maximumFractionDigits: 2,
+     });
+     // Prepend the '$' symbol
+     return '$' + formatter.format(value);
+ }
+
+
+/**
  * Formats a number into a currency string for display, including styling for negatives.
  * Uses Intl.NumberFormat for locale-aware formatting (e.g., commas).
  * @param {number} value - The number to format.

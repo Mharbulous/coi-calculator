@@ -120,9 +120,13 @@ function recalculate() {
     }
 
 
-    // 2. Calculate Prejudgment Interest (Conditional on Checkbox)
+    // 2. Collect Special Damages (needed for both prejudgment calc and totals)
+    const specialDamages = collectSpecialDamages();
+    const specialDamagesTotal = specialDamages.reduce((sum, damage) => sum + damage.amount, 0);
+
+    // 3. Calculate Prejudgment Interest (Conditional on Checkbox)
     // Prejudgment interest in BC COIA applies ONLY to pecuniary damages.
-    let prejudgmentResult = { details: [], total: 0, principal: inputs.judgmentAwarded }; // Principal is pecuniary only
+    let prejudgmentResult = { details: [], total: 0, principal: inputs.judgmentAwarded }; // Initial principal is pecuniary only
     if (inputs.showPrejudgment) {
         // Prejudgment starts from the dynamic prejudgmentStartDate
         // Prejudgment ends the day *before* the pecuniary judgment date
@@ -137,20 +141,22 @@ function recalculate() {
                 prejudgmentEndDate,
                 'prejudgment',
                 inputs.jurisdiction,
-                interestRatesData
+                interestRatesData,
+                specialDamages // Pass collected special damages here
             );
         } else {
             console.warn("Prejudgment calculation skipped: Invalid date range (start date vs judgment date) or zero pecuniary judgment amount.");
         }
     } else {
         console.log("Prejudgment calculation skipped: Checkbox unchecked.");
+        // Even if skipped, the principal used for the total row includes special damages
+        prejudgmentResult.principal = inputs.judgmentAwarded + specialDamagesTotal;
     }
-    // Collect special damages data *only* for calculating totals
-    const specialDamages = collectSpecialDamages();
-    const specialDamagesTotal = specialDamages.reduce((sum, damage) => sum + damage.amount, 0);
 
     // Calculate the total principal including special damages for the footer display
-    const totalPrincipal = inputs.judgmentAwarded + specialDamagesTotal; // Use initial pecuniary + special damages
+    // Note: calculateInterestPeriods now returns the *final* principal after damages are applied within the period.
+    // For the footer total, we want the initial pecuniary + *all* special damages.
+    const totalPrincipalForFooter = inputs.judgmentAwarded + specialDamagesTotal;
 
     // Update Prejudgment Table ONLY with calculated interest details.
     // Special damages rows will be re-inserted by updateInterestTable itself.
@@ -159,15 +165,15 @@ function recalculate() {
         elements.prejudgmentPrincipalTotalEl,
         elements.prejudgmentInterestTotalEl,
         prejudgmentResult.details, // Pass only calculated details
-        totalPrincipal, // Pass the correct total principal for the footer
-        prejudgmentResult.total // Pass interest total (calculated only on pecuniary)
+        totalPrincipalForFooter, // Pass the correct total principal for the footer
+        prejudgmentResult.total // Pass interest total (calculated only on pecuniary, but principal adjusted)
     );
 
-    // 3. Calculate Base Total for Postjudgment and Summary
+    // 4. Calculate Base Total for Postjudgment and Summary
     // This total includes the original awards, calculated prejudgment interest, AND special damages total
     const judgmentTotal = inputs.judgmentAwarded + prejudgmentResult.total + inputs.nonPecuniaryAwarded + inputs.costsAwarded + specialDamagesTotal;
 
-    // 4. Calculate Postjudgment Interest (Conditional on Checkbox)
+    // 5. Calculate Postjudgment Interest (Conditional on Checkbox)
     let postjudgmentResult = { details: [], total: 0 };
     // Postjudgment starts from the *latest* of the three judgment dates
     const latestJudgmentDate = new Date(Math.max(inputs.dateOfJudgment, inputs.nonPecuniaryJudgmentDate, inputs.costsAwardedDate));

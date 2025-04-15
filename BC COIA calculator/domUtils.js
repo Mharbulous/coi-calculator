@@ -1,4 +1,4 @@
-import { formatCurrencyForDisplay, formatCurrencyForInput, formatDateLong, parseCurrency, parseDateInput, formatDateForInput, formatDateForDisplay } from './utils.js';
+import { formatCurrencyForDisplay, formatCurrencyForInput, formatCurrencyForInputWithCommas, formatDateLong, parseCurrency, parseDateInput, formatDateForInput, formatDateForDisplay } from './utils.js';
 
 // --- DOM Element Selectors ---
 // Using data attributes for more robust selection
@@ -422,8 +422,8 @@ export function updateSummaryTable(items, totalOwing, perDiem, finalCalculationD
 
         // 5. Populate Date and Amount (Inputs or Display) and Attach Listeners
         const formattedDate = item.dateValue instanceof Date ? formatDateForInput(item.dateValue) : item.dateValue;
-        const formattedAmount = formatCurrencyForDisplay(item.amount);
-        const formattedAmountInput = formatCurrencyForInput(item.amount);
+        const formattedAmount = formatCurrencyForDisplay(item.amount); // For display-only cells
+        const formattedAmountInputWithCommas = formatCurrencyForInputWithCommas(item.amount); // For input initial value
 
         if (template === templatePecuniary) {
             if (dateInput) {
@@ -432,7 +432,7 @@ export function updateSummaryTable(items, totalOwing, perDiem, finalCalculationD
                 elements.pecuniaryJudgmentDateInput = dateInput; // Store reference
             }
             if (amountInput) {
-                amountInput.value = formattedAmountInput;
+                amountInput.value = formattedAmountInputWithCommas; // Use comma format initially
                 setupCurrencyInputListeners(amountInput, recalculateCallback);
                 elements.pecuniaryJudgmentAmountInput = amountInput; // Store reference
             }
@@ -447,7 +447,7 @@ export function updateSummaryTable(items, totalOwing, perDiem, finalCalculationD
                  dateDisplay.textContent = pecuniaryDateStr;
             }
             if (amountInput) {
-                amountInput.value = formattedAmountInput;
+                amountInput.value = formattedAmountInputWithCommas; // Use comma format initially
                 setupCurrencyInputListeners(amountInput, recalculateCallback);
                 if (item.item === 'Non-Pecuniary Judgment') {
                     elements.nonPecuniaryJudgmentAmountInput = amountInput; // Store reference
@@ -752,7 +752,9 @@ function insertSpecialDamagesRowFromData(tableBody, index, rowData) {
     principalInput.type = 'text';
     principalInput.className = 'special-damages-amount';
     principalInput.dataset.type = 'special-damages-amount';
-    principalInput.value = rowData.amount; // Already formatted potentially
+    // Parse the stored value first, then format with commas for display
+    const numericValue = parseCurrency(rowData.amount);
+    principalInput.value = formatCurrencyForInputWithCommas(numericValue);
     setupCurrencyInputListeners(principalInput, function() {
         const event = new CustomEvent('special-damages-updated');
         document.dispatchEvent(event);
@@ -776,25 +778,29 @@ export function setupCurrencyInputListeners(inputElement, recalculateCallback) {
     if (!inputElement) return;
 
     inputElement.addEventListener('blur', (event) => {
+        // On blur, parse and format with commas for display
         let value = parseCurrency(event.target.value);
-        event.target.value = formatCurrencyForInput(value); // Format on blur
+        event.target.value = formatCurrencyForInputWithCommas(value);
         if (typeof recalculateCallback === 'function') {
-            recalculateCallback();
+            recalculateCallback(); // Recalculate after formatting
         }
     });
 
     inputElement.addEventListener('focus', (event) => {
-        // Select contents on focus for easy replacement
-        event.target.select();
+        // On focus, parse and show raw number for editing
+        let value = parseCurrency(event.target.value);
+        // Display as plain number with 2 decimal places, no $ or commas
+        event.target.value = value.toFixed(2);
+        event.target.select(); // Select contents for easy replacement
     });
 
     inputElement.addEventListener('keyup', (event) => {
-        // Recalculate and format on Enter key
+        // Recalculate and format with commas on Enter key
         if (event.key === 'Enter') {
             let value = parseCurrency(event.target.value);
-            event.target.value = formatCurrencyForInput(value);
+            event.target.value = formatCurrencyForInputWithCommas(value);
             if (typeof recalculateCallback === 'function') {
-                recalculateCallback();
+                recalculateCallback(); // Recalculate after formatting
             }
             event.target.blur(); // Remove focus after Enter
         }
