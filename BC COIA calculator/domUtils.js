@@ -865,17 +865,21 @@ function insertCalculatedRowIfNeeded(tableBody, referenceNode, rowData, finalPer
             const calculatedRow = document.createElement('tr'); // Create row element
             calculatedRow.classList.add('calculated-special-interest-row'); // Add a class for potential styling
 
+            // Extract day count from description (e.g., "Description (123 days)" -> "123 days")
+            const descriptionMatch = calculatedDetail.description.match(/\((\d+)\s+days\)/);
+            const daysDescription = descriptionMatch ? `${descriptionMatch[1]} days` : ''; // Fallback to empty if no match
+
             calculatedRow.insertCell().textContent = calculatedDetail.start; // Formatted Date
-            calculatedRow.insertCell().textContent = calculatedDetail.description; // Description (e.g., "Physiotherapy (119 days)")
+            calculatedRow.insertCell().textContent = daysDescription; // Use extracted days description
             calculatedRow.insertCell().textContent = calculatedDetail.rate.toFixed(2) + '%'; // Rate
-            calculatedRow.insertCell().innerHTML = formatCurrencyForDisplay(calculatedDetail.principal); // Principal (original damage amount)
+            calculatedRow.insertCell().innerHTML = ''; // Leave Principal blank
             calculatedRow.insertCell().innerHTML = formatCurrencyForDisplay(calculatedDetail.interest); // Calculated Interest
 
             // Apply text alignment
             calculatedRow.cells[0].classList.add('text-left'); // Date
-            calculatedRow.cells[1].classList.add('text-left'); // Description
+            calculatedRow.cells[1].classList.add('text-right'); // Description (Right-aligned)
             calculatedRow.cells[2].classList.add('text-center'); // Rate
-            calculatedRow.cells[3].classList.add('text-right'); // Principal
+            calculatedRow.cells[3].classList.add('text-right'); // Principal (remains right, but content is blank)
             calculatedRow.cells[4].classList.add('text-right'); // Interest
 
             // Insert the row before the referenceNode (or append if referenceNode is null)
