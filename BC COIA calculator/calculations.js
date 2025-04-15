@@ -8,7 +8,7 @@ import { daysBetween, daysInYear, formatDateForDisplay } from './utils.js';
  * @param {object} ratesData - The processed interest rates object.
  * @returns {number} The applicable interest rate percentage, or 0 if not found.
  */
-function getInterestRateForDate(date, type, jurisdiction, ratesData) {
+export function getInterestRateForDate(date, type, jurisdiction, ratesData) {
     if (!date || isNaN(date.getTime()) || !ratesData[jurisdiction]) {
         console.warn(`Invalid date or missing rates for jurisdiction ${jurisdiction} in getInterestRateForDate`);
         return 0;
@@ -223,8 +223,18 @@ export function calculateInterestPeriods(principal, startDate, endDate, interest
         }
     });
 
-    // Return the calculated details, total interest, final principal, and final period damage details
-    return { details, total: totalInterest, principal: finalPrincipal, finalPeriodDamageInterestDetails }; // ADDED finalPeriodDamageInterestDetails
+    // Add the final period damage interest details to the main details array
+    if (finalPeriodDamageInterestDetails.length > 0) {
+        finalPeriodDamageInterestDetails.forEach(detail => {
+            details.push({
+                ...detail,
+                isFinalPeriodDamage: true
+            });
+        });
+    }
+
+    // Return the calculated details, total interest, and final principal
+    return { details, total: totalInterest, principal: finalPrincipal };
 }
 
 
