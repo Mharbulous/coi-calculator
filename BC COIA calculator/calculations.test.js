@@ -296,6 +296,232 @@ describe('calculations.js', () => {
              consoleWarnSpy.mockRestore(); // Clean up spy
         });
 
+        // --- Special Damages Tests ---
+        it('should correctly add special damages to principal for subsequent periods', () => {
+            const principal = 10000;
+            const startDate = createUTCDate(2023, 1, 1); // Start of Period 3
+            const endDate = createUTCDate(2023, 12, 31); // End of Period 4
+            const specialDamages = [
+                { date: '15/02/2023', amount: 500, description: 'Damage 1' }, // During Period 3
+                { date: '01/08/2023', amount: 1000, description: 'Damage 2' } // During Period 4
+            ];
+
+            // Period 3: Jan 1 - Jun 30 (181 days @ 3.0%) - Principal: 10000
+            const days1 = 181;
+            const rate1 = 3.0;
+            const principal1 = 10000;
+            const interest1 = (principal1 * (rate1 / 100) * days1) / 365;
+
+            // Period 4: Jul 1 - Dec 31 (184 days @ 3.5%) - Principal: 10000 + 500 = 10500
+            const days2 = 184;
+            const rate2 = 3.5;
+            const principal2 = 10500;
+            const interest2 = (principal2 * (rate2 / 100) * days2) / 365;
+
+            const expectedTotalInterest = interest1 + interest2;
+            const expectedFinalPrincipal = 10000 + 500 + 1000; // Initial + Damage 1 + Damage 2
+
+            const result = calculateInterestPeriods(principal, startDate, endDate, 'prejudgment', 'BC', mockRatesData, specialDamages);
+
+            expect(result.details.length).toBe(2);
+            // Check Period 3 segment
+            expect(result.details[0].principal).toBe(principal1);
+            expectToBeCloseTo(result.details[0].interest, interest1);
+            // Check Period 4 segment
+            expect(result.details[1].principal).toBe(principal2); // Principal includes Damage 1
+            expectToBeCloseTo(result.details[1].interest, interest2);
+
+            expectToBeCloseTo(result.total, expectedTotalInterest);
+            expect(result.principal).toBe(expectedFinalPrincipal); // Final principal includes all damages
+        });
+
+        it('should handle special damages occurring exactly on rate change dates', () => {
+            const principal = 5000;
+            const startDate = createUTCDate(2022, 1, 1); // Start of Period 1
+            const endDate = createUTCDate(2022, 12, 31); // End of Period 2
+            const specialDamages = [
+                { date: '30/06/2022', amount: 200, description: 'End of P1' }, // End of Period 1
+                { date: '01/07/2022', amount: 300, description: 'Start of P2' } // Start of Period 2
+            ];
+
+            // Period 1: Jan 1 - Jun 30 (181 days @ 2.0%) - Principal: 5000
+            const days1 = 181;
+            const rate1 = 2.0;
+            const principal1 = 5000;
+            const interest1 = (principal1 * (rate1 / 100) * days1) / 365;
+
+            // Period 2: Jul 1 - Dec 31 (184 days @ 2.5%) - Principal: 5000 + 200 = 5200 (Damage from P1 end included)
+            // Damage from Jul 1 is *not* included in principal for P2 calculation
+            const days2 = 184;
+            const rate2 = 2.5;
+            const principal2 = 5200;
+            const interest2 = (principal2 * (rate2 / 100) * days2) / 365;
+
+            const expectedTotalInterest = interest1 + interest2;
+            const expectedFinalPrincipal = 5000 + 200 + 300; // Initial + Damage 1 + Damage 2
+
+            const result = calculateInterestPeriods(principal, startDate, endDate, 'prejudgment', 'BC', mockRatesData, specialDamages);
+
+            expect(result.details.length).toBe(2);
+            // Check Period 1 segment
+            expect(result.details[0].principal).toBe(principal1);
+            expectToBeCloseTo(result.details[0].interest, interest1);
+            // Check Period 2 segment
+            expect(result.details[1].principal).toBe(principal2); // Includes damage from Jun 30
+            expectToBeCloseTo(result.details[1].interest, interest2);
+
+            expectToBeCloseTo(result.total, expectedTotalInterest);
+            expect(result.principal).toBe(expectedFinalPrincipal);
+        });
+
+        it('should return correct final principal when damages occur on the end date (but not calculated separately)', () => {
+            // This test verifies the final principal calculation, not the special final period interest calc
+            const principal = 1000;
+            const startDate = createUTCDate(2023, 1, 1);
+            const endDate = createUTCDate(2023, 6, 30); // End of Period 3
+            const specialDamages = [
+                { date: '30/06/2023', amount: 50, description: 'On End Date' }
+            ];
+
+            // Period 3: Jan 1 - Jun 30 (181 days @ 3.0%) - Principal: 1000
+            const days1 = 181;
+            const rate1 = 3.0;
+            const principal1 = 1000;
+            const interest1 = (principal1 * (rate1 / 100) * days1) / 365;
+
+            const expectedTotalInterest = interest1;
+            const expectedFinalPrincipal = 1000 + 50; // Damage added to final principal
+
+            const result = calculateInterestPeriods(principal, startDate, endDate, 'prejudgment', 'BC', mockRatesData, specialDamages);
+
+            expect(result.details.length).toBe(1); // Only the main period calculation
+            expect(result.details[0].principal).toBe(principal1); // Damage doesn't affect interest calc within the period
+            expectToBeCloseTo(result.total, expectedTotalInterest);
+            expect(result.principal).toBe(expectedFinalPrincipal); // Final principal includes the damage
+        });
+
+        // --- Final Period Special Damages Calculation Tests ---
+        it('should calculate interest separately for damages within the final period', () => {
+            const principal = 10000;
+            const startDate = createUTCDate(2023, 1, 1); // Start of Period 3
+            const endDate = createUTCDate(2023, 5, 1);   // May 1, 2023 (within Period 3) - Judgment Date
+            const specialDamages = [
+                { date: '03/01/2023', amount: 300, description: 'Physio' }, // Within final period
+                { date: '01/03/2023', amount: 50, description: 'Meds' }    // Within final period
+            ];
+
+            // Final Period (Period 3): Jan 1 - May 1 (121 days @ 3.0%) - Principal: 10000
+            const finalSegmentDays = 121;
+            const finalSegmentRate = 3.0;
+            const finalSegmentPrincipal = 10000;
+            const finalSegmentInterest = (finalSegmentPrincipal * (finalSegmentRate / 100) * finalSegmentDays) / 365;
+
+            // Damage 1 (Physio): Jan 3 - May 1 (119 days @ 3.0%)
+            const damage1Days = 119;
+            const damage1Amount = 300;
+            const damage1Interest = (damage1Amount * (finalSegmentRate / 100) * damage1Days) / 365;
+
+            // Damage 2 (Meds): Mar 1 - May 1 (62 days @ 3.0%)
+            const damage2Days = 62;
+            const damage2Amount = 50;
+            const damage2Interest = (damage2Amount * (finalSegmentRate / 100) * damage2Days) / 365;
+
+            const expectedTotalInterest = finalSegmentInterest + damage1Interest + damage2Interest;
+            const expectedFinalPrincipal = 10000 + 300 + 50;
+
+            const result = calculateInterestPeriods(principal, startDate, endDate, 'prejudgment', 'BC', mockRatesData, specialDamages);
+
+            // With our new implementation, we expect 3 rows: 1 main segment + 2 special damage calcs
+            expect(result.details.length).toBe(3);
+
+            // Check main final segment
+            const mainSegment = result.details.find(d => !d.isFinalPeriodDamage);
+            expect(mainSegment).toBeDefined();
+            expect(mainSegment.description).toBe(`${finalSegmentDays} days`);
+            expect(mainSegment.principal).toBe(finalSegmentPrincipal);
+            expectToBeCloseTo(mainSegment.interest, finalSegmentInterest);
+
+            // Check Damage 1 segment
+            const damage1Segment = result.details.find(d => d.isFinalPeriodDamage && d.principal === damage1Amount);
+            expect(damage1Segment).toBeDefined();
+            expect(damage1Segment.start).toBe('03/01/2023');
+            expect(damage1Segment.description).toContain(`(${damage1Days} days)`);
+            expect(damage1Segment.rate).toBe(finalSegmentRate);
+            expectToBeCloseTo(damage1Segment.interest, damage1Interest);
+
+            // Check Damage 2 segment
+            const damage2Segment = result.details.find(d => d.isFinalPeriodDamage && d.principal === damage2Amount);
+            expect(damage2Segment).toBeDefined();
+            expect(damage2Segment.start).toBe('01/03/2023');
+            expect(damage2Segment.description).toContain(`(${damage2Days} days)`);
+            expect(damage2Segment.rate).toBe(finalSegmentRate);
+            expectToBeCloseTo(damage2Segment.interest, damage2Interest);
+
+            // Check totals
+            expectToBeCloseTo(result.total, expectedTotalInterest);
+            expect(result.principal).toBe(expectedFinalPrincipal);
+        });
+
+        it('should handle final period damages when the final period spans a rate change', () => {
+            const principal = 20000;
+            const startDate = createUTCDate(2023, 6, 1); // Start of Period 3
+            const endDate = createUTCDate(2023, 8, 1);   // Aug 1, 2023 (within Period 4) - Judgment Date
+            const specialDamages = [
+                { date: '15/06/2023', amount: 100, description: 'Damage Before Rate Change' }, // Before rate change, handled normally
+                { date: '10/07/2023', amount: 200, description: 'Damage After Rate Change' }  // After rate change, calculated separately
+            ];
+
+            // Period 3: Jun 1 - Jun 30 (30 days @ 3.0%) - Principal: 20000
+            const days1 = 30;
+            const rate1 = 3.0;
+            const principal1 = 20000;
+            const interest1 = (principal1 * (rate1 / 100) * days1) / 365;
+
+            // Final Period (Period 4): Jul 1 - Aug 1 (32 days @ 3.5%) - Principal: 20000 + 100 = 20100
+            const finalSegmentDays = 32;
+            const finalSegmentRate = 3.5;
+            const finalSegmentPrincipal = 20100; // Includes damage from Period 3
+            const finalSegmentInterest = (finalSegmentPrincipal * (finalSegmentRate / 100) * finalSegmentDays) / 365;
+
+            // Damage 2 (After Rate Change): Jul 10 - Aug 1 (23 days @ 3.5%)
+            const damage2Days = 23;
+            const damage2Amount = 200;
+            const damage2Interest = (damage2Amount * (finalSegmentRate / 100) * damage2Days) / 365;
+
+            const expectedTotalInterest = interest1 + finalSegmentInterest + damage2Interest;
+            const expectedFinalPrincipal = 20000 + 100 + 200;
+
+            const result = calculateInterestPeriods(principal, startDate, endDate, 'prejudgment', 'BC', mockRatesData, specialDamages);
+
+            // With our new implementation, we expect 3 rows: 1 regular segment + 1 final segment + 1 special damage calc
+            expect(result.details.length).toBe(3);
+
+            // Check Period 3 segment
+            const period3Segment = result.details.find(d => d.rate === rate1 && !d.isFinalPeriodDamage);
+            expect(period3Segment).toBeDefined();
+            expect(period3Segment.principal).toBe(principal1);
+            expectToBeCloseTo(period3Segment.interest, interest1);
+
+            // Check main final segment (Period 4)
+            const mainFinalSegment = result.details.find(d => d.rate === finalSegmentRate && !d.isFinalPeriodDamage);
+            expect(mainFinalSegment).toBeDefined();
+            expect(mainFinalSegment.description).toBe(`${finalSegmentDays} days`);
+            expect(mainFinalSegment.principal).toBe(finalSegmentPrincipal); // Includes damage 1
+            expectToBeCloseTo(mainFinalSegment.interest, finalSegmentInterest);
+
+            // Check Damage 2 segment (calculated separately)
+            const damage2Segment = result.details.find(d => d.isFinalPeriodDamage && d.principal === damage2Amount);
+            expect(damage2Segment).toBeDefined();
+            expect(damage2Segment.start).toBe('10/07/2023');
+            expect(damage2Segment.description).toContain(`(${damage2Days} days)`);
+            expect(damage2Segment.rate).toBe(finalSegmentRate);
+            expectToBeCloseTo(damage2Segment.interest, damage2Interest);
+
+            // Check totals
+            expectToBeCloseTo(result.total, expectedTotalInterest);
+            expect(result.principal).toBe(expectedFinalPrincipal);
+        });
+
     });
 
     describe('calculatePerDiem', () => {

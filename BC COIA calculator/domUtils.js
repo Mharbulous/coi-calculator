@@ -230,9 +230,10 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
         const descriptionText = document.createElement('span');
         descriptionText.textContent = item.description;
         descriptionContainer.appendChild(descriptionText);
-        
-        // Add the "add special damages" button only for rows with interest in prejudgment table
-        if (isPrejudgmentTable && item.interest > 0) {
+
+        // Add the "add special damages" button only for regular period rows (not final period damage calc rows)
+        // with interest in the prejudgment table
+        if (isPrejudgmentTable && item.interest > 0 && !item.isFinalPeriodDamage) {
             const addButton = document.createElement('button');
             addButton.textContent = 'add special damages';
             addButton.className = 'add-special-damages-btn';
