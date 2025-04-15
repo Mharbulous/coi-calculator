@@ -21,8 +21,8 @@ const jurisdictionSelect = document.getElementById('jurisdictionSelect');
 
 // --- Helper Functions ---
 function parseDate(dateString) { if (!dateString) return null; const parts = dateString.split('-'); if (parts.length === 3) { const year = parseInt(parts[0], 10); const month = parseInt(parts[1], 10) - 1; const day = parseInt(parts[2], 10); const date = new Date(Date.UTC(year, month, day)); if (!isNaN(date.getTime()) && date.getUTCFullYear() === year && date.getUTCMonth() === month && date.getUTCDate() === day) { return date; } } console.warn("Invalid date string format:", dateString); return null; }
-function formatDate(date) { if (!date || isNaN(date.getTime())) return ''; const day = date.getUTCDate().toString().padStart(2, '0'); const month = (date.getUTCMonth() + 1).toString().padStart(2, '0'); const year = date.getUTCFullYear(); return `${day}/${month}/${year}`; }
-function formatDateLong(date) { if (!date || isNaN(date.getTime())) return ''; const options = { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' }; return date.toLocaleDateString('en-CA', options); }
+function formatDate(date) { if (!date || isNaN(date.getTime())) return ''; const year = date.getUTCFullYear(); const month = (date.getUTCMonth() + 1).toString().padStart(2, '0'); const day = date.getUTCDate().toString().padStart(2, '0'); return `${year}-${month}-${day}`; }
+function formatDateLong(date) { if (!date || isNaN(date.getTime())) return ''; return formatDate(date); }
 function daysBetween(date1, date2) { if (!date1 || !date2 || isNaN(date1.getTime()) || isNaN(date2.getTime()) || date2 < date1) return 0; const startOfDay1 = Date.UTC(date1.getUTCFullYear(), date1.getUTCMonth(), date1.getUTCDate()); const startOfDay2 = Date.UTC(date2.getUTCFullYear(), date2.getUTCMonth(), date2.getUTCDate()); const differenceInMilliseconds = startOfDay2 - startOfDay1; return Math.round(differenceInMilliseconds / (1000 * 60 * 60 * 24)) + 1; }
 function isLeap(year) { return year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0); }
 function daysInYear(year) { return isLeap(year) ? 366 : 365; }
