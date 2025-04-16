@@ -4,37 +4,30 @@ import { formatCurrencyForDisplay, formatCurrencyForInput, formatCurrencyForInpu
 // Using data attributes for more robust selection
 export const elements = {
     // Inputs
-    // causeOfActionDateInput: document.querySelector('[data-input="causeOfActionDate"]'), // Removed - Moved to summary table (Prejudgment Interest Date)
-    // dateOfJudgmentInput: document.querySelector('[data-input="dateOfJudgment"]'), // Removed - Moved to summary table
-    // dateOfCalculationInput: document.querySelector('[data-input="dateOfCalculation"]'), // Removed - Moved to summary table (Postjudgment Interest Date)
-    // judgmentAwardedInput: document.querySelector('[data-input="judgmentAwarded"]'), // Removed - Moved to summary table
-    // nonPecuniaryAwardedInput: document.querySelector('[data-input="nonPecuniaryAwarded"]'), // Removed - Moved to summary table
-    // costsAwardedInput: document.querySelector('[data-input="costsAwarded"]'), // Removed - Moved to summary table
     jurisdictionSelect: document.querySelector('[data-input="jurisdictionSelect"]'),
     fileNoInput: document.querySelector('[data-input="fileNo"]'),
     registryInput: document.querySelector('[data-input="registry"]'),
-    showPrejudgmentCheckbox: document.querySelector('[data-input="showPrejudgmentCheckbox"]'), // Added
+    showPrejudgmentCheckbox: document.querySelector('[data-input="showPrejudgmentCheckbox"]'),
     showPostjudgmentCheckbox: document.querySelector('[data-input="showPostjudgmentCheckbox"]'),
-    showPerDiemCheckbox: document.querySelector('[data-input="showPerDiemCheckbox"]'), // Added for per diem control
+    showPerDiemCheckbox: document.querySelector('[data-input="showPerDiemCheckbox"]'),
 
     // Display Sections & Containers
-    // accrualDateRow: document.querySelector('[data-display="accrualDateRow"]'), // Removed - Date moved to summary table
-    prejudgmentSection: document.querySelector('[data-display="prejudgmentSection"]'), // Added
+    prejudgmentSection: document.querySelector('[data-display="prejudgmentSection"]'),
     postjudgmentSection: document.querySelector('[data-display="postjudgmentSection"]'),
 
     // Table Bodies
     prejudgmentTableBody: document.querySelector('[data-display="prejudgmentTableBody"]'),
     postjudgmentTableBody: document.querySelector('[data-display="postjudgmentTableBody"]'),
-    summaryTableBody: document.querySelector('[data-display="summaryTableBody"]'), // Added
+    summaryTableBody: document.querySelector('[data-display="summaryTableBody"]'),
 
     // Table Footers / Totals
-    prejudgmentTotalLabel: document.querySelector('[data-display="prejudgmentTotalLabel"]'), // Added for dynamic label
-    prejudgmentPrincipalTotalEl: document.querySelector('[data-display="prejudgmentPrincipalTotal"]'), // Added
-    prejudgmentInterestTotalEl: document.querySelector('[data-display="prejudgmentInterestTotal"]'), // Added (replaces prejudgmentSubtotalEl)
-    postjudgmentInterestTotalEl: document.querySelector('[data-display="postjudgmentInterestTotal"]'), // Added (replaces postjudgmentSubtotalEl)
-    summaryTotalLabelEl: document.querySelector('[data-display="summaryTotalLabel"]'), // Keep for text part
-    summaryTotalEl: document.querySelector('[data-display="summaryTotal"]'), // Keep for amount part
-    summaryPerDiemEl: document.querySelector('[data-display="summaryPerDiem"]'), // Added
+    prejudgmentTotalLabel: document.querySelector('[data-display="prejudgmentTotalLabel"]'),
+    prejudgmentPrincipalTotalEl: document.querySelector('[data-display="prejudgmentPrincipalTotal"]'),
+    prejudgmentInterestTotalEl: document.querySelector('[data-display="prejudgmentInterestTotal"]'),
+    postjudgmentInterestTotalEl: document.querySelector('[data-display="postjudgmentInterestTotal"]'),
+    summaryTotalLabelEl: document.querySelector('[data-display="summaryTotalLabel"]'),
+    summaryTotalEl: document.querySelector('[data-display="summaryTotal"]'),
+    summaryPerDiemEl: document.querySelector('[data-display="summaryPerDiem"]'),
 
     // Containers (optional, if needed for broader manipulation)
     editableFieldsSection: document.querySelector('.editable-fields-section'),
@@ -43,12 +36,12 @@ export const elements = {
     // Dynamically created inputs in summary table (will be selected after creation)
     pecuniaryJudgmentDateInput: null,
     pecuniaryJudgmentAmountInput: null,
-    nonPecuniaryJudgmentDateInput: null, // Added for editable non-pecuniary date
-    nonPecuniaryJudgmentAmountInput: null, // Added for editable non-pecuniary amount
-    costsAwardedDateInput: null, // Added for editable costs date
-    costsAwardedAmountInput: null, // Added for editable costs amount
-    prejudgmentInterestDateInput: null, // Added for editable prejudgment start date
-    postjudgmentInterestDateInput: null, // Added for editable postjudgment end date
+    nonPecuniaryJudgmentDateInput: null,
+    nonPecuniaryJudgmentAmountInput: null,
+    costsAwardedDateInput: null,
+    costsAwardedAmountInput: null,
+    prejudgmentInterestDateInput: null,
+    postjudgmentInterestDateInput: null,
 };
 
 
@@ -59,9 +52,6 @@ export const elements = {
 export function getInputValues() {
     // Check if all required input elements are loaded (including dynamically created ones)
     const requiredStaticInputs = [
-        // elements.causeOfActionDateInput, // Removed - Now dynamic (prejudgmentInterestDateInput)
-        // elements.dateOfCalculationInput, // Removed - Now dynamic (postjudgmentInterestDateInput)
-        // elements.nonPecuniaryAwardedInput, elements.costsAwardedInput, // Removed - Now dynamic
         elements.jurisdictionSelect, elements.showPrejudgmentCheckbox, elements.showPostjudgmentCheckbox
         // Note: fileNoInput and registryInput are not strictly required for calculation
     ];
@@ -70,8 +60,8 @@ export function getInputValues() {
          elements.pecuniaryJudgmentDateInput, elements.pecuniaryJudgmentAmountInput,
          elements.nonPecuniaryJudgmentAmountInput, // Only amount input is needed for Non-Pecuniary
          elements.costsAwardedAmountInput, // Only amount input is needed for Costs
-         elements.prejudgmentInterestDateInput, // Added
-         elements.postjudgmentInterestDateInput // Added
+         elements.prejudgmentInterestDateInput,
+         elements.postjudgmentInterestDateInput
      ];
 
     // Check static inputs first
@@ -84,30 +74,30 @@ export function getInputValues() {
 
 
     // Read from dynamic inputs, provide default empty string if elements don't exist yet
-    const prejudgmentStartDateStr = elements.prejudgmentInterestDateInput ? elements.prejudgmentInterestDateInput.value : ''; // Replaces causeOfActionDate
-    const postjudgmentEndDateStr = elements.postjudgmentInterestDateInput ? elements.postjudgmentInterestDateInput.value : ''; // Replaces dateOfCalculation
+    const prejudgmentStartDateStr = elements.prejudgmentInterestDateInput ? elements.prejudgmentInterestDateInput.value : '';
+    const postjudgmentEndDateStr = elements.postjudgmentInterestDateInput ? elements.postjudgmentInterestDateInput.value : '';
     const dateOfJudgmentStr = elements.pecuniaryJudgmentDateInput ? elements.pecuniaryJudgmentDateInput.value : '';
     const judgmentAwardedStr = elements.pecuniaryJudgmentAmountInput ? elements.pecuniaryJudgmentAmountInput.value : '';
-    const nonPecuniaryAwardedStr = elements.nonPecuniaryJudgmentAmountInput ? elements.nonPecuniaryJudgmentAmountInput.value : ''; // Read from dynamic
-    const costsAwardedStr = elements.costsAwardedAmountInput ? elements.costsAwardedAmountInput.value : ''; // Read from dynamic
+    const nonPecuniaryAwardedStr = elements.nonPecuniaryJudgmentAmountInput ? elements.nonPecuniaryJudgmentAmountInput.value : '';
+    const costsAwardedStr = elements.costsAwardedAmountInput ? elements.costsAwardedAmountInput.value : '';
     
     // For Non-Pecuniary and Costs dates, use the Pecuniary date since they're no longer editable
     const nonPecuniaryDateStr = dateOfJudgmentStr;
     const costsDateStr = dateOfJudgmentStr;
 
 
-    const prejudgmentStartDate = parseDateInput(prejudgmentStartDateStr); // Replaces causeOfActionDate
-    const postjudgmentEndDate = parseDateInput(postjudgmentEndDateStr); // Replaces dateOfCalculation
-    const dateOfJudgment = parseDateInput(dateOfJudgmentStr); // Parse from dynamic input (Pecuniary)
-    const nonPecuniaryJudgmentDate = parseDateInput(nonPecuniaryDateStr); // Parse from dynamic input
-    const costsAwardedDate = parseDateInput(costsDateStr); // Parse from dynamic input
-    const judgmentAwarded = parseCurrency(judgmentAwardedStr); // Parse from dynamic input (Pecuniary)
-    const nonPecuniaryAwarded = parseCurrency(nonPecuniaryAwardedStr); // Parse from dynamic input
-    const costsAwarded = parseCurrency(costsAwardedStr); // Parse from dynamic input
+    const prejudgmentStartDate = parseDateInput(prejudgmentStartDateStr);
+    const postjudgmentEndDate = parseDateInput(postjudgmentEndDateStr);
+    const dateOfJudgment = parseDateInput(dateOfJudgmentStr);
+    const nonPecuniaryJudgmentDate = parseDateInput(nonPecuniaryDateStr);
+    const costsAwardedDate = parseDateInput(costsDateStr);
+    const judgmentAwarded = parseCurrency(judgmentAwardedStr);
+    const nonPecuniaryAwarded = parseCurrency(nonPecuniaryAwardedStr);
+    const costsAwarded = parseCurrency(costsAwardedStr);
     const jurisdiction = elements.jurisdictionSelect.value;
-    const showPrejudgment = elements.showPrejudgmentCheckbox.checked; // Added
+    const showPrejudgment = elements.showPrejudgmentCheckbox.checked;
     const showPostjudgment = elements.showPostjudgmentCheckbox.checked;
-    const showPerDiem = elements.showPerDiemCheckbox ? elements.showPerDiemCheckbox.checked : true; // Added for per diem control
+    const showPerDiem = elements.showPerDiemCheckbox ? elements.showPerDiemCheckbox.checked : true;
 
     // --- Input Validation ---
     let isValid = true;
@@ -155,18 +145,18 @@ export function getInputValues() {
      }
 
     return {
-        prejudgmentStartDate, // Replaces causeOfActionDate
-        postjudgmentEndDate, // Replaces dateOfCalculation
-        dateOfJudgment, // Pecuniary Judgment Date
-        nonPecuniaryJudgmentDate, // Added
-        costsAwardedDate, // Added
-        judgmentAwarded, // Pecuniary Judgment Amount
-        nonPecuniaryAwarded, // Non-Pecuniary Amount
-        costsAwarded, // Costs Amount
+        prejudgmentStartDate,
+        postjudgmentEndDate,
+        dateOfJudgment,
+        nonPecuniaryJudgmentDate,
+        costsAwardedDate,
+        judgmentAwarded,
+        nonPecuniaryAwarded,
+        costsAwarded,
         jurisdiction,
-        showPrejudgment, // Added
+        showPrejudgment,
         showPostjudgment,
-        showPerDiem, // Added for per diem control
+        showPerDiem,
         isValid,
         validationMessage
     };
@@ -183,7 +173,7 @@ export function getInputValues() {
  * @param {number} interestTotal - The total calculated interest for the table.
  * @param {Array<object>} [finalPeriodDamageInterestDetails=[]] - Optional array of calculated interest details for special damages in the final period.
  */
-export function updateInterestTable(tableBody, principalTotalElement, interestTotalElement, details, principalTotal, interestTotal, finalPeriodDamageInterestDetails = []) { // ADDED finalPeriodDamageInterestDetails parameter
+export function updateInterestTable(tableBody, principalTotalElement, interestTotalElement, details, principalTotal, interestTotal, finalPeriodDamageInterestDetails = []) {
     if (!tableBody || !interestTotalElement) {
         console.error("Missing required table elements for updateInterestTable");
         return;
@@ -430,7 +420,7 @@ export function updateSummaryTable(items, totalOwing, perDiem, finalCalculationD
     const templatePecuniary = document.getElementById('summary-row-editable-pecuniary');
     const templateAmountOnly = document.getElementById('summary-row-editable-amount');
     const templateDateOnly = document.getElementById('summary-row-editable-date');
-    const templateDisplayOnly = document.getElementById('summary-row-display-only'); // Added for completeness
+    const templateDisplayOnly = document.getElementById('summary-row-display-only');
 
     if (!templatePecuniary || !templateAmountOnly || !templateDateOnly || !templateDisplayOnly) {
         console.error("One or more summary table row templates not found in DOM.");
@@ -497,7 +487,7 @@ export function updateSummaryTable(items, totalOwing, perDiem, finalCalculationD
             if (dateDisplay) {
                  // Display the Pecuniary Judgment date (now YYYY-MM-DD) for Non-Pecuniary/Costs
                  const pecuniaryItem = items.find(i => i.item === 'Pecuniary Judgment');
-                 const pecuniaryDateStr = pecuniaryItem && pecuniaryItem.dateValue instanceof Date ? formatDateForDisplay(pecuniaryItem.dateValue) : ''; // formatDateForDisplay now returns YYYY-MM-DD
+                 const pecuniaryDateStr = pecuniaryItem && pecuniaryItem.dateValue instanceof Date ? formatDateForDisplay(pecuniaryItem.dateValue) : '';
                  dateDisplay.textContent = pecuniaryDateStr;
             }
             if (amountInput) {
@@ -555,14 +545,12 @@ export function clearResults() {
 
     // Clear table bodies
     if (elements.prejudgmentTableBody) elements.prejudgmentTableBody.innerHTML = '';
-    // if (elements.judgmentTableBody) elements.judgmentTableBody.innerHTML = ''; // Removed
     if (elements.postjudgmentTableBody) elements.postjudgmentTableBody.innerHTML = '';
     if (elements.summaryTableBody) elements.summaryTableBody.innerHTML = '';
 
     // Clear table footers/totals
     if (elements.prejudgmentPrincipalTotalEl) elements.prejudgmentPrincipalTotalEl.innerHTML = zeroCurrency;
     if (elements.prejudgmentInterestTotalEl) elements.prejudgmentInterestTotalEl.innerHTML = zeroCurrency;
-    // if (elements.judgmentTotalEl) elements.judgmentTotalEl.innerHTML = zeroCurrency; // Removed
     if (elements.postjudgmentInterestTotalEl) elements.postjudgmentInterestTotalEl.innerHTML = zeroCurrency;
     if (elements.summaryTotalEl) elements.summaryTotalEl.innerHTML = zeroCurrency;
     if (elements.summaryPerDiemEl) elements.summaryPerDiemEl.innerHTML = zeroCurrency;
@@ -642,15 +630,6 @@ export function togglePerDiemVisibility(isInitializing = false, recalculateCallb
  * Sets the default values for input fields on page load.
  */
 export function setDefaultInputValues() {
-    // const today = new Date(); // No longer needed here
-    // const todayStr = formatDateForInput(today); // No longer needed here
-
-    // Removed setting default dates for causeOfActionDateInput and dateOfCalculationInput
-    // These defaults are now handled during the initial summary table population in calculator.js
-
-    // Removed formatting for static nonPecuniaryAwardedInput and costsAwardedInput
-    // Their values will be set and formatted when the summary table is initially populated
-
      // Set default jurisdiction
      if (elements.jurisdictionSelect && !elements.jurisdictionSelect.value) {
          elements.jurisdictionSelect.value = 'BC';
