@@ -414,6 +414,24 @@ h1 i {
     animation: highlight-fade 2s ease;
 }
 
+/* Interest calculation details styles */
+.interest-calculation-details {
+    display: block;
+    margin-top: 4px;
+    font-size: 0.9em;
+    color: #555;
+    text-align: right;
+}
+
+.interest-calculation-details .end-date {
+    font-weight: bold;
+}
+
+.interest-calculation-details .days-count {
+    margin-left: 4px;
+    font-style: italic;
+}
+
 @keyframes highlight-fade {
     0% { background-color: #e0f0ff; }
     100% { background-color: transparent; }

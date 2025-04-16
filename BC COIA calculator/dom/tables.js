@@ -154,18 +154,17 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
 
                 // If we have a valid date for the current row and the new row's date is earlier
                 if (currentRowDate && newRowDate < currentRowDate) {
-                    const insertedUserRow = insertSpecialDamagesRowFromData(tableBody, i, rowData); // Insert user row before currentRow
-                    const referenceNode = currentRow; // The node to insert the calculated row before
-                    insertCalculatedRowIfNeeded(tableBody, referenceNode, rowData, finalPeriodStartDate, mutableFinalPeriodDetails); // Pass referenceNode
+                    // Insert user row before currentRow with interest calculation details included
+                    const insertedUserRow = insertSpecialDamagesRowFromData(tableBody, i, rowData, finalPeriodStartDate, mutableFinalPeriodDetails);
+                    
                     inserted = true;
                     break; // Move to the next special damages row
                 }
             }
             // If not inserted yet (it's the latest date among all rows), append at the end
             if (!inserted) {
-                const insertedUserRow = insertSpecialDamagesRowFromData(tableBody, -1, rowData); // -1 appends user row
-                const referenceNode = null; // No node to insert before, so it will append
-                insertCalculatedRowIfNeeded(tableBody, referenceNode, rowData, finalPeriodStartDate, mutableFinalPeriodDetails); // Pass null referenceNode
+                // Append the user row at the end with interest calculation details included
+                const insertedUserRow = insertSpecialDamagesRowFromData(tableBody, -1, rowData, finalPeriodStartDate, mutableFinalPeriodDetails);
             }
         });
     }
