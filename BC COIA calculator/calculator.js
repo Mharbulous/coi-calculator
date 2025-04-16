@@ -12,7 +12,19 @@ import {
     setDefaultInputValues,
     setupCurrencyInputListeners
 } from './domUtils.js';
-import { formatDateForInput, formatDateLong, formatDateForDisplay, parseCurrency, parseDateInput } from './utils.js';
+import { 
+    formatDateForInput, 
+    formatDateLong, 
+    formatDateForDisplay, 
+    parseCurrency, 
+    parseDateInput,
+    normalizeDate,
+    dateBefore,
+    dateAfter,
+    dateOnOrBefore,
+    dateOnOrAfter,
+    datesEqual
+} from './utils.js';
 import useStore from './store.js';
 
 
@@ -138,7 +150,8 @@ function calculatePrejudgmentInterest(inputs, specialDamagesTotal, interestRates
         prejudgmentEndDate.setUTCDate(prejudgmentEndDate.getUTCDate() - 1);
 
         // Only calculate if the period is valid (at least one day) and pecuniary amount > 0
-        if (prejudgmentEndDate >= inputs.prejudgmentStartDate && inputs.judgmentAwarded > 0) {
+        // Use normalized date comparison
+        if (dateOnOrAfter(prejudgmentEndDate, inputs.prejudgmentStartDate) && inputs.judgmentAwarded > 0) {
             // Create a state object for calculations.js functions
             const stateForCalc = {
                 inputs: useStore.getState().inputs,
@@ -229,7 +242,8 @@ function calculatePostjudgmentInterest(inputs, judgmentTotal, interestRatesData)
         const postjudgmentStartDate = new Date(latestJudgmentDate); // Start from the latest judgment date
 
         // Ensure postjudgment end date is valid and on or after the latest judgment date
-        if (inputs.postjudgmentEndDate && inputs.postjudgmentEndDate >= postjudgmentStartDate) {
+        // Use normalized date comparison
+        if (inputs.postjudgmentEndDate && dateOnOrAfter(inputs.postjudgmentEndDate, postjudgmentStartDate)) {
             finalCalculationDate = inputs.postjudgmentEndDate; // Use the dynamic end date for calculation and display
             // Postjudgment principal is the total judgment amount (including prejudgment interest on pecuniary)
             const postjudgmentPrincipal = judgmentTotal;

@@ -8,7 +8,13 @@ import {
     daysInYear,
     parseCurrency,
     formatCurrencyForInput,
-    formatCurrencyForDisplay
+    formatCurrencyForDisplay,
+    normalizeDate,
+    datesEqual,
+    dateBefore,
+    dateAfter,
+    dateOnOrBefore,
+    dateOnOrAfter
 } from './utils.js';
 import { jest } from '@jest/globals';
 
@@ -233,6 +239,219 @@ describe('utils.js', () => {
             expect(daysInYear(1900)).toBe(365);
             expect(daysInYear(2023)).toBe(365);
             expect(daysInYear(2025)).toBe(365);
+        });
+    });
+
+    describe('normalizeDate', () => {
+        it('should normalize a Date object to midnight UTC', () => {
+            const date = new Date(2024, 2, 15, 12, 30, 45, 500); // March 15, 2024 12:30:45.500 local time
+            const normalized = normalizeDate(date);
+            
+            // Check that the date components are preserved
+            expect(normalized.getUTCFullYear()).toBe(date.getUTCFullYear());
+            expect(normalized.getUTCMonth()).toBe(date.getUTCMonth());
+            expect(normalized.getUTCDate()).toBe(date.getUTCDate());
+            
+            // Check that time components are set to midnight UTC
+            expect(normalized.getUTCHours()).toBe(0);
+            expect(normalized.getUTCMinutes()).toBe(0);
+            expect(normalized.getUTCSeconds()).toBe(0);
+            expect(normalized.getUTCMilliseconds()).toBe(0);
+        });
+
+        it('should return a date at midnight UTC for an already normalized date', () => {
+            const date = new Date(Date.UTC(2024, 2, 15, 0, 0, 0, 0)); // Already at midnight UTC
+            const normalized = normalizeDate(date);
+            
+            // Check that the normalized date is at midnight UTC
+            expect(normalized.getUTCHours()).toBe(0);
+            expect(normalized.getUTCMinutes()).toBe(0);
+            expect(normalized.getUTCSeconds()).toBe(0);
+            expect(normalized.getUTCMilliseconds()).toBe(0);
+            
+            // Check that the date components are preserved
+            expect(normalized.getUTCFullYear()).toBe(date.getUTCFullYear());
+            expect(normalized.getUTCMonth()).toBe(date.getUTCMonth());
+            expect(normalized.getUTCDate()).toBe(date.getUTCDate());
+        });
+
+        it('should return the input for invalid dates', () => {
+            const invalidDate = new Date('invalid');
+            expect(normalizeDate(invalidDate)).toBe(invalidDate);
+            expect(normalizeDate(null)).toBe(null);
+            expect(normalizeDate(undefined)).toBe(undefined);
+        });
+    });
+
+    describe('datesEqual', () => {
+        it('should return true for dates on the same day regardless of time', () => {
+            const date1 = new Date(2024, 2, 15, 0, 0, 0); // Midnight local time
+            const date2 = new Date(2024, 2, 15, 23, 59, 59); // End of day local time
+            
+            expect(datesEqual(date1, date2)).toBe(true);
+        });
+
+        it('should return false for dates on different days', () => {
+            const date1 = new Date(2024, 2, 15);
+            const date2 = new Date(2024, 2, 16);
+            
+            expect(datesEqual(date1, date2)).toBe(false);
+        });
+
+        it('should return false if either date is null or invalid', () => {
+            const validDate = new Date(2024, 2, 15);
+            const invalidDate = new Date('invalid');
+            
+            expect(datesEqual(validDate, null)).toBe(false);
+            expect(datesEqual(null, validDate)).toBe(false);
+            expect(datesEqual(validDate, undefined)).toBe(false);
+            expect(datesEqual(undefined, validDate)).toBe(false);
+            expect(datesEqual(validDate, invalidDate)).toBe(false);
+            expect(datesEqual(invalidDate, validDate)).toBe(false);
+        });
+    });
+
+    describe('dateBefore', () => {
+        it('should return true if first date is before second date', () => {
+            const earlier = new Date(2024, 2, 15);
+            const later = new Date(2024, 2, 16);
+            
+            expect(dateBefore(earlier, later)).toBe(true);
+        });
+
+        it('should return false if dates are on the same day', () => {
+            const date1 = new Date(2024, 2, 15, 0, 0, 0);
+            const date2 = new Date(2024, 2, 15, 23, 59, 59);
+            
+            expect(dateBefore(date1, date2)).toBe(false);
+            expect(dateBefore(date2, date1)).toBe(false);
+        });
+
+        it('should return false if first date is after second date', () => {
+            const earlier = new Date(2024, 2, 15);
+            const later = new Date(2024, 2, 16);
+            
+            expect(dateBefore(later, earlier)).toBe(false);
+        });
+
+        it('should return false if either date is null or invalid', () => {
+            const validDate = new Date(2024, 2, 15);
+            const invalidDate = new Date('invalid');
+            
+            expect(dateBefore(validDate, null)).toBe(false);
+            expect(dateBefore(null, validDate)).toBe(false);
+            expect(dateBefore(validDate, undefined)).toBe(false);
+            expect(dateBefore(undefined, validDate)).toBe(false);
+            expect(dateBefore(validDate, invalidDate)).toBe(false);
+            expect(dateBefore(invalidDate, validDate)).toBe(false);
+        });
+    });
+
+    describe('dateAfter', () => {
+        it('should return true if first date is after second date', () => {
+            const earlier = new Date(2024, 2, 15);
+            const later = new Date(2024, 2, 16);
+            
+            expect(dateAfter(later, earlier)).toBe(true);
+        });
+
+        it('should return false if dates are on the same day', () => {
+            const date1 = new Date(2024, 2, 15, 0, 0, 0);
+            const date2 = new Date(2024, 2, 15, 23, 59, 59);
+            
+            expect(dateAfter(date1, date2)).toBe(false);
+            expect(dateAfter(date2, date1)).toBe(false);
+        });
+
+        it('should return false if first date is before second date', () => {
+            const earlier = new Date(2024, 2, 15);
+            const later = new Date(2024, 2, 16);
+            
+            expect(dateAfter(earlier, later)).toBe(false);
+        });
+
+        it('should return false if either date is null or invalid', () => {
+            const validDate = new Date(2024, 2, 15);
+            const invalidDate = new Date('invalid');
+            
+            expect(dateAfter(validDate, null)).toBe(false);
+            expect(dateAfter(null, validDate)).toBe(false);
+            expect(dateAfter(validDate, undefined)).toBe(false);
+            expect(dateAfter(undefined, validDate)).toBe(false);
+            expect(dateAfter(validDate, invalidDate)).toBe(false);
+            expect(dateAfter(invalidDate, validDate)).toBe(false);
+        });
+    });
+
+    describe('dateOnOrBefore', () => {
+        it('should return true if first date is before second date', () => {
+            const earlier = new Date(2024, 2, 15);
+            const later = new Date(2024, 2, 16);
+            
+            expect(dateOnOrBefore(earlier, later)).toBe(true);
+        });
+
+        it('should return true if dates are on the same day', () => {
+            const date1 = new Date(2024, 2, 15, 0, 0, 0);
+            const date2 = new Date(2024, 2, 15, 23, 59, 59);
+            
+            expect(dateOnOrBefore(date1, date2)).toBe(true);
+            expect(dateOnOrBefore(date2, date1)).toBe(true);
+        });
+
+        it('should return false if first date is after second date', () => {
+            const earlier = new Date(2024, 2, 15);
+            const later = new Date(2024, 2, 16);
+            
+            expect(dateOnOrBefore(later, earlier)).toBe(false);
+        });
+
+        it('should return false if either date is null or invalid', () => {
+            const validDate = new Date(2024, 2, 15);
+            const invalidDate = new Date('invalid');
+            
+            expect(dateOnOrBefore(validDate, null)).toBe(false);
+            expect(dateOnOrBefore(null, validDate)).toBe(false);
+            expect(dateOnOrBefore(validDate, undefined)).toBe(false);
+            expect(dateOnOrBefore(undefined, validDate)).toBe(false);
+            expect(dateOnOrBefore(validDate, invalidDate)).toBe(false);
+            expect(dateOnOrBefore(invalidDate, validDate)).toBe(false);
+        });
+    });
+
+    describe('dateOnOrAfter', () => {
+        it('should return true if first date is after second date', () => {
+            const earlier = new Date(2024, 2, 15);
+            const later = new Date(2024, 2, 16);
+            
+            expect(dateOnOrAfter(later, earlier)).toBe(true);
+        });
+
+        it('should return true if dates are on the same day', () => {
+            const date1 = new Date(2024, 2, 15, 0, 0, 0);
+            const date2 = new Date(2024, 2, 15, 23, 59, 59);
+            
+            expect(dateOnOrAfter(date1, date2)).toBe(true);
+            expect(dateOnOrAfter(date2, date1)).toBe(true);
+        });
+
+        it('should return false if first date is before second date', () => {
+            const earlier = new Date(2024, 2, 15);
+            const later = new Date(2024, 2, 16);
+            
+            expect(dateOnOrAfter(earlier, later)).toBe(false);
+        });
+
+        it('should return false if either date is null or invalid', () => {
+            const validDate = new Date(2024, 2, 15);
+            const invalidDate = new Date('invalid');
+            
+            expect(dateOnOrAfter(validDate, null)).toBe(false);
+            expect(dateOnOrAfter(null, validDate)).toBe(false);
+            expect(dateOnOrAfter(validDate, undefined)).toBe(false);
+            expect(dateOnOrAfter(undefined, validDate)).toBe(false);
+            expect(dateOnOrAfter(validDate, invalidDate)).toBe(false);
+            expect(dateOnOrAfter(invalidDate, validDate)).toBe(false);
         });
     });
 

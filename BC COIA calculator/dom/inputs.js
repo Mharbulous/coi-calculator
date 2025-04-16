@@ -1,4 +1,4 @@
-import { formatCurrencyForDisplay, formatCurrencyForInput, formatCurrencyForInputWithCommas, formatDateLong, parseCurrency, parseDateInput, formatDateForInput, formatDateForDisplay, validateDateFormat } from '../utils.js';
+import { formatCurrencyForDisplay, formatCurrencyForInput, formatCurrencyForInputWithCommas, formatDateLong, parseCurrency, parseDateInput, formatDateForInput, formatDateForDisplay, validateDateFormat, dateBefore, dateAfter, dateOnOrBefore, dateOnOrAfter } from '../utils.js';
 import useStore from '../store.js';
 import elements from './elements.js';
 
@@ -93,41 +93,44 @@ export function validateInputValues(inputs) {
         validationMessage = "One or more required dates (Prejudgment Start, Judgments, Postjudgment End) are missing or invalid.";
         isValid = false;
     } else {
-        // Check judgment dates against prejudgment start date
-        if (inputs.dateOfJudgment < inputs.prejudgmentStartDate) {
+        // Check judgment dates against prejudgment start date using normalized date comparisons
+        if (dateBefore(inputs.dateOfJudgment, inputs.prejudgmentStartDate)) {
             validationMessage = "Pecuniary Judgment Date cannot be before Prejudgment Start Date.";
             isValid = false;
         }
-        if (inputs.nonPecuniaryJudgmentDate < inputs.prejudgmentStartDate) {
+        if (dateBefore(inputs.nonPecuniaryJudgmentDate, inputs.prejudgmentStartDate)) {
             validationMessage = "Non-Pecuniary Judgment Date cannot be before Prejudgment Start Date.";
             isValid = false;
         }
-        if (inputs.costsAwardedDate < inputs.prejudgmentStartDate) {
+        if (dateBefore(inputs.costsAwardedDate, inputs.prejudgmentStartDate)) {
             validationMessage = "Costs Awarded Date cannot be before Prejudgment Start Date.";
             isValid = false;
         }
 
-        // Use the *actual* postjudgment end date for this check, only if postjudgment is shown
-        // Postjudgment interest runs from the *latest* of the judgment dates up to the postjudgment end date
-        const latestJudgmentDate = new Date(Math.max(
-            inputs.dateOfJudgment, 
-            inputs.nonPecuniaryJudgmentDate, 
-            inputs.costsAwardedDate
-        ));
+        // Find the latest judgment date using normalized date comparisons
+        let latestJudgmentDate = inputs.dateOfJudgment;
+        if (dateAfter(inputs.nonPecuniaryJudgmentDate, latestJudgmentDate)) {
+            latestJudgmentDate = inputs.nonPecuniaryJudgmentDate;
+        }
+        if (dateAfter(inputs.costsAwardedDate, latestJudgmentDate)) {
+            latestJudgmentDate = inputs.costsAwardedDate;
+        }
         
-        if (inputs.showPostjudgment && inputs.postjudgmentEndDate < latestJudgmentDate) {
+        if (inputs.showPostjudgment && dateBefore(inputs.postjudgmentEndDate, latestJudgmentDate)) {
             validationMessage = "Postjudgment End Date cannot be before the latest Judgment Date when showing Postjudgment Interest.";
             isValid = false;
         }
         
-        // Also check that prejudgment start date is not after the earliest judgment date
-        const earliestJudgmentDate = new Date(Math.min(
-            inputs.dateOfJudgment, 
-            inputs.nonPecuniaryJudgmentDate, 
-            inputs.costsAwardedDate
-        ));
+        // Find the earliest judgment date using normalized date comparisons
+        let earliestJudgmentDate = inputs.dateOfJudgment;
+        if (dateBefore(inputs.nonPecuniaryJudgmentDate, earliestJudgmentDate)) {
+            earliestJudgmentDate = inputs.nonPecuniaryJudgmentDate;
+        }
+        if (dateBefore(inputs.costsAwardedDate, earliestJudgmentDate)) {
+            earliestJudgmentDate = inputs.costsAwardedDate;
+        }
         
-        if (inputs.prejudgmentStartDate > earliestJudgmentDate) {
+        if (dateAfter(inputs.prejudgmentStartDate, earliestJudgmentDate)) {
             validationMessage = "Prejudgment Start Date cannot be after the earliest Judgment Date.";
             isValid = false;
         }
