@@ -61,7 +61,7 @@ export function calculateInterestPeriods(state, interestType, startDate, endDate
     const finalPeriodDamageInterestDetails = []; // Array for final period calculated interest (only relevant for prejudgment)
     const jurisdictionRates = ratesData[jurisdiction];
 
-    // Parse and sort special damages (Dates are already YYYY-MM-DD strings in appState)
+    // Parse and sort special damages (Dates are already YYYY-MM-DD strings in the store)
     const processedDamages = specialDamages
         .map(d => {
             const dateObj = parseDateInput(d.date); // Parse the YYYY-MM-DD string

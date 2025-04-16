@@ -15,8 +15,6 @@ import {
 import { formatDateForInput, formatDateLong, formatDateForDisplay, parseCurrency, parseDateInput } from './utils.js';
 import useStore from './store.js';
 
-// Create a reference to the Zustand store state to use in place of appState
-let appState = useStore.getState();
 
 /**
  * Collects special damages data from the prejudgment table and updates the Zustand store.
@@ -53,9 +51,6 @@ function collectSpecialDamages() {
     // Update Zustand store with the special damages
     useStore.getState().setSpecialDamages(specialDamages);
     
-    // Update appState reference with the latest state
-    appState = useStore.getState();
-    
     return specialDamages;
 }
 
@@ -66,9 +61,6 @@ function recalculate() {
     // 1. Get and Validate Inputs
     const inputs = getInputValues();
     
-    // Update appState reference with the latest state
-    appState = useStore.getState();
-
     if (!inputs.isValid) {
         // Clear previous results and display base total if inputs are invalid
         console.warn("Recalculation skipped due to invalid inputs:", inputs.validationMessage);
@@ -95,9 +87,6 @@ function recalculate() {
             perDiem: 0,
             finalCalculationDate: defaultPostjudgmentEndDate
         });
-        
-        // Update appState reference with the latest state
-        appState = useStore.getState();
         
         // Update summary table using Zustand store
         updateSummaryTable(useStore, recalculate);
@@ -126,9 +115,6 @@ function recalculate() {
             finalCalculationDate: inputs.postjudgmentEndDate
         });
         
-        // Update appState reference with the latest state
-        appState = useStore.getState();
-        
         // Update summary table using Zustand store
         updateSummaryTable(useStore, recalculate);
         elements.summaryTotalLabelEl.textContent = `TOTAL OWING (${inputs.jurisdiction} Rates Unavailable)`;
@@ -136,9 +122,8 @@ function recalculate() {
     }
 
     // 2. Collect Special Damages (needed for both prejudgment calc and totals)
-    // collectSpecialDamages now updates appState.results.specialDamages and appState.results.specialDamagesTotal
     const specialDamages = collectSpecialDamages();
-    const specialDamagesTotal = appState.results.specialDamagesTotal;
+    const specialDamagesTotal = useStore.getState().results.specialDamagesTotal;
 
     // 3. Calculate Prejudgment Interest (Conditional on Checkbox)
     // Prejudgment interest in BC COIA applies ONLY to pecuniary damages.
@@ -180,9 +165,6 @@ function recalculate() {
     
     // Update Zustand store with prejudgment results
     useStore.getState().setPrejudgmentResult(prejudgmentResult);
-    
-    // Update appState reference with the latest state
-    appState = useStore.getState();
 
     // Calculate the total principal including special damages for the footer display
     // Note: calculateInterestPeriods now returns the *final* principal after damages are applied within the period.
@@ -194,7 +176,7 @@ function recalculate() {
         elements.prejudgmentTableBody,
         elements.prejudgmentPrincipalTotalEl,
         elements.prejudgmentInterestTotalEl,
-        appState.results.prejudgmentResult, // Pass the prejudgment result state
+        useStore.getState().results.prejudgmentResult, // Pass the prejudgment result state
         totalPrincipalForFooter // Pass the specific footer principal
     );
 
@@ -215,9 +197,6 @@ function recalculate() {
     // 4. Calculate Base Total for Postjudgment and Summary
     // This total includes the original awards, calculated prejudgment interest, AND special damages total
     const judgmentTotal = inputs.judgmentAwarded + prejudgmentResult.total + inputs.nonPecuniaryAwarded + inputs.costsAwarded + specialDamagesTotal;
-    
-    // Update appState with judgment total
-    appState.results.judgmentTotal = judgmentTotal;
     
     // Update Zustand store with judgment total
     useStore.getState().setResult('judgmentTotal', judgmentTotal);
@@ -282,20 +261,17 @@ function recalculate() {
     useStore.getState().setPostjudgmentResult(postjudgmentResult);
     useStore.getState().setResult('finalCalculationDate', finalCalculationDate);
     
-    // Update appState reference with the latest state
-    appState = useStore.getState();
-    
     // Update Postjudgment Table using state
     updateInterestTable(
         elements.postjudgmentTableBody,
         null, // No principal total element for postjudgment
         elements.postjudgmentInterestTotalEl,
-        appState.results.postjudgmentResult, // Pass the postjudgment result state
+        useStore.getState().results.postjudgmentResult, // Pass the postjudgment result state
         null // No specific footer principal for postjudgment
     );
 
     // Calculate final total and per diem
-    const totalOwing = appState.results.judgmentTotal + appState.results.postjudgmentResult.total;
+    const totalOwing = useStore.getState().results.judgmentTotal + useStore.getState().results.postjudgmentResult.total;
     
     // Create a state object for calculations.js functions with updated totalOwing
     const stateForCalc = {
@@ -315,12 +291,8 @@ function recalculate() {
         totalOwing,
         perDiem
     });
-    
-    // Update appState reference with the latest state
-    appState = useStore.getState();
 
     // 5. Update Summary Table using Zustand store
-    // updateSummaryTable can now take either appState or the Zustand store
     updateSummaryTable(useStore, recalculate);
 }
 
@@ -450,9 +422,6 @@ function initializeCalculator() {
         inputs: defaultInputs,
         results: defaultResults
     });
-    
-    // Update appState reference with the latest state
-    appState = useStore.getState();
     
     // Update summary table using the Zustand store
     updateSummaryTable(useStore, recalculate);

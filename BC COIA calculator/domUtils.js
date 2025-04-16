@@ -394,31 +394,21 @@ export function setupCustomDateInputListeners(inputElement, changeCallback) {
 }
 
 /**
- * Updates the Summary table based on the application state.
- * Can use either the appState object or the Zustand store.
- * @param {object} state - The application state object containing inputs and results.
+ * Updates the Summary table based on the Zustand store.
+ * @param {object} store - The Zustand store.
  * @param {function} recalculateCallback - Function to call when editable fields change.
  */
-export function updateSummaryTable(state, recalculateCallback) {
+export function updateSummaryTable(store, recalculateCallback) {
     if (!elements.summaryTableBody || !elements.summaryTotalLabelEl || !elements.summaryTotalEl || !elements.summaryPerDiemEl) {
         console.error("Missing Summary table elements for updateSummaryTable");
         return;
     }
     elements.summaryTableBody.innerHTML = ''; // Clear previous rows
 
-    // Determine if we're using appState or Zustand store
-    let inputs, results;
-    
-    if (state.getState) {
-        // Using Zustand store
-        const storeState = state.getState();
-        inputs = storeState.inputs;
-        results = storeState.results;
-    } else {
-        // Using appState object
-        inputs = state.inputs;
-        results = state.results;
-    }
+    // Get state from Zustand store
+    const storeState = store.getState();
+    const inputs = storeState.inputs;
+    const results = storeState.results;
     
     const { totalOwing, perDiem, finalCalculationDate } = results;
     const { prejudgmentResult, postjudgmentResult } = results;
