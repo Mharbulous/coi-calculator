@@ -418,18 +418,11 @@ h1 i {
 .interest-calculation-details {
     display: block;
     margin-top: 4px;
-    font-size: 0.9em;
-    color: #555;
     text-align: right;
 }
 
-.interest-calculation-details .end-date {
-    font-weight: bold;
-}
-
-.interest-calculation-details .days-count {
-    margin-left: 4px;
-    font-style: italic;
+.days-count {
+    text-align: right;
 }
 
 @keyframes highlight-fade {
@@ -474,7 +467,12 @@ h1 i {
 }
 
 .special-damages-date {
-    text-align: center;
+    text-align: left;
+}
+
+/* End date style in date cell */
+.end-date {
+    margin-top: 4px;
 }
 
 .special-damages-description {

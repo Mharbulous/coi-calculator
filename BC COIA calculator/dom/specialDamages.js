@@ -148,13 +148,19 @@ export function insertSpecialDamagesRowFromData(tableBody, index, rowData, final
             if (detailIndex > -1) {
                 calculatedDetail = mutableFinalPeriodDetails[detailIndex];
                 
-                // Create a container for the interest calculation details
+                // Create a container for the interest calculation details (days count only)
                 const detailsContainer = document.createElement('div');
                 detailsContainer.className = 'interest-calculation-details';
-                detailsContainer.innerHTML = `<span class="end-date">${calculatedDetail.endDate}</span> <span class="days-count">(${calculatedDetail.description})</span>`;
+                detailsContainer.innerHTML = `<span class="days-count">${calculatedDetail.description}</span>`;
                 
                 // Add the details container to the description cell
                 descCell.appendChild(detailsContainer);
+                
+                // Add the end date to the date cell (left-aligned like other dates)
+                const endDateSpan = document.createElement('div');
+                endDateSpan.className = 'end-date text-left';
+                endDateSpan.textContent = calculatedDetail.endDate;
+                dateCell.appendChild(endDateSpan);
                 
                 // Remove the matched detail from the mutable array to prevent duplicate insertion
                 mutableFinalPeriodDetails.splice(detailIndex, 1);
