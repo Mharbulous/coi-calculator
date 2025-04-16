@@ -31,8 +31,8 @@ export function getInterestRateForDate(date, type, jurisdiction, ratesData) {
 }
 
 /**
- * Calculates interest over a period, breaking it down by applicable rate segments, using data from appState.
- * @param {object} appState - The main application state object.
+ * Calculates interest over a period, breaking it down by applicable rate segments.
+ * @param {object} state - The application state object containing inputs and results.
  * @param {'prejudgment' | 'postjudgment'} interestType - The type of interest to calculate.
  * @param {Date} startDate - The start date for this specific calculation (e.g., prejudgmentStartDate or latestJudgmentDate).
  * @param {Date} endDate - The end date for this specific calculation (e.g., prejudgmentEndDate or postjudgmentEndDate).
@@ -40,8 +40,8 @@ export function getInterestRateForDate(date, type, jurisdiction, ratesData) {
  * @param {object} ratesData - The processed interest rates object.
  * @returns {{details: Array<object>, total: number, principal: number, finalPeriodDamageInterestDetails?: Array<object>}} An object containing detailed breakdown, total interest, the *final* principal used, and optionally final period damage details.
  */
-export function calculateInterestPeriods(appState, interestType, startDate, endDate, initialPrincipal, ratesData) {
-    const { inputs, results } = appState;
+export function calculateInterestPeriods(state, interestType, startDate, endDate, initialPrincipal, ratesData) {
+    const { inputs, results } = state;
     const { jurisdiction } = inputs;
     const { specialDamages = [] } = results; // Use special damages from results state
 
@@ -245,12 +245,12 @@ export function calculateInterestPeriods(appState, interestType, startDate, endD
 
 /**
  * Calculates the per diem interest rate based on the application state.
- * @param {object} appState - The main application state object.
+ * @param {object} state - The application state object containing inputs and results.
  * @param {object} ratesData - The processed interest rates object.
  * @returns {number} The calculated per diem interest amount, or 0 if calculation is not possible.
  */
-export function calculatePerDiem(appState, ratesData) {
-    const { inputs, results } = appState;
+export function calculatePerDiem(state, ratesData) {
+    const { inputs, results } = state;
     const { totalOwing, finalCalculationDate } = results;
     const { jurisdiction } = inputs;
 

@@ -100,28 +100,80 @@ describe('calculations.js', () => {
 
         // --- Basic Cases ---
         it('should return 0 total interest for zero principal', () => {
-            const result = calculateInterestPeriods(0, createUTCDate(2023, 1, 1), createUTCDate(2023, 1, 31), 'prejudgment', 'BC', mockRatesData);
+            // Create a mock state object
+            const mockState = {
+                inputs: { jurisdiction: 'BC' },
+                results: { specialDamages: [] }
+            };
+            
+            const result = calculateInterestPeriods(
+                mockState,
+                'prejudgment',
+                createUTCDate(2023, 1, 1),
+                createUTCDate(2023, 1, 31),
+                0,
+                mockRatesData
+            );
             expect(result.total).toBe(0);
             expect(result.details).toEqual([]);
             expect(result.principal).toBe(0);
         });
 
         it('should return 0 total interest for negative principal', () => {
-            const result = calculateInterestPeriods(-1000, createUTCDate(2023, 1, 1), createUTCDate(2023, 1, 31), 'prejudgment', 'BC', mockRatesData);
+            // Create a mock state object
+            const mockState = {
+                inputs: { jurisdiction: 'BC' },
+                results: { specialDamages: [] }
+            };
+            
+            const result = calculateInterestPeriods(
+                mockState,
+                'prejudgment',
+                createUTCDate(2023, 1, 1),
+                createUTCDate(2023, 1, 31),
+                -1000,
+                mockRatesData
+            );
             expect(result.total).toBe(0);
             expect(result.details).toEqual([]);
             expect(result.principal).toBe(-1000); // Principal is returned as passed
         });
 
         it('should return 0 total interest if end date is before start date', () => {
-            const result = calculateInterestPeriods(1000, createUTCDate(2023, 1, 31), createUTCDate(2023, 1, 1), 'prejudgment', 'BC', mockRatesData);
+            // Create a mock state object
+            const mockState = {
+                inputs: { jurisdiction: 'BC' },
+                results: { specialDamages: [] }
+            };
+            
+            const result = calculateInterestPeriods(
+                mockState,
+                'prejudgment',
+                createUTCDate(2023, 1, 31),
+                createUTCDate(2023, 1, 1),
+                1000,
+                mockRatesData
+            );
             expect(result.total).toBe(0);
             expect(result.details).toEqual([]);
             expect(result.principal).toBe(1000);
         });
 
         it('should return 0 total interest for missing jurisdiction data', () => {
-            const result = calculateInterestPeriods(1000, createUTCDate(2023, 1, 1), createUTCDate(2023, 1, 31), 'prejudgment', 'AB', mockRatesData);
+            // Create a mock state object
+            const mockState = {
+                inputs: { jurisdiction: 'AB' },
+                results: { specialDamages: [] }
+            };
+            
+            const result = calculateInterestPeriods(
+                mockState,
+                'prejudgment',
+                createUTCDate(2023, 1, 1),
+                createUTCDate(2023, 1, 31),
+                1000,
+                mockRatesData
+            );
             expect(result.total).toBe(0);
             expect(result.details).toEqual([]);
             expect(result.principal).toBe(1000);
@@ -129,6 +181,12 @@ describe('calculations.js', () => {
 
         // --- Calculation within a single rate period ---
         it('should calculate prejudgment interest correctly within a single rate period (non-leap)', () => {
+            // Create a mock state object
+            const mockState = {
+                inputs: { jurisdiction: 'BC' },
+                results: { specialDamages: [] }
+            };
+            
             const principal = 10000;
             const startDate = createUTCDate(2023, 2, 1); // Feb 1, 2023
             const endDate = createUTCDate(2023, 3, 31); // Mar 31, 2023 (59 days in Period 3 @ 3.0%)
@@ -136,7 +194,14 @@ describe('calculations.js', () => {
             const expectedRate = 3.0;
             const expectedInterest = (principal * (expectedRate / 100) * expectedDays) / 365; // 2023 is non-leap
 
-            const result = calculateInterestPeriods(principal, startDate, endDate, 'prejudgment', 'BC', mockRatesData);
+            const result = calculateInterestPeriods(
+                mockState,
+                'prejudgment',
+                startDate,
+                endDate,
+                principal,
+                mockRatesData
+            );
 
             expect(result.details.length).toBe(1);
             expect(result.details[0].description).toBe(`${expectedDays} days`);
@@ -148,6 +213,12 @@ describe('calculations.js', () => {
         });
 
         it('should calculate postjudgment interest correctly within a single rate period (leap year)', () => {
+            // Create a mock state object
+            const mockState = {
+                inputs: { jurisdiction: 'BC' },
+                results: { specialDamages: [] }
+            };
+            
             const principal = 5000;
             const startDate = createUTCDate(2024, 1, 15); // Jan 15, 2024
             const endDate = createUTCDate(2024, 3, 15); // Mar 15, 2024 (61 days in Period 5 @ 5.0%)
@@ -155,7 +226,14 @@ describe('calculations.js', () => {
             const expectedRate = 5.0;
             const expectedInterest = (principal * (expectedRate / 100) * expectedDays) / 366; // 2024 is leap
 
-            const result = calculateInterestPeriods(principal, startDate, endDate, 'postjudgment', 'BC', mockRatesData);
+            const result = calculateInterestPeriods(
+                mockState,
+                'postjudgment',
+                startDate,
+                endDate,
+                principal,
+                mockRatesData
+            );
 
             expect(result.details.length).toBe(1);
             expect(result.details[0].description).toBe(`${expectedDays} days`);
