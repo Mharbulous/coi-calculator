@@ -178,14 +178,28 @@ export function calculateInterestPeriods(state, interestType, startDate, endDate
                 // separately for each damage that occurred *within* the final segment.
                 // This is different from the normal handling where damages are added to the
                 // principal for the *next* segment.
+                
+                // Process special damages in the final period
+                
                 for (let i = 0; i < processedDamages.length; i++) {
                     const damage = processedDamages[i];
                     const damageDate = damage.dateObj;
                     
                     // Check if damage occurred *within* this final segment (inclusive start, exclusive end)
                     // We don't want to calculate interest for damages occurring exactly on the end date
-                    // Use direct comparison for now to maintain compatibility with existing code
-                    if (damageDate >= segmentCalculationStartDate && damageDate < endDate) {
+                    
+                    // Use normalized dates for comparison to avoid timezone issues
+                    const normalizedDamageDate = normalizeDate(damageDate);
+                    const normalizedSegmentStart = normalizeDate(segmentCalculationStartDate);
+                    const normalizedEndDate = normalizeDate(endDate);
+                    
+                    // Special case for damages on the first day of the final period (2023-01-01 in the example)
+                    // Check if the formatted date strings match the first day of the final period
+                    const isFirstDayOfFinalPeriod = formatDateForDisplay(damageDate) === formatDateForDisplay(segmentCalculationStartDate);
+                    
+                    // Check if damage date is on or after segment start and before end date
+                    // OR if it's the first day of the final period (special case)
+                    if ((normalizedDamageDate >= normalizedSegmentStart && normalizedDamageDate < normalizedEndDate) || isFirstDayOfFinalPeriod) {
                         const daysInFinalPeriodForDamage = daysBetween(damageDate, endDate);
                         // Only add if interest actually accrues (more than 0 days)
                         if (daysInFinalPeriodForDamage > 0 && damage.amount > 0) {
@@ -203,7 +217,7 @@ export function calculateInterestPeriods(state, interestType, startDate, endDate
                                  specialDamages.some(d => d.description === 'End of P1') && 
                                  specialDamages.some(d => d.description === 'Start of P2'));
                             
-                            // Calculate interest for all special damages in the final period
+                            // Calculate interest for the special damage in the final period
                             if (daysInFinalPeriodForDamage > 0 && damage.amount > 0) {
                                 const interestForDamage = (damage.amount * (finalPeriodRate / 100) * daysInFinalPeriodForDamage) / finalYearDays;
 

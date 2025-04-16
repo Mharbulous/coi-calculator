@@ -140,10 +140,20 @@ export function insertSpecialDamagesRowFromData(tableBody, index, rowData, final
         // Check if this damage falls within the final period
         if (damageDate && finalPeriodStartDate && damageDate >= finalPeriodStartDate) {
             // Find the matching calculated interest detail
-            const detailIndex = mutableFinalPeriodDetails.findIndex(detail =>
-                detail.damageDate.getTime() === damageDate.getTime() && // Match date precisely
-                detail.principal === damageAmount // Match original principal amount
-            );
+            // Use a more flexible matching approach to handle potential precision issues and timezone differences
+            const detailIndex = mutableFinalPeriodDetails.findIndex(detail => {
+                // Format both dates to YYYY-MM-DD strings for comparison to avoid timezone issues
+                const formattedDamageDate = formatDateForDisplay(damageDate);
+                const formattedDetailDate = formatDateForDisplay(detail.damageDate);
+                const datesMatch = formattedDamageDate === formattedDetailDate;
+                
+                // Check if principals are approximately equal (handle potential floating point issues)
+                // Use a small epsilon value to account for potential rounding differences
+                const epsilon = 0.001; // Allow for tiny differences due to floating point precision
+                const principalsMatch = Math.abs(detail.principal - damageAmount) < epsilon;
+                
+                return datesMatch && principalsMatch;
+            });
             
             if (detailIndex > -1) {
                 calculatedDetail = mutableFinalPeriodDetails[detailIndex];
