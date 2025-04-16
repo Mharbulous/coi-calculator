@@ -287,6 +287,14 @@ export function updateSummaryTable(store, recalculateCallback) {
         if (template === templatePecuniary) {
             if (dateInput) {
                 dateInput.value = formattedDate;
+                
+                // Add a special listener for the pecuniary judgment date input to sync with the judgment date input
+                dateInput.addEventListener('blur', (event) => {
+                    if (elements.judgmentDateInput) {
+                        elements.judgmentDateInput.value = event.target.value;
+                    }
+                });
+                
                 setupCustomDateInputListeners(dateInput, recalculateCallback);
                 elements.pecuniaryJudgmentDateInput = dateInput; // Store reference
             }

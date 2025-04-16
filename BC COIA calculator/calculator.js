@@ -414,12 +414,18 @@ function setupEventListeners() {
     });
     // Check if elements exist before adding listeners
     const requiredElements = [
-        elements.jurisdictionSelect, elements.showPrejudgmentCheckbox, elements.showPostjudgmentCheckbox
+        elements.jurisdictionSelect, elements.showPrejudgmentCheckbox, elements.showPostjudgmentCheckbox,
+        elements.judgmentDateInput
     ];
     if (requiredElements.some(el => !el)) {
         console.error("Cannot setup listeners: One or more essential static input/control elements are missing.");
         return;
     }
+    
+    // Set up event listener for judgment date input
+    import('./dom/setup.js').then(module => {
+        module.setupCustomDateInputListeners(elements.judgmentDateInput, recalculate);
+    });
 
     // Note: Listeners for ALL dynamic inputs (dates and amounts) are added in updateSummaryTable
 
@@ -493,6 +499,11 @@ function initializeCalculator() {
 
     const defaultAmount = 0;
     const pecuniaryDefaultAmount = 10000;
+    
+    // Set default value for judgment date input
+    if (elements.judgmentDateInput) {
+        elements.judgmentDateInput.value = formatDateForInput(defaultJudgmentDate);
+    }
     
     // Initialize default values
     const defaultInputs = {

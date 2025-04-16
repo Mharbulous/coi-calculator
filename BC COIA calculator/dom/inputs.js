@@ -22,12 +22,20 @@ export function getInputValues() {
     // Read from dynamic inputs, provide default empty string if elements don't exist yet
     const prejudgmentStartDateStr = elements.prejudgmentInterestDateInput ? elements.prejudgmentInterestDateInput.value : '';
     const postjudgmentEndDateStr = elements.postjudgmentInterestDateInput ? elements.postjudgmentInterestDateInput.value : '';
-    const dateOfJudgmentStr = elements.pecuniaryJudgmentDateInput ? elements.pecuniaryJudgmentDateInput.value : '';
+    
+    // Use the judgment date input field as the primary source of the judgment date
+    const dateOfJudgmentStr = elements.judgmentDateInput ? elements.judgmentDateInput.value : '';
+    
+    // Sync the judgment date with the pecuniaryJudgmentDateInput if it exists
+    if (elements.pecuniaryJudgmentDateInput && dateOfJudgmentStr) {
+        elements.pecuniaryJudgmentDateInput.value = dateOfJudgmentStr;
+    }
+    
     const judgmentAwardedStr = elements.pecuniaryJudgmentAmountInput ? elements.pecuniaryJudgmentAmountInput.value : '';
     const nonPecuniaryAwardedStr = elements.nonPecuniaryJudgmentAmountInput ? elements.nonPecuniaryJudgmentAmountInput.value : '';
     const costsAwardedStr = elements.costsAwardedAmountInput ? elements.costsAwardedAmountInput.value : '';
     
-    // For Non-Pecuniary and Costs dates, use the Pecuniary date since they're no longer editable
+    // For Non-Pecuniary and Costs dates, use the judgment date since they're no longer editable
     const nonPecuniaryDateStr = dateOfJudgmentStr;
     const costsDateStr = dateOfJudgmentStr;
 

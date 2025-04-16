@@ -9,6 +9,7 @@ const elements = {
     jurisdictionSelect: document.querySelector('[data-input="jurisdictionSelect"]'),
     fileNoInput: document.querySelector('[data-input="fileNo"]'),
     registryInput: document.querySelector('[data-input="registry"]'),
+    judgmentDateInput: document.querySelector('[data-input="judgmentDate"]'),
     showPrejudgmentCheckbox: document.querySelector('[data-input="showPrejudgmentCheckbox"]'),
     showPostjudgmentCheckbox: document.querySelector('[data-input="showPostjudgmentCheckbox"]'),
     showPerDiemCheckbox: document.querySelector('[data-input="showPerDiemCheckbox"]'),
