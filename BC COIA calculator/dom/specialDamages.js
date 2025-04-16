@@ -148,10 +148,10 @@ export function insertSpecialDamagesRowFromData(tableBody, index, rowData, final
             if (detailIndex > -1) {
                 calculatedDetail = mutableFinalPeriodDetails[detailIndex];
                 
-                // Create a container for the interest calculation details (days count only)
+                // Create a container for the interest calculation details (days count with @ symbol)
                 const detailsContainer = document.createElement('div');
                 detailsContainer.className = 'interest-calculation-details';
-                detailsContainer.innerHTML = `<span class="days-count">${calculatedDetail.description}</span>`;
+                detailsContainer.innerHTML = `<span class="days-count">${calculatedDetail.description} @</span>`;
                 
                 // Add the details container to the description cell
                 descCell.appendChild(detailsContainer);
@@ -177,8 +177,16 @@ export function insertSpecialDamagesRowFromData(tableBody, index, rowData, final
     
     // Add interest rate to the rate cell if we have calculated detail
     if (calculatedDetail) {
-        // Add the interest rate to the rate cell
-        rateCell.textContent = calculatedDetail.rate.toFixed(2) + '%';
+        // First add an empty space to align with the first line
+        rateCell.innerHTML = '&nbsp;';
+        
+        // Create a container with the same class for consistent styling
+        const rateContainer = document.createElement('div');
+        rateContainer.className = 'interest-calculation-details';
+        rateContainer.textContent = calculatedDetail.rate.toFixed(2) + '%';
+        
+        // Add the container to the rate cell
+        rateCell.appendChild(rateContainer);
     }
 
     // Principal/Amount cell
@@ -204,8 +212,16 @@ export function insertSpecialDamagesRowFromData(tableBody, index, rowData, final
     
     // Add interest amount to the interest cell if we have calculated detail
     if (calculatedDetail) {
-        // Add the interest amount to the interest cell
-        interestCell.innerHTML = formatCurrencyForDisplay(calculatedDetail.interest);
+        // First add an empty space to align with the first line
+        interestCell.innerHTML = '&nbsp;';
+        
+        // Create a container with the same class for consistent styling
+        const interestContainer = document.createElement('div');
+        interestContainer.className = 'interest-calculation-details';
+        interestContainer.innerHTML = formatCurrencyForDisplay(calculatedDetail.interest);
+        
+        // Add the container to the interest cell
+        interestCell.appendChild(interestContainer);
     }
 
     return newRow; // Return the created row element
