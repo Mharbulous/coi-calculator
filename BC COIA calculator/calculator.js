@@ -1,11 +1,10 @@
 import interestRatesData from './interestRates.js';
-// Import calculatePerDiem as well
 import { calculateInterestPeriods, calculatePerDiem } from './calculations.js';
 import {
-    elements, // Assumes elements for new inputs/tables/checkboxes are added here
-    getInputValues, // Assumes this is updated to return prejudgmentStartDate, postjudgmentEndDate, etc.
-    updateInterestTable, // Assumes this is updated for new total row structure
-    updateSummaryTable, // Updated to handle editable fields
+    elements,
+    getInputValues,
+    updateInterestTable,
+    updateSummaryTable,
     clearResults,
     togglePrejudgmentVisibility,
     togglePostjudgmentVisibility,
@@ -13,7 +12,6 @@ import {
     setDefaultInputValues,
     setupCurrencyInputListeners
 } from './domUtils.js';
-// Import necessary date formatting functions
 import { formatDateForInput, formatDateLong, formatDateForDisplay, parseCurrency, parseDateInput } from './utils.js';
 
 /**
@@ -268,11 +266,8 @@ function setupEventListeners() {
         console.log('Special damages updated, recalculating...');
         recalculate();
     });
-    // Check if elements exist before adding listeners (Remove checks for deleted elements)
+    // Check if elements exist before adding listeners
     const requiredElements = [
-        // elements.causeOfActionDateInput, // Removed
-        // elements.dateOfCalculationInput, // Removed
-        /* elements.judgmentAwardedInput, */ /* elements.nonPecuniaryAwardedInput, */ /* elements.costsAwardedInput, */ // Removed static amount inputs
         elements.jurisdictionSelect, elements.showPrejudgmentCheckbox, elements.showPostjudgmentCheckbox
     ];
     if (requiredElements.some(el => !el)) {
@@ -280,17 +275,7 @@ function setupEventListeners() {
         return;
     }
 
-    // Date inputs (Removed listeners for static date inputs)
-    // [elements.causeOfActionDateInput, elements.dateOfCalculationInput].forEach(input => {
-    //     if (input) input.addEventListener('change', recalculate);
-    // });
     // Note: Listeners for ALL dynamic inputs (dates and amounts) are added in updateSummaryTable
-
-    // Currency inputs (Removed listeners for static amount inputs)
-    // setupCurrencyInputListeners(elements.judgmentAwardedInput, recalculate); // Removed
-    // setupCurrencyInputListeners(elements.nonPecuniaryAwardedInput, recalculate); // Removed
-    // setupCurrencyInputListeners(elements.costsAwardedInput, recalculate); // Removed
-    // Note: Listeners for dynamic judgment amount inputs are added in updateSummaryTable
 
     // Jurisdiction select
     elements.jurisdictionSelect.addEventListener('change', () => {
@@ -325,15 +310,12 @@ function setupEventListeners() {
  * Initializes the calculator when the DOM is fully loaded.
  */
 function initializeCalculator() {
-    // Ensure all essential elements are present before proceeding (Remove checks for deleted elements)
+    // Ensure all essential elements are present before proceeding
      const essentialElements = [
          // Inputs & Controls
-         // elements.causeOfActionDateInput, // Removed
-         // elements.dateOfCalculationInput, // Removed
-         /* elements.judgmentAwardedInput, */ /* elements.nonPecuniaryAwardedInput, */ /* elements.costsAwardedInput, */ // Removed static amount inputs
          elements.jurisdictionSelect, elements.showPrejudgmentCheckbox, elements.showPostjudgmentCheckbox,
          // Display Sections & Tables
-         elements.prejudgmentSection, elements.postjudgmentSection, // accrualDateRow removed from HTML
+         elements.prejudgmentSection, elements.postjudgmentSection,
          elements.prejudgmentTableBody, elements.prejudgmentPrincipalTotalEl, elements.prejudgmentInterestTotalEl,
          elements.postjudgmentTableBody, elements.postjudgmentInterestTotalEl,
          elements.summaryTableBody, elements.summaryTotalLabelEl, elements.summaryTotalEl, elements.summaryPerDiemEl
@@ -346,33 +328,30 @@ function initializeCalculator() {
      }
 
     console.log("Initializing Calculator...");
-    setDefaultInputValues(); // Set defaults for static fields (Jurisdiction, checkboxes)
-    setupEventListeners(); // Add input listeners for static fields (Jurisdiction, checkboxes)
-    togglePrejudgmentVisibility(true, null); // Set initial visibility without recalculating
-    togglePostjudgmentVisibility(true, null); // Set initial visibility without recalculating
-    togglePerDiemVisibility(true, null); // Set initial visibility without recalculating
+    setDefaultInputValues();
+    setupEventListeners();
+    togglePrejudgmentVisibility(true, null);
+    togglePostjudgmentVisibility(true, null);
+    togglePerDiemVisibility(true, null);
 
     // --- Perform initial population of summary table to create dynamic inputs ---
     const today = new Date();
-    const defaultPostjudgmentEndDate = new Date(today); // Default end date is today
-    const defaultJudgmentDate = new Date(2023, 4, 1); // Default judgment date: 2023-05-01 (months are 0-indexed)
-    const defaultPrejudgmentStartDate = new Date(2019, 2, 1); // Default start date: 2019-03-01 (months are 0-indexed)
+    const defaultPostjudgmentEndDate = new Date(today);
+    const defaultJudgmentDate = new Date(2023, 4, 1); // months are 0-indexed
+    const defaultPrejudgmentStartDate = new Date(2019, 2, 1); // months are 0-indexed
 
-    const defaultAmount = 0; // Default amount for all judgments initially
-    const pecuniaryDefaultAmount = 10000; // Default amount for pecuniary judgment
+    const defaultAmount = 0;
+    const pecuniaryDefaultAmount = 10000;
     const initialSummaryItems = [
         { item: 'Pecuniary Judgment', dateValue: defaultJudgmentDate, amount: pecuniaryDefaultAmount, isEditable: true },
-        { item: 'Non-Pecuniary Judgment', dateValue: defaultJudgmentDate, amount: defaultAmount, isEditable: true }, // Now editable
-        { item: 'Costs Awarded', dateValue: defaultJudgmentDate, amount: defaultAmount, isEditable: true }, // Now editable
-        { item: 'Prejudgment Interest', dateValue: defaultPrejudgmentStartDate, amount: 0, isDateEditable: true }, // Date editable
-        { item: 'Postjudgment Interest', dateValue: defaultPostjudgmentEndDate, amount: 0, isDateEditable: true }, // Date editable
+        { item: 'Non-Pecuniary Judgment', dateValue: defaultJudgmentDate, amount: defaultAmount, isEditable: true },
+        { item: 'Costs Awarded', dateValue: defaultJudgmentDate, amount: defaultAmount, isEditable: true },
+        { item: 'Prejudgment Interest', dateValue: defaultPrejudgmentStartDate, amount: 0, isDateEditable: true },
+        { item: 'Postjudgment Interest', dateValue: defaultPostjudgmentEndDate, amount: 0, isDateEditable: true },
     ];
-    // Call updateSummaryTable directly to create the elements, passing recalculate as the callback
-    // Use defaultPostjudgmentEndDate for the initial 'TOTAL AS OF' date
     updateSummaryTable(initialSummaryItems, 0, 0, defaultPostjudgmentEndDate, recalculate);
     // --- End initial population ---
 
-    // Now perform the first *real* calculation using the inputs (including the newly created dynamic ones)
     recalculate();
     console.log("Calculator Initialized.");
 }

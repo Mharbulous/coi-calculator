@@ -1,4 +1,4 @@
-import { daysBetween, daysInYear, formatDateForDisplay, parseDateInput } from './utils.js'; // Added parseDateInput
+import { daysBetween, daysInYear, formatDateForDisplay, parseDateInput } from './utils.js';
 
 /**
  * Finds the applicable interest rate for a specific date and type within a jurisdiction.
@@ -55,7 +55,7 @@ export function calculateInterestPeriods(principal, startDate, endDate, interest
     let currentCalcDate = new Date(startDate);
     let totalInterest = 0;
     const details = [];
-    const finalPeriodDamageInterestDetails = []; // ADDED: Array for final period calculated interest
+    const finalPeriodDamageInterestDetails = []; // Array for final period calculated interest
     const jurisdictionRates = ratesData[jurisdiction];
 
     // Parse and sort special damages (Dates are now YYYY-MM-DD)

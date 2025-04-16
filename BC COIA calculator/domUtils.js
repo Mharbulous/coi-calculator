@@ -69,8 +69,7 @@ export function getInputValues() {
         console.error("One or more essential static input/control elements not found in DOM.");
          return { isValid: false, validationMessage: "Initialization error: Missing static input elements." };
      }
-     // Removed the early return check for dynamic inputs.
-     // If they don't exist when this is called, parsing/validation below will handle it.
+     // If dynamic inputs don't exist when this is called, parsing/validation below will handle it.
 
 
     // Read from dynamic inputs, provide default empty string if elements don't exist yet
