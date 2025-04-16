@@ -14,8 +14,48 @@ import {
 } from './domUtils.js';
 import { formatDateForInput, formatDateLong, formatDateForDisplay, parseCurrency, parseDateInput } from './utils.js';
 
+// Application state object to centralize data management
+let appState = {
+    // Input values
+    inputs: {
+        prejudgmentStartDate: null,
+        postjudgmentEndDate: null,
+        dateOfJudgment: null,
+        nonPecuniaryJudgmentDate: null,
+        costsAwardedDate: null,
+        judgmentAwarded: 0,
+        nonPecuniaryAwarded: 0,
+        costsAwarded: 0,
+        jurisdiction: 'BC',
+        showPrejudgment: true,
+        showPostjudgment: true,
+        showPerDiem: true,
+        isValid: true,
+        validationMessage: ''
+    },
+    // Calculation results
+    results: {
+        specialDamages: [],
+        specialDamagesTotal: 0,
+        prejudgmentResult: {
+            details: [],
+            total: 0,
+            principal: 0,
+            finalPeriodDamageInterestDetails: []
+        },
+        postjudgmentResult: {
+            details: [],
+            total: 0
+        },
+        judgmentTotal: 0,
+        totalOwing: 0,
+        perDiem: 0,
+        finalCalculationDate: null
+    }
+};
+
 /**
- * Collects special damages data from the prejudgment table.
+ * Collects special damages data from the prejudgment table and updates appState.
  * @returns {Array<object>} Array of special damages objects with date, description, and amount.
  */
 function collectSpecialDamages() {
@@ -46,6 +86,10 @@ function collectSpecialDamages() {
         }
     });
     
+    // Update appState with collected special damages
+    appState.results.specialDamages = specialDamages;
+    appState.results.specialDamagesTotal = specialDamages.reduce((sum, damage) => sum + damage.amount, 0);
+    
     return specialDamages;
 }
 
@@ -55,14 +99,19 @@ function collectSpecialDamages() {
 function recalculate() {
     // 1. Get and Validate Inputs
     const inputs = getInputValues();
+    
+    // Update appState with the validated inputs
+    appState.inputs = { ...inputs };
 
     if (!inputs.isValid) {
         // Clear previous results and display base total if inputs are invalid
         console.warn("Recalculation skipped due to invalid inputs:", inputs.validationMessage);
         alert(inputs.validationMessage || "Please check the input values."); // Show validation message
         clearResults(); // Assumes clearResults handles new tables
+        
         // Show base total (Judgment + Non-Pecuniary + Costs) even if dates are invalid
         const baseTotal = (inputs.judgmentAwarded || 0) + (inputs.nonPecuniaryAwarded || 0) + (inputs.costsAwarded || 0);
+        
         // Update summary table with zeros or base values if possible, passing recalculate
         // Need initial items structure even on error to potentially show editable fields
         const today = new Date();
@@ -80,6 +129,19 @@ function recalculate() {
              { item: 'Prejudgment Interest', dateValue: defaultPrejudgmentStartDate, amount: 0, isDateEditable: true }, // Date editable
              { item: 'Postjudgment Interest', dateValue: defaultPostjudgmentEndDate, amount: 0, isDateEditable: true }, // Date editable
         ];
+        
+        // Reset results in appState
+        appState.results = {
+            specialDamages: [],
+            specialDamagesTotal: 0,
+            prejudgmentResult: { details: [], total: 0, principal: 0, finalPeriodDamageInterestDetails: [] },
+            postjudgmentResult: { details: [], total: 0 },
+            judgmentTotal: baseTotal,
+            totalOwing: baseTotal,
+            perDiem: 0,
+            finalCalculationDate: defaultPostjudgmentEndDate
+        };
+        
         updateSummaryTable(errorSummaryItems, baseTotal, 0, defaultPostjudgmentEndDate, recalculate); // Pass recalculate
         elements.summaryTotalLabelEl.textContent = 'TOTAL OWING (Inputs Invalid)';
         return;
@@ -91,7 +153,9 @@ function recalculate() {
         console.error(message);
         alert(message);
         clearResults(); // Assumes clearResults handles new tables
+        
         const baseTotal = (inputs.judgmentAwarded || 0) + (inputs.nonPecuniaryAwarded || 0) + (inputs.costsAwarded || 0); // Use || 0 for safety
+        
         // Update summary table with zeros or base values if possible, passing recalculate
         const errorSummaryItems = [ // Use current input values for amounts/dates
              { item: 'Pecuniary Judgment', dateValue: inputs.dateOfJudgment, amount: inputs.judgmentAwarded, isEditable: true },
@@ -100,19 +164,33 @@ function recalculate() {
              { item: 'Prejudgment Interest', dateValue: inputs.prejudgmentStartDate, amount: 0, isDateEditable: true }, // Date editable
              { item: 'Postjudgment Interest', dateValue: inputs.postjudgmentEndDate, amount: 0, isDateEditable: true }, // Date editable
         ];
+        
+        // Reset results in appState
+        appState.results = {
+            specialDamages: [],
+            specialDamagesTotal: 0,
+            prejudgmentResult: { details: [], total: 0, principal: 0, finalPeriodDamageInterestDetails: [] },
+            postjudgmentResult: { details: [], total: 0 },
+            judgmentTotal: baseTotal,
+            totalOwing: baseTotal,
+            perDiem: 0,
+            finalCalculationDate: inputs.postjudgmentEndDate
+        };
+        
         updateSummaryTable(errorSummaryItems, baseTotal, 0, inputs.postjudgmentEndDate, recalculate); // Pass recalculate
         elements.summaryTotalLabelEl.textContent = `TOTAL OWING (${inputs.jurisdiction} Rates Unavailable)`;
         return;
     }
 
-
     // 2. Collect Special Damages (needed for both prejudgment calc and totals)
+    // collectSpecialDamages now updates appState.results.specialDamages and appState.results.specialDamagesTotal
     const specialDamages = collectSpecialDamages();
-    const specialDamagesTotal = specialDamages.reduce((sum, damage) => sum + damage.amount, 0);
+    const specialDamagesTotal = appState.results.specialDamagesTotal;
 
     // 3. Calculate Prejudgment Interest (Conditional on Checkbox)
     // Prejudgment interest in BC COIA applies ONLY to pecuniary damages.
-    let prejudgmentResult = { details: [], total: 0, principal: inputs.judgmentAwarded }; // Initial principal is pecuniary only
+    let prejudgmentResult = { details: [], total: 0, principal: inputs.judgmentAwarded, finalPeriodDamageInterestDetails: [] }; // Initial principal is pecuniary only
+    
     if (inputs.showPrejudgment) {
         // Prejudgment starts from the dynamic prejudgmentStartDate
         // Prejudgment ends the day *before* the pecuniary judgment date
@@ -121,46 +199,41 @@ function recalculate() {
 
         // Only calculate if the period is valid (at least one day) and pecuniary amount > 0
         if (prejudgmentEndDate >= inputs.prejudgmentStartDate && inputs.judgmentAwarded > 0) {
-            // Capture the new finalPeriodDamageInterestDetails array
-            const { details: preDetails, total: preTotal, principal: prePrincipal, finalPeriodDamageInterestDetails } = calculateInterestPeriods(
-                inputs.judgmentAwarded, // Base principal for prejudgment is pecuniary only
-                inputs.prejudgmentStartDate, // Use dynamic start date
-                prejudgmentEndDate,
+            // Call calculateInterestPeriods with appState and specific parameters
+            prejudgmentResult = calculateInterestPeriods(
+                appState, // Pass the whole state
                 'prejudgment',
-                inputs.jurisdiction,
-                interestRatesData,
-                specialDamages // Pass collected special damages here
+                inputs.prejudgmentStartDate, // Start date for this calc
+                prejudgmentEndDate, // End date for this calc
+                inputs.judgmentAwarded, // Initial principal for prejudgment
+                interestRatesData
             );
-            // Assign results back to prejudgmentResult for consistency, including the new array
-            prejudgmentResult = { details: preDetails, total: preTotal, principal: prePrincipal, finalPeriodDamageInterestDetails };
         } else {
             console.warn("Prejudgment calculation skipped: Invalid date range (start date vs judgment date) or zero pecuniary judgment amount.");
-            // Ensure finalPeriodDamageInterestDetails exists even if calculation skipped
-            prejudgmentResult.finalPeriodDamageInterestDetails = [];
+            // Ensure structure is maintained even if skipped
+            prejudgmentResult = { details: [], total: 0, principal: inputs.judgmentAwarded, finalPeriodDamageInterestDetails: [] };
         }
     } else {
         console.log("Prejudgment calculation skipped: Checkbox unchecked.");
         // Even if skipped, the principal used for the total row includes special damages
         prejudgmentResult.principal = inputs.judgmentAwarded + specialDamagesTotal;
-        // Ensure finalPeriodDamageInterestDetails exists even if calculation skipped
-        prejudgmentResult.finalPeriodDamageInterestDetails = [];
     }
+    
+    // Update appState with prejudgment results
+    appState.results.prejudgmentResult = prejudgmentResult;
 
     // Calculate the total principal including special damages for the footer display
     // Note: calculateInterestPeriods now returns the *final* principal after damages are applied within the period.
     // For the footer total, we want the initial pecuniary + *all* special damages.
     const totalPrincipalForFooter = inputs.judgmentAwarded + specialDamagesTotal;
 
-    // Update Prejudgment Table ONLY with calculated interest details.
-    // Special damages rows will be re-inserted by updateInterestTable itself.
+    // Update Prejudgment Table using state
     updateInterestTable(
         elements.prejudgmentTableBody,
         elements.prejudgmentPrincipalTotalEl,
         elements.prejudgmentInterestTotalEl,
-        prejudgmentResult.details, // Pass only calculated details
-        totalPrincipalForFooter, // Pass the correct total principal for the footer
-        prejudgmentResult.total, // Pass interest total (calculated only on pecuniary, but principal adjusted)
-        prejudgmentResult.finalPeriodDamageInterestDetails // Pass the new array here
+        appState.results.prejudgmentResult, // Pass the prejudgment result state
+        totalPrincipalForFooter // Pass the specific footer principal
     );
 
     // Update Prejudgment Table Footer Label
@@ -180,6 +253,9 @@ function recalculate() {
     // 4. Calculate Base Total for Postjudgment and Summary
     // This total includes the original awards, calculated prejudgment interest, AND special damages total
     const judgmentTotal = inputs.judgmentAwarded + prejudgmentResult.total + inputs.nonPecuniaryAwarded + inputs.costsAwarded + specialDamagesTotal;
+    
+    // Update appState with judgment total
+    appState.results.judgmentTotal = judgmentTotal;
 
     // 5. Calculate Postjudgment Interest (Conditional on Checkbox)
     let postjudgmentResult = { details: [], total: 0 };
@@ -198,17 +274,21 @@ function recalculate() {
             const postjudgmentPrincipal = judgmentTotal;
 
             if (postjudgmentPrincipal > 0) {
+                 // Call calculateInterestPeriods with appState and specific parameters
                  postjudgmentResult = calculateInterestPeriods(
-                     postjudgmentPrincipal,
-                     postjudgmentStartDate,
-                     inputs.postjudgmentEndDate, // Use the dynamic end date
+                     appState, // Pass the whole state
                      'postjudgment',
-                     inputs.jurisdiction,
+                     postjudgmentStartDate, // Start date for this calc
+                     inputs.postjudgmentEndDate, // End date for this calc
+                     postjudgmentPrincipal, // Initial principal for postjudgment
                      interestRatesData
                  );
+            } else {
+                 postjudgmentResult = { details: [], total: 0 }; // Ensure structure if principal is 0
             }
         } else {
              console.warn("Postjudgment calculation skipped: Postjudgment End Date is before the latest judgment date or invalid.");
+             postjudgmentResult = { details: [], total: 0 }; // Ensure structure if skipped
              // If range is invalid, use latestJudgmentDate as the final date for summary display
              finalCalculationDate = latestJudgmentDate;
              // Visually reset the dynamic input if it exists and is different
@@ -226,34 +306,31 @@ function recalculate() {
               elements.postjudgmentInterestDateInput.value = latestJudgmentDateInputValue;
          }
     }
-    // Update Postjudgment Table
+    
+    // Update appState with postjudgment results and final calculation date
+    appState.results.postjudgmentResult = postjudgmentResult;
+    appState.results.finalCalculationDate = finalCalculationDate;
+    
+    // Update Postjudgment Table using state
     updateInterestTable(
         elements.postjudgmentTableBody,
         null, // No principal total element for postjudgment
         elements.postjudgmentInterestTotalEl,
-        postjudgmentResult.details,
-        null, // No principal total
-        postjudgmentResult.total // Pass interest total
+        appState.results.postjudgmentResult, // Pass the postjudgment result state
+        null // No specific footer principal for postjudgment
     );
 
-    // 5. Update Summary Table
-    const summaryItems = [
-        // Mark Pecuniary Judgment as editable, pass the Date object for formatting
-        { item: 'Pecuniary Judgment', dateValue: inputs.dateOfJudgment, amount: inputs.judgmentAwarded, isEditable: true },
-        // Non-Pecuniary Judgment - keep amount editable but not date
-        { item: 'Non-Pecuniary Judgment', dateValue: inputs.nonPecuniaryJudgmentDate, amount: inputs.nonPecuniaryAwarded, isEditable: true },
-        // Costs Awarded - keep amount editable but not date
-        { item: 'Costs Awarded', dateValue: inputs.costsAwardedDate, amount: inputs.costsAwarded, isEditable: true },
-        // Prejudgment interest date is now editable (start date)
-        { item: 'Prejudgment Interest', dateValue: inputs.prejudgmentStartDate, amount: prejudgmentResult.total, isDateEditable: true },
-        // Postjudgment Interest date is now editable (end date)
-        { item: 'Postjudgment Interest', dateValue: inputs.postjudgmentEndDate, amount: postjudgmentResult.total, isDateEditable: true },
-    ];
-    const totalOwing = judgmentTotal + postjudgmentResult.total;
-    // Calculate Per Diem using the total owing and final date (which is postjudgmentEndDate if valid, otherwise latestJudgmentDate)
-    const perDiem = calculatePerDiem(totalOwing, finalCalculationDate, inputs.jurisdiction, interestRatesData);
-    // Pass the recalculate function as the callback for editable fields
-    updateSummaryTable(summaryItems, totalOwing, perDiem, finalCalculationDate, recalculate);
+    // Calculate final total and per diem
+    const totalOwing = appState.results.judgmentTotal + appState.results.postjudgmentResult.total;
+    appState.results.totalOwing = totalOwing;
+    
+    // Calculate Per Diem using appState
+    const perDiem = calculatePerDiem(appState, interestRatesData);
+    appState.results.perDiem = perDiem;
+
+    // 5. Update Summary Table using state
+    // updateSummaryTable now takes appState directly
+    updateSummaryTable(appState, recalculate);
 }
 
 
@@ -342,17 +419,42 @@ function initializeCalculator() {
 
     const defaultAmount = 0;
     const pecuniaryDefaultAmount = 10000;
-    const initialSummaryItems = [
-        { item: 'Pecuniary Judgment', dateValue: defaultJudgmentDate, amount: pecuniaryDefaultAmount, isEditable: true },
-        { item: 'Non-Pecuniary Judgment', dateValue: defaultJudgmentDate, amount: defaultAmount, isEditable: true },
-        { item: 'Costs Awarded', dateValue: defaultJudgmentDate, amount: defaultAmount, isEditable: true },
-        { item: 'Prejudgment Interest', dateValue: defaultPrejudgmentStartDate, amount: 0, isDateEditable: true },
-        { item: 'Postjudgment Interest', dateValue: defaultPostjudgmentEndDate, amount: 0, isDateEditable: true },
-    ];
-    updateSummaryTable(initialSummaryItems, 0, 0, defaultPostjudgmentEndDate, recalculate);
+    
+    // Initialize appState with default values
+    appState.inputs = {
+        prejudgmentStartDate: defaultPrejudgmentStartDate,
+        postjudgmentEndDate: defaultPostjudgmentEndDate,
+        dateOfJudgment: defaultJudgmentDate,
+        nonPecuniaryJudgmentDate: defaultJudgmentDate,
+        costsAwardedDate: defaultJudgmentDate,
+        judgmentAwarded: pecuniaryDefaultAmount,
+        nonPecuniaryAwarded: defaultAmount,
+        costsAwarded: defaultAmount,
+        jurisdiction: 'BC',
+        showPrejudgment: true,
+        showPostjudgment: true,
+        showPerDiem: true,
+        isValid: true,
+        validationMessage: ''
+    };
+    
+    // Initialize results state as well
+    appState.results = {
+        specialDamages: [],
+        specialDamagesTotal: 0,
+        prejudgmentResult: { details: [], total: 0, principal: 0, finalPeriodDamageInterestDetails: [] },
+        postjudgmentResult: { details: [], total: 0 },
+        judgmentTotal: 0,
+        totalOwing: 0,
+        perDiem: 0,
+        finalCalculationDate: defaultPostjudgmentEndDate
+    };
+    
+    // Update summary table using the initial state
+    updateSummaryTable(appState, recalculate);
     // --- End initial population ---
 
-    recalculate();
+    recalculate(); // Perform initial calculation based on default state
     console.log("Calculator Initialized.");
 }
 

@@ -31,44 +31,47 @@ export function getInterestRateForDate(date, type, jurisdiction, ratesData) {
 }
 
 /**
- * Calculates interest over a period, breaking it down by applicable rate segments.
- * @param {number} principal - The initial principal amount.
- * @param {Date} startDate - The start date of the calculation period (UTC).
- * @param {Date} endDate - The end date of the calculation period (UTC).
+ * Calculates interest over a period, breaking it down by applicable rate segments, using data from appState.
+ * @param {object} appState - The main application state object.
  * @param {'prejudgment' | 'postjudgment'} interestType - The type of interest to calculate.
- * @param {string} jurisdiction - The jurisdiction code (e.g., 'BC').
+ * @param {Date} startDate - The start date for this specific calculation (e.g., prejudgmentStartDate or latestJudgmentDate).
+ * @param {Date} endDate - The end date for this specific calculation (e.g., prejudgmentEndDate or postjudgmentEndDate).
+ * @param {number} initialPrincipal - The principal amount to start the calculation with (e.g., judgmentAwarded for prejudgment, judgmentTotal for postjudgment).
  * @param {object} ratesData - The processed interest rates object.
- * @param {Array<object>} [specialDamages=[]] - Optional array of special damages { date: string (YYYY-MM-DD), amount: number, description?: string }.
- * @returns {{details: Array<object>, total: number, principal: number}} An object containing detailed breakdown, total interest, and the *final* principal used.
+ * @returns {{details: Array<object>, total: number, principal: number, finalPeriodDamageInterestDetails?: Array<object>}} An object containing detailed breakdown, total interest, the *final* principal used, and optionally final period damage details.
  */
-export function calculateInterestPeriods(principal, startDate, endDate, interestType, jurisdiction, ratesData, specialDamages = []) {
+export function calculateInterestPeriods(appState, interestType, startDate, endDate, initialPrincipal, ratesData) {
+    const { inputs, results } = appState;
+    const { jurisdiction } = inputs;
+    const { specialDamages = [] } = results; // Use special damages from results state
+
     // Basic validation
-    if (principal < 0 || !startDate || !endDate || isNaN(startDate.getTime()) || isNaN(endDate.getTime()) || endDate < startDate || !ratesData[jurisdiction]) {
-        console.warn("Invalid input for calculateInterestPeriods", { principal, startDate, endDate, interestType, jurisdiction, hasRates: !!ratesData[jurisdiction] });
-        return { details: [], total: 0, principal: principal };
+    if (initialPrincipal < 0 || !startDate || !endDate || isNaN(startDate.getTime()) || isNaN(endDate.getTime()) || endDate < startDate || !ratesData[jurisdiction]) {
+        console.warn("Invalid input for calculateInterestPeriods", { initialPrincipal, startDate, endDate, interestType, jurisdiction, hasRates: !!ratesData[jurisdiction] });
+        return { details: [], total: 0, principal: initialPrincipal, finalPeriodDamageInterestDetails: [] };
     }
      // If principal is 0 and no damages, no interest accrues
-     if (principal === 0 && specialDamages.length === 0) {
-         return { details: [], total: 0, principal: 0 };
+     if (initialPrincipal === 0 && specialDamages.length === 0) {
+         return { details: [], total: 0, principal: 0, finalPeriodDamageInterestDetails: [] };
      }
 
     let currentCalcDate = new Date(startDate);
     let totalInterest = 0;
     const details = [];
-    const finalPeriodDamageInterestDetails = []; // Array for final period calculated interest
+    const finalPeriodDamageInterestDetails = []; // Array for final period calculated interest (only relevant for prejudgment)
     const jurisdictionRates = ratesData[jurisdiction];
 
-    // Parse and sort special damages (Dates are now YYYY-MM-DD)
+    // Parse and sort special damages (Dates are already YYYY-MM-DD strings in appState)
     const processedDamages = specialDamages
         .map(d => {
-            const dateObj = parseDateInput(d.date); // Use parseDateInput from utils.js (assuming it's imported or available)
-            if (!dateObj) return null; // parseDateInput returns null on failure
-            return { date: d.date, amount: d.amount, description: d.description || 'Special Damage', dateObj };
+            const dateObj = parseDateInput(d.date); // Parse the YYYY-MM-DD string
+            if (!dateObj) return null;
+            return { ...d, dateObj }; // Add the Date object
         })
         .filter(d => d !== null)
         .sort((a, b) => a.dateObj - b.dateObj);
 
-    let principalForNextSegment = principal; // Start with the initial principal
+    let principalForNextSegment = initialPrincipal; // Start with the passed initial principal
     let damageIndex = 0; // Track which damages have been added to the principal
 
     while (currentCalcDate <= endDate) {
@@ -212,51 +215,58 @@ export function calculateInterestPeriods(principal, startDate, endDate, interest
         currentCalcDate.setUTCDate(currentCalcDate.getUTCDate() + 1);
     } // End while loop
 
-    // Calculate the final principal value by adding ALL damages up to the endDate
-    // This is for display/summary purposes.
-    let finalPrincipal = principal; // Start with initial principal
+    // Calculate the final principal value by adding ALL applicable damages up to the endDate
+    // This reflects the principal at the *end* of the calculation period.
+    let finalPrincipal = initialPrincipal; // Start with initial principal for this calculation type
     processedDamages.forEach(damage => {
+        // Only add damages that occurred *before* or *on* the calculation end date
         if (damage.dateObj <= endDate) {
             finalPrincipal += damage.amount;
         }
     });
 
-    // Add the final period damage interest details to the main details array
-    if (finalPeriodDamageInterestDetails.length > 0) {
-        finalPeriodDamageInterestDetails.forEach(detail => {
-            details.push({
-                ...detail,
-                isFinalPeriodDamage: true
+    // Return structure depends on interest type
+    if (interestType === 'prejudgment') {
+        // Add the final period damage interest details to the main details array
+        if (finalPeriodDamageInterestDetails.length > 0) {
+            finalPeriodDamageInterestDetails.forEach(detail => {
+                details.push({
+                    ...detail,
+                    isFinalPeriodDamage: true // Mark these clearly
+                });
             });
-        });
+        }
+        return { details, total: totalInterest, principal: finalPrincipal, finalPeriodDamageInterestDetails };
+    } else { // postjudgment
+        return { details, total: totalInterest, principal: finalPrincipal };
     }
-
-    // Return the calculated details, total interest, and final principal
-    return { details, total: totalInterest, principal: finalPrincipal };
 }
 
 
 /**
- * Calculates the per diem interest rate based on a principal amount and the rate applicable on a specific date.
- * @param {number} principal - The principal amount (usually the total owing).
- * @param {Date} calculationDate - The date for which to find the applicable rate (UTC).
- * @param {string} jurisdiction - The jurisdiction code (e.g., 'BC').
+ * Calculates the per diem interest rate based on the application state.
+ * @param {object} appState - The main application state object.
  * @param {object} ratesData - The processed interest rates object.
  * @returns {number} The calculated per diem interest amount, or 0 if calculation is not possible.
  */
-export function calculatePerDiem(principal, calculationDate, jurisdiction, ratesData) {
-    if (principal <= 0 || !calculationDate || isNaN(calculationDate.getTime())) {
-        return 0; // No per diem if principal is zero/negative or date is invalid
+export function calculatePerDiem(appState, ratesData) {
+    const { inputs, results } = appState;
+    const { totalOwing, finalCalculationDate } = results;
+    const { jurisdiction } = inputs;
+
+    if (totalOwing <= 0 || !finalCalculationDate || isNaN(finalCalculationDate.getTime())) {
+        return 0; // No per diem if total is zero/negative or date is invalid
     }
 
-    const rate = getInterestRateForDate(calculationDate, 'postjudgment', jurisdiction, ratesData);
+    // Per diem is based on postjudgment rates
+    const rate = getInterestRateForDate(finalCalculationDate, 'postjudgment', jurisdiction, ratesData);
 
     if (rate === undefined || rate <= 0) {
-        console.warn(`Could not find a valid postjudgment rate for per diem calculation on ${formatDateForDisplay(calculationDate)} in ${jurisdiction}`);
+        console.warn(`Could not find a valid postjudgment rate for per diem calculation on ${formatDateForDisplay(finalCalculationDate)} in ${jurisdiction}`);
         return 0;
     }
 
-    const year = calculationDate.getUTCFullYear();
+    const year = finalCalculationDate.getUTCFullYear();
     const days_in_year = daysInYear(year);
 
     if (days_in_year <= 0) {
@@ -264,6 +274,6 @@ export function calculatePerDiem(principal, calculationDate, jurisdiction, rates
         return 0;
     }
 
-    const perDiemAmount = (principal * (rate / 100)) / days_in_year;
+    const perDiemAmount = (totalOwing * (rate / 100)) / days_in_year;
     return perDiemAmount;
 }

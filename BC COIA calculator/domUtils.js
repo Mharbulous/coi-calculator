@@ -168,16 +168,19 @@ export function getInputValues() {
  * @param {HTMLElement|null} principalTotalElement - Element for principal total (null if not applicable).
  * @param {HTMLElement} interestTotalElement - Element for interest total.
  * @param {Array<object>} details - Array of interest period details (expects properties like start, description, rate, principal, interest).
- * @param {number|null} principalTotal - Total principal (null if not applicable).
- * @param {number} interestTotal - The total calculated interest for the table.
- * @param {Array<object>} [finalPeriodDamageInterestDetails=[]] - Optional array of calculated interest details for special damages in the final period.
+ * @param {object} resultState - The state object containing details, total, principal, etc. (e.g., appState.results.prejudgmentResult).
+ * @param {number|null} principalTotalForFooter - The specific principal total to display in the footer (used for prejudgment).
  */
-export function updateInterestTable(tableBody, principalTotalElement, interestTotalElement, details, principalTotal, interestTotal, finalPeriodDamageInterestDetails = []) {
-    if (!tableBody || !interestTotalElement) {
-        console.error("Missing required table elements for updateInterestTable");
+export function updateInterestTable(tableBody, principalTotalElement, interestTotalElement, resultState, principalTotalForFooter) {
+    if (!tableBody || !interestTotalElement || !resultState) {
+        console.error("Missing required table elements or result state for updateInterestTable");
         return;
     }
     
+    const { details = [], total: interestTotal = 0, finalPeriodDamageInterestDetails = [] } = resultState;
+    // principalTotal is derived from principalTotalForFooter for the footer display
+    const principalTotal = principalTotalForFooter;
+
     // Determine if this is the prejudgment table
     const isPrejudgmentTable = tableBody.id === 'prejudgmentTableBody' || 
                               tableBody.closest('table')?.id === 'prejudgmentTable';
@@ -384,19 +387,29 @@ export function setupCustomDateInputListeners(inputElement, changeCallback) {
 }
 
 /**
- * Updates the Summary table, creating editable fields for Pecuniary Judgment.
- * @param {Array<object>} items - Array of objects { item: string, dateValue: Date | string, amount: number, isEditable?: boolean, inputType?: 'date'|'text', dataAttrDate?: string, dataAttrAmount?: string }.
- * @param {number} totalOwing - The final calculated total amount.
- * @param {number} perDiem - The calculated per diem rate.
- * @param {Date} finalCalculationDate - The date up to which the calculation runs.
+ * Updates the Summary table based on the application state.
+ * @param {object} appState - The main application state object containing inputs and results.
  * @param {function} recalculateCallback - Function to call when editable fields change.
  */
-export function updateSummaryTable(items, totalOwing, perDiem, finalCalculationDate, recalculateCallback) {
-    if (!elements.summaryTableBody || !elements.summaryTotalLabelEl || !elements.summaryTotalEl || !elements.summaryPerDiemEl) {
-        console.error("Missing Summary table elements for updateSummaryTable");
+export function updateSummaryTable(appState, recalculateCallback) {
+    if (!elements.summaryTableBody || !elements.summaryTotalLabelEl || !elements.summaryTotalEl || !elements.summaryPerDiemEl || !appState) {
+        console.error("Missing Summary table elements or appState for updateSummaryTable");
         return;
     }
     elements.summaryTableBody.innerHTML = ''; // Clear previous rows
+
+    const { inputs, results } = appState;
+    const { totalOwing, perDiem, finalCalculationDate } = results;
+    const { prejudgmentResult, postjudgmentResult } = results;
+
+    // Construct summary items from appState
+    const items = [
+        { item: 'Pecuniary Judgment', dateValue: inputs.dateOfJudgment, amount: inputs.judgmentAwarded, isEditable: true },
+        { item: 'Non-Pecuniary Judgment', dateValue: inputs.nonPecuniaryJudgmentDate, amount: inputs.nonPecuniaryAwarded, isEditable: true },
+        { item: 'Costs Awarded', dateValue: inputs.costsAwardedDate, amount: inputs.costsAwarded, isEditable: true },
+        { item: 'Prejudgment Interest', dateValue: inputs.prejudgmentStartDate, amount: prejudgmentResult.total, isDateEditable: true },
+        { item: 'Postjudgment Interest', dateValue: inputs.postjudgmentEndDate, amount: postjudgmentResult.total, isDateEditable: true },
+    ];
 
     // Reset dynamic element references before recreating them
     elements.pecuniaryJudgmentDateInput = null;
