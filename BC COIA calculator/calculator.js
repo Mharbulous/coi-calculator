@@ -13,6 +13,8 @@ import {
     setupCurrencyInputListeners
 } from './domUtils.js';
 import { formatDateForInput, formatDateLong, formatDateForDisplay, parseCurrency, parseDateInput } from './utils.js';
+import { create } from 'zustand';
+console.log('Zustand imported successfully via CDN:', create ? 'Yes' : 'No');
 
 // Application state object to centralize data management
 let appState = {
