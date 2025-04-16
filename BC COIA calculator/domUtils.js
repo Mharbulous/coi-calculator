@@ -1,4 +1,5 @@
 import { formatCurrencyForDisplay, formatCurrencyForInput, formatCurrencyForInputWithCommas, formatDateLong, parseCurrency, parseDateInput, formatDateForInput, formatDateForDisplay, validateDateFormat } from './utils.js';
+import useStore from './store.js';
 
 // --- DOM Element Selectors ---
 // Using data attributes for more robust selection
@@ -143,7 +144,8 @@ export function getInputValues() {
          isValid = false;
      }
 
-    return {
+    // Create the inputs object
+    const inputs = {
         prejudgmentStartDate,
         postjudgmentEndDate,
         dateOfJudgment,
@@ -159,6 +161,11 @@ export function getInputValues() {
         isValid,
         validationMessage
     };
+    
+    // Update the Zustand store with the inputs
+    useStore.getState().setInputs(inputs);
+    
+    return inputs;
 }
 
 /**
@@ -388,17 +395,31 @@ export function setupCustomDateInputListeners(inputElement, changeCallback) {
 
 /**
  * Updates the Summary table based on the application state.
- * @param {object} appState - The main application state object containing inputs and results.
+ * Can use either the appState object or the Zustand store.
+ * @param {object} state - The application state object containing inputs and results.
  * @param {function} recalculateCallback - Function to call when editable fields change.
  */
-export function updateSummaryTable(appState, recalculateCallback) {
-    if (!elements.summaryTableBody || !elements.summaryTotalLabelEl || !elements.summaryTotalEl || !elements.summaryPerDiemEl || !appState) {
-        console.error("Missing Summary table elements or appState for updateSummaryTable");
+export function updateSummaryTable(state, recalculateCallback) {
+    if (!elements.summaryTableBody || !elements.summaryTotalLabelEl || !elements.summaryTotalEl || !elements.summaryPerDiemEl) {
+        console.error("Missing Summary table elements for updateSummaryTable");
         return;
     }
     elements.summaryTableBody.innerHTML = ''; // Clear previous rows
 
-    const { inputs, results } = appState;
+    // Determine if we're using appState or Zustand store
+    let inputs, results;
+    
+    if (state.getState) {
+        // Using Zustand store
+        const storeState = state.getState();
+        inputs = storeState.inputs;
+        results = storeState.results;
+    } else {
+        // Using appState object
+        inputs = state.inputs;
+        results = state.results;
+    }
+    
     const { totalOwing, perDiem, finalCalculationDate } = results;
     const { prejudgmentResult, postjudgmentResult } = results;
 
@@ -582,8 +603,17 @@ export function togglePrejudgmentVisibility(isInitializing = false, recalculateC
         console.error("Required elements for toggling prejudgment visibility not found.");
         return;
     }
+    
+    // Get the checked state from the DOM element
     const isChecked = elements.showPrejudgmentCheckbox.checked;
+    
+    // Update the DOM visibility
     elements.prejudgmentSection.style.display = isChecked ? '' : 'none';
+    
+    // Update the Zustand store (unless we're initializing)
+    if (!isInitializing) {
+        useStore.getState().setInput('showPrejudgment', isChecked);
+    }
 
     // Trigger recalculation unless it's the initial setup phase
     if (!isInitializing && typeof recalculateCallback === 'function') {
@@ -603,10 +633,17 @@ export function togglePostjudgmentVisibility(isInitializing = false, recalculate
         console.error("Required elements for toggling postjudgment visibility not found.");
         return;
     }
+    
+    // Get the checked state from the DOM element
     const isChecked = elements.showPostjudgmentCheckbox.checked;
 
     // Toggle visibility of the table section only
     elements.postjudgmentSection.style.display = isChecked ? '' : 'none';
+    
+    // Update the Zustand store (unless we're initializing)
+    if (!isInitializing) {
+        useStore.getState().setInput('showPostjudgment', isChecked);
+    }
 
     // Trigger recalculation unless it's the initial setup phase
     if (!isInitializing && typeof recalculateCallback === 'function') {
@@ -625,11 +662,17 @@ export function togglePerDiemVisibility(isInitializing = false, recalculateCallb
         return;
     }
     
+    // Get the checked state from the DOM element
     const isChecked = elements.showPerDiemCheckbox.checked;
     const perDiemRow = document.querySelector('.per-diem-row');
     
     if (perDiemRow) {
         perDiemRow.style.display = isChecked ? '' : 'none';
+    }
+    
+    // Update the Zustand store (unless we're initializing)
+    if (!isInitializing) {
+        useStore.getState().setInput('showPerDiem', isChecked);
     }
 
     // Trigger recalculation unless it's the initial setup phase
@@ -640,6 +683,7 @@ export function togglePerDiemVisibility(isInitializing = false, recalculateCallb
 
 /**
  * Sets the default values for input fields on page load.
+ * Also initializes the Zustand store with these default values.
  */
 export function setDefaultInputValues() {
      // Set default jurisdiction
@@ -656,6 +700,14 @@ export function setDefaultInputValues() {
      if (elements.showPerDiemCheckbox && !elements.showPerDiemCheckbox.checked) {
           elements.showPerDiemCheckbox.checked = true;
      }
+     
+     // Update the Zustand store with these default values
+     useStore.getState().setInputs({
+         jurisdiction: elements.jurisdictionSelect.value,
+         showPrejudgment: elements.showPrejudgmentCheckbox.checked,
+         showPostjudgment: elements.showPostjudgmentCheckbox.checked,
+         showPerDiem: elements.showPerDiemCheckbox.checked
+     });
 }
 
 /**
