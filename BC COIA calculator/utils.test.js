@@ -122,7 +122,7 @@ describe('utils.js', () => {
             const date1 = createUTCDate(2025, 1, 1); // January 1, 2025
             expect(formatDateLong(date1)).toBe('2025-01-01'); // Changed expected format
             const date2 = createUTCDate(2023, 12, 31); // December 31, 2023
-            expect(formatDateLong(date2)).toBe('2024-12-31'); // Changed expected format
+            expect(formatDateLong(date2)).toBe('2023-12-31'); // Fixed expected format
         });
 
         it('should return an empty string for invalid Date objects', () => {
