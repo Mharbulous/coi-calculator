@@ -200,11 +200,12 @@ export function updateSummaryTable(store, recalculateCallback) {
     const specialDamagesTotal = (results.specialDamages || []).reduce((total, damage) => total + damage.amount, 0);
 
     // Construct summary items from appState
+    // For damage rows, we'll use empty strings for dateValue since the judgment date is now in the header
     const items = [
-        { item: 'General Damages & Debt', dateValue: inputs.dateOfJudgment, amount: inputs.judgmentAwarded, isEditable: true },
-        { item: 'Special Damages', dateValue: inputs.dateOfJudgment, amount: specialDamagesTotal, isDisplayOnly: true },
-        { item: 'Non-pecuniary Damages', dateValue: inputs.nonPecuniaryJudgmentDate, amount: inputs.nonPecuniaryAwarded, isEditable: true },
-        { item: 'Costs & Disbursements', dateValue: inputs.costsAwardedDate, amount: inputs.costsAwarded, isEditable: true },
+        { item: 'General Damages & Debt', dateValue: '', amount: inputs.judgmentAwarded, isEditable: true },
+        { item: 'Special Damages', dateValue: '', amount: specialDamagesTotal, isDisplayOnly: true },
+        { item: 'Non-pecuniary Damages', dateValue: '', amount: inputs.nonPecuniaryAwarded, isEditable: true },
+        { item: 'Costs & Disbursements', dateValue: '', amount: inputs.costsAwarded, isEditable: true },
         { item: 'Prejudgment Interest', dateValue: inputs.prejudgmentStartDate, amount: prejudgmentResult.total, isDateEditable: true },
         { item: 'Postjudgment Interest', dateValue: inputs.postjudgmentEndDate, amount: postjudgmentResult.total, isDateEditable: true },
     ];

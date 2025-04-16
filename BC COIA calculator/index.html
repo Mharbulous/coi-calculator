@@ -138,6 +138,20 @@
     </div>
 
     <!-- HTML Templates for Summary Table Rows -->
+    <template id="summary-row-editable-amount-only">
+        <tr>
+            <td class="text-left" data-display="itemLabel">
+                <span data-display="itemText"></span>
+                <span class="help-icon" tabindex="0" role="button" aria-label="Help" data-display="helpIcon">?
+                    <span class="tooltip" data-display="tooltipText"></span>
+                </span>
+            </td>
+            <td class="text-right">
+                <input type="text" data-input="amountValue">
+            </td>
+        </tr>
+    </template>
+
     <template id="summary-row-editable-pecuniary">
         <tr>
             <td class="text-left" data-display="itemLabel">
@@ -147,7 +161,7 @@
                 </span>
             </td>
             <td class="text-center">
-                <input type="text" class="custom-date-input" data-input="dateValue" placeholder="YYYY-MM-DD">
+                <!-- Date input removed for pecuniary damages -->
             </td>
             <td class="text-right">
                 <input type="text" data-input="amountValue">
@@ -163,8 +177,8 @@
                     <span class="tooltip" data-display="tooltipText"></span>
                 </span>
             </td>
-            <td class="text-center" data-display="dateValue">
-                <!-- Date is displayed, not editable -->
+            <td class="text-center">
+                <!-- Date display removed for amount-editable rows -->
             </td>
             <td class="text-right">
                 <input type="text" data-input="amountValue">

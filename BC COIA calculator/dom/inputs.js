@@ -26,16 +26,13 @@ export function getInputValues() {
     // Use the judgment date input field as the primary source of the judgment date
     const dateOfJudgmentStr = elements.judgmentDateInput ? elements.judgmentDateInput.value : '';
     
-    // Sync the judgment date with the pecuniaryJudgmentDateInput if it exists
-    if (elements.pecuniaryJudgmentDateInput && dateOfJudgmentStr) {
-        elements.pecuniaryJudgmentDateInput.value = dateOfJudgmentStr;
-    }
+    // pecuniaryJudgmentDateInput no longer exists, sync removed.
     
     const judgmentAwardedStr = elements.pecuniaryJudgmentAmountInput ? elements.pecuniaryJudgmentAmountInput.value : '';
     const nonPecuniaryAwardedStr = elements.nonPecuniaryJudgmentAmountInput ? elements.nonPecuniaryJudgmentAmountInput.value : '';
     const costsAwardedStr = elements.costsAwardedAmountInput ? elements.costsAwardedAmountInput.value : '';
     
-    // For Non-Pecuniary and Costs dates, use the judgment date since they're no longer editable
+    // For all damage rows, use the judgment date
     const nonPecuniaryDateStr = dateOfJudgmentStr;
     const costsDateStr = dateOfJudgmentStr;
 
@@ -43,8 +40,8 @@ export function getInputValues() {
     const prejudgmentStartDate = parseDateInput(prejudgmentStartDateStr);
     const postjudgmentEndDate = parseDateInput(postjudgmentEndDateStr);
     const dateOfJudgment = parseDateInput(dateOfJudgmentStr);
-    const nonPecuniaryJudgmentDate = parseDateInput(nonPecuniaryDateStr);
-    const costsAwardedDate = parseDateInput(costsDateStr);
+    const nonPecuniaryJudgmentDate = dateOfJudgment; // Use the same Date object
+    const costsAwardedDate = dateOfJudgment; // Use the same Date object
     const judgmentAwarded = parseCurrency(judgmentAwardedStr);
     const nonPecuniaryAwarded = parseCurrency(nonPecuniaryAwardedStr);
     const costsAwarded = parseCurrency(costsAwardedStr);
@@ -101,45 +98,23 @@ export function validateInputValues(inputs) {
         validationMessage = "One or more required dates (Prejudgment Start, Judgments, Postjudgment End) are missing or invalid.";
         isValid = false;
     } else {
-        // Check judgment dates against prejudgment start date using normalized date comparisons
+        // All damage dates are now inputs.dateOfJudgment. Simplify checks.
+        
+        // Check judgment date against prejudgment start date
         if (dateBefore(inputs.dateOfJudgment, inputs.prejudgmentStartDate)) {
-            validationMessage = "General Damages & Debt Date cannot be before Prejudgment Start Date.";
-            isValid = false;
-        }
-        if (dateBefore(inputs.nonPecuniaryJudgmentDate, inputs.prejudgmentStartDate)) {
-            validationMessage = "Non-pecuniary Damages Date cannot be before Prejudgment Start Date.";
-            isValid = false;
-        }
-        if (dateBefore(inputs.costsAwardedDate, inputs.prejudgmentStartDate)) {
-            validationMessage = "Costs & Disbursements Date cannot be before Prejudgment Start Date.";
-            isValid = false;
-        }
-
-        // Find the latest judgment date using normalized date comparisons
-        let latestJudgmentDate = inputs.dateOfJudgment;
-        if (dateAfter(inputs.nonPecuniaryJudgmentDate, latestJudgmentDate)) {
-            latestJudgmentDate = inputs.nonPecuniaryJudgmentDate;
-        }
-        if (dateAfter(inputs.costsAwardedDate, latestJudgmentDate)) {
-            latestJudgmentDate = inputs.costsAwardedDate;
-        }
-        
-        if (inputs.showPostjudgment && dateBefore(inputs.postjudgmentEndDate, latestJudgmentDate)) {
-            validationMessage = "Postjudgment End Date cannot be before the latest Judgment Date when showing Postjudgment Interest.";
+            validationMessage = "Judgment Date cannot be before Prejudgment Start Date.";
             isValid = false;
         }
         
-        // Find the earliest judgment date using normalized date comparisons
-        let earliestJudgmentDate = inputs.dateOfJudgment;
-        if (dateBefore(inputs.nonPecuniaryJudgmentDate, earliestJudgmentDate)) {
-            earliestJudgmentDate = inputs.nonPecuniaryJudgmentDate;
-        }
-        if (dateBefore(inputs.costsAwardedDate, earliestJudgmentDate)) {
-            earliestJudgmentDate = inputs.costsAwardedDate;
+        // Check postjudgment end date against judgment date
+        if (inputs.showPostjudgment && dateBefore(inputs.postjudgmentEndDate, inputs.dateOfJudgment)) {
+            validationMessage = "Postjudgment End Date cannot be before the Judgment Date when showing Postjudgment Interest.";
+            isValid = false;
         }
         
-        if (dateAfter(inputs.prejudgmentStartDate, earliestJudgmentDate)) {
-            validationMessage = "Prejudgment Start Date cannot be after the earliest Judgment Date.";
+        // Check prejudgment start date against judgment date
+        if (dateAfter(inputs.prejudgmentStartDate, inputs.dateOfJudgment)) {
+            validationMessage = "Prejudgment Start Date cannot be after the Judgment Date.";
             isValid = false;
         }
     }
