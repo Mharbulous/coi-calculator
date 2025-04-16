@@ -196,11 +196,15 @@ export function updateSummaryTable(store, recalculateCallback) {
     const { totalOwing, perDiem, finalCalculationDate } = results;
     const { prejudgmentResult, postjudgmentResult } = results;
 
+    // Calculate total special damages
+    const specialDamagesTotal = (results.specialDamages || []).reduce((total, damage) => total + damage.amount, 0);
+
     // Construct summary items from appState
     const items = [
-        { item: 'Pecuniary Judgment', dateValue: inputs.dateOfJudgment, amount: inputs.judgmentAwarded, isEditable: true },
-        { item: 'Non-Pecuniary Judgment', dateValue: inputs.nonPecuniaryJudgmentDate, amount: inputs.nonPecuniaryAwarded, isEditable: true },
-        { item: 'Costs Awarded', dateValue: inputs.costsAwardedDate, amount: inputs.costsAwarded, isEditable: true },
+        { item: 'General Damages & Debt', dateValue: inputs.dateOfJudgment, amount: inputs.judgmentAwarded, isEditable: true },
+        { item: 'Special Damages', dateValue: inputs.dateOfJudgment, amount: specialDamagesTotal, isDisplayOnly: true },
+        { item: 'Non-pecuniary Damages', dateValue: inputs.nonPecuniaryJudgmentDate, amount: inputs.nonPecuniaryAwarded, isEditable: true },
+        { item: 'Costs & Disbursements', dateValue: inputs.costsAwardedDate, amount: inputs.costsAwarded, isEditable: true },
         { item: 'Prejudgment Interest', dateValue: inputs.prejudgmentStartDate, amount: prejudgmentResult.total, isDateEditable: true },
         { item: 'Postjudgment Interest', dateValue: inputs.postjudgmentEndDate, amount: postjudgmentResult.total, isDateEditable: true },
     ];
@@ -217,7 +221,7 @@ export function updateSummaryTable(store, recalculateCallback) {
 
     // Help text for tooltips
     const helpTexts = {
-        'Pecuniary Judgment': "Enter the date that judgment was pronounced.",
+        'General Damages & Debt': "Enter the date that judgment was pronounced.",
         'Prejudgment Interest': "Enter the date that prejudgment interest accrues from. Prejudgment interest typically accrues from the date the cause of action accrued, but the judge may order that interest accrues from another date.",
         'Postjudgment Interest': "Enter the date to accrue postjudgment interest to. Typically this will be to today's date, but you may specify another date."
     };
@@ -238,14 +242,16 @@ export function updateSummaryTable(store, recalculateCallback) {
         let rowClone;
 
         // 1. Determine which template to use
-        if (item.isEditable && item.item === 'Pecuniary Judgment') {
+        if (item.isEditable && item.item === 'General Damages & Debt') {
             template = templatePecuniary;
-        } else if (item.isEditable && (item.item === 'Non-Pecuniary Judgment' || item.item === 'Costs Awarded')) {
+        } else if (item.isEditable && (item.item === 'Non-pecuniary Damages' || item.item === 'Costs & Disbursements')) {
             template = templateAmountOnly;
         } else if (item.isDateEditable && (item.item === 'Prejudgment Interest' || item.item === 'Postjudgment Interest')) {
             template = templateDateOnly;
+        } else if (item.isDisplayOnly || item.item === 'Special Damages') {
+            template = templateDisplayOnly; // For display-only items like Special Damages
         } else {
-            template = templateDisplayOnly; // Fallback or for non-editable items
+            template = templateDisplayOnly; // Fallback for any other items
         }
 
         // 2. Clone the template
@@ -291,23 +297,23 @@ export function updateSummaryTable(store, recalculateCallback) {
             }
         } else if (template === templateAmountOnly) {
             if (dateDisplay) {
-                 // Display the Pecuniary Judgment date (now YYYY-MM-DD) for Non-Pecuniary/Costs
-                 const pecuniaryItem = items.find(i => i.item === 'Pecuniary Judgment');
+                 // Display the General Damages & Debt date (now YYYY-MM-DD) for Non-Pecuniary/Costs
+                 const pecuniaryItem = items.find(i => i.item === 'General Damages & Debt');
                  const pecuniaryDateStr = pecuniaryItem && pecuniaryItem.dateValue instanceof Date ? formatDateForDisplay(pecuniaryItem.dateValue) : '';
                  dateDisplay.textContent = pecuniaryDateStr;
             }
             if (amountInput) {
                 amountInput.value = formattedAmountInputWithCommas; // Use comma format initially
                 setupCurrencyInputListeners(amountInput, recalculateCallback);
-                if (item.item === 'Non-Pecuniary Judgment') {
+                if (item.item === 'Non-pecuniary Damages') {
                     elements.nonPecuniaryJudgmentAmountInput = amountInput; // Store reference
-                } else if (item.item === 'Costs Awarded') {
+                } else if (item.item === 'Costs & Disbursements') {
                     elements.costsAwardedAmountInput = amountInput; // Store reference
                 }
             }
              // Set null references for dates as they are not editable here
-             if (item.item === 'Non-Pecuniary Judgment') elements.nonPecuniaryJudgmentDateInput = null;
-             if (item.item === 'Costs Awarded') elements.costsAwardedDateInput = null;
+             if (item.item === 'Non-pecuniary Damages') elements.nonPecuniaryJudgmentDateInput = null;
+             if (item.item === 'Costs & Disbursements') elements.costsAwardedDateInput = null;
 
         } else if (template === templateDateOnly) {
             if (dateInput) {

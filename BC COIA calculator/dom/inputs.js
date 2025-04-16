@@ -95,15 +95,15 @@ export function validateInputValues(inputs) {
     } else {
         // Check judgment dates against prejudgment start date using normalized date comparisons
         if (dateBefore(inputs.dateOfJudgment, inputs.prejudgmentStartDate)) {
-            validationMessage = "Pecuniary Judgment Date cannot be before Prejudgment Start Date.";
+            validationMessage = "General Damages & Debt Date cannot be before Prejudgment Start Date.";
             isValid = false;
         }
         if (dateBefore(inputs.nonPecuniaryJudgmentDate, inputs.prejudgmentStartDate)) {
-            validationMessage = "Non-Pecuniary Judgment Date cannot be before Prejudgment Start Date.";
+            validationMessage = "Non-pecuniary Damages Date cannot be before Prejudgment Start Date.";
             isValid = false;
         }
         if (dateBefore(inputs.costsAwardedDate, inputs.prejudgmentStartDate)) {
-            validationMessage = "Costs Awarded Date cannot be before Prejudgment Start Date.";
+            validationMessage = "Costs & Disbursements Date cannot be before Prejudgment Start Date.";
             isValid = false;
         }
 
@@ -138,7 +138,7 @@ export function validateInputValues(inputs) {
     
     // Check all currency amounts
     if (inputs.judgmentAwarded < 0 || inputs.nonPecuniaryAwarded < 0 || inputs.costsAwarded < 0) {
-        validationMessage = "Pecuniary Judgment, Non-pecuniary, and Costs amounts cannot be negative.";
+        validationMessage = "General Damages & Debt, Non-pecuniary Damages, and Costs & Disbursements amounts cannot be negative.";
         isValid = false;
     }
 
