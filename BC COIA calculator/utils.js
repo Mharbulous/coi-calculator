@@ -3,6 +3,33 @@
  */
 
 /**
+ * Validates that a string is in the YYYY-MM-DD format.
+ * @param {string} dateString - The date string to validate.
+ * @returns {boolean} True if the string is in YYYY-MM-DD format, false otherwise.
+ */
+export function validateDateFormat(dateString) {
+    if (!dateString) return false;
+    // Regular expression to match YYYY-MM-DD format
+    const regex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!regex.test(dateString)) return false;
+    
+    // Further validate that it's a valid date
+    const parts = dateString.split('-');
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10);
+    const day = parseInt(parts[2], 10);
+    
+    // Check month and day ranges
+    if (month < 1 || month > 12) return false;
+    
+    // Get the last day of the month for the given year/month
+    const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
+    if (day < 1 || day > lastDay) return false;
+    
+    return true;
+}
+
+/**
  * Parses a date string in YYYY-MM-DD format into a UTC Date object.
  * @param {string} dateString - The date string to parse.
  * @returns {Date|null} The parsed Date object in UTC, or null if invalid.

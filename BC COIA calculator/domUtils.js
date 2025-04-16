@@ -1,4 +1,4 @@
-import { formatCurrencyForDisplay, formatCurrencyForInput, formatCurrencyForInputWithCommas, formatDateLong, parseCurrency, parseDateInput, formatDateForInput, formatDateForDisplay } from './utils.js';
+import { formatCurrencyForDisplay, formatCurrencyForInput, formatCurrencyForInputWithCommas, formatDateLong, parseCurrency, parseDateInput, formatDateForInput, formatDateForDisplay, validateDateFormat } from './utils.js';
 
 // --- DOM Element Selectors ---
 // Using data attributes for more robust selection
@@ -344,6 +344,57 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
 
 
 /**
+ * Sets up event listeners for custom date input fields.
+ * @param {HTMLInputElement} inputElement - The date input element.
+ * @param {function} changeCallback - The function to call after validation.
+ */
+export function setupCustomDateInputListeners(inputElement, changeCallback) {
+    if (!inputElement) return;
+
+    // Format on blur
+    inputElement.addEventListener('blur', (event) => {
+        const value = event.target.value.trim();
+        if (value === '') {
+            // Allow empty value
+            if (typeof changeCallback === 'function') {
+                changeCallback();
+            }
+            return;
+        }
+
+        // Validate the date format
+        if (validateDateFormat(value)) {
+            // Format is valid, keep as is
+            if (typeof changeCallback === 'function') {
+                changeCallback();
+            }
+        } else {
+            // Try to parse and reformat the date
+            const dateObj = parseDateInput(value);
+            if (dateObj) {
+                // If we could parse it, format it correctly
+                event.target.value = formatDateForInput(dateObj);
+                if (typeof changeCallback === 'function') {
+                    changeCallback();
+                }
+            } else {
+                // Invalid date, show error
+                alert(`Invalid date format: ${value}. Please use YYYY-MM-DD format.`);
+                // Focus back on the input for correction
+                setTimeout(() => event.target.focus(), 100);
+            }
+        }
+    });
+
+    // Handle Enter key
+    inputElement.addEventListener('keyup', (event) => {
+        if (event.key === 'Enter') {
+            event.target.blur(); // Trigger blur event which handles validation
+        }
+    });
+}
+
+/**
  * Updates the Summary table, creating editable fields for Pecuniary Judgment.
  * @param {Array<object>} items - Array of objects { item: string, dateValue: Date | string, amount: number, isEditable?: boolean, inputType?: 'date'|'text', dataAttrDate?: string, dataAttrAmount?: string }.
  * @param {number} totalOwing - The final calculated total amount.
@@ -434,7 +485,7 @@ export function updateSummaryTable(items, totalOwing, perDiem, finalCalculationD
         if (template === templatePecuniary) {
             if (dateInput) {
                 dateInput.value = formattedDate;
-                dateInput.addEventListener('change', recalculateCallback);
+                setupCustomDateInputListeners(dateInput, recalculateCallback);
                 elements.pecuniaryJudgmentDateInput = dateInput; // Store reference
             }
             if (amountInput) {
@@ -465,7 +516,7 @@ export function updateSummaryTable(items, totalOwing, perDiem, finalCalculationD
         } else if (template === templateDateOnly) {
             if (dateInput) {
                 dateInput.value = formattedDate;
-                dateInput.addEventListener('change', recalculateCallback);
+                setupCustomDateInputListeners(dateInput, recalculateCallback);
                 if (item.item === 'Prejudgment Interest') {
                     elements.prejudgmentInterestDateInput = dateInput; // Store reference
                 } else if (item.item === 'Postjudgment Interest') {
@@ -620,7 +671,7 @@ export function setDefaultInputValues() {
  * Inserts a new special damages row immediately after the specified row.
  * @param {HTMLTableSectionElement} tableBody - The tbody element of the table.
  * @param {HTMLTableRowElement} currentRow - The row after which to insert the new row.
- * @param {string} date - The date to pre-populate in the new row (DD/MM/YYYY format).
+ * @param {string} date - The date to pre-populate in the new row (YYYY-MM-DD format).
  */
 function insertSpecialDamagesRow(tableBody, currentRow, date) {
     // Get the index of the current row
@@ -633,14 +684,16 @@ function insertSpecialDamagesRow(tableBody, currentRow, date) {
     // Date cell (editable, pre-populated with the date from the current row)
     const dateCell = newRow.insertCell();
     const dateInput = document.createElement('input');
-    dateInput.type = 'date';
-    dateInput.className = 'special-damages-date';
+    dateInput.type = 'text';
+    dateInput.className = 'special-damages-date custom-date-input';
     dateInput.dataset.type = 'special-damages-date';
+    dateInput.placeholder = 'YYYY-MM-DD';
     
     // Passed date is already YYYY-MM-DD from formatDateForDisplay
     dateInput.value = date; 
     
-    dateInput.addEventListener('change', function() {
+    // Use the custom date input listeners
+    setupCustomDateInputListeners(dateInput, function() {
         // When the date changes, trigger recalculation
         const event = new CustomEvent('special-damages-updated');
         document.dispatchEvent(event);
@@ -715,14 +768,18 @@ function insertSpecialDamagesRowFromData(tableBody, index, rowData) {
     // Date cell
     const dateCell = newRow.insertCell();
     const dateInput = document.createElement('input');
-    dateInput.type = 'date';
-    dateInput.className = 'special-damages-date';
+    dateInput.type = 'text';
+    dateInput.className = 'special-damages-date custom-date-input';
     dateInput.dataset.type = 'special-damages-date';
+    dateInput.placeholder = 'YYYY-MM-DD';
     dateInput.value = rowData.date; // Already in YYYY-MM-DD
-    dateInput.addEventListener('change', function() {
+    
+    // Use the custom date input listeners
+    setupCustomDateInputListeners(dateInput, function() {
         const event = new CustomEvent('special-damages-updated');
         document.dispatchEvent(event);
     });
+    
     dateCell.appendChild(dateInput);
     dateCell.classList.add('text-left');
 

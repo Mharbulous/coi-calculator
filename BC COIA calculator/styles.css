@@ -419,6 +419,27 @@ h1 i {
     100% { background-color: transparent; }
 }
 
+/* Custom date input styles */
+.custom-date-input {
+    border: none;
+    background-color: var(--input-background-color);
+    padding: var(--spacing-unit);
+    font-family: var(--font-family);
+    font-size: inherit;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+.custom-date-input:focus {
+    outline: 1px solid var(--focus-outline-color);
+}
+
+.custom-date-input::placeholder {
+    color: #999;
+    opacity: 0.7;
+}
+
 /* Special damages input styles */
 .special-damages-date,
 .special-damages-description,
@@ -433,7 +454,7 @@ h1 i {
 }
 
 .special-damages-date {
-    text-align: left;
+    text-align: center;
 }
 
 .special-damages-description {
