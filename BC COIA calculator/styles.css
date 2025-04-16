@@ -312,7 +312,36 @@ h1 i {
  }
  .summary-table tbody td:nth-child(2) {
     text-align: center; /* Date centered */
+    /* Remove default padding for the container cell */
+    padding-left: 0;
+    padding-right: 0;
  }
+
+ /* New styles for the date label wrapper */
+ .date-label-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    /* Remove top/bottom padding, keep left/right for internal spacing */
+    padding: 0 calc(var(--spacing-unit) * 1.5); 
+    box-sizing: border-box; /* Include padding in width calculation */
+    height: 100%; /* Ensure wrapper fills cell height */
+ }
+
+ .date-prefix-label {
+    margin-right: calc(var(--spacing-unit) * 1.5); /* Add space between label and input */
+    white-space: nowrap; /* Prevent label from wrapping */
+ }
+
+ /* Adjust date input width if needed, or let flexbox handle it */
+ .date-label-wrapper .custom-date-input {
+    flex-grow: 1; /* Allow input to take remaining space */
+    width: auto; /* Override fixed width if previously set */
+    min-width: 80px; /* Ensure a minimum width */
+    text-align: right; /* Align date input text to the right */
+ }
+
  /* Ensure all inputs in the summary table use Arial font and 11pt size */
  .summary-table input[type="date"],
  .summary-table input[type="text"] {

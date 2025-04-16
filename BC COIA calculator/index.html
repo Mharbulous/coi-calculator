@@ -194,8 +194,11 @@
                     <span class="tooltip" data-display="tooltipText"></span>
                 </span>
             </td>
-            <td class="text-center">
-                <input type="text" class="custom-date-input" data-input="dateValue" placeholder="YYYY-MM-DD">
+            <td class="text-center date-cell-container"> <!-- Added class for styling -->
+                <div class="date-label-wrapper"> <!-- New wrapper for flex layout -->
+                    <span data-display="dateLabel" class="date-prefix-label"></span> <!-- Span for "from"/"until" -->
+                    <input type="text" class="custom-date-input" data-input="dateValue" placeholder="YYYY-MM-DD">
+                </div>
             </td>
             <td class="text-right" data-display="amountValue">
                 <!-- Amount is displayed, not editable -->

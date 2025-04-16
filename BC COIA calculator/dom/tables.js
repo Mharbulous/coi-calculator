@@ -267,6 +267,7 @@ export function updateSummaryTable(store, recalculateCallback) {
         const amountInput = rowClone.querySelector('[data-input="amountValue"]');
         const dateDisplay = rowClone.querySelector('[data-display="dateValue"]');
         const amountDisplay = rowClone.querySelector('[data-display="amountValue"]');
+        const dateLabelSpan = rowClone.querySelector('[data-display="dateLabel"]'); // Find the new label span
 
         // 4. Populate Item Label and Help Text/Icon
         if (itemTextSpan) {
@@ -336,6 +337,16 @@ export function updateSummaryTable(store, recalculateCallback) {
             }
             if (amountDisplay) {
                 amountDisplay.innerHTML = formattedAmount; // Display calculated amount
+            }
+            // Set the text for the "from"/"until" label
+            if (dateLabelSpan) {
+                if (item.item === 'Prejudgment Interest') {
+                    dateLabelSpan.textContent = 'from';
+                } else if (item.item === 'Postjudgment Interest') {
+                    dateLabelSpan.textContent = 'until';
+                } else {
+                    dateLabelSpan.textContent = ''; // Clear for other rows using this template (if any)
+                }
             }
         } else { // templateDisplayOnly
             if (dateDisplay) {
