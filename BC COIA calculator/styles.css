@@ -323,9 +323,7 @@ h1 i {
  }
  
  /* Right align text in amount input fields */
- .summary-table input[data-input="pecuniaryJudgmentAmount"],
- .summary-table input[data-input="nonPecuniaryJudgmentAmount"],
- .summary-table input[data-input="costsAwardedAmount"] {
+ .summary-table input[data-input="amountValue"] {
     text-align: right;
     padding-right: 0; /* Remove right padding for perfect alignment */
  }
