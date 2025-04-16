@@ -250,6 +250,12 @@ describe('calculations.js', () => {
             const startDate = createUTCDate(2023, 6, 1); // Jun 1, 2023 (Period 3 @ 3.0%)
             const endDate = createUTCDate(2023, 7, 31); // Jul 31, 2023 (Period 4 @ 3.5%)
 
+            // Create a mock state object
+            const mockState = {
+                inputs: { jurisdiction: 'BC' },
+                results: { specialDamages: [] }
+            };
+
             // Period 3: Jun 1 - Jun 30 (30 days @ 3.0%)
             const days1 = 30;
             const rate1 = 3.0;
@@ -262,7 +268,14 @@ describe('calculations.js', () => {
 
             const expectedTotalInterest = interest1 + interest2;
 
-            const result = calculateInterestPeriods(principal, startDate, endDate, 'prejudgment', 'BC', mockRatesData);
+            const result = calculateInterestPeriods(
+                mockState,
+                'prejudgment',
+                startDate,
+                endDate,
+                principal,
+                mockRatesData
+            );
 
             expect(result.details.length).toBe(2);
             // Check Period 3 segment
@@ -283,6 +296,12 @@ describe('calculations.js', () => {
              const startDate = createUTCDate(2023, 12, 1); // Dec 1, 2023 (Period 4 @ 4.5%)
              const endDate = createUTCDate(2024, 2, 15);  // Feb 15, 2024 (Period 5 @ 5.0%)
 
+             // Create a mock state object
+             const mockState = {
+                 inputs: { jurisdiction: 'BC' },
+                 results: { specialDamages: [] }
+             };
+
              // Period 4 (2023 - non-leap): Dec 1 - Dec 31 (31 days @ 4.5%)
              const days1 = 31;
              const rate1 = 4.5;
@@ -295,7 +314,14 @@ describe('calculations.js', () => {
 
              const expectedTotalInterest = interest1 + interest2;
 
-             const result = calculateInterestPeriods(principal, startDate, endDate, 'postjudgment', 'BC', mockRatesData);
+             const result = calculateInterestPeriods(
+                 mockState,
+                 'postjudgment',
+                 startDate,
+                 endDate,
+                 principal,
+                 mockRatesData
+             );
 
              expect(result.details.length).toBe(2);
              // Check Period 4 segment
@@ -320,7 +346,20 @@ describe('calculations.js', () => {
             const expectedRate = 3.5;
             const expectedInterest = (principal * (expectedRate / 100) * expectedDays) / 365;
 
-            const result = calculateInterestPeriods(principal, startDate, endDate, 'prejudgment', 'BC', mockRatesData);
+            // Create a mock state object
+            const mockState = {
+                inputs: { jurisdiction: 'BC' },
+                results: { specialDamages: [] }
+            };
+
+            const result = calculateInterestPeriods(
+                mockState,
+                'prejudgment',
+                startDate,
+                endDate,
+                principal,
+                mockRatesData
+            );
 
             expect(result.details.length).toBe(1);
             expect(result.details[0].description).toBe(`${expectedDays} days`);
@@ -336,7 +375,20 @@ describe('calculations.js', () => {
             const expectedRate = 3.0;
             const expectedInterest = (principal * (expectedRate / 100) * expectedDays) / 365;
 
-            const result = calculateInterestPeriods(principal, startDate, endDate, 'prejudgment', 'BC', mockRatesData);
+            // Create a mock state object
+            const mockState = {
+                inputs: { jurisdiction: 'BC' },
+                results: { specialDamages: [] }
+            };
+
+            const result = calculateInterestPeriods(
+                mockState,
+                'prejudgment',
+                startDate,
+                endDate,
+                principal,
+                mockRatesData
+            );
 
             expect(result.details.length).toBe(1);
             expect(result.details[0].description).toBe(`${expectedDays} days`);
@@ -349,6 +401,12 @@ describe('calculations.js', () => {
             const startDate = createUTCDate(2022, 6, 21); // 10 days in Period 1 @ 2.0%
             const endDate = createUTCDate(2022, 7, 10); // 10 days in Period 2 @ 2.5%
 
+            // Create a mock state object
+            const mockState = {
+                inputs: { jurisdiction: 'BC' },
+                results: { specialDamages: [] }
+            };
+
             // Period 1: Jun 21 - Jun 30 (10 days @ 2.0%)
             const days1 = 10;
             const rate1 = 2.0;
@@ -360,7 +418,14 @@ describe('calculations.js', () => {
             const interest2 = (principal * (rate2 / 100) * days2) / 365;
 
             const expectedTotalInterest = interest1 + interest2;
-            const result = calculateInterestPeriods(principal, startDate, endDate, 'prejudgment', 'BC', mockRatesData);
+            const result = calculateInterestPeriods(
+                mockState,
+                'prejudgment',
+                startDate,
+                endDate,
+                principal,
+                mockRatesData
+            );
 
             expect(result.details.length).toBe(2);
             expect(result.details[0].description).toBe(`${days1} days`);
@@ -379,7 +444,20 @@ describe('calculations.js', () => {
             const expectedRate = 5.0; // ON prejudgment rate
             const expectedInterest = (principal * (expectedRate / 100) * expectedDays) / 365;
 
-            const result = calculateInterestPeriods(principal, startDate, endDate, 'prejudgment', 'ON', mockRatesData);
+            // Create a mock state object
+            const mockState = {
+                inputs: { jurisdiction: 'ON' },
+                results: { specialDamages: [] }
+            };
+
+            const result = calculateInterestPeriods(
+                mockState,
+                'prejudgment',
+                startDate,
+                endDate,
+                principal,
+                mockRatesData
+            );
 
             expect(result.details.length).toBe(1);
             expect(result.details[0].description).toBe(`${expectedDays} days`);
@@ -411,6 +489,12 @@ describe('calculations.js', () => {
              const startDate = createUTCDate(2022, 6, 25); // Jun 25, 2022 (Period 1 @ 2.0%)
              const endDate = createUTCDate(2022, 6, 30);   // Jun 30, 2022 (End of Period 1)
 
+             // Create a mock state object
+             const mockState = {
+                 inputs: { jurisdiction: 'BC' },
+                 results: { specialDamages: [] }
+             };
+
              // Period 1: Jun 25 - Jun 30 (6 days @ 2.0%)
              const days1 = 6;
              const rate1 = 2.0;
@@ -422,7 +506,14 @@ describe('calculations.js', () => {
              // Mock console.warn to check for warnings
              const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
 
-             const result = calculateInterestPeriods(principal, startDate, endDate, 'prejudgment', 'BC', ratesWithGap);
+             const result = calculateInterestPeriods(
+                 mockState,
+                 'prejudgment',
+                 startDate,
+                 endDate,
+                 principal,
+                 ratesWithGap
+             );
 
              expect(result.details.length).toBe(1); // Only the segment with a rate
              expect(result.details[0].description).toBe(`${days1} days`);
@@ -444,6 +535,12 @@ describe('calculations.js', () => {
                 { date: '2023-08-01', amount: 1000, description: 'Damage 2' } // During Period 4
             ];
 
+            // Create a mock state object
+            const mockState = {
+                inputs: { jurisdiction: 'BC' },
+                results: { specialDamages: specialDamages }
+            };
+
             // Period 3: Jan 1 - Jun 30 (181 days @ 3.0%) - Principal: 10000
             const days1 = 181;
             const rate1 = 3.0;
@@ -459,7 +556,14 @@ describe('calculations.js', () => {
             const expectedTotalInterest = interest1 + interest2;
             const expectedFinalPrincipal = 10000 + 500 + 1000; // Initial + Damage 1 + Damage 2
 
-            const result = calculateInterestPeriods(principal, startDate, endDate, 'prejudgment', 'BC', mockRatesData, specialDamages);
+            const result = calculateInterestPeriods(
+                mockState,
+                'prejudgment',
+                startDate,
+                endDate,
+                principal,
+                mockRatesData
+            );
 
             expect(result.details.length).toBe(2);
             // Check Period 3 segment
@@ -482,6 +586,12 @@ describe('calculations.js', () => {
                 { date: '2022-07-01', amount: 300, description: 'Start of P2' } // Start of Period 2
             ];
 
+            // Create a mock state object
+            const mockState = {
+                inputs: { jurisdiction: 'BC' },
+                results: { specialDamages: specialDamages }
+            };
+
             // Period 1: Jan 1 - Jun 30 (181 days @ 2.0%) - Principal: 5000
             const days1 = 181;
             const rate1 = 2.0;
@@ -498,7 +608,14 @@ describe('calculations.js', () => {
             const expectedTotalInterest = interest1 + interest2;
             const expectedFinalPrincipal = 5000 + 200 + 300; // Initial + Damage 1 + Damage 2
 
-            const result = calculateInterestPeriods(principal, startDate, endDate, 'prejudgment', 'BC', mockRatesData, specialDamages);
+            const result = calculateInterestPeriods(
+                mockState,
+                'prejudgment',
+                startDate,
+                endDate,
+                principal,
+                mockRatesData
+            );
 
             expect(result.details.length).toBe(2);
             // Check Period 1 segment
@@ -521,6 +638,12 @@ describe('calculations.js', () => {
                 { date: '2023-06-30', amount: 50, description: 'On End Date' }
             ];
 
+            // Create a mock state object
+            const mockState = {
+                inputs: { jurisdiction: 'BC' },
+                results: { specialDamages: specialDamages }
+            };
+
             // Period 3: Jan 1 - Jun 30 (181 days @ 3.0%) - Principal: 1000
             const days1 = 181;
             const rate1 = 3.0;
@@ -530,7 +653,14 @@ describe('calculations.js', () => {
             const expectedTotalInterest = interest1;
             const expectedFinalPrincipal = 1000 + 50; // Damage added to final principal
 
-            const result = calculateInterestPeriods(principal, startDate, endDate, 'prejudgment', 'BC', mockRatesData, specialDamages);
+            const result = calculateInterestPeriods(
+                mockState,
+                'prejudgment',
+                startDate,
+                endDate,
+                principal,
+                mockRatesData
+            );
 
             expect(result.details.length).toBe(1); // Only the main period calculation
             expect(result.details[0].principal).toBe(principal1); // Damage doesn't affect interest calc within the period
@@ -547,6 +677,12 @@ describe('calculations.js', () => {
                 { date: '2023-01-03', amount: 300, description: 'Physio' }, // Within final period
                 { date: '2023-03-01', amount: 50, description: 'Meds' }    // Within final period
             ];
+
+            // Create a mock state object
+            const mockState = {
+                inputs: { jurisdiction: 'BC' },
+                results: { specialDamages: specialDamages }
+            };
 
             // Final Period (Period 3): Jan 1 - May 1 (121 days @ 3.0%) - Principal: 10000
             const finalSegmentDays = 121;
@@ -567,7 +703,14 @@ describe('calculations.js', () => {
             const expectedTotalInterest = finalSegmentInterest + damage1Interest + damage2Interest;
             const expectedFinalPrincipal = 10000 + 300 + 50;
 
-            const result = calculateInterestPeriods(principal, startDate, endDate, 'prejudgment', 'BC', mockRatesData, specialDamages);
+            const result = calculateInterestPeriods(
+                mockState,
+                'prejudgment',
+                startDate,
+                endDate,
+                principal,
+                mockRatesData
+            );
 
             // With our new implementation, we expect 3 rows: 1 main segment + 2 special damage calcs
             expect(result.details.length).toBe(3);
@@ -600,6 +743,7 @@ describe('calculations.js', () => {
             expect(result.principal).toBe(expectedFinalPrincipal);
         });
 
+
         it('should handle final period damages when the final period spans a rate change', () => {
             const principal = 20000;
             const startDate = createUTCDate(2023, 6, 1); // Start of Period 3
@@ -629,7 +773,20 @@ describe('calculations.js', () => {
             const expectedTotalInterest = interest1 + finalSegmentInterest + damage2Interest;
             const expectedFinalPrincipal = 20000 + 100 + 200;
 
-            const result = calculateInterestPeriods(principal, startDate, endDate, 'prejudgment', 'BC', mockRatesData, specialDamages);
+            // Create a mock state object
+            const mockState = {
+                inputs: { jurisdiction: 'BC' },
+                results: { specialDamages: specialDamages }
+            };
+
+            const result = calculateInterestPeriods(
+                mockState,
+                'prejudgment',
+                startDate,
+                endDate,
+                principal,
+                mockRatesData
+            );
 
             // With our new implementation, we expect 3 rows: 1 regular segment + 1 final segment + 1 special damage calc
             expect(result.details.length).toBe(3);
@@ -664,63 +821,148 @@ describe('calculations.js', () => {
 
     describe('calculatePerDiem', () => {
         it('should calculate per diem correctly based on postjudgment rate (non-leap year)', () => {
-            const principal = 100000; // Total owing
-            const calcDate = createUTCDate(2023, 8, 15); // Aug 15, 2023 (Period 4 @ 4.5% postjudgment)
+            const totalOwing = 100000; // Total owing
+            const finalCalculationDate = createUTCDate(2023, 8, 15); // Aug 15, 2023 (Period 4 @ 4.5% postjudgment)
             const expectedRate = 4.5;
-            const expectedPerDiem = (principal * (expectedRate / 100)) / 365; // 2023 is non-leap
+            const expectedPerDiem = (totalOwing * (expectedRate / 100)) / 365; // 2023 is non-leap
 
-            const result = calculatePerDiem(principal, calcDate, 'BC', mockRatesData);
+            // Create a mock state object
+            const mockState = {
+                inputs: { jurisdiction: 'BC' },
+                results: { 
+                    totalOwing: totalOwing,
+                    finalCalculationDate: finalCalculationDate
+                }
+            };
+
+            const result = calculatePerDiem(mockState, mockRatesData);
             expectToBeCloseTo(result, expectedPerDiem);
         });
 
         it('should calculate per diem correctly based on postjudgment rate (leap year)', () => {
-            const principal = 50000; // Total owing
-            const calcDate = createUTCDate(2024, 3, 1); // Mar 1, 2024 (Period 5 @ 5.0% postjudgment)
+            const totalOwing = 50000; // Total owing
+            const finalCalculationDate = createUTCDate(2024, 3, 1); // Mar 1, 2024 (Period 5 @ 5.0% postjudgment)
             const expectedRate = 5.0;
-            const expectedPerDiem = (principal * (expectedRate / 100)) / 366; // 2024 is leap
+            const expectedPerDiem = (totalOwing * (expectedRate / 100)) / 366; // 2024 is leap
 
-            const result = calculatePerDiem(principal, calcDate, 'BC', mockRatesData);
+            // Create a mock state object
+            const mockState = {
+                inputs: { jurisdiction: 'BC' },
+                results: { 
+                    totalOwing: totalOwing,
+                    finalCalculationDate: finalCalculationDate
+                }
+            };
+
+            const result = calculatePerDiem(mockState, mockRatesData);
             expectToBeCloseTo(result, expectedPerDiem);
         });
 
         it('should return 0 for zero principal', () => {
-            const calcDate = createUTCDate(2023, 8, 15);
-            expect(calculatePerDiem(0, calcDate, 'BC', mockRatesData)).toBe(0);
+            const finalCalculationDate = createUTCDate(2023, 8, 15);
+            
+            // Create a mock state object
+            const mockState = {
+                inputs: { jurisdiction: 'BC' },
+                results: { 
+                    totalOwing: 0,
+                    finalCalculationDate: finalCalculationDate
+                }
+            };
+            
+            expect(calculatePerDiem(mockState, mockRatesData)).toBe(0);
         });
 
         it('should return 0 for negative principal', () => {
-            const calcDate = createUTCDate(2023, 8, 15);
-            expect(calculatePerDiem(-1000, calcDate, 'BC', mockRatesData)).toBe(0);
+            const finalCalculationDate = createUTCDate(2023, 8, 15);
+            
+            // Create a mock state object
+            const mockState = {
+                inputs: { jurisdiction: 'BC' },
+                results: { 
+                    totalOwing: -1000,
+                    finalCalculationDate: finalCalculationDate
+                }
+            };
+            
+            expect(calculatePerDiem(mockState, mockRatesData)).toBe(0);
         });
 
         it('should return 0 for invalid calculation date', () => {
-            expect(calculatePerDiem(10000, null, 'BC', mockRatesData)).toBe(0);
-            expect(calculatePerDiem(10000, new Date('invalid'), 'BC', mockRatesData)).toBe(0);
+            // Create a mock state object with null date
+            const mockStateNullDate = {
+                inputs: { jurisdiction: 'BC' },
+                results: { 
+                    totalOwing: 10000,
+                    finalCalculationDate: null
+                }
+            };
+            
+            // Create a mock state object with invalid date
+            const mockStateInvalidDate = {
+                inputs: { jurisdiction: 'BC' },
+                results: { 
+                    totalOwing: 10000,
+                    finalCalculationDate: new Date('invalid')
+                }
+            };
+            
+            expect(calculatePerDiem(mockStateNullDate, mockRatesData)).toBe(0);
+            expect(calculatePerDiem(mockStateInvalidDate, mockRatesData)).toBe(0);
         });
 
         it('should return 0 if no postjudgment rate is found for the date', () => {
-            const principal = 10000;
-            const calcDate = createUTCDate(2021, 12, 31); // Date before first mock rate period
+            const totalOwing = 10000;
+            const finalCalculationDate = createUTCDate(2021, 12, 31); // Date before first mock rate period
+            
+            // Create a mock state object
+            const mockState = {
+                inputs: { jurisdiction: 'BC' },
+                results: { 
+                    totalOwing: totalOwing,
+                    finalCalculationDate: finalCalculationDate
+                }
+            };
+            
             // Mock console.warn to check for warnings
             const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
-            expect(calculatePerDiem(principal, calcDate, 'BC', mockRatesData)).toBe(0);
+            expect(calculatePerDiem(mockState, mockRatesData)).toBe(0);
             expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining('Could not find a valid postjudgment rate'));
             consoleWarnSpy.mockRestore();
         });
 
         it('should return 0 for missing jurisdiction data', () => {
-            const principal = 10000;
-            const calcDate = createUTCDate(2023, 8, 15);
-            expect(calculatePerDiem(principal, calcDate, 'AB', mockRatesData)).toBe(0);
+            const totalOwing = 10000;
+            const finalCalculationDate = createUTCDate(2023, 8, 15);
+            
+            // Create a mock state object
+            const mockState = {
+                inputs: { jurisdiction: 'AB' },
+                results: { 
+                    totalOwing: totalOwing,
+                    finalCalculationDate: finalCalculationDate
+                }
+            };
+            
+            expect(calculatePerDiem(mockState, mockRatesData)).toBe(0);
         });
 
         it('should use the correct rate for a different jurisdiction (ON)', () => {
-            const principal = 20000;
-            const calcDate = createUTCDate(2023, 5, 1); // May 1, 2023
+            const totalOwing = 20000;
+            const finalCalculationDate = createUTCDate(2023, 5, 1); // May 1, 2023
             const expectedRate = 6.0; // ON postjudgment rate for 2023
-            const expectedPerDiem = (principal * (expectedRate / 100)) / 365;
+            const expectedPerDiem = (totalOwing * (expectedRate / 100)) / 365;
 
-            const result = calculatePerDiem(principal, calcDate, 'ON', mockRatesData);
+            // Create a mock state object
+            const mockState = {
+                inputs: { jurisdiction: 'ON' },
+                results: { 
+                    totalOwing: totalOwing,
+                    finalCalculationDate: finalCalculationDate
+                }
+            };
+
+            const result = calculatePerDiem(mockState, mockRatesData);
             expectToBeCloseTo(result, expectedPerDiem);
         });
     });
