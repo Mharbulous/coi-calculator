@@ -24,7 +24,7 @@
             <div class="field-row">
                 <div class="checkbox-container left">
                     <input type="checkbox" data-input="showPrejudgmentCheckbox" id="showPrejudgmentCheckbox" checked>
-                    <label for="showPrejudgmentCheckbox">Show prejudgment interest</label>
+                    <label for="showPrejudgmentCheckbox">Calculate prejudgment interest</label>
                 </div>
                 <div class="right-field">
                     <span class="label">Jurisdiction</span>
@@ -70,7 +70,7 @@
 
         <!-- Restructured Summary Table -->
         <div class="section-title">
-            Judgment
+            Judgment Date
             <input type="text" class="custom-date-input" data-input="judgmentDate" placeholder="YYYY-MM-DD" style="margin-left: 10px; width: 100px; font-weight: bold;">
         </div>
         <table class="summary-table">             
@@ -188,22 +188,19 @@
         <tr>
             <td class="text-left" data-display="itemLabel">
                 <span data-display="itemText"></span>
-                <!-- Help icon moved to amount cell -->
+                <!-- Help icon moved to date cell -->
             </td>
             <td class="text-center date-cell-container"> <!-- Added class for styling -->
                 <div class="date-label-wrapper"> <!-- New wrapper for flex layout -->
+                    <span class="help-icon" tabindex="0" role="button" aria-label="Help" data-display="helpIcon">?
+                        <span class="tooltip" data-display="tooltipText"></span>
+                    </span>
                     <span data-display="dateLabel" class="date-prefix-label"></span> <!-- Span for "from"/"until" -->
                     <input type="text" class="custom-date-input" data-input="dateValue" placeholder="YYYY-MM-DD">
                 </div>
             </td>
-            <td class="text-right">
+            <td class="text-right" data-display="amountValue">
                 <!-- Amount is displayed, not editable -->
-                <div class="amount-help-container" data-display="amountValue">
-                    <span class="help-icon" tabindex="0" role="button" aria-label="Help" data-display="helpIcon">?
-                        <span class="tooltip" data-display="tooltipText"></span>
-                    </span>
-                    <span class="amount-value"></span>
-                </div>
             </td>
         </tr>
     </template>

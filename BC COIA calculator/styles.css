@@ -320,7 +320,7 @@ h1 i {
  /* New styles for the date label wrapper */
  .date-label-wrapper {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start; /* Changed from space-between to flex-start for more natural spacing */
     align-items: center;
     width: 100%;
     padding: 0; /* Removed all padding */
@@ -329,15 +329,16 @@ h1 i {
  }
 
  .date-prefix-label {
-    margin-right: calc(var(--spacing-unit) * 1.5); /* Add space between label and input */
+    margin-right: calc(var(--spacing-unit) * 1); /* Reduced space between label and input */
     white-space: nowrap; /* Prevent label from wrapping */
  }
 
  /* Adjust date input width if needed, or let flexbox handle it */
  .date-label-wrapper .custom-date-input {
-    flex-grow: 1; /* Allow input to take remaining space */
+    flex-grow: 0; /* Don't allow input to take all remaining space */
     width: auto; /* Override fixed width if previously set */
-    min-width: 80px; /* Ensure a minimum width */
+    min-width: 90px; /* Ensure a minimum width that fits a date */
+    max-width: 100px; /* Limit maximum width */
     text-align: right; /* Align date input text to the right */
  }
 
@@ -552,6 +553,7 @@ h1 i {
     cursor: help;
     vertical-align: middle;
     position: relative;
+    margin-right: 5px; /* Add margin to the right of the help icon */
 }
 
 /* Amount and Help Icon Container */
@@ -580,8 +582,8 @@ h1 i {
     text-align: left;
     line-height: 1.3;
     top: 0;
-    left: 0;
-    transform: translate(0, 0);
+    right: 100%;
+    margin-right: 5px; /* Add some space between the icon and tooltip */
 }
 
 .help-icon:hover .tooltip,
