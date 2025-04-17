@@ -3,7 +3,7 @@ import useStore from '../store.js';
 
 /**
  * Toggles the visibility of the prejudgment section based on the checkbox state.
- * Only hides the table part, not the section title or checkbox.
+ * Hides both the table part and the section title when unchecked.
  * @param {boolean} isInitializing - Flag to indicate if this is during initial page load.
  * @param {function|null} recalculateCallback - Function to call after toggling (usually recalculate).
  */
@@ -16,8 +16,14 @@ export function togglePrejudgmentVisibility(isInitializing = false, recalculateC
     // Get the checked state from the DOM element
     const isChecked = elements.showPrejudgmentCheckbox.checked;
     
-    // Update the DOM visibility
+    // Find the section title element that's a sibling of prejudgmentSection
+    const prejudgmentTitle = elements.prejudgmentSection.previousElementSibling;
+    
+    // Toggle visibility of both the section and its title
     elements.prejudgmentSection.style.display = isChecked ? '' : 'none';
+    if (prejudgmentTitle && prejudgmentTitle.classList.contains('section-title')) {
+        prejudgmentTitle.style.display = isChecked ? '' : 'none';
+    }
     
     // Update the Zustand store (unless we're initializing)
     if (!isInitializing) {
