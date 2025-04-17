@@ -32,7 +32,7 @@ export function togglePrejudgmentVisibility(isInitializing = false, recalculateC
 
 /**
  * Toggles the visibility of the postjudgment section based on the checkbox state.
- * Only hides the table part, not the section title or checkbox.
+ * Hides both the table part and the section title when unchecked.
  * @param {boolean} isInitializing - Flag to indicate if this is during initial page load.
  * @param {function|null} recalculateCallback - Function to call after toggling (usually recalculate).
  */
@@ -45,12 +45,28 @@ export function togglePostjudgmentVisibility(isInitializing = false, recalculate
     // Get the checked state from the DOM element
     const isChecked = elements.showPostjudgmentCheckbox.checked;
 
-    // Toggle visibility of the table section only
+    // Find the section title element that's a sibling of postjudgmentSection
+    const postjudgmentTitle = elements.postjudgmentSection.previousElementSibling;
+    
+    // Toggle visibility of both the section and its title
     elements.postjudgmentSection.style.display = isChecked ? '' : 'none';
+    if (postjudgmentTitle && postjudgmentTitle.classList.contains('section-title')) {
+        postjudgmentTitle.style.display = isChecked ? '' : 'none';
+    }
+    
+    // Save the current postjudgment date value before updating the store
+    // This ensures we don't lose the date when toggling visibility
+    const currentState = useStore.getState();
+    const postjudgmentEndDate = currentState.inputs.postjudgmentEndDate;
     
     // Update the Zustand store (unless we're initializing)
     if (!isInitializing) {
         useStore.getState().setInput('showPostjudgment', isChecked);
+        
+        // If we're turning the checkbox back on and we have a saved date, make sure it's still in the store
+        if (isChecked && postjudgmentEndDate) {
+            useStore.getState().setInput('postjudgmentEndDate', postjudgmentEndDate);
+        }
     }
 
     // Trigger recalculation unless it's the initial setup phase

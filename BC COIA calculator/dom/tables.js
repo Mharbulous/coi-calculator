@@ -207,8 +207,17 @@ export function updateSummaryTable(store, recalculateCallback) {
         { item: 'Non-pecuniary Damages', dateValue: '', amount: inputs.nonPecuniaryAwarded, isEditable: true },
         { item: 'Costs & Disbursements', dateValue: '', amount: inputs.costsAwarded, isEditable: true },
         { item: 'Prejudgment Interest', dateValue: inputs.prejudgmentStartDate, amount: prejudgmentResult.total, isDateEditable: true },
-        { item: 'Postjudgment Interest', dateValue: inputs.postjudgmentEndDate, amount: postjudgmentResult.total, isDateEditable: true },
     ];
+    
+    // Only include postjudgment interest row if showPostjudgment is true
+    if (inputs.showPostjudgment) {
+        items.push({ 
+            item: 'Postjudgment Interest', 
+            dateValue: inputs.postjudgmentEndDate, 
+            amount: postjudgmentResult.total, 
+            isDateEditable: true 
+        });
+    }
 
     // Reset dynamic element references before recreating them
     elements.pecuniaryJudgmentDateInput = null;

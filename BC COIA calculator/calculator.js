@@ -281,11 +281,9 @@ function calculatePostjudgmentInterest(inputs, judgmentTotal, interestRatesData)
     } else {
          // If postjudgment is hidden, the final calculation date is the latest judgment date
          finalCalculationDate = latestJudgmentDate;
-         // Visually reset the dynamic input if it exists and is different
-         const latestJudgmentDateInputValue = formatDateForInput(latestJudgmentDate);
-         if (elements.postjudgmentInterestDateInput && elements.postjudgmentInterestDateInput.value !== latestJudgmentDateInputValue) {
-              elements.postjudgmentInterestDateInput.value = latestJudgmentDateInputValue;
-         }
+         
+         // Don't reset the postjudgment date input value when the checkbox is unchecked
+         // This preserves the user's entered date when toggling the checkbox
     }
     
     return { postjudgmentResult, finalCalculationDate };
