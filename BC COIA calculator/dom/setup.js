@@ -66,52 +66,95 @@ export function setupAutoFormattingDateInputListeners(inputElement) {
 }
 
 /**
- * Sets up event listeners for custom date input fields with auto-formatting.
+ * Sets up event listeners for custom date input fields with auto-formatting and date picker.
  * @param {HTMLInputElement} inputElement - The date input element.
  * @param {function} changeCallback - The function to call after validation.
  */
 export function setupCustomDateInputListeners(inputElement, changeCallback) {
     if (!inputElement) return;
 
-    // Add auto-formatting
-    setupAutoFormattingDateInputListeners(inputElement);
+    // Check if this is one of the three specific date fields that should have a date picker
+    const isJudgmentDate = inputElement.dataset.input === 'judgmentDate';
+    const isPrejudgmentFromDate = inputElement.closest('tr')?.querySelector('[data-display="itemText"]')?.textContent === 'Prejudgment Interest';
+    const isPostjudgmentUntilDate = inputElement.closest('tr')?.querySelector('[data-display="itemText"]')?.textContent === 'Postjudgment Interest';
 
-    // Format on blur
-    inputElement.addEventListener('blur', (event) => {
-        const value = event.target.value.trim();
-        if (value === '') {
-            // Allow empty value
-            if (typeof changeCallback === 'function') {
-                changeCallback();
+    // For date picker fields, we'll handle formatting differently
+    if (isJudgmentDate || isPrejudgmentFromDate || isPostjudgmentUntilDate) {
+        // Remove any existing auto-formatting listeners that might interfere
+        const newInput = inputElement.cloneNode(true);
+        inputElement.parentNode.replaceChild(newInput, inputElement);
+        inputElement = newInput;
+        
+        // Initialize Flatpickr for the specific date fields
+        const fpInstance = flatpickr(inputElement, {
+            dateFormat: "Y-m-d",
+            // allowInput: true, // Temporarily disable manual input to isolate picker issue
+            clickOpens: true,
+            disableMobile: true, // Ensures consistent behavior across devices
+            // Enable month and year dropdowns for easier navigation
+            monthSelectorType: "dropdown",
+            enableTime: false,
+            // Set a wide year range to allow selecting dates far apart
+            minDate: "1900-01-01",
+            maxDate: "2100-12-31",
+            // Handle date selection
+            onChange: function(selectedDates, dateStr, instance) {
+                // When a date is selected via the picker,
+                // update the input value directly and trigger the change callback.
+                if (selectedDates.length > 0) {
+                    // No need to manually set inputElement.value = dateStr; Flatpickr does this.
+                    if (typeof changeCallback === 'function') {
+                        changeCallback();
+                    }
+                }
             }
-            return;
-        }
+            // Removed the onReady handler as it might interfere
+        });
 
-        // Validate the date format
-        if (validateDateFormat(value)) {
-            // Format is valid, keep as is
-            if (typeof changeCallback === 'function') {
-                changeCallback();
+        // NO blur listener for Flatpickr inputs to avoid conflicts
+        // Validation for manual input happens via Flatpickr's allowInput + internal parsing
+
+    } else {
+        // For non-date picker fields (e.g., special damages dates), use the original auto-formatting and blur validation
+        setupAutoFormattingDateInputListeners(inputElement);
+
+        // Format on blur
+        inputElement.addEventListener('blur', (event) => {
+            const value = event.target.value.trim();
+            if (value === '') {
+                // Allow empty value
+                if (typeof changeCallback === 'function') {
+                    changeCallback();
+                }
+                return;
             }
-        } else {
-            // Try to parse and reformat the date
-            const dateObj = parseDateInput(value);
-            if (dateObj) {
-                // If we could parse it, format it correctly
-                event.target.value = formatDateForInput(dateObj);
+
+            // Validate the date format
+            if (validateDateFormat(value)) {
+                // Format is valid, keep as is
                 if (typeof changeCallback === 'function') {
                     changeCallback();
                 }
             } else {
-                // Invalid date, show error
-                alert(`Invalid date format: ${value}. Please use YYYY-MM-DD format.`);
-                // Focus back on the input for correction
-                setTimeout(() => event.target.focus(), 100);
+                // Try to parse and reformat the date
+                const dateObj = parseDateInput(value);
+                if (dateObj) {
+                    // If we could parse it, format it correctly
+                    event.target.value = formatDateForInput(dateObj);
+                    if (typeof changeCallback === 'function') {
+                        changeCallback();
+                    }
+                } else {
+                    // Invalid date, show error
+                    alert(`Invalid date format: ${value}. Please use YYYY-MM-DD format.`);
+                    // Focus back on the input for correction
+                    setTimeout(() => event.target.focus(), 100);
+                }
             }
-        }
-    });
+        });
+    }
 
-    // Handle Enter key
+    // Handle Enter key for all date inputs
     inputElement.addEventListener('keyup', (event) => {
         if (event.key === 'Enter') {
             event.target.blur(); // Trigger blur event which handles validation
