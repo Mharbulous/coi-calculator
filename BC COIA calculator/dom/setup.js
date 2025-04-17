@@ -3,12 +3,78 @@ import elements from './elements.js';
 import useStore from '../store.js';
 
 /**
- * Sets up event listeners for custom date input fields.
+ * Sets up auto-formatting for date input fields that will automatically insert hyphens.
+ * @param {HTMLInputElement} inputElement - The date input element.
+ */
+export function setupAutoFormattingDateInputListeners(inputElement) {
+    if (!inputElement) return;
+
+    inputElement.addEventListener('input', (event) => {
+        // Store current cursor position
+        const cursorPos = event.target.selectionStart;
+        
+        // Get input value and strip non-digit characters
+        let value = event.target.value.replace(/\D/g, '');
+        
+        // Limit to 8 digits
+        value = value.substring(0, 8);
+        
+        // Format with hyphens
+        let formattedValue = '';
+        if (value.length > 0) {
+            // Add first part (YYYY)
+            formattedValue = value.substring(0, Math.min(4, value.length));
+            
+            // Add hyphen and second part (MM) if applicable
+            if (value.length > 4) {
+                formattedValue += '-' + value.substring(4, Math.min(6, value.length));
+            }
+            
+            // Add hyphen and third part (DD) if applicable
+            if (value.length > 6) {
+                formattedValue += '-' + value.substring(6, 8);
+            }
+        }
+        
+        // Calculate new cursor position
+        let newCursorPos = cursorPos;
+        const oldValue = event.target.value;
+        
+        // Adjust cursor position based on added/removed hyphens
+        if (cursorPos > 4) {
+            // If we're past the first hyphen position
+            if (oldValue.charAt(4) !== '-' && formattedValue.charAt(4) === '-') {
+                // A hyphen was added at position 4, adjust cursor
+                newCursorPos += 1;
+            }
+        }
+        
+        if (cursorPos > 7) {
+            // If we're past the second hyphen position
+            if (oldValue.charAt(7) !== '-' && formattedValue.charAt(7) === '-') {
+                // A hyphen was added at position 7, adjust cursor
+                newCursorPos += 1;
+            }
+        }
+        
+        // Update input value
+        event.target.value = formattedValue;
+        
+        // Restore cursor position
+        event.target.setSelectionRange(newCursorPos, newCursorPos);
+    });
+}
+
+/**
+ * Sets up event listeners for custom date input fields with auto-formatting.
  * @param {HTMLInputElement} inputElement - The date input element.
  * @param {function} changeCallback - The function to call after validation.
  */
 export function setupCustomDateInputListeners(inputElement, changeCallback) {
     if (!inputElement) return;
+
+    // Add auto-formatting
+    setupAutoFormattingDateInputListeners(inputElement);
 
     // Format on blur
     inputElement.addEventListener('blur', (event) => {

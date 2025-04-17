@@ -71,7 +71,7 @@
         <!-- Restructured Summary Table -->
         <div class="section-title">
             Judgment Date
-            <input type="text" class="custom-date-input" data-input="judgmentDate" placeholder="YYYY-MM-DD" style="margin-left: 10px; width: 100px; font-weight: bold;">
+            <input type="text" class="custom-date-input" data-input="judgmentDate" placeholder="YYYY-MM-DD" maxlength="10" style="margin-left: 10px; width: 100px; font-weight: bold;">
         </div>
         <table class="summary-table">             
              <tbody data-display="summaryTableBody">
@@ -196,7 +196,7 @@
                         <span class="tooltip" data-display="tooltipText"></span>
                     </span>
                     <span data-display="dateLabel" class="date-prefix-label"></span> <!-- Span for "from"/"until" -->
-                    <input type="text" class="custom-date-input" data-input="dateValue" placeholder="YYYY-MM-DD">
+                    <input type="text" class="custom-date-input" data-input="dateValue" placeholder="YYYY-MM-DD" maxlength="10">
                 </div>
             </td>
             <td class="text-right" data-display="amountValue">

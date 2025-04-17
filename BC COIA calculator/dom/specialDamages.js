@@ -22,6 +22,7 @@ export function insertSpecialDamagesRow(tableBody, currentRow, date) {
     dateInput.className = 'special-damages-date custom-date-input';
     dateInput.dataset.type = 'special-damages-date';
     dateInput.placeholder = 'YYYY-MM-DD';
+    dateInput.maxLength = 10;
     
     // Passed date is already YYYY-MM-DD from formatDateForDisplay
     dateInput.value = date; 
@@ -108,6 +109,7 @@ export function insertSpecialDamagesRowFromData(tableBody, index, rowData, final
     dateInput.className = 'special-damages-date custom-date-input';
     dateInput.dataset.type = 'special-damages-date';
     dateInput.placeholder = 'YYYY-MM-DD';
+    dateInput.maxLength = 10;
     dateInput.value = rowData.date; // Already in YYYY-MM-DD
     
     // Use the custom date input listeners
