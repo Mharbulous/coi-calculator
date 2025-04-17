@@ -1,4 +1,5 @@
 import useStore from './store.js';
+import { describe, test, expect, beforeEach } from 'vitest';
 
 describe('Zustand Store', () => {
   // Reset the store before each test

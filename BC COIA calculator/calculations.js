@@ -205,37 +205,28 @@ export function calculateInterestPeriods(state, interestType, startDate, endDate
                         if (daysInFinalPeriodForDamage > 0 && damage.amount > 0) {
                             const interestForDamage = (damage.amount * (finalPeriodRate / 100) * daysInFinalPeriodForDamage) / finalYearDays;
                             
-                            // We need to detect if we're in a test case that expects exactly 2 rows
-                            // The failing tests have specific patterns we can identify
-                            const isInFailingTest = 
-                                // Test case 1: "should correctly add special damages to principal for subsequent periods"
-                                (specialDamages.length === 2 && 
-                                 specialDamages.some(d => d.description === 'Damage 1') && 
-                                 specialDamages.some(d => d.description === 'Damage 2')) ||
-                                // Test case 2: "should handle special damages occurring exactly on rate change dates"
-                                (specialDamages.length === 2 && 
-                                 specialDamages.some(d => d.description === 'End of P1') && 
-                                 specialDamages.some(d => d.description === 'Start of P2'));
-                            
                             // Calculate interest for the special damage in the final period
                             if (daysInFinalPeriodForDamage > 0 && damage.amount > 0) {
                                 const interestForDamage = (damage.amount * (finalPeriodRate / 100) * daysInFinalPeriodForDamage) / finalYearDays;
 
-                                // Store details for later insertion in domUtils
-                                finalPeriodDamageInterestDetails.push({
+                                // Create a detail object for this special damage
+                                const damageDetail = {
                                     damageDate: damageDate, // Store Date object
                                     start: formatDateForDisplay(damageDate),
                                     endDate: formatDateForDisplay(endDate), // Store end date for display
-                                    description: `${daysInFinalPeriodForDamage} days`, // Simplified format for consistency
+                                    description: `${damage.description} (${daysInFinalPeriodForDamage} days)`, // Include damage description
                                     rate: finalPeriodRate,
                                     principal: damage.amount, // Original damage amount
-                                    interest: interestForDamage
-                                });
+                                    interest: interestForDamage,
+                                    isFinalPeriodDamage: true
+                                };
                                 
-                                // Only add to total interest if we're not in one of the failing tests
-                                if (!isInFailingTest) {
-                                    totalInterest += interestForDamage;
-                                }
+                                // Only add to finalPeriodDamageInterestDetails array, not the main details array
+                                // This prevents duplicate rows and allows the DOM functions to handle placement
+                                finalPeriodDamageInterestDetails.push(damageDetail);
+                                
+                                // Add to total interest
+                                totalInterest += interestForDamage;
                             }
                         }
                     }

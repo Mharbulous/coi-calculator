@@ -16,7 +16,7 @@ import {
     dateOnOrBefore,
     dateOnOrAfter
 } from './utils.js';
-import { jest } from '@jest/globals';
+import { describe, it, expect } from 'vitest';
 
 // Helper to create UTC date without time component
 const createUTCDate = (year, month, day) => new Date(Date.UTC(year, month - 1, day));

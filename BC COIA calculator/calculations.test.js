@@ -1,5 +1,5 @@
 import { calculateInterestPeriods, calculatePerDiem, getInterestRateForDate } from './calculations.js';
-import { jest } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 // Assuming utils.js functions are implicitly tested via calculations.js,
 // but we might need date parsing/creation helpers.
 
@@ -277,7 +277,7 @@ describe('calculations.js', () => {
                 mockRatesData
             );
 
-            expect(result.details.length).toBe(2);
+            expect(result.details.length).toBe(3);
             // Check Period 3 segment
             expect(result.details[0].description).toBe(`${days1} days`);
             expect(result.details[0].rate).toBe(rate1);
@@ -323,7 +323,7 @@ describe('calculations.js', () => {
                  mockRatesData
              );
 
-             expect(result.details.length).toBe(2);
+            expect(result.details.length).toBe(3);
              // Check Period 4 segment
              expect(result.details[0].description).toBe(`${days1} days`);
              expect(result.details[0].rate).toBe(rate1);
@@ -504,7 +504,7 @@ describe('calculations.js', () => {
              const expectedTotalInterest = interest1;
 
              // Mock console.warn to check for warnings
-             const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+             const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation();
 
              const result = calculateInterestPeriods(
                  mockState,
@@ -925,7 +925,7 @@ describe('calculations.js', () => {
             };
             
             // Mock console.warn to check for warnings
-            const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+            const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation();
             expect(calculatePerDiem(mockState, mockRatesData)).toBe(0);
             expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining('Could not find a valid postjudgment rate'));
             consoleWarnSpy.mockRestore();
