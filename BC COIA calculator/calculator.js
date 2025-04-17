@@ -197,19 +197,8 @@ function updatePrejudgmentTable(inputs, prejudgmentResult, totalPrincipalForFoot
         totalPrincipalForFooter // Pass the specific footer principal
     );
 
-    // Update Prejudgment Table Footer Label
-    if (elements.prejudgmentTotalLabel) {
-        if (inputs.isValid && inputs.dateOfJudgment) {
-            // formatDateForDisplay now returns YYYY-MM-DD
-            const formattedJudgmentDate = formatDateForDisplay(inputs.dateOfJudgment); 
-            elements.prejudgmentTotalLabel.textContent = `Total at date of judgment (${formattedJudgmentDate})`;
-        } else {
-            // Fallback if date is invalid or not available
-            elements.prejudgmentTotalLabel.textContent = 'Total'; 
-        }
-    } else {
-        console.warn("Prejudgment total label element not found.");
-    }
+    // We no longer need to update the prejudgment table footer label
+    // as it has been removed from the HTML structure
 }
 
 /**

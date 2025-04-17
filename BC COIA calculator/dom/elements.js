@@ -24,7 +24,8 @@ const elements = {
     summaryTableBody: document.querySelector('[data-display="summaryTableBody"]'),
 
     // Table Footers / Totals
-    prejudgmentTotalLabel: document.querySelector('[data-display="prejudgmentTotalLabel"]'),
+    // prejudgmentTotalLabel has been removed from the HTML structure
+    prejudgmentTotalLabel: null,
     prejudgmentPrincipalTotalEl: document.querySelector('[data-display="prejudgmentPrincipalTotal"]'),
     prejudgmentInterestTotalEl: document.querySelector('[data-display="prejudgmentInterestTotal"]'),
     postjudgmentInterestTotalEl: document.querySelector('[data-display="postjudgmentInterestTotal"]'),

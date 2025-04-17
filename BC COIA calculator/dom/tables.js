@@ -170,7 +170,8 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
     }
 
     // Update totals in the footer
-    if (principalTotalElement && principalTotal !== null) {
+    if (principalTotalElement && principalTotal !== null && !isPrejudgmentTable) {
+        // Only update the principal total for non-prejudgment tables
         principalTotalElement.innerHTML = formatCurrencyForDisplay(principalTotal);
     }
     interestTotalElement.innerHTML = formatCurrencyForDisplay(interestTotal);
@@ -395,7 +396,7 @@ export function clearResults() {
     if (elements.summaryTableBody) elements.summaryTableBody.innerHTML = '';
 
     // Clear table footers/totals
-    if (elements.prejudgmentPrincipalTotalEl) elements.prejudgmentPrincipalTotalEl.innerHTML = zeroCurrency;
+    // Don't clear the prejudgment principal total element as it contains the "Prejudgment Interest" text
     if (elements.prejudgmentInterestTotalEl) elements.prejudgmentInterestTotalEl.innerHTML = zeroCurrency;
     if (elements.postjudgmentInterestTotalEl) elements.postjudgmentInterestTotalEl.innerHTML = zeroCurrency;
     if (elements.summaryTotalEl) elements.summaryTotalEl.innerHTML = zeroCurrency;
