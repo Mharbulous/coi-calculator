@@ -156,9 +156,7 @@
         <tr>
             <td class="text-left" data-display="itemLabel">
                 <span data-display="itemText"></span>
-                <span class="help-icon" tabindex="0" role="button" aria-label="Help" data-display="helpIcon">?
-                    <span class="tooltip" data-display="tooltipText"></span>
-                </span>
+                <!-- Help icon removed -->
             </td>
             <td class="text-center">
                 <!-- Date input removed for pecuniary damages -->
@@ -190,14 +188,15 @@
         <tr>
             <td class="text-left" data-display="itemLabel">
                 <span data-display="itemText"></span>
-                <span class="help-icon" tabindex="0" role="button" aria-label="Help" data-display="helpIcon">?
-                    <span class="tooltip" data-display="tooltipText"></span>
-                </span>
+                <!-- Help icon moved to date cell -->
             </td>
             <td class="text-center date-cell-container"> <!-- Added class for styling -->
                 <div class="date-label-wrapper"> <!-- New wrapper for flex layout -->
                     <span data-display="dateLabel" class="date-prefix-label"></span> <!-- Span for "from"/"until" -->
                     <input type="text" class="custom-date-input" data-input="dateValue" placeholder="YYYY-MM-DD">
+                    <span class="help-icon" tabindex="0" role="button" aria-label="Help" data-display="helpIcon">?
+                        <span class="tooltip" data-display="tooltipText"></span>
+                    </span>
                 </div>
             </td>
             <td class="text-right" data-display="amountValue">
