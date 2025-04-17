@@ -78,17 +78,12 @@ export function setupCustomDateInputListeners(inputElement, changeCallback) {
     const isPrejudgmentFromDate = inputElement.closest('tr')?.querySelector('[data-display="itemText"]')?.textContent === 'Prejudgment Interest';
     const isPostjudgmentUntilDate = inputElement.closest('tr')?.querySelector('[data-display="itemText"]')?.textContent === 'Postjudgment Interest';
 
-    // For date picker fields, we'll handle formatting differently
+    // For date picker fields, initialize Flatpickr
     if (isJudgmentDate || isPrejudgmentFromDate || isPostjudgmentUntilDate) {
-        // Remove any existing auto-formatting listeners that might interfere
-        const newInput = inputElement.cloneNode(true);
-        inputElement.parentNode.replaceChild(newInput, inputElement);
-        inputElement = newInput;
-        
         // Initialize Flatpickr for the specific date fields
         const fpInstance = flatpickr(inputElement, {
             dateFormat: "Y-m-d",
-            // allowInput: true, // Temporarily disable manual input to isolate picker issue
+            allowInput: true, // Re-enable manual input
             clickOpens: true,
             disableMobile: true, // Ensures consistent behavior across devices
             // Enable month and year dropdowns for easier navigation
