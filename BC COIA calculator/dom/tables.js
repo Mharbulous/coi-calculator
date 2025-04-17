@@ -223,8 +223,8 @@ export function updateSummaryTable(store, recalculateCallback) {
     // Help text for tooltips
     const helpTexts = {
         'General Damages & Debt': "Enter the date that judgment was pronounced.",
-        'Prejudgment Interest': "Enter the date that prejudgment interest accrues from. Prejudgment interest typically accrues from the date the cause of action accrued, but the judge may order that interest accrues from another date.",
-        'Postjudgment Interest': "Enter the date to accrue postjudgment interest to. Typically this will be to today's date, but you may specify another date."
+        'Prejudgment Interest': "Prejudgment interest will be acrrued from this date.",
+        'Postjudgment Interest': "Postjudgment interest will be accrued up to this date."
     };
 
     // Get template elements once
@@ -336,7 +336,13 @@ export function updateSummaryTable(store, recalculateCallback) {
                 }
             }
             if (amountDisplay) {
-                amountDisplay.innerHTML = formattedAmount; // Display calculated amount
+                // Find the amount-value span within the container and set its content
+                const amountValueSpan = amountDisplay.querySelector('.amount-value');
+                if (amountValueSpan) {
+                    amountValueSpan.innerHTML = formattedAmount; // Display calculated amount in the span
+                } else {
+                    amountDisplay.innerHTML = formattedAmount; // Fallback to the old way if span not found
+                }
             }
             // Set the text for the "from"/"until" label
             if (dateLabelSpan) {

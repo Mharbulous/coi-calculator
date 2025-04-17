@@ -323,8 +323,7 @@ h1 i {
     justify-content: space-between;
     align-items: center;
     width: 100%;
-    /* Remove top/bottom padding, keep left/right for internal spacing */
-    padding: 0 calc(var(--spacing-unit) * 1.5); 
+    padding: 0; /* Removed all padding */
     box-sizing: border-box; /* Include padding in width calculation */
     height: 100%; /* Ensure wrapper fills cell height */
  }
@@ -401,6 +400,12 @@ h1 i {
 
  .bold { font-weight: bold !important; }
  .hidden { display: none !important; }
+
+ /* Remove left and right padding from td.label.text-right.bold */
+ td.label.text-right.bold {
+    padding-left: 0;
+    padding-right: 0;
+ }
 
 /* Description container and Add Special Damages button styles */
 .description-container {
@@ -544,10 +549,17 @@ h1 i {
     color: white;
     font-size: 10px;
     font-weight: bold;
-    margin-left: 5px;
     cursor: help;
     vertical-align: middle;
     position: relative;
+}
+
+/* Amount and Help Icon Container */
+.amount-help-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
 }
 
 .tooltip {
