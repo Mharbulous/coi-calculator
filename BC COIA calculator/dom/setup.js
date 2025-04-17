@@ -90,8 +90,8 @@ export function setupCustomDateInputListeners(inputElement, changeCallback) {
             monthSelectorType: "dropdown",
             enableTime: false,
             // Set a wide year range to allow selecting dates far apart
-            minDate: "1900-01-01",
-            maxDate: "2100-12-31",
+            minDate: "1993-01-01",
+            maxDate: "2030-12-31",
             // Handle date selection
             onChange: function(selectedDates, dateStr, instance) {
                 // When a date is selected via the picker,
@@ -102,6 +102,38 @@ export function setupCustomDateInputListeners(inputElement, changeCallback) {
                         changeCallback();
                     }
                 }
+            },
+            // Manually position the calendar on open
+            onOpen: function(selectedDates, dateStr, instance) {
+                // Use requestAnimationFrame to ensure the calendar is fully rendered
+                requestAnimationFrame(() => {
+                    const inputRect = instance.input.getBoundingClientRect();
+                    const calendar = instance.calendarContainer;
+                    const calendarRect = calendar.getBoundingClientRect();
+                    const scrollX = window.scrollX || window.pageXOffset;
+                    const scrollY = window.scrollY || window.pageYOffset;
+
+                    // Calculate desired left position: input's right edge - calendar's width
+                    let newLeft = scrollX + inputRect.right - calendarRect.width;
+
+                    // Calculate desired top position: below the input
+                    let newTop = scrollY + inputRect.bottom + 2; // +2 for a small gap
+
+                    // Adjust if calendar goes off-screen vertically
+                    if (newTop + calendarRect.height > window.innerHeight + scrollY) {
+                        newTop = scrollY + inputRect.top - calendarRect.height - 2; // Position above
+                    }
+
+                    // Adjust if calendar goes off-screen horizontally (left side)
+                    if (newLeft < scrollX) {
+                        newLeft = scrollX + inputRect.left; // Fallback to left alignment
+                    }
+
+                    // Apply the calculated position
+                    calendar.style.position = 'absolute'; // Ensure positioning context
+                    calendar.style.left = `${newLeft}px`;
+                    calendar.style.top = `${newTop}px`;
+                });
             }
             // Removed the onReady handler as it might interfere
         });

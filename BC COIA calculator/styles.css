@@ -320,7 +320,7 @@ h1 i {
  /* New styles for the date label wrapper */
  .date-label-wrapper {
     display: flex;
-    justify-content: flex-start; /* Changed from space-between to flex-start for more natural spacing */
+    justify-content: flex-end; /* Align items (icon, label, input) to the right */
     align-items: center;
     width: 100%;
     padding: 0; /* Removed all padding */
@@ -380,7 +380,7 @@ h1 i {
  }
  .summary-table tfoot td[colspan] {
     text-align: right;
-    padding-right: calc(var(--spacing-unit) * 2); /* 8px */
+    /* Removed padding-right to allow full right alignment */
  }
  .summary-table tfoot td:not([colspan]) {
     text-align: right;
