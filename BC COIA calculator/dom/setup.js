@@ -1,4 +1,4 @@
-import { formatDateLong, parseDateInput, formatDateForInput, formatDateForDisplay, validateDateFormat, dateBefore, dateAfter } from '../utils.date.js';
+import { formatDateLong, parseDateInput, formatDateForInput, formatDateForDisplay, validateDateFormat, dateBefore, dateAfter, dateOnOrBefore, dateOnOrAfter } from '../utils.date.js';
 import { formatCurrencyForDisplay, formatCurrencyForInput, formatCurrencyForInputWithCommas, parseCurrency } from '../utils.currency.js';
 import elements from './elements.js';
 import useStore from '../store.js';
@@ -86,12 +86,30 @@ export function initializeDatePickers(recalculateCallback) {
         enableTime: false,
         minDate: "1993-01-01",
         maxDate: "2030-12-31",
-        onChange: function(selectedDates, dateStr) {
+        onChange: function(selectedDates, dateStr, instance) {
             // When judgment date changes, update constraints for other pickers
             updateDateConstraints(dateStr);
             // Trigger recalculation
             if (typeof recalculateCallback === 'function') {
                 recalculateCallback();
+            }
+        },
+        onClose: function(selectedDates, dateStr, instance) {
+            // Validate manual input format on close if no valid date was selected via onChange
+            if (selectedDates.length === 0 && dateStr !== '') {
+                if (!validateDateFormat(dateStr)) {
+                    instance.clear();
+                    showDateConstraintNotification(instance.input, "Invalid date format. Use YYYY-MM-DD.");
+                    setTimeout(() => instance.input.focus(), 100); // Focus back
+                } else {
+                    // Format is valid, but might violate constraints if manually typed
+                    // Re-run constraint update in case manual input is valid format but invalid range
+                    updateDateConstraints(dateStr);
+                    // Trigger recalculation if format is valid
+                    if (typeof recalculateCallback === 'function') {
+                         recalculateCallback();
+                    }
+                }
             }
         },
         onOpen: positionCalendar
@@ -106,11 +124,54 @@ export function initializeDatePickers(recalculateCallback) {
         monthSelectorType: "dropdown",
         enableTime: false,
         minDate: "1993-01-01",
-        // Initially constrain to dates before judgment date (if available)
+        // Initially constrain to dates on or before judgment date (if available)
         maxDate: elements.judgmentDateInput.value || "2030-12-31",
-        onChange: function() {
+        onChange: function(selectedDates, dateStr, instance) {
+            // Validate against judgment date
+            const judgmentDateValue = elements.judgmentDateInput.value;
+            if (judgmentDateValue && selectedDates.length > 0) {
+                const prejudgmentDate = selectedDates[0]; // Already a Date object
+                const judgmentDate = parseDateInput(judgmentDateValue);
+
+                // Use dateOnOrBefore to allow same day
+                if (judgmentDate && !dateOnOrBefore(prejudgmentDate, judgmentDate)) {
+                    instance.clear();
+                    showDateConstraintNotification(instance.input, "Date must be on or before Judgment Date");
+                    // Don't trigger recalculate if cleared
+                    return;
+                }
+            }
+            // Trigger recalculation if valid
             if (typeof recalculateCallback === 'function') {
                 recalculateCallback();
+            }
+        },
+         onClose: function(selectedDates, dateStr, instance) {
+            // Validate manual input format and constraint on close
+            if (selectedDates.length === 0 && dateStr !== '') {
+                 if (!validateDateFormat(dateStr)) {
+                    instance.clear();
+                    showDateConstraintNotification(instance.input, "Invalid date format. Use YYYY-MM-DD.");
+                    setTimeout(() => instance.input.focus(), 100);
+                } else {
+                    // Format is valid, check constraint
+                    const judgmentDateValue = elements.judgmentDateInput.value;
+                    if (judgmentDateValue) {
+                        const prejudgmentDate = parseDateInput(dateStr); // Parse the string input
+                        const judgmentDate = parseDateInput(judgmentDateValue);
+
+                        if (prejudgmentDate && judgmentDate && !dateOnOrBefore(prejudgmentDate, judgmentDate)) {
+                            instance.clear();
+                            showDateConstraintNotification(instance.input, "Date must be on or before Judgment Date");
+                        } else if (typeof recalculateCallback === 'function') {
+                             // Trigger recalculation only if valid format and constraint
+                             recalculateCallback();
+                        }
+                    } else if (typeof recalculateCallback === 'function') {
+                         // Recalculate if format is valid and no judgment date to check against yet
+                         recalculateCallback();
+                    }
+                }
             }
         },
         onOpen: positionCalendar
@@ -124,12 +185,55 @@ export function initializeDatePickers(recalculateCallback) {
         disableMobile: true,
         monthSelectorType: "dropdown",
         enableTime: false,
-        // Initially constrain to dates after judgment date (if available)
+        // Initially constrain to dates on or after judgment date (if available)
         minDate: elements.judgmentDateInput.value || "1993-01-01",
         maxDate: "2030-12-31",
-        onChange: function() {
+        onChange: function(selectedDates, dateStr, instance) {
+             // Validate against judgment date
+            const judgmentDateValue = elements.judgmentDateInput.value;
+            if (judgmentDateValue && selectedDates.length > 0) {
+                const postjudgmentDate = selectedDates[0]; // Already a Date object
+                const judgmentDate = parseDateInput(judgmentDateValue);
+
+                // Use dateOnOrAfter to allow same day
+                if (judgmentDate && !dateOnOrAfter(postjudgmentDate, judgmentDate)) {
+                    instance.clear();
+                    showDateConstraintNotification(instance.input, "Date must be on or after Judgment Date");
+                     // Don't trigger recalculate if cleared
+                    return;
+                }
+            }
+             // Trigger recalculation if valid
             if (typeof recalculateCallback === 'function') {
                 recalculateCallback();
+            }
+        },
+         onClose: function(selectedDates, dateStr, instance) {
+            // Validate manual input format and constraint on close
+            if (selectedDates.length === 0 && dateStr !== '') {
+                 if (!validateDateFormat(dateStr)) {
+                    instance.clear();
+                    showDateConstraintNotification(instance.input, "Invalid date format. Use YYYY-MM-DD.");
+                    setTimeout(() => instance.input.focus(), 100);
+                } else {
+                    // Format is valid, check constraint
+                    const judgmentDateValue = elements.judgmentDateInput.value;
+                    if (judgmentDateValue) {
+                        const postjudgmentDate = parseDateInput(dateStr); // Parse the string input
+                        const judgmentDate = parseDateInput(judgmentDateValue);
+
+                        if (postjudgmentDate && judgmentDate && !dateOnOrAfter(postjudgmentDate, judgmentDate)) {
+                            instance.clear();
+                            showDateConstraintNotification(instance.input, "Date must be on or after Judgment Date");
+                        } else if (typeof recalculateCallback === 'function') {
+                             // Trigger recalculation only if valid format and constraint
+                             recalculateCallback();
+                        }
+                    } else if (typeof recalculateCallback === 'function') {
+                         // Recalculate if format is valid and no judgment date to check against yet
+                         recalculateCallback();
+                    }
+                }
             }
         },
         onOpen: positionCalendar
@@ -163,11 +267,12 @@ function updateDateConstraints(judgmentDateStr) {
         if (currentPrejudgmentDate) {
             const prejudgmentDate = parseDateInput(currentPrejudgmentDate);
             const judgmentDate = parseDateInput(judgmentDateStr);
-            
-            if (prejudgmentDate && judgmentDate && !dateBefore(prejudgmentDate, judgmentDate)) {
+
+            // Use dateOnOrBefore to allow same day
+            if (prejudgmentDate && judgmentDate && !dateOnOrBefore(prejudgmentDate, judgmentDate)) {
                 prejudgmentDatePicker.clear();
                 // Show a subtle notification that the date was cleared
-                showDateConstraintNotification(elements.prejudgmentInterestDateInput, "Date must be before Judgment Date");
+                showDateConstraintNotification(elements.prejudgmentInterestDateInput, "Date must be on or before Judgment Date");
             }
         }
     }
@@ -181,11 +286,12 @@ function updateDateConstraints(judgmentDateStr) {
         if (currentPostjudgmentDate) {
             const postjudgmentDate = parseDateInput(currentPostjudgmentDate);
             const judgmentDate = parseDateInput(judgmentDateStr);
-            
-            if (postjudgmentDate && judgmentDate && !dateAfter(postjudgmentDate, judgmentDate)) {
+
+            // Use dateOnOrAfter to allow same day
+            if (postjudgmentDate && judgmentDate && !dateOnOrAfter(postjudgmentDate, judgmentDate)) {
                 postjudgmentDatePicker.clear();
                 // Show a subtle notification that the date was cleared
-                showDateConstraintNotification(elements.postjudgmentInterestDateInput, "Date must be after Judgment Date");
+                showDateConstraintNotification(elements.postjudgmentInterestDateInput, "Date must be on or after Judgment Date");
             }
         }
     }
@@ -296,91 +402,19 @@ export function setupCustomDateInputListeners(inputElement, changeCallback) {
     const isPrejudgmentFromDate = inputElement.closest('tr')?.querySelector('[data-display="itemText"]')?.textContent === 'Prejudgment Interest';
     const isPostjudgmentUntilDate = inputElement.closest('tr')?.querySelector('[data-display="itemText"]')?.textContent === 'Postjudgment Interest';
 
-    // For date picker fields, initialize Flatpickr
-    if (isJudgmentDate || isPrejudgmentFromDate || isPostjudgmentUntilDate) {
-        // Date pickers are now initialized in initializeDatePickers function
-        // This function is kept for backward compatibility and for non-main date fields
-        
-        // For manual input validation
-        inputElement.addEventListener('blur', (event) => {
-            const value = event.target.value.trim();
-            if (value === '') {
-                // Allow empty value
-                if (typeof changeCallback === 'function') {
-                    changeCallback();
-                }
-                return;
-            }
+    // Determine if the input is controlled by Flatpickr
+    const isFlatpickrControlled = isJudgmentDate || isPrejudgmentFromDate || isPostjudgmentUntilDate;
 
-            // Validate the date format
-            if (validateDateFormat(value)) {
-                // Format is valid, check constraints
-                if (isJudgmentDate) {
-                    // If judgment date, update constraints for other pickers
-                    updateDateConstraints(value);
-                } else if (isPrejudgmentFromDate) {
-                    // Check if date is before judgment date
-                    const judgmentDateValue = elements.judgmentDateInput.value;
-                    if (judgmentDateValue) {
-                        const prejudgmentDate = parseDateInput(value);
-                        const judgmentDate = parseDateInput(judgmentDateValue);
-                        
-                        if (prejudgmentDate && judgmentDate && !dateBefore(prejudgmentDate, judgmentDate)) {
-                            // Invalid constraint, clear the field
-                            event.target.value = '';
-                            showDateConstraintNotification(inputElement, "Date must be before Judgment Date");
-                        }
-                    }
-                } else if (isPostjudgmentUntilDate) {
-                    // Check if date is after judgment date
-                    const judgmentDateValue = elements.judgmentDateInput.value;
-                    if (judgmentDateValue) {
-                        const postjudgmentDate = parseDateInput(value);
-                        const judgmentDate = parseDateInput(judgmentDateValue);
-                        
-                        if (postjudgmentDate && judgmentDate && !dateAfter(postjudgmentDate, judgmentDate)) {
-                            // Invalid constraint, clear the field
-                            event.target.value = '';
-                            showDateConstraintNotification(inputElement, "Date must be after Judgment Date");
-                        }
-                    }
-                }
-                
-                if (typeof changeCallback === 'function') {
-                    changeCallback();
-                }
-            } else {
-                // Try to parse and reformat the date
-                const dateObj = parseDateInput(value);
-                if (dateObj) {
-                    // If we could parse it, format it correctly
-                    event.target.value = formatDateForInput(dateObj);
-                    
-                    // Check constraints after formatting
-                    if (isJudgmentDate) {
-                        updateDateConstraints(event.target.value);
-                    } else if (isPrejudgmentFromDate || isPostjudgmentUntilDate) {
-                        // Trigger blur event again to check constraints
-                        setTimeout(() => event.target.blur(), 10);
-                    }
-                    
-                    if (typeof changeCallback === 'function') {
-                        changeCallback();
-                    }
-                } else {
-                    // Invalid date, clear the field and show notification
-                    event.target.value = '';
-                    showDateConstraintNotification(inputElement, "Invalid date format. Use YYYY-MM-DD.");
-                    // Focus back on the input for correction
-                    setTimeout(() => event.target.focus(), 100);
-                }
-            }
-        });
+    if (isFlatpickrControlled) {
+        // Flatpickr handles its own validation via onChange and onClose hooks configured in initializeDatePickers.
+        // We don't need the complex blur listener here as it conflicts.
+        // We might add simpler listeners if needed, but start with Flatpickr's hooks.
+        // console.log(`Skipping custom blur listener setup for Flatpickr-controlled input: ${inputElement.id || inputElement.name}`); // Keep for debugging if needed
     } else {
-        // For non-date picker fields (e.g., special damages dates), use the original auto-formatting and blur validation
+        // For non-Flatpickr fields (e.g., special damages dates), use auto-formatting and a blur listener for validation.
         setupAutoFormattingDateInputListeners(inputElement);
 
-        // Format on blur
+        // Add blur listener for validation and formatting for non-Flatpickr inputs
         inputElement.addEventListener('blur', (event) => {
             const value = event.target.value.trim();
             if (value === '') {
