@@ -6,22 +6,24 @@ import {
     daysBetween,
     isLeap,
     daysInYear,
-    parseCurrency,
-    formatCurrencyForInput,
-    formatCurrencyForDisplay,
     normalizeDate,
     datesEqual,
     dateBefore,
     dateAfter,
     dateOnOrBefore,
     dateOnOrAfter
-} from './utils.js';
+} from './utils.date.js';
+import {
+    parseCurrency,
+    formatCurrencyForInput,
+    formatCurrencyForDisplay
+} from './utils.currency.js';
 import { describe, it, expect } from 'vitest';
 
 // Helper to create UTC date without time component
 const createUTCDate = (year, month, day) => new Date(Date.UTC(year, month - 1, day));
 
-describe('utils.js', () => {
+describe('utils date and currency', () => {
 
     describe('parseDateInput', () => {
         it('should parse a valid YYYY-MM-DD string into a UTC Date object', () => {

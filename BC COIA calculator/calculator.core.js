@@ -11,7 +11,6 @@ import {
     formatDateForInput, 
     formatDateLong, 
     formatDateForDisplay, 
-    parseCurrency, 
     parseDateInput,
     normalizeDate,
     dateBefore,
@@ -19,7 +18,10 @@ import {
     dateOnOrBefore,
     dateOnOrAfter,
     datesEqual
-} from './utils.js';
+} from './utils.date.js';
+import {
+    parseCurrency
+} from './utils.currency.js';
 import useStore from './store.js';
 
 /**

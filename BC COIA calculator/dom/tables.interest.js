@@ -1,4 +1,5 @@
-import { formatCurrencyForDisplay, parseDateInput } from '../utils.js';
+import { parseDateInput } from '../utils.date.js';
+import { formatCurrencyForDisplay } from '../utils.currency.js';
 import elements from './elements.js';
 import { insertSpecialDamagesRowFromData } from './specialDamages.js';
 

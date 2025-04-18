@@ -1,4 +1,4 @@
-import { daysBetween, daysInYear, formatDateForDisplay, parseDateInput, normalizeDate, dateOnOrAfter, dateOnOrBefore } from './utils.js';
+import { daysBetween, daysInYear, formatDateForDisplay, parseDateInput, normalizeDate, dateOnOrAfter, dateOnOrBefore } from './utils.date.js';
 
 /**
  * Finds the applicable interest rate for a specific date and type within a jurisdiction.

@@ -9,7 +9,7 @@ import {
     setDefaultInputValues,
     setupCurrencyInputListeners
 } from './domUtils.js';
-import { formatDateForInput } from './utils.js';
+import { formatDateForInput } from './utils.date.js';
 import useStore from './store.js';
 
 /**
