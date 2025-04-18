@@ -4,7 +4,10 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    include: ['**/*.test.js'],
+    include: [
+      '**/*.test.js',
+      '**/*.test.*.js'
+    ],
     exclude: ['node_modules'],
   }
 });
