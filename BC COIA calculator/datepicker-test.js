@@ -145,8 +145,97 @@ function testAllDatepickers() {
     console.log('All datepickers test complete');
 }
 
+/**
+ * Test function to verify the date constraints on the Judgment Date and Postjudgment Date pickers.
+ * This tests that:
+ * - Judgment Date cannot be set before 1993-01-01 or after 2025-06-30
+ * - Postjudgment Date cannot be set before Judgment Date or after 2025-06-30
+ */
+function testJudgmentDateConstraints() {
+    console.log('Testing Judgment and Postjudgment Date constraints...');
+    
+    // Import the datepickers module
+    import('./dom/datepickers.js').then(module => {
+        // Initialize the datepickers with a test callback
+        const pickers = module.initializeDatePickers(() => {
+            console.log('Recalculate callback called');
+        });
+        
+        // Check if judgment date picker exists
+        if (!pickers.judgmentDatePicker) {
+            console.error('Judgment Date Picker not found. Make sure the element exists in the DOM.');
+            return;
+        }
+        
+        // Test setting judgment date to before 1993-01-01 (should not work)
+        console.log('Attempting to set judgment date to 1992-12-31 (before min date)...');
+        pickers.judgmentDatePicker.setDate('1992-12-31');
+        
+        // Check if date was set or rejected
+        console.log('Judgment date after attempting to set before min date:', 
+            pickers.judgmentDatePicker.selectedDates.length > 0 ? 
+            pickers.judgmentDatePicker.selectedDates[0].toISOString() : 'Rejected (expected)');
+        
+        // Test setting judgment date to after 2025-06-30 (should not work)
+        console.log('Attempting to set judgment date to 2025-07-01 (after max date)...');
+        pickers.judgmentDatePicker.setDate('2025-07-01');
+        
+        // Check if date was set or rejected
+        console.log('Judgment date after attempting to set after max date:', 
+            pickers.judgmentDatePicker.selectedDates.length > 0 ? 
+            pickers.judgmentDatePicker.selectedDates[0].toISOString() : 'Rejected (expected)');
+        
+        // Test setting judgment date to a valid date
+        console.log('Setting judgment date to 2023-06-15 (valid date)...');
+        pickers.judgmentDatePicker.setDate('2023-06-15');
+        
+        // Check if date was set
+        console.log('Judgment date after setting to valid date:', 
+            pickers.judgmentDatePicker.selectedDates.length > 0 ? 
+            pickers.judgmentDatePicker.selectedDates[0].toISOString() : 'Failed to set (unexpected)');
+        
+        // Check if postjudgment date picker exists
+        if (!pickers.postjudgmentDatePicker) {
+            console.log('Postjudgment Date Picker not found. Skipping postjudgment date tests.');
+            console.log('Judgment Date constraints test complete');
+            return;
+        }
+        
+        // Test setting postjudgment date to before judgment date (should not work)
+        console.log('Attempting to set postjudgment date to 2023-06-14 (before judgment date)...');
+        pickers.postjudgmentDatePicker.setDate('2023-06-14');
+        
+        // Check if date was set or rejected
+        console.log('Postjudgment date after attempting to set before judgment date:', 
+            pickers.postjudgmentDatePicker.selectedDates.length > 0 ? 
+            pickers.postjudgmentDatePicker.selectedDates[0].toISOString() : 'Rejected (expected)');
+        
+        // Test setting postjudgment date to after 2025-06-30 (should not work)
+        console.log('Attempting to set postjudgment date to 2025-07-01 (after max date)...');
+        pickers.postjudgmentDatePicker.setDate('2025-07-01');
+        
+        // Check if date was set or rejected
+        console.log('Postjudgment date after attempting to set after max date:', 
+            pickers.postjudgmentDatePicker.selectedDates.length > 0 ? 
+            pickers.postjudgmentDatePicker.selectedDates[0].toISOString() : 'Rejected (expected)');
+        
+        // Test setting postjudgment date to a valid date
+        console.log('Setting postjudgment date to 2023-12-31 (valid date)...');
+        pickers.postjudgmentDatePicker.setDate('2023-12-31');
+        
+        // Check if date was set
+        console.log('Postjudgment date after setting to valid date:', 
+            pickers.postjudgmentDatePicker.selectedDates.length > 0 ? 
+            pickers.postjudgmentDatePicker.selectedDates[0].toISOString() : 'Failed to set (unexpected)');
+        
+        console.log('Judgment and Postjudgment Date constraints test complete');
+    }).catch(error => {
+        console.error('Error testing date constraints:', error);
+    });
+}
+
 // Export the test functions
-export { testDatepickerInitialization, testDateConstraints, testAllDatepickers };
+export { testDatepickerInitialization, testDateConstraints, testAllDatepickers, testJudgmentDateConstraints };
 
 // Log a message to indicate the test script is loaded
-console.log('Datepicker test script loaded. Run testDatepickerInitialization(), testDateConstraints(), or testAllDatepickers() to test.');
+console.log('Datepicker test script loaded. Run testDatepickerInitialization(), testDateConstraints(), testAllDatepickers(), or testJudgmentDateConstraints() to test.');

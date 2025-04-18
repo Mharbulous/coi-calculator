@@ -23,7 +23,7 @@ export function initializeDatePickers(recalculateCallback) {
     if (prejudgmentDatePicker) prejudgmentDatePicker.destroy();
     if (postjudgmentDatePicker) postjudgmentDatePicker.destroy();
     
-    // Initialize Judgment Date picker
+    // Initialize Judgment Date picker with fixed constraints
     if (elements.judgmentDateInput) {
         judgmentDatePicker = flatpickr(elements.judgmentDateInput, {
             dateFormat: "Y-m-d",
@@ -33,7 +33,7 @@ export function initializeDatePickers(recalculateCallback) {
             monthSelectorType: "dropdown",
             enableTime: false,
             minDate: "1993-01-01",
-            maxDate: "2030-12-31",
+            maxDate: "2025-06-30", // Fixed maximum date as requested
             onChange: (selectedDates) => onJudgmentDateChange(selectedDates, recalculateCallback),
             onOpen: positionCalendar
         });
@@ -65,14 +65,14 @@ export function initializeDatePickers(recalculateCallback) {
             monthSelectorType: "dropdown",
             enableTime: false,
             minDate: "1993-01-01",
-            maxDate: "2030-12-31",
+            maxDate: "2025-06-30", // Fixed maximum date as requested
             onChange: (selectedDates) => onPostjudgmentDateChange(selectedDates, recalculateCallback),
             onOpen: positionCalendar
         });
     }
     
     // Set initial constraints based on any existing values
-    updateDatePickerConstraints();
+    updatePrejudgmentPostjudgmentConstraints();
     
     return {
         judgmentDatePicker,
@@ -111,8 +111,8 @@ function onJudgmentDateChange(selectedDates, recalculateCallback) {
         useStore.getState().setInput('postjudgmentEndDate', null);
     }
     
-    // Update constraints on all pickers
-    updateDatePickerConstraints();
+    // Update constraints on prejudgment and postjudgment pickers only
+    updatePrejudgmentPostjudgmentConstraints();
     
     // Trigger recalculation
     if (typeof recalculateCallback === 'function') {
@@ -128,22 +128,24 @@ function onJudgmentDateChange(selectedDates, recalculateCallback) {
 function onPrejudgmentDateChange(selectedDates, recalculateCallback) {
     const newDate = selectedDates.length > 0 ? selectedDates[0] : null;
     
-    // Update the Zustand store with the new prejudgment date
-    useStore.getState().setInput('prejudgmentStartDate', newDate);
-    
     // Get current judgment date
     const judgmentDate = judgmentDatePicker && judgmentDatePicker.selectedDates.length > 0 ? 
         judgmentDatePicker.selectedDates[0] : null;
     
-    // Check constraints and clear dependent fields if needed
+    // Check constraints - if the new date is after judgment date, reject it
     if (newDate && judgmentDate && newDate > judgmentDate) {
-        // New prejudgment date is after judgment date, clear judgment date
-        judgmentDatePicker.clear();
-        useStore.getState().setInput('dateOfJudgment', null);
+        // New prejudgment date is after judgment date, reject it by clearing the picker
+        // and not updating the store
+        prejudgmentDatePicker.clear();
+        console.log("Prejudgment date cannot be later than Judgment date");
+        return; // Exit early without updating store or recalculating
     }
     
-    // Update constraints on all pickers
-    updateDatePickerConstraints();
+    // If we get here, the date is valid, so update the store
+    useStore.getState().setInput('prejudgmentStartDate', newDate);
+    
+    // Update constraints on prejudgment and postjudgment pickers
+    updatePrejudgmentPostjudgmentConstraints();
     
     // Trigger recalculation
     if (typeof recalculateCallback === 'function') {
@@ -159,22 +161,33 @@ function onPrejudgmentDateChange(selectedDates, recalculateCallback) {
 function onPostjudgmentDateChange(selectedDates, recalculateCallback) {
     const newDate = selectedDates.length > 0 ? selectedDates[0] : null;
     
-    // Update the Zustand store with the new postjudgment date
-    useStore.getState().setInput('postjudgmentEndDate', newDate);
-    
     // Get current judgment date
     const judgmentDate = judgmentDatePicker && judgmentDatePicker.selectedDates.length > 0 ? 
         judgmentDatePicker.selectedDates[0] : null;
     
-    // Check constraints and clear dependent fields if needed
+    // Check constraints - if the new date is before judgment date, reject it
     if (newDate && judgmentDate && newDate < judgmentDate) {
-        // New postjudgment date is before judgment date, clear judgment date
-        judgmentDatePicker.clear();
-        useStore.getState().setInput('dateOfJudgment', null);
+        // New postjudgment date is before judgment date, reject it by clearing the picker
+        // and not updating the store
+        postjudgmentDatePicker.clear();
+        console.log("Postjudgment date cannot be earlier than Judgment date");
+        return; // Exit early without updating store or recalculating
     }
     
-    // Update constraints on all pickers
-    updateDatePickerConstraints();
+    // Check if the date is after June 30, 2025
+    const maxDate = new Date(2025, 5, 30); // June is 5 (0-indexed)
+    if (newDate && newDate > maxDate) {
+        // New postjudgment date is after max date, reject it
+        postjudgmentDatePicker.clear();
+        console.log("Postjudgment date cannot be later than June 30, 2025");
+        return; // Exit early without updating store or recalculating
+    }
+    
+    // If we get here, the date is valid, so update the store
+    useStore.getState().setInput('postjudgmentEndDate', newDate);
+    
+    // Update constraints on prejudgment and postjudgment pickers
+    updatePrejudgmentPostjudgmentConstraints();
     
     // Trigger recalculation
     if (typeof recalculateCallback === 'function') {
@@ -183,33 +196,13 @@ function onPostjudgmentDateChange(selectedDates, recalculateCallback) {
 }
 
 /**
- * Updates the min/max date constraints on all date pickers based on current values.
+ * Updates the min/max date constraints on prejudgment and postjudgment date pickers based on judgment date.
+ * The judgment date picker has fixed constraints and is not affected by other dates.
  */
-function updateDatePickerConstraints() {
-    // Get current selected dates from all pickers
+function updatePrejudgmentPostjudgmentConstraints() {
+    // Get current judgment date
     const judgmentDate = judgmentDatePicker && judgmentDatePicker.selectedDates.length > 0 ? 
         judgmentDatePicker.selectedDates[0] : null;
-    const prejudgmentDate = prejudgmentDatePicker && prejudgmentDatePicker.selectedDates.length > 0 ? 
-        prejudgmentDatePicker.selectedDates[0] : null;
-    const postjudgmentDate = postjudgmentDatePicker && postjudgmentDatePicker.selectedDates.length > 0 ? 
-        postjudgmentDatePicker.selectedDates[0] : null;
-    
-    // Update Judgment Date picker constraints
-    if (judgmentDatePicker) {
-        // Set minDate to prejudgment date if it exists
-        if (prejudgmentDate) {
-            judgmentDatePicker.set('minDate', prejudgmentDate);
-        } else {
-            judgmentDatePicker.set('minDate', "1993-01-01");
-        }
-        
-        // Set maxDate to postjudgment date if it exists
-        if (postjudgmentDate) {
-            judgmentDatePicker.set('maxDate', postjudgmentDate);
-        } else {
-            judgmentDatePicker.set('maxDate', "2030-12-31");
-        }
-    }
     
     // Update Prejudgment Date picker constraints
     if (prejudgmentDatePicker) {
@@ -229,6 +222,9 @@ function updateDatePickerConstraints() {
         } else {
             postjudgmentDatePicker.set('minDate', "1993-01-01");
         }
+        
+        // Always set maxDate to June 30, 2025
+        postjudgmentDatePicker.set('maxDate', "2025-06-30");
     }
 }
 
