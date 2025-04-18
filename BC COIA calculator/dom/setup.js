@@ -1,12 +1,11 @@
-import { formatDateLong, parseDateInput, formatDateForInput, formatDateForDisplay, validateDateFormat, dateBefore, dateAfter, dateOnOrBefore, dateOnOrAfter } from '../utils.date.js';
+import { formatDateLong, parseDateInput, formatDateForInput, formatDateForDisplay, validateDateFormat } from '../utils.date.js';
 import { formatCurrencyForDisplay, formatCurrencyForInput, formatCurrencyForInputWithCommas, parseCurrency } from '../utils.currency.js';
 import elements from './elements.js';
 import useStore from '../store.js';
+import { initializeDatePickers } from './datepickers.js';
 
-// Track the date picker instances
-let judgmentDatePicker = null;
-let prejudgmentDatePicker = null;
-let postjudgmentDatePicker = null;
+// Re-export the initializeDatePickers function
+export { initializeDatePickers };
 
 /**
  * Sets up auto-formatting for date input fields that will automatically insert hyphens.
@@ -71,323 +70,6 @@ export function setupAutoFormattingDateInputListeners(inputElement) {
     });
 }
 
-/**
- * Initialize date pickers with constraints based on judgment date
- * @returns {Object} Object containing the date picker instances
- */
-export function initializeDatePickers(recalculateCallback) {
-    // Initialize Judgment Date picker first (no constraints initially)
-    judgmentDatePicker = flatpickr(elements.judgmentDateInput, {
-        dateFormat: "Y-m-d",
-        allowInput: true,
-        clickOpens: true,
-        disableMobile: true,
-        monthSelectorType: "dropdown",
-        enableTime: false,
-        minDate: "1993-01-01",
-        maxDate: "2030-12-31",
-        onChange: function(selectedDates, dateStr, instance) {
-            // When judgment date changes, update constraints for other pickers
-            updateDateConstraints(dateStr);
-            // Trigger recalculation
-            if (typeof recalculateCallback === 'function') {
-                recalculateCallback();
-            }
-        },
-        onClose: function(selectedDates, dateStr, instance) {
-            // Validate manual input format on close if no valid date was selected via onChange
-            if (selectedDates.length === 0 && dateStr !== '') {
-                if (!validateDateFormat(dateStr)) {
-                    instance.clear();
-                    showDateConstraintNotification(instance.input, "Invalid date format. Use YYYY-MM-DD.");
-                    setTimeout(() => instance.input.focus(), 100); // Focus back
-                } else {
-                    // Format is valid, but might violate constraints if manually typed
-                    // Re-run constraint update in case manual input is valid format but invalid range
-                    updateDateConstraints(dateStr);
-                    // Trigger recalculation if format is valid
-                    if (typeof recalculateCallback === 'function') {
-                         recalculateCallback();
-                    }
-                }
-            }
-        },
-        onOpen: positionCalendar
-    });
-    
-    // Initialize Prejudgment Date picker with max date = judgment date
-    prejudgmentDatePicker = flatpickr(elements.prejudgmentInterestDateInput, {
-        dateFormat: "Y-m-d",
-        allowInput: true,
-        clickOpens: true,
-        disableMobile: true,
-        monthSelectorType: "dropdown",
-        enableTime: false,
-        minDate: "1993-01-01",
-        // Initially constrain to dates on or before judgment date (if available)
-        maxDate: elements.judgmentDateInput.value || "2030-12-31",
-        onChange: function(selectedDates, dateStr, instance) {
-            // Validate against judgment date
-            const judgmentDateValue = elements.judgmentDateInput.value;
-            if (judgmentDateValue && selectedDates.length > 0) {
-                const prejudgmentDate = selectedDates[0]; // Already a Date object
-                const judgmentDate = parseDateInput(judgmentDateValue);
-
-                // Use dateOnOrBefore to allow same day
-                if (judgmentDate && !dateOnOrBefore(prejudgmentDate, judgmentDate)) {
-                    instance.clear();
-                    showDateConstraintNotification(instance.input, "Date must be on or before Judgment Date");
-                    // Don't trigger recalculate if cleared
-                    return;
-                }
-            }
-            // Trigger recalculation if valid
-            if (typeof recalculateCallback === 'function') {
-                recalculateCallback();
-            }
-        },
-         onClose: function(selectedDates, dateStr, instance) {
-            // Validate manual input format and constraint on close
-            if (selectedDates.length === 0 && dateStr !== '') {
-                 if (!validateDateFormat(dateStr)) {
-                    instance.clear();
-                    showDateConstraintNotification(instance.input, "Invalid date format. Use YYYY-MM-DD.");
-                    setTimeout(() => instance.input.focus(), 100);
-                } else {
-                    // Format is valid, check constraint
-                    const judgmentDateValue = elements.judgmentDateInput.value;
-                    if (judgmentDateValue) {
-                        const prejudgmentDate = parseDateInput(dateStr); // Parse the string input
-                        const judgmentDate = parseDateInput(judgmentDateValue);
-
-                        if (prejudgmentDate && judgmentDate && !dateOnOrBefore(prejudgmentDate, judgmentDate)) {
-                            instance.clear();
-                            showDateConstraintNotification(instance.input, "Date must be on or before Judgment Date");
-                        } else if (typeof recalculateCallback === 'function') {
-                             // Trigger recalculation only if valid format and constraint
-                             recalculateCallback();
-                        }
-                    } else if (typeof recalculateCallback === 'function') {
-                         // Recalculate if format is valid and no judgment date to check against yet
-                         recalculateCallback();
-                    }
-                }
-            }
-        },
-        onOpen: positionCalendar
-    });
-    
-    // Initialize Postjudgment Date picker with min date = judgment date
-    postjudgmentDatePicker = flatpickr(elements.postjudgmentInterestDateInput, {
-        dateFormat: "Y-m-d",
-        allowInput: true,
-        clickOpens: true,
-        disableMobile: true,
-        monthSelectorType: "dropdown",
-        enableTime: false,
-        // Initially constrain to dates on or after judgment date (if available)
-        minDate: elements.judgmentDateInput.value || "1993-01-01",
-        maxDate: "2030-12-31",
-        onChange: function(selectedDates, dateStr, instance) {
-             // Validate against judgment date
-            const judgmentDateValue = elements.judgmentDateInput.value;
-            if (judgmentDateValue && selectedDates.length > 0) {
-                const postjudgmentDate = selectedDates[0]; // Already a Date object
-                const judgmentDate = parseDateInput(judgmentDateValue);
-
-                // Use dateOnOrAfter to allow same day
-                if (judgmentDate && !dateOnOrAfter(postjudgmentDate, judgmentDate)) {
-                    instance.clear();
-                    showDateConstraintNotification(instance.input, "Date must be on or after Judgment Date");
-                     // Don't trigger recalculate if cleared
-                    return;
-                }
-            }
-             // Trigger recalculation if valid
-            if (typeof recalculateCallback === 'function') {
-                recalculateCallback();
-            }
-        },
-         onClose: function(selectedDates, dateStr, instance) {
-            // Validate manual input format and constraint on close
-            if (selectedDates.length === 0 && dateStr !== '') {
-                 if (!validateDateFormat(dateStr)) {
-                    instance.clear();
-                    showDateConstraintNotification(instance.input, "Invalid date format. Use YYYY-MM-DD.");
-                    setTimeout(() => instance.input.focus(), 100);
-                } else {
-                    // Format is valid, check constraint
-                    const judgmentDateValue = elements.judgmentDateInput.value;
-                    if (judgmentDateValue) {
-                        const postjudgmentDate = parseDateInput(dateStr); // Parse the string input
-                        const judgmentDate = parseDateInput(judgmentDateValue);
-
-                        if (postjudgmentDate && judgmentDate && !dateOnOrAfter(postjudgmentDate, judgmentDate)) {
-                            instance.clear();
-                            showDateConstraintNotification(instance.input, "Date must be on or after Judgment Date");
-                        } else if (typeof recalculateCallback === 'function') {
-                             // Trigger recalculation only if valid format and constraint
-                             recalculateCallback();
-                        }
-                    } else if (typeof recalculateCallback === 'function') {
-                         // Recalculate if format is valid and no judgment date to check against yet
-                         recalculateCallback();
-                    }
-                }
-            }
-        },
-        onOpen: positionCalendar
-    });
-    
-    // Update constraints based on initial judgment date
-    if (elements.judgmentDateInput.value) {
-        updateDateConstraints(elements.judgmentDateInput.value);
-    }
-    
-    return {
-        judgmentDatePicker,
-        prejudgmentDatePicker,
-        postjudgmentDatePicker
-    };
-}
-
-/**
- * Update date constraints when judgment date changes
- * @param {string} judgmentDateStr - The judgment date string in YYYY-MM-DD format
- */
-function updateDateConstraints(judgmentDateStr) {
-    if (!judgmentDateStr) return;
-    
-    // Update Prejudgment Date picker to only allow dates before judgment date
-    if (prejudgmentDatePicker && elements.prejudgmentInterestDateInput) {
-        prejudgmentDatePicker.set('maxDate', judgmentDateStr);
-        
-        // If current prejudgment date is now invalid, reset it
-        const currentPrejudgmentDate = elements.prejudgmentInterestDateInput.value;
-        if (currentPrejudgmentDate) {
-            const prejudgmentDate = parseDateInput(currentPrejudgmentDate);
-            const judgmentDate = parseDateInput(judgmentDateStr);
-
-            // Use dateOnOrBefore to allow same day
-            if (prejudgmentDate && judgmentDate && !dateOnOrBefore(prejudgmentDate, judgmentDate)) {
-                prejudgmentDatePicker.clear();
-                // Show a subtle notification that the date was cleared
-                showDateConstraintNotification(elements.prejudgmentInterestDateInput, "Date must be on or before Judgment Date");
-            }
-        }
-    }
-    
-    // Update Postjudgment Date picker to only allow dates after judgment date
-    if (postjudgmentDatePicker && elements.postjudgmentInterestDateInput) {
-        postjudgmentDatePicker.set('minDate', judgmentDateStr);
-        
-        // If current postjudgment date is now invalid, reset it
-        const currentPostjudgmentDate = elements.postjudgmentInterestDateInput.value;
-        if (currentPostjudgmentDate) {
-            const postjudgmentDate = parseDateInput(currentPostjudgmentDate);
-            const judgmentDate = parseDateInput(judgmentDateStr);
-
-            // Use dateOnOrAfter to allow same day
-            if (postjudgmentDate && judgmentDate && !dateOnOrAfter(postjudgmentDate, judgmentDate)) {
-                postjudgmentDatePicker.clear();
-                // Show a subtle notification that the date was cleared
-                showDateConstraintNotification(elements.postjudgmentInterestDateInput, "Date must be on or after Judgment Date");
-            }
-        }
-    }
-}
-
-// Track if a notification is currently being shown
-let isNotificationVisible = false;
-
-/**
- * Show a subtle notification when a date is cleared due to constraint violation
- * @param {HTMLElement} inputElement - The input element
- * @param {string} message - The notification message
- */
-function showDateConstraintNotification(inputElement, message) {
-    // Check if there's already a notification visible
-    if (isNotificationVisible || document.querySelector('.date-constraint-notification, .error-notification')) {
-        return; // Don't show multiple notifications at once
-    }
-    
-    isNotificationVisible = true;
-    
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.className = 'date-constraint-notification';
-    notification.textContent = message;
-    notification.style.position = 'absolute';
-    notification.style.backgroundColor = '#fff3cd';
-    notification.style.color = '#856404';
-    notification.style.padding = '5px 10px';
-    notification.style.borderRadius = '4px';
-    notification.style.fontSize = '12px';
-    notification.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
-    notification.style.zIndex = '1000';
-    notification.style.opacity = '0';
-    notification.style.transition = 'opacity 0.3s ease-in-out';
-    
-    // Position the notification near the input
-    const rect = inputElement.getBoundingClientRect();
-    notification.style.top = `${rect.bottom + window.scrollY + 5}px`;
-    notification.style.left = `${rect.left + window.scrollX}px`;
-    
-    // Add to document
-    document.body.appendChild(notification);
-    
-    // Fade in
-    setTimeout(() => {
-        notification.style.opacity = '1';
-    }, 10);
-    
-    // Remove after 3 seconds
-    setTimeout(() => {
-        notification.style.opacity = '0';
-        setTimeout(() => {
-            document.body.removeChild(notification);
-            isNotificationVisible = false;
-        }, 300);
-    }, 3000);
-}
-
-/**
- * Position the flatpickr calendar
- * @param {Array} selectedDates - Selected dates
- * @param {string} dateStr - Date string
- * @param {Object} instance - Flatpickr instance
- */
-function positionCalendar(selectedDates, dateStr, instance) {
-    // Use requestAnimationFrame to ensure the calendar is fully rendered
-    requestAnimationFrame(() => {
-        const inputRect = instance.input.getBoundingClientRect();
-        const calendar = instance.calendarContainer;
-        const calendarRect = calendar.getBoundingClientRect();
-        const scrollX = window.scrollX || window.pageXOffset;
-        const scrollY = window.scrollY || window.pageYOffset;
-
-        // Calculate desired left position: input's right edge - calendar's width
-        let newLeft = scrollX + inputRect.right - calendarRect.width;
-
-        // Calculate desired top position: below the input
-        let newTop = scrollY + inputRect.bottom + 2; // +2 for a small gap
-
-        // Adjust if calendar goes off-screen vertically
-        if (newTop + calendarRect.height > window.innerHeight + scrollY) {
-            newTop = scrollY + inputRect.top - calendarRect.height - 2; // Position above
-        }
-
-        // Adjust if calendar goes off-screen horizontally (left side)
-        if (newLeft < scrollX) {
-            newLeft = scrollX + inputRect.left; // Fallback to left alignment
-        }
-
-        // Apply the calculated position
-        calendar.style.position = 'absolute'; // Ensure positioning context
-        calendar.style.left = `${newLeft}px`;
-        calendar.style.top = `${newTop}px`;
-    });
-}
 
 /**
  * Sets up event listeners for custom date input fields with auto-formatting and date picker.
@@ -406,10 +88,8 @@ export function setupCustomDateInputListeners(inputElement, changeCallback) {
     const isFlatpickrControlled = isJudgmentDate || isPrejudgmentFromDate || isPostjudgmentUntilDate;
 
     if (isFlatpickrControlled) {
-        // Flatpickr handles its own validation via onChange and onClose hooks configured in initializeDatePickers.
-        // We don't need the complex blur listener here as it conflicts.
-        // We might add simpler listeners if needed, but start with Flatpickr's hooks.
-        // console.log(`Skipping custom blur listener setup for Flatpickr-controlled input: ${inputElement.id || inputElement.name}`); // Keep for debugging if needed
+        // These fields are now handled by the new datepickers.js module
+        // No additional setup needed here
     } else {
         // For non-Flatpickr fields (e.g., special damages dates), use auto-formatting and a blur listener for validation.
         setupAutoFormattingDateInputListeners(inputElement);
@@ -441,9 +121,10 @@ export function setupCustomDateInputListeners(inputElement, changeCallback) {
                         changeCallback();
                     }
                 } else {
-                    // Invalid date, clear the field and show notification
+                    // Invalid date, clear the field
                     event.target.value = '';
-                    showDateConstraintNotification(inputElement, "Invalid date format. Use YYYY-MM-DD.");
+                    // Show error message (using browser alert instead of custom notification)
+                    alert("Invalid date format. Use YYYY-MM-DD.");
                     // Focus back on the input for correction
                     setTimeout(() => event.target.focus(), 100);
                 }

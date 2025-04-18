@@ -1,7 +1,7 @@
 import { formatDateLong, formatDateForInput, formatDateForDisplay } from '../utils.date.js';
 import { formatCurrencyForDisplay, formatCurrencyForInputWithCommas } from '../utils.currency.js';
 import elements from './elements.js';
-import { setupCustomDateInputListeners, setupCurrencyInputListeners } from './setup.js';
+import { setupCustomDateInputListeners, setupCurrencyInputListeners, initializeDatePickers } from './setup.js';
 
 /**
  * Updates the Summary table based on the Zustand store.
@@ -199,7 +199,7 @@ export function updateSummaryTable(store, recalculateCallback) {
             }
         }
 
-        // 6. Append the populated clone to the table body
+    // 6. Append the populated clone to the table body
         elements.summaryTableBody.appendChild(rowClone);
     });
 
@@ -208,6 +208,9 @@ export function updateSummaryTable(store, recalculateCallback) {
     elements.summaryTotalLabelEl.textContent = `TOTAL AS OF ${formattedAccrualDate}`;
     elements.summaryTotalEl.innerHTML = formatCurrencyForDisplay(totalOwing);
     elements.summaryPerDiemEl.innerHTML = formatCurrencyForDisplay(perDiem);
+    
+    // Reinitialize datepickers to ensure they work with the dynamically created date inputs
+    initializeDatePickers(recalculateCallback);
 }
 
 /**
