@@ -43,7 +43,7 @@ export function formatCurrencyForInput(value) {
  * @returns {string} The formatted currency string with commas, no symbol.
  */
 export function formatCurrencyForInputWithCommas(value) {
-    if (isNaN(value) || value === null) return "0.00";
+    if (isNaN(value) || value === null) return "$0.00";
     // Use Intl.NumberFormat but without currency style to get commas
     const formatter = new Intl.NumberFormat('en-CA', {
         minimumFractionDigits: 2,
