@@ -126,13 +126,13 @@ export function validateInputValues(inputs) {
         
         // Check postjudgment end date against judgment date
         if (inputs.showPostjudgment && dateBefore(inputs.postjudgmentEndDate, inputs.dateOfJudgment)) {
-            validationMessage = "Postjudgment End Date cannot be before the Judgment Date when showing Postjudgment Interest.";
+            validationMessage = "Accrual date cannot be later than the Judgment Date.";
             isValid = false;
         }
         
         // Check prejudgment start date against judgment date
         if (dateAfter(inputs.prejudgmentStartDate, inputs.dateOfJudgment)) {
-            validationMessage = "Prejudgment Start Date cannot be after the Judgment Date.";
+            validationMessage = "Cause of action date cannot be later than the Judgment Date.";
             isValid = false;
         }
     }

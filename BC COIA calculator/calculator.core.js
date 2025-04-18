@@ -63,13 +63,58 @@ function collectSpecialDamages() {
 }
 
 /**
+ * Shows a non-blocking error notification
+ * @param {string} message - The error message to display
+ */
+function showErrorNotification(message) {
+    console.warn("Validation error:", message);
+    
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = 'date-constraint-notification error-notification';
+    notification.textContent = message;
+    notification.style.position = 'fixed';
+    notification.style.top = '10px';
+    notification.style.left = '50%';
+    notification.style.transform = 'translateX(-50%)';
+    notification.style.backgroundColor = '#f8d7da';
+    notification.style.color = '#721c24';
+    notification.style.padding = '10px 15px';
+    notification.style.borderRadius = '4px';
+    notification.style.fontSize = '14px';
+    notification.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
+    notification.style.zIndex = '1000';
+    notification.style.opacity = '0';
+    notification.style.transition = 'opacity 0.3s ease-in-out';
+    
+    // Add to document
+    document.body.appendChild(notification);
+    
+    // Fade in
+    setTimeout(() => {
+        notification.style.opacity = '1';
+    }, 10);
+    
+    // Remove after 5 seconds
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        setTimeout(() => {
+            document.body.removeChild(notification);
+        }, 300);
+    }, 5000);
+}
+
+/**
  * Handles invalid inputs by displaying appropriate messages and updating the UI.
  * @param {object} inputs - The input values object.
  * @param {string} validationMessage - The validation message to display.
  */
 function handleInvalidInputs(inputs, validationMessage) {
     console.warn("Recalculation skipped due to invalid inputs:", validationMessage);
-    alert(validationMessage || "Please check the input values."); // Show validation message
+    
+    // Show non-blocking notification instead of alert
+    showErrorNotification(validationMessage || "Please check the input values.");
+    
     clearResults(); // Assumes clearResults handles new tables
     
     // Show base total (Judgment + Non-Pecuniary + Costs) even if dates are invalid
@@ -106,7 +151,10 @@ function handleInvalidInputs(inputs, validationMessage) {
 function handleMissingRates(inputs, jurisdiction) {
     const message = `Interest rates are not available for the selected jurisdiction: ${jurisdiction}.`;
     console.error(message);
-    alert(message);
+    
+    // Show non-blocking notification instead of alert
+    showErrorNotification(message);
+    
     clearResults(); // Assumes clearResults handles new tables
     
     const baseTotal = (inputs.judgmentAwarded || 0) + (inputs.nonPecuniaryAwarded || 0) + (inputs.costsAwarded || 0); // Use || 0 for safety
@@ -237,7 +285,9 @@ function calculatePostjudgmentInterest(inputs, judgmentTotal, interestRatesData)
              postjudgmentResult = { details: [], total: 0 }; // Ensure structure if skipped
              // If range is invalid, use latestJudgmentDate as the final date for summary display
              finalCalculationDate = latestJudgmentDate;
-             // Visually reset the dynamic input if it exists and is different
+             
+             // Don't show error notification here as it's already handled by the date picker constraints
+             // Just silently reset the value if needed
              const latestJudgmentDateInputValue = formatDateForInput(latestJudgmentDate);
              if (elements.postjudgmentInterestDateInput && elements.postjudgmentInterestDateInput.value !== latestJudgmentDateInputValue) {
                  elements.postjudgmentInterestDateInput.value = latestJudgmentDateInputValue;

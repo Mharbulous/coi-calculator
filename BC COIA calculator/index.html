@@ -75,7 +75,12 @@
         <!-- Restructured Summary Table -->
         <div class="section-title">
             Judgment Date
-            <input type="text" class="custom-date-input" data-input="judgmentDate" placeholder="YYYY-MM-DD" maxlength="10" style="margin-left: 10px; width: 100px; font-weight: bold;">
+            <div class="judgment-date-container" style="display: inline-block; position: relative;">
+                <input type="text" class="custom-date-input" data-input="judgmentDate" placeholder="YYYY-MM-DD" maxlength="10" style="margin-left: 10px; width: 100px; font-weight: bold;">
+                <span class="help-icon" tabindex="0" role="button" aria-label="Help" style="margin-left: 5px;">?
+                    <span class="tooltip">This is the central reference date. Prejudgment dates must be before this date, and postjudgment dates must be after it.</span>
+                </span>
+            </div>
         </div>
         <table class="summary-table">             
              <tbody data-display="summaryTableBody">
@@ -223,6 +228,22 @@
     </template>
     <!-- End of Templates -->
 
+    <!-- CSS for date constraint notifications -->
+    <style>
+        .date-constraint-notification {
+            position: absolute;
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+    </style>
+    
     <!-- Load the main script as a module -->
     <script src="calculator.ui.js" type="module" defer></script>
 </body>

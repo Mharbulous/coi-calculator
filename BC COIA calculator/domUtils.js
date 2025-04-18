@@ -17,7 +17,7 @@ export { updateSummaryTable, clearResults } from './dom/tables.summary.js';
 export { togglePrejudgmentVisibility, togglePostjudgmentVisibility, togglePerDiemVisibility } from './dom/visibility.js';
 
 // Re-export from setup.js
-export { setupCustomDateInputListeners, setupCurrencyInputListeners, setDefaultInputValues } from './dom/setup.js';
+export { setupCustomDateInputListeners, setupCurrencyInputListeners, setDefaultInputValues, initializeDatePickers } from './dom/setup.js';
 
 // Re-export from specialDamages.js
 export { insertSpecialDamagesRow, insertSpecialDamagesRowFromData, insertCalculatedRowIfNeeded } from './dom/specialDamages.js';

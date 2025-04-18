@@ -59,8 +59,8 @@ export function updateSummaryTable(store, recalculateCallback) {
     // Help text for tooltips
     const helpTexts = {
         'General Damages & Debt': "Enter the date that judgment was pronounced.",
-        'Prejudgment Interest': "Prejudgment interest will be acrrued from this date.",
-        'Postjudgment Interest': "Postjudgment interest will be accrued up to this date."
+        'Prejudgment Interest': "Cause of Action Date. Prejudgment interest will start to accrue from this date.",
+        'Postjudgment Interest': "Accrual Date.  Postjudgment interest will accrue up to this date."
     };
 
     // Get template elements once

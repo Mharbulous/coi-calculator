@@ -66,8 +66,13 @@ function setupEventListeners() {
         return;
     }
     
-    // Set up event listener for judgment date input
+    // Initialize date pickers with constraints
     import('./dom/setup.js').then(module => {
+        // Initialize date pickers with constraints
+        module.initializeDatePickers(recalculate);
+        
+        // For backward compatibility, still set up listeners for judgment date
+        // (though this is now handled in initializeDatePickers)
         module.setupCustomDateInputListeners(elements.judgmentDateInput, recalculate);
     });
 
