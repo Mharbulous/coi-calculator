@@ -1,3 +1,8 @@
+# Current Interest Calculation Flow
+
+The following diagram illustrates the current complex flow of the interest calculation logic:
+
+```mermaid
 flowchart TD
     Start([Start calculateInterestPeriods]) --> Validate[Validate inputs]
     Validate --> ValidCheck{Valid inputs?}

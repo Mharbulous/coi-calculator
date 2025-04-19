@@ -1,3 +1,8 @@
+# Simplified Interest Calculation Flow
+
+The following diagram illustrates the proposed simplified approach to interest calculations:
+
+```mermaid
 flowchart TD
     Start([Start calculateInterestPeriods]) --> Validate[Validate inputs]
     Validate --> ValidCheck{Valid inputs?}

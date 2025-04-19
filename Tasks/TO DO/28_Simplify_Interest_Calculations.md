@@ -6,7 +6,7 @@ The current interest calculation logic in `calculations.js` is complex and diffi
 
 ## Current Implementation
 
-The current implementation (see `OLD_interest_calculation.md` for a visual representation) has several areas of complexity:
+The current implementation (see [OLD_interest_calculation.md](./OLD_interest_calculation.md) for a visual representation) has several areas of complexity:
 
 1. The `calculateInterestPeriods` function is over 200 lines long and handles multiple responsibilities:
    - Calculating interest for regular periods
@@ -25,7 +25,7 @@ The current implementation (see `OLD_interest_calculation.md` for a visual repre
 
 ## Proposed Simplification
 
-The proposed simplified approach (see `SIMPLIFIED_interest_calculation.md` for a visual representation) breaks down the calculation into distinct, focused functions:
+The proposed simplified approach (see [SIMPLIFIED_interest_calculation.md](./SIMPLIFIED_interest_calculation.md) for a visual representation) breaks down the calculation into distinct, focused functions:
 
 1. **Get Applicable Rate Periods**: Identify all interest rate periods that apply to the calculation date range.
 
