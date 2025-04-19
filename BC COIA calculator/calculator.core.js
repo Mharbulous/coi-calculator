@@ -63,45 +63,11 @@ function collectSpecialDamages() {
 }
 
 /**
- * Shows a non-blocking error notification
- * @param {string} message - The error message to display
+ * Logs a validation error to the console
+ * @param {string} message - The error message to log
  */
-function showErrorNotification(message) {
+function logValidationError(message) {
     console.warn("Validation error:", message);
-    
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.className = 'date-constraint-notification error-notification';
-    notification.textContent = message;
-    notification.style.position = 'fixed';
-    notification.style.top = '10px';
-    notification.style.left = '50%';
-    notification.style.transform = 'translateX(-50%)';
-    notification.style.backgroundColor = '#f8d7da';
-    notification.style.color = '#721c24';
-    notification.style.padding = '10px 15px';
-    notification.style.borderRadius = '4px';
-    notification.style.fontSize = '14px';
-    notification.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
-    notification.style.zIndex = '1000';
-    notification.style.opacity = '0';
-    notification.style.transition = 'opacity 0.3s ease-in-out';
-    
-    // Add to document
-    document.body.appendChild(notification);
-    
-    // Fade in
-    setTimeout(() => {
-        notification.style.opacity = '1';
-    }, 10);
-    
-    // Remove after 5 seconds
-    setTimeout(() => {
-        notification.style.opacity = '0';
-        setTimeout(() => {
-            document.body.removeChild(notification);
-        }, 300);
-    }, 5000);
 }
 
 /**
@@ -112,8 +78,8 @@ function showErrorNotification(message) {
 function handleInvalidInputs(inputs, validationMessage) {
     console.warn("Recalculation skipped due to invalid inputs:", validationMessage);
     
-    // Show non-blocking notification instead of alert
-    showErrorNotification(validationMessage || "Please check the input values.");
+    // Log the validation error
+    logValidationError(validationMessage || "Please check the input values.");
     
     clearResults(); // Assumes clearResults handles new tables
     
@@ -135,12 +101,13 @@ function handleInvalidInputs(inputs, validationMessage) {
         judgmentTotal: baseTotal,
         totalOwing: baseTotal,
         perDiem: 0,
-        finalCalculationDate: defaultPostjudgmentEndDate
+        finalCalculationDate: defaultPostjudgmentEndDate,
+        validationError: true,
+        validationMessage: validationMessage || "One or more required dates are missing or invalid."
     });
     
     // Update summary table using Zustand store
     updateSummaryTable(useStore, recalculate);
-    elements.summaryTotalLabelEl.textContent = 'TOTAL OWING (Inputs Invalid)';
 }
 
 /**
@@ -152,8 +119,8 @@ function handleMissingRates(inputs, jurisdiction) {
     const message = `Interest rates are not available for the selected jurisdiction: ${jurisdiction}.`;
     console.error(message);
     
-    // Show non-blocking notification instead of alert
-    showErrorNotification(message);
+    // Log the validation error
+    logValidationError(message);
     
     clearResults(); // Assumes clearResults handles new tables
     
@@ -168,12 +135,13 @@ function handleMissingRates(inputs, jurisdiction) {
         judgmentTotal: baseTotal,
         totalOwing: baseTotal,
         perDiem: 0,
-        finalCalculationDate: inputs.postjudgmentEndDate
+        finalCalculationDate: inputs.postjudgmentEndDate,
+        validationError: true,
+        validationMessage: `Interest rates are not available for the selected jurisdiction: ${jurisdiction}.`
     });
     
     // Update summary table using Zustand store
     updateSummaryTable(useStore, recalculate);
-    elements.summaryTotalLabelEl.textContent = `TOTAL OWING (${jurisdiction} Rates Unavailable)`;
 }
 
 /**

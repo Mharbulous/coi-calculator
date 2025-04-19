@@ -203,11 +203,68 @@ export function updateSummaryTable(store, recalculateCallback) {
         elements.summaryTableBody.appendChild(rowClone);
     });
 
-    // Update footer (remains the same)
-    const formattedAccrualDate = formatDateLong(finalCalculationDate);
-    elements.summaryTotalLabelEl.textContent = `TOTAL AS OF ${formattedAccrualDate}`;
-    elements.summaryTotalEl.innerHTML = formatCurrencyForDisplay(totalOwing);
-    elements.summaryPerDiemEl.innerHTML = formatCurrencyForDisplay(perDiem);
+    // Update footer based on validation status
+    if (results.validationError) {
+        // Create a new row for the error message that spans multiple columns
+        const totalRow = elements.summaryTotalLabelEl.closest('tr');
+        if (totalRow) {
+            // Hide the original total row
+            totalRow.style.display = 'none';
+            
+            // Create a new row for the error message
+            const errorRow = document.createElement('tr');
+            errorRow.className = 'total-row';
+            
+            // Create a cell that spans from the middle to the end
+            const errorCell = document.createElement('td');
+            errorCell.colSpan = 3; // Span all columns
+            errorCell.className = 'text-right'; // Right align the text
+            errorCell.style.color = '#721c24'; // Red text color
+            errorCell.style.fontWeight = 'bold';
+            errorCell.textContent = 'One or more required dates are missing or invalid.';
+            
+            // Add the cell to the row
+            errorRow.appendChild(errorCell);
+            
+            // Insert the error row before the per diem row
+            const perDiemRow = elements.summaryPerDiemEl.closest('tr');
+            if (perDiemRow && perDiemRow.parentNode) {
+                perDiemRow.parentNode.insertBefore(errorRow, perDiemRow);
+            }
+        } else {
+            // Fallback if we can't find the total row
+            elements.summaryTotalLabelEl.textContent = '';
+            elements.summaryTotalEl.textContent = 'One or more required dates are missing or invalid.';
+            elements.summaryTotalEl.style.color = '#721c24'; // Red text color
+            elements.summaryTotalEl.style.fontWeight = 'bold';
+            elements.summaryTotalEl.style.textAlign = 'right'; // Right align the text
+        }
+        
+        // Set per diem to zero
+        elements.summaryPerDiemEl.innerHTML = formatCurrencyForDisplay(0);
+    } else {
+        // Normal display - make sure the original total row is visible
+        const totalRow = elements.summaryTotalLabelEl.closest('tr');
+        if (totalRow) {
+            totalRow.style.display = ''; // Show the row
+            
+            // Remove any error row that might exist
+            const tfoot = totalRow.parentNode;
+            if (tfoot) {
+                const errorRows = tfoot.querySelectorAll('tr:not(.total-row):not(.per-diem-row)');
+                errorRows.forEach(row => row.remove());
+            }
+        }
+        
+        // Update the total row with the correct values
+        const formattedAccrualDate = formatDateLong(finalCalculationDate);
+        elements.summaryTotalLabelEl.textContent = `TOTAL AS OF ${formattedAccrualDate}`;
+        elements.summaryTotalLabelEl.style.color = ''; // Reset to default color
+        elements.summaryTotalEl.style.color = ''; // Reset to default color
+        elements.summaryTotalEl.style.fontWeight = ''; // Reset to default font weight
+        elements.summaryTotalEl.innerHTML = formatCurrencyForDisplay(totalOwing);
+        elements.summaryPerDiemEl.innerHTML = formatCurrencyForDisplay(perDiem);
+    }
     
     // Reinitialize datepickers to ensure they work with the dynamically created date inputs
     initializeDatePickers(recalculateCallback);

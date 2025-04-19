@@ -113,7 +113,7 @@ export function validateInputValues(inputs) {
     if (!inputs.prejudgmentStartDate || !inputs.dateOfJudgment || 
         !inputs.nonPecuniaryJudgmentDate || !inputs.costsAwardedDate || 
         !inputs.postjudgmentEndDate) {
-        validationMessage = "One or more required dates (Prejudgment Start, Judgments, Postjudgment End) are missing or invalid.";
+        validationMessage = "One or more required dates are missing or invalid.";
         isValid = false;
     } else {
         // All damage dates are now inputs.dateOfJudgment. Simplify checks.
