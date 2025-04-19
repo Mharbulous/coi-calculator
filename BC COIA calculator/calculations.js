@@ -218,7 +218,9 @@ function calculateSegmentInterest(segment, principal, rate, year) {
     const daysInSegment = daysBetween(segment.start, segment.end);
     const days_in_year = daysInYear(year);
     
-    if (daysInSegment <= 0 || rate === undefined || principal <= 0 || days_in_year <= 0) {
+    // Ensure we calculate interest even for one-day periods
+    // Remove the daysInSegment <= 0 condition
+    if (rate === undefined || principal <= 0 || days_in_year <= 0) {
         return {
             interest: 0,
             details: null
@@ -361,8 +363,9 @@ function calculateFinalPeriodDamageInterest(damages, endDate, interestType, juri
         if ((normalizedDamageDate < normalizedEndDate) || isFirstDayOfFinalPeriod) {
             const daysInFinalPeriodForDamage = daysBetween(damageDate, endDate);
             
-            // Only add if interest actually accrues (more than 0 days)
-            if (daysInFinalPeriodForDamage > 0 && damage.amount > 0) {
+            // Ensure we calculate interest even for one-day periods
+            // Remove the daysInFinalPeriodForDamage > 0 condition
+            if (damage.amount > 0) {
                 const interestForDamage = (damage.amount * (finalPeriodRate / 100) * daysInFinalPeriodForDamage) / finalYearDays;
                 
                 // Create a detail object for this special damage

@@ -143,7 +143,7 @@ function initializeCalculator() {
     // --- Perform initial population of summary table to create dynamic inputs ---
     const today = new Date();
     const defaultPostjudgmentEndDate = new Date(2024, 6, 3); // months are 0-indexed (6 = July)
-    const defaultJudgmentDate = new Date(2022, 0, 3); // months are 0-indexed (0 = January)
+    const defaultJudgmentDate = new Date(2022, 0, 1); // months are 0-indexed (0 = January), changed from 3 to 1
     const defaultPrejudgmentStartDate = new Date(2019, 2, 1); // months are 0-indexed
 
     const defaultAmount = 0;
