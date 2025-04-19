@@ -203,6 +203,14 @@ export function updateSummaryTable(store, recalculateCallback) {
         elements.summaryTableBody.appendChild(rowClone);
     });
 
+    // First, clean up any existing error rows to prevent duplication
+    const tfoot = elements.summaryTotalLabelEl.closest('tfoot');
+    if (tfoot) {
+        // Remove any existing error rows with the error-message class
+        const existingErrorRows = tfoot.querySelectorAll('.error-message-row');
+        existingErrorRows.forEach(row => row.remove());
+    }
+
     // Update footer based on validation status
     if (results.validationError) {
         // Create a new row for the error message that spans multiple columns
@@ -213,7 +221,7 @@ export function updateSummaryTable(store, recalculateCallback) {
             
             // Create a new row for the error message
             const errorRow = document.createElement('tr');
-            errorRow.className = 'total-row';
+            errorRow.className = 'total-row error-message-row'; // Add a class to identify it
             
             // Create a cell that spans from the middle to the end
             const errorCell = document.createElement('td');
@@ -247,13 +255,6 @@ export function updateSummaryTable(store, recalculateCallback) {
         const totalRow = elements.summaryTotalLabelEl.closest('tr');
         if (totalRow) {
             totalRow.style.display = ''; // Show the row
-            
-            // Remove any error row that might exist
-            const tfoot = totalRow.parentNode;
-            if (tfoot) {
-                const errorRows = tfoot.querySelectorAll('tr:not(.total-row):not(.per-diem-row)');
-                errorRows.forEach(row => row.remove());
-            }
         }
         
         // Update the total row with the correct values
