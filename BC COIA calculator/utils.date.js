@@ -196,10 +196,10 @@ export function formatDateLong(date) {
 }
 
 /**
- * Calculates the number of days between two UTC dates, inclusive.
+ * Calculates the number of days between two UTC dates, excluding the first date and including the last date.
  * @param {Date} date1 - The start date (UTC).
  * @param {Date} date2 - The end date (UTC).
- * @returns {number} The number of days between the dates, or 0 if invalid input.
+ * @returns {number} The number of days between the dates, or 0 if invalid input or same day.
  */
 export function daysBetween(date1, date2) {
     if (!date1 || !date2 || isNaN(date1.getTime()) || isNaN(date2.getTime())) {
@@ -215,11 +215,16 @@ export function daysBetween(date1, date2) {
         return 0;
     }
     
+    // Check if dates are the same day
+    if (datesEqual(normalizedDate1, normalizedDate2)) {
+        return 0; // Same day = 0 days between
+    }
+    
     // Calculate difference in milliseconds between normalized dates
     const differenceInMilliseconds = normalizedDate2.getTime() - normalizedDate1.getTime();
     
-    // Convert milliseconds to days and add 1 for inclusivity
-    return Math.round(differenceInMilliseconds / (1000 * 60 * 60 * 24)) + 1;
+    // Convert milliseconds to days (no +1 for exclusivity of first date)
+    return Math.round(differenceInMilliseconds / (1000 * 60 * 60 * 24));
 }
 
 /**

@@ -20,14 +20,9 @@ Here's a concise overview of the changes needed for each file:
 *   Modify `daysBetween` to remove the +1 and handle same-day edge case (return 0)
 *   Review other date comparison functions to ensure compatibility
 
-**interestRates.js**:
-
-*   Shift all end dates in the `rates` data structure to be the start date of the next period
-*   Remove or update the `endOfDayUTC` function which may no longer be needed
-
 **calculations.js**:
 
-*   Update all date range comparisons to use \< instead of \<= for end date checks
+*   Adapt the date range comparisons to work with the existing data structure
 *   Modify interest calculation logic to work with the new day counting approach
 *   Update special damages processing to use the new date range interpretation
 
@@ -36,6 +31,8 @@ Here's a concise overview of the changes needed for each file:
 *   Update all test expectations to reflect the new day counting approach
 *   Add tests for edge cases like same-day calculations
 
+**Note**: We will NOT be modifying the `interestRates.js` file. Instead, the calculations will adapt to work with the existing data structure while implementing the new day counting approach (excluding the first date, including the last date).
+
 ## Files and Functions to Update
 
 ### 1\. utils.date.js
@@ -43,17 +40,10 @@ Here's a concise overview of the changes needed for each file:
 *   `daysBetween`: Modify to exclude the first date (remove the +1 and handle edge cases)
 *   `datesEqual`, `dateBefore`, `dateAfter`, `dateOnOrBefore`, `dateOnOrAfter`: Review and ensure compatibility with new approach
 
-### 2\. interestRates.js
+### 2\. calculations.js
 
-*   `rates` data structure: Shift all end dates to be the start date of the next period
-    *   Example: Change `{ start: "1993-01-01", end: "1993-06-30" }` to `{ start: "1993-01-01", end: "1993-07-01" }`
-*   `processedRates` processing: Update to handle the new date range representation
-*   `endOfDayUTC` function: Review and potentially modify or remove if no longer needed
-
-### 3\. calculations.js
-
-*   `getInterestRateForDate`: Update to handle the new date range representation
-*   `getApplicableRatePeriods`: Update to handle the new date range representation
+*   `getInterestRateForDate`: Adapt to work with the existing date range representation while using the new day counting approach
+*   `getApplicableRatePeriods`: Adapt to work with the existing date range representation while using the new day counting approach
 *   `calculateSegmentInterest`: Update to work with the new day counting approach
 *   `processSpecialDamages`: Update to correctly assign damages to segments
 *   `calculateFinalPeriodDamageInterest`: Update to handle the new day counting
@@ -121,117 +111,71 @@ export function daysBetween(date1, date2) {
 }
 ```
 
-### 2\. Update `interestRates.js`
-
-#### Modify the `rates` data structure:
-
-```javascript
-// CURRENT IMPLEMENTATION
-const rates = {
-    BC: [
-        { start: "1993-01-01", end: "1993-06-30", prejudgment: 5.25, postjudgment: 7.25 },
-        { start: "1993-07-01", end: "1993-12-31", prejudgment: 4.00, postjudgment: 6.00 },
-        // ... more rates
-    ],
-    // ... other jurisdictions
-};
-
-// NEW IMPLEMENTATION
-const rates = {
-    BC: [
-        { start: "1993-01-01", end: "1993-07-01", prejudgment: 5.25, postjudgment: 7.25 },
-        { start: "1993-07-01", end: "1994-01-01", prejudgment: 4.00, postjudgment: 6.00 },
-        // ... more rates with shifted end dates
-    ],
-    // ... other jurisdictions
-};
-```
-
-#### Update the `endOfDayUTC` function:
-
-This function may no longer be needed since we're using the start of the next period as the end date. If we keep it, we should update its usage:
-
-```javascript
-// CURRENT IMPLEMENTATION
-function endOfDayUTC(date) {
-    if (!date || isNaN(date.getTime())) return date;
-    const newDate = new Date(date);
-    newDate.setUTCHours(23, 59, 59, 999);
-    return newDate;
-}
-
-// In processedRates:
-return {
-    ...rate,
-    start: startDate,
-    end: endOfDayUTC(endDate) // Ensure end date includes the whole day
-};
-
-// NEW IMPLEMENTATION
-// Either remove the function or update its usage:
-return {
-    ...rate,
-    start: startDate,
-    end: endDate // No need to set to end of day
-};
-```
-
 ### 3\. Update `calculations.js`
 
-#### Modify `getInterestRateForDate`:
+#### Modify `daysBetween`:
 
 ```javascript
-// CURRENT IMPLEMENTATION
+// CURRENT IMPLEMENTATION (inclusive)
+export function daysBetween(date1, date2) {
+    if (!date1 || !date2 || isNaN(date1.getTime()) || isNaN(date2.getTime())) {
+        return 0;
+    }
+    
+    // Normalize dates to midnight UTC
+    const normalizedDate1 = normalizeDate(date1);
+    const normalizedDate2 = normalizeDate(date2);
+    
+    // Check if normalized date2 is before normalized date1
+    if (normalizedDate2.getTime() < normalizedDate1.getTime()) {
+        return 0;
+    }
+    
+    // Calculate difference in milliseconds between normalized dates
+    const differenceInMilliseconds = normalizedDate2.getTime() - normalizedDate1.getTime();
+    
+    // Convert milliseconds to days and add 1 for inclusivity
+    return Math.round(differenceInMilliseconds / (1000 * 60 * 60 * 24)) + 1;
+}
+
+// NEW IMPLEMENTATION (exclude first date, include last date)
+export function daysBetween(date1, date2) {
+    if (!date1 || !date2 || isNaN(date1.getTime()) || isNaN(date2.getTime())) {
+        return 0;
+    }
+    
+    // Normalize dates to midnight UTC
+    const normalizedDate1 = normalizeDate(date1);
+    const normalizedDate2 = normalizeDate(date2);
+    
+    // Check if normalized date2 is before normalized date1
+    if (normalizedDate2.getTime() < normalizedDate1.getTime()) {
+        return 0;
+    }
+    
+    // Check if dates are the same day
+    if (datesEqual(normalizedDate1, normalizedDate2)) {
+        return 0; // Same day = 0 days between
+    }
+    
+    // Calculate difference in milliseconds between normalized dates
+    const differenceInMilliseconds = normalizedDate2.getTime() - normalizedDate1.getTime();
+    
+    // Convert milliseconds to days (no +1 for exclusivity of first date)
+    return Math.round(differenceInMilliseconds / (1000 * 60 * 60 * 24));
+}
+```
+
+#### Adapt calculations.js to work with existing data:
+
+```javascript
+// In getInterestRateForDate and other functions:
+// We continue to use <= for end date checks because the rate periods in the data are inclusive
+// But we use the new daysBetween function which excludes the first date and includes the last date
 const ratePeriod = jurisdictionRates.find(rate => {
-    // Check if the normalized date is on or after the start date and on or before the end date
     return normalizedDate.getTime() >= rate.start.getTime() && 
            normalizedDate.getTime() <= rate.end.getTime();
 });
-
-// NEW IMPLEMENTATION
-const ratePeriod = jurisdictionRates.find(rate => {
-    // Check if the normalized date is on or after the start date and before the end date
-    return normalizedDate.getTime() >= rate.start.getTime() && 
-           normalizedDate.getTime() < rate.end.getTime();
-});
-```
-
-#### Update `getApplicableRatePeriods`:
-
-```javascript
-// CURRENT IMPLEMENTATION
-const ratePeriod = jurisdictionRates.find(rate =>
-    currentTime >= rate.start.getTime() && currentTime <= rate.end.getTime()
-);
-
-// NEW IMPLEMENTATION
-const ratePeriod = jurisdictionRates.find(rate =>
-    currentTime >= rate.start.getTime() && currentTime < rate.end.getTime()
-);
-```
-
-#### Update `processSpecialDamages`:
-
-```javascript
-// CURRENT IMPLEMENTATION
-// Check if damage date is within this segment
-if (normalizedDamageDate >= normalizedSegmentStart && normalizedDamageDate <= normalizedSegmentEnd) {
-    return {
-        ...damage,
-        segmentIndex: i,
-        inFinalSegment: segment.isFinalSegment
-    };
-}
-
-// NEW IMPLEMENTATION
-// Check if damage date is within this segment
-if (normalizedDamageDate >= normalizedSegmentStart && normalizedDamageDate < normalizedSegmentEnd) {
-    return {
-        ...damage,
-        segmentIndex: i,
-        inFinalSegment: segment.isFinalSegment
-    };
-}
 ```
 
 ### 4\. Update Test Files
@@ -279,7 +223,7 @@ All tests that expect specific day counts or interest calculations will need to 
 
 ## Potential Challenges
 
-*   Ensuring backward compatibility with existing data
+*   Adapting calculations to work with the existing data structure
 *   Handling edge cases (e.g., calculations on the same day)
 *   Maintaining calculation accuracy during the transition
 

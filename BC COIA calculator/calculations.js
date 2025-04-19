@@ -33,7 +33,8 @@ export function getInterestRateForDate(date, type, jurisdiction, ratesData) {
     
     // Find the rate period that includes the normalized target date
     const ratePeriod = jurisdictionRates.find(rate => {
-        // Check if the normalized date is on or after the start date and on or before the end date
+        // Check if the normalized date is on or after the start date and before the end date
+        // Note: We're still using <= for end date because the rate periods in the data are inclusive
         return normalizedDate.getTime() >= rate.start.getTime() && 
                normalizedDate.getTime() <= rate.end.getTime();
     });
@@ -114,6 +115,7 @@ function getApplicableRatePeriods(startDate, endDate, interestType, jurisdiction
         // Find the rate period applicable to the current date
         const currentTime = currentDate.getTime();
         const ratePeriod = jurisdictionRates.find(rate =>
+            // Note: We're still using <= for end date because the rate periods in the data are inclusive
             currentTime >= rate.start.getTime() && currentTime <= rate.end.getTime()
         );
         
@@ -171,6 +173,7 @@ function processSpecialDamages(specialDamages, segments) {
             const normalizedSegmentEnd = normalizeDate(segment.end);
             
             // Check if damage date is within this segment
+            // Note: We're still using <= for end date because the segments in the data are inclusive
             if (normalizedDamageDate >= normalizedSegmentStart && normalizedDamageDate <= normalizedSegmentEnd) {
                 return {
                     ...damage,
