@@ -9,12 +9,13 @@ flowchart TD
     ValidCheck -->|No| ReturnEmpty[Return empty result]
     ValidCheck -->|Yes| GetRatePeriods[Get applicable rate periods]
     
-    GetRatePeriods --> ProcessDamages[Process special damages]
-    ProcessDamages --> CalculateSegments[Calculate interest for each segment]
+    GetRatePeriods --> SpecialDamagesCheck{Has special damages?}
+    SpecialDamagesCheck -->|No| CalculateSegmentsNoSD[Calculate interest for each segment without special damages]
+    SpecialDamagesCheck -->|Yes| ProcessDamages[Process special damages]
     
-    CalculateSegments --> SpecialDamagesCheck{Has special damages?}
-    SpecialDamagesCheck -->|No| CompileResults[Compile results]
-    SpecialDamagesCheck -->|Yes| InterestTypeCheck{Interest type?}
+    ProcessDamages --> CalculateSegmentsWithSD[Calculate interest for each segment with special damages]
+    CalculateSegmentsWithSD --> InterestTypeCheck{Interest type?}
+    CalculateSegmentsNoSD --> CompileResults[Compile results]
     
     InterestTypeCheck -->|postjudgment| CompileResults
     InterestTypeCheck -->|prejudgment| CalculateDamageInterest[Calculate special damage interest]
@@ -35,22 +36,33 @@ flowchart TD
         GroupDamages --> ReturnProcessedDamages[Return processed damages]
     end
     
-    subgraph "Calculate Interest for Each Segment"
-        CalculateSegments --> InitResults[Initialize results]
-        InitResults --> LoopSegments[Loop through rate segments]
-        LoopSegments --> GetSegmentPrincipal[Get principal for segment]
-        GetSegmentPrincipal --> CalcSegmentInterest[Calculate interest for segment]
-        CalcSegmentInterest --> AddToResults[Add to results]
-        AddToResults --> UpdatePrincipal[Update principal for next segment]
-        UpdatePrincipal --> ContinueLoop{More segments?}
-        ContinueLoop -->|Yes| LoopSegments
-        ContinueLoop -->|No| ReturnSegmentResults[Return segment results]
+    subgraph "Calculate Interest for Each Segment (With Special Damages)"
+        CalculateSegmentsWithSD --> InitResultsWithSD[Initialize results]
+        InitResultsWithSD --> LoopSegmentsWithSD[Loop through rate segments]
+        LoopSegmentsWithSD --> GetSegmentPrincipalWithSD[Get principal for segment]
+        GetSegmentPrincipalWithSD --> CalcSegmentInterestWithSD[Calculate interest for segment]
+        CalcSegmentInterestWithSD --> AddToResultsWithSD[Add to results]
+        AddToResultsWithSD --> UpdatePrincipalWithSD[Update principal for next segment with damages]
+        UpdatePrincipalWithSD --> ContinueLoopWithSD{More segments?}
+        ContinueLoopWithSD -->|Yes| LoopSegmentsWithSD
+        ContinueLoopWithSD -->|No| ReturnSegmentResultsWithSD[Return segment results]
     end
     
-    subgraph "Calculate Special Damage Interest"
+    subgraph "Calculate Interest for Each Segment (Without Special Damages)"
+        CalculateSegmentsNoSD --> InitResultsNoSD[Initialize results]
+        InitResultsNoSD --> LoopSegmentsNoSD[Loop through rate segments]
+        LoopSegmentsNoSD --> GetSegmentPrincipalNoSD[Get principal for segment]
+        GetSegmentPrincipalNoSD --> CalcSegmentInterestNoSD[Calculate interest for segment]
+        CalcSegmentInterestNoSD --> AddToResultsNoSD[Add to results]
+        AddToResultsNoSD --> ContinueLoopNoSD{More segments?}
+        ContinueLoopNoSD -->|Yes| LoopSegmentsNoSD
+        ContinueLoopNoSD -->|No| ReturnSegmentResultsNoSD[Return segment results]
+    end
+    
+    subgraph "Calculate Special Damage Interest (Final Period Only)"
         CalculateDamageInterest --> FilterDamages[Filter damages in final period]
-        FilterDamages --> LoopDamages[Loop through final period damages]
-        LoopDamages --> CalcDamageInterest[Calculate interest for each damage]
+        FilterDamages --> LoopDamages[Loop through each damage individually]
+        LoopDamages --> CalcDamageInterest[Calculate interest for each damage separately]
         CalcDamageInterest --> AddToDamageResults[Add to damage results]
         AddToDamageResults --> MoreDamages{More damages?}
         MoreDamages -->|Yes| LoopDamages

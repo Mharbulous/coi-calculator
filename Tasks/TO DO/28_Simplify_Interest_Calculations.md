@@ -42,8 +42,10 @@ The proposed simplified approach (see [SIMPLIFIED_interest_calculation.md](./SIM
 1. **Create Helper Functions**:
    - `getApplicableRatePeriods(startDate, endDate, interestType, jurisdiction, ratesData)`
    - `processSpecialDamages(specialDamages, segments)`
+   - `calculateSegmentsInterestSimple(segments, principal)` - For calculating interest when no special damages exist
+   - `calculateSegmentsInterestWithDamages(segments, principal, processedDamages)` - For calculating interest when special damages exist
    - `calculateSegmentInterest(segment, principal, rate, year)`
-   - `calculateSpecialDamageInterest(damages, endDate, interestType, jurisdiction, ratesData)`
+   - `calculateFinalPeriodDamageInterest(damages, endDate, interestType, jurisdiction, ratesData)` - For calculating interest individually for each special damage in the final period
    - `compileResults(segmentResults, damageResults, initialPrincipal, specialDamages, endDate)`
 
 2. **Refactor Main Function**:
@@ -60,15 +62,25 @@ The proposed simplified approach (see [SIMPLIFIED_interest_calculation.md](./SIM
      // Get all applicable rate periods
      const segments = getApplicableRatePeriods(startDate, endDate, interestType, jurisdiction, ratesData);
      
-     // Process special damages
-     const processedDamages = processSpecialDamages(specialDamages, segments);
+     // Check if there are special damages first
+     const hasSpecialDamages = specialDamages.length > 0;
      
-     // Calculate interest for each segment
-     const segmentResults = calculateSegmentsInterest(segments, initialPrincipal, processedDamages);
+     // Only process special damages if they exist
+     const processedDamages = hasSpecialDamages 
+       ? processSpecialDamages(specialDamages, segments) 
+       : [];
      
-     // Calculate special damage interest (prejudgment only)
-     const damageResults = interestType === 'prejudgment' && specialDamages.length > 0
-       ? calculateSpecialDamageInterest(processedDamages, endDate, interestType, jurisdiction, ratesData)
+     // Calculate interest for each segment (with or without special damages)
+     const segmentResults = hasSpecialDamages
+       ? calculateSegmentsInterestWithDamages(segments, initialPrincipal, processedDamages)
+       : calculateSegmentsInterestSimple(segments, initialPrincipal);
+     
+     // Calculate special damage interest for final period only if needed 
+     // (prejudgment and special damages exist)
+     // This handles the special case where damages in the final period before judgment
+     // have interest calculated individually rather than being lumped with the principal
+     const damageResults = (interestType === 'prejudgment' && hasSpecialDamages)
+       ? calculateFinalPeriodDamageInterest(processedDamages, endDate, interestType, jurisdiction, ratesData)
        : [];
      
      // Compile and return results
@@ -121,3 +133,5 @@ The proposed simplified approach (see [SIMPLIFIED_interest_calculation.md](./SIM
 3. **Enhanced Readability**: Clear function names and structure make the code easier to follow.
 4. **Reduced Complexity**: Simplified logic flow reduces the cognitive load for developers.
 5. **Easier Debugging**: Isolated functions make it easier to identify and fix issues.
+6. **Improved Efficiency**: Early checking for special damages avoids unnecessary processing when they don't exist.
+7. **Logical Flow**: The code follows a more intuitive sequence of operations that matches the business logic.
