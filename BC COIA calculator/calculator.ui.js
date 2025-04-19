@@ -9,7 +9,7 @@ import {
     setDefaultInputValues,
     setupCurrencyInputListeners
 } from './domUtils.js';
-import { formatDateForInput } from './utils.date.js';
+import { formatDateForInput, normalizeDate } from './utils.date.js';
 import useStore from './store.js';
 
 /**
@@ -141,10 +141,14 @@ function initializeCalculator() {
     togglePerDiemVisibility(true, null);
 
     // --- Perform initial population of summary table to create dynamic inputs ---
-    const today = new Date();
-    const defaultPostjudgmentEndDate = new Date(2024, 6, 3); // months are 0-indexed (6 = July)
-    const defaultJudgmentDate = new Date(2022, 0, 1); // months are 0-indexed (0 = January), changed from 3 to 1
-    const defaultPrejudgmentStartDate = new Date(2019, 2, 1); // months are 0-indexed
+    const today = normalizeDate(new Date()); // Today's date
+    const yesterday = normalizeDate(new Date(today.getTime() - 24 * 60 * 60 * 1000)); // Yesterday's date
+    const tomorrow = normalizeDate(new Date(today.getTime() + 24 * 60 * 60 * 1000)); // Tomorrow's date
+    
+    // Set default dates as per requirements
+    const defaultJudgmentDate = today; // Judgment date = today
+    const defaultPrejudgmentStartDate = yesterday; // Prejudgment interest date = yesterday
+    const defaultPostjudgmentEndDate = tomorrow; // Postjudgment interest date = tomorrow
 
     const defaultAmount = 0;
     const pecuniaryDefaultAmount = 10000;

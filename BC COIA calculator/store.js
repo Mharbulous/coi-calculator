@@ -1,6 +1,7 @@
 // For Jest tests, we need to use the vanilla version to avoid React dependency
 // In the browser, this will use the main zustand package via the import map
 import { createStore } from 'zustand/vanilla';
+import { normalizeDate } from './utils.date.js';
 
 /**
  * Zustand store for the Court Order Interest Calculator application.
@@ -190,42 +191,49 @@ const store = createStore((set) => ({
     /**
      * Resets the store to its initial state
      */
-    resetStore: () => set({
-        inputs: {
-            prejudgmentStartDate: null,
-            postjudgmentEndDate: null,
-            dateOfJudgment: null,
-            nonPecuniaryJudgmentDate: null,
-            costsAwardedDate: null,
-            judgmentAwarded: 0,
-            nonPecuniaryAwarded: 0,
-            costsAwarded: 0,
-            jurisdiction: 'BC',
-            showPrejudgment: true,
-            showPostjudgment: true,
-            showPerDiem: true,
-            isValid: true,
-            validationMessage: ''
-        },
-        results: {
-            specialDamages: [],
-            specialDamagesTotal: 0,
-            prejudgmentResult: {
-                details: [],
-                total: 0,
-                principal: 0,
-                finalPeriodDamageInterestDetails: []
+    resetStore: () => {
+        // Calculate current dates for defaults
+        const today = normalizeDate(new Date());
+        const yesterday = normalizeDate(new Date(today.getTime() - 24 * 60 * 60 * 1000));
+        const tomorrow = normalizeDate(new Date(today.getTime() + 24 * 60 * 60 * 1000));
+        
+        return set({
+            inputs: {
+                prejudgmentStartDate: yesterday, // Default to yesterday
+                postjudgmentEndDate: tomorrow,   // Default to tomorrow
+                dateOfJudgment: today,           // Default to today
+                nonPecuniaryJudgmentDate: today, // Also set to today
+                costsAwardedDate: today,         // Also set to today
+                judgmentAwarded: 0,
+                nonPecuniaryAwarded: 0,
+                costsAwarded: 0,
+                jurisdiction: 'BC',
+                showPrejudgment: true,
+                showPostjudgment: true,
+                showPerDiem: true,
+                isValid: true,
+                validationMessage: ''
             },
-            postjudgmentResult: {
-                details: [],
-                total: 0
-            },
-            judgmentTotal: 0,
-            totalOwing: 0,
-            perDiem: 0,
-            finalCalculationDate: null
-        }
-    }),
+            results: {
+                specialDamages: [],
+                specialDamagesTotal: 0,
+                prejudgmentResult: {
+                    details: [],
+                    total: 0,
+                    principal: 0,
+                    finalPeriodDamageInterestDetails: []
+                },
+                postjudgmentResult: {
+                    details: [],
+                    total: 0
+                },
+                judgmentTotal: 0,
+                totalOwing: 0,
+                perDiem: 0,
+                finalCalculationDate: tomorrow // Set to tomorrow
+            }
+        });
+    },
 
     /**
      * Initializes the store with default values
