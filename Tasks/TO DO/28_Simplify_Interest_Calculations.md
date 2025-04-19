@@ -1,0 +1,123 @@
+# Task 28: Simplify Interest Calculations
+
+## Description
+
+The current interest calculation logic in `calculations.js` is complex and difficult to maintain. The `calculateInterestPeriods` function handles both prejudgment and postjudgment interest calculations with special handling for different scenarios. This task aims to simplify the interest calculation logic while maintaining the same functionality.
+
+## Current Implementation
+
+The current implementation (see `OLD_interest_calculation.md` for a visual representation) has several areas of complexity:
+
+1. The `calculateInterestPeriods` function is over 200 lines long and handles multiple responsibilities:
+   - Calculating interest for regular periods
+   - Special handling for final period damages
+   - Managing principal amounts across different segments
+   - Tracking special damages
+
+2. Complex nested logic for determining:
+   - Which special damages to include in which period
+   - How to calculate interest for damages in the final period
+   - When to update the principal amount
+
+3. The function uses a while loop with multiple conditional branches, making the flow difficult to follow.
+
+4. Special case handling is mixed with the main calculation logic.
+
+## Proposed Simplification
+
+The proposed simplified approach (see `SIMPLIFIED_interest_calculation.md` for a visual representation) breaks down the calculation into distinct, focused functions:
+
+1. **Get Applicable Rate Periods**: Identify all interest rate periods that apply to the calculation date range.
+
+2. **Process Special Damages**: Validate, sort, and group special damages by applicable segment.
+
+3. **Calculate Interest for Each Segment**: Loop through rate segments and calculate interest for each.
+
+4. **Calculate Special Damage Interest**: Handle special damages in the final period (for prejudgment interest only).
+
+5. **Compile Results**: Calculate totals and format the final result object.
+
+## Implementation Tasks
+
+1. **Create Helper Functions**:
+   - `getApplicableRatePeriods(startDate, endDate, interestType, jurisdiction, ratesData)`
+   - `processSpecialDamages(specialDamages, segments)`
+   - `calculateSegmentInterest(segment, principal, rate, year)`
+   - `calculateSpecialDamageInterest(damages, endDate, interestType, jurisdiction, ratesData)`
+   - `compileResults(segmentResults, damageResults, initialPrincipal, specialDamages, endDate)`
+
+2. **Refactor Main Function**:
+   ```javascript
+   function calculateInterestPeriods(state, interestType, startDate, endDate, initialPrincipal, ratesData) {
+     // Basic validation
+     if (!isValidInput(initialPrincipal, startDate, endDate, state, ratesData)) {
+       return createEmptyResult(initialPrincipal);
+     }
+     
+     const { jurisdiction } = state.inputs;
+     const { specialDamages = [] } = state.results;
+     
+     // Get all applicable rate periods
+     const segments = getApplicableRatePeriods(startDate, endDate, interestType, jurisdiction, ratesData);
+     
+     // Process special damages
+     const processedDamages = processSpecialDamages(specialDamages, segments);
+     
+     // Calculate interest for each segment
+     const segmentResults = calculateSegmentsInterest(segments, initialPrincipal, processedDamages);
+     
+     // Calculate special damage interest (prejudgment only)
+     const damageResults = interestType === 'prejudgment' && specialDamages.length > 0
+       ? calculateSpecialDamageInterest(processedDamages, endDate, interestType, jurisdiction, ratesData)
+       : [];
+     
+     // Compile and return results
+     return compileResults(segmentResults, damageResults, initialPrincipal, processedDamages, endDate);
+   }
+   ```
+
+3. **Improve Error Handling**:
+   - Add more robust validation
+   - Provide clearer error messages
+   - Handle edge cases explicitly
+
+4. **Enhance Documentation**:
+   - Add JSDoc comments for all functions
+   - Document the calculation logic and business rules
+   - Include examples for complex scenarios
+
+## Testing Strategy
+
+1. **Unit Tests**:
+   - Create tests for each new helper function
+   - Test with various inputs including edge cases
+
+2. **Integration Tests**:
+   - Test the refactored `calculateInterestPeriods` function with different scenarios
+   - Compare results with the original implementation
+
+3. **Regression Testing**:
+   - Ensure the refactored code produces the same results as the original code
+   - Test with real-world examples
+
+4. **Edge Case Testing**:
+   - Test one-day periods (related to Task 27)
+   - Test with no special damages
+   - Test with zero principal
+   - Test with various date ranges
+
+## Acceptance Criteria
+
+1. The refactored code produces the same results as the original code for all test cases.
+2. The code is more readable and maintainable, with smaller functions and clearer logic.
+3. All existing functionality is preserved, including special damages handling and one-day period calculations.
+4. Unit tests pass for all new and refactored functions.
+5. No regression in the application's behavior.
+
+## Benefits of Simplification
+
+1. **Improved Maintainability**: Smaller, focused functions are easier to understand and modify.
+2. **Better Testability**: Isolated functions can be tested independently.
+3. **Enhanced Readability**: Clear function names and structure make the code easier to follow.
+4. **Reduced Complexity**: Simplified logic flow reduces the cognitive load for developers.
+5. **Easier Debugging**: Isolated functions make it easier to identify and fix issues.
