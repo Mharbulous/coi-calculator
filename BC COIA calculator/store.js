@@ -194,16 +194,19 @@ const store = createStore((set) => ({
     resetStore: () => {
         // Calculate current dates for defaults
         const today = normalizeDate(new Date());
-        const yesterday = normalizeDate(new Date(today.getTime() - 24 * 60 * 60 * 1000));
-        const tomorrow = normalizeDate(new Date(today.getTime() + 24 * 60 * 60 * 1000));
+        
+        // Calculate dates for defaults
+        const millisecondsPerDay = 24 * 60 * 60 * 1000;
+        const date185DaysBefore = normalizeDate(new Date(today.getTime() - 185 * millisecondsPerDay)); // 185 days before today
+        const dateOneYearAgo = normalizeDate(new Date(today.getTime() - 365 * millisecondsPerDay)); // One year ago
         
         return set({
             inputs: {
-                prejudgmentStartDate: yesterday, // Default to yesterday
-                postjudgmentEndDate: tomorrow,   // Default to tomorrow
-                dateOfJudgment: today,           // Default to today
-                nonPecuniaryJudgmentDate: today, // Also set to today
-                costsAwardedDate: today,         // Also set to today
+                prejudgmentStartDate: dateOneYearAgo,     // Default to one year ago
+                postjudgmentEndDate: today,               // Default to today
+                dateOfJudgment: date185DaysBefore,        // Default to 185 days before today
+                nonPecuniaryJudgmentDate: date185DaysBefore, // Also set to 185 days before today
+                costsAwardedDate: date185DaysBefore,         // Also set to 185 days before today
                 judgmentAwarded: 0,
                 nonPecuniaryAwarded: 0,
                 costsAwarded: 0,
@@ -230,7 +233,7 @@ const store = createStore((set) => ({
                 judgmentTotal: 0,
                 totalOwing: 0,
                 perDiem: 0,
-                finalCalculationDate: tomorrow // Set to tomorrow
+                finalCalculationDate: today // Set to today
             }
         });
     },

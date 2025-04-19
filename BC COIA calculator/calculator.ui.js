@@ -142,13 +142,16 @@ function initializeCalculator() {
 
     // --- Perform initial population of summary table to create dynamic inputs ---
     const today = normalizeDate(new Date()); // Today's date
-    const yesterday = normalizeDate(new Date(today.getTime() - 24 * 60 * 60 * 1000)); // Yesterday's date
-    const tomorrow = normalizeDate(new Date(today.getTime() + 24 * 60 * 60 * 1000)); // Tomorrow's date
+    
+    // Calculate dates for defaults
+    const millisecondsPerDay = 24 * 60 * 60 * 1000;
+    const date185DaysBefore = normalizeDate(new Date(today.getTime() - 185 * millisecondsPerDay)); // 185 days before today
+    const dateOneYearAgo = normalizeDate(new Date(today.getTime() - 365 * millisecondsPerDay)); // One year ago
     
     // Set default dates as per requirements
-    const defaultJudgmentDate = today; // Judgment date = today
-    const defaultPrejudgmentStartDate = yesterday; // Prejudgment interest date = yesterday
-    const defaultPostjudgmentEndDate = tomorrow; // Postjudgment interest date = tomorrow
+    const defaultJudgmentDate = date185DaysBefore; // Judgment date = 185 days before today
+    const defaultPrejudgmentStartDate = dateOneYearAgo; // Prejudgment interest date = one year ago
+    const defaultPostjudgmentEndDate = today; // Postjudgment interest date = today
 
     const defaultAmount = 0;
     const pecuniaryDefaultAmount = 10000;
