@@ -8,8 +8,8 @@ This task will standardize how the application calculates days between dates and
 
 The new standard will:
 
-* **Day counting**: Exclude the first date, include the last date in a range
-* **Date ranges**: Use half-open intervals [start, end) where end is the start of the next period
+*   **Day counting**: Exclude the first date, include the last date in a range
+*   **Date ranges**: Use half-open intervals \[start, end) where end is the start of the next period
 
 ## Implementation Overview
 
@@ -17,56 +17,56 @@ Here's a concise overview of the changes needed for each file:
 
 **utils.date.js**:
 
-* Modify `daysBetween` to remove the +1 and handle same-day edge case (return 0)
-* Review other date comparison functions to ensure compatibility
+*   Modify `daysBetween` to remove the +1 and handle same-day edge case (return 0)
+*   Review other date comparison functions to ensure compatibility
 
 **interestRates.js**:
 
-* Shift all end dates in the `rates` data structure to be the start date of the next period
-* Remove or update the `endOfDayUTC` function which may no longer be needed
+*   Shift all end dates in the `rates` data structure to be the start date of the next period
+*   Remove or update the `endOfDayUTC` function which may no longer be needed
 
 **calculations.js**:
 
-* Update all date range comparisons to use < instead of <= for end date checks
-* Modify interest calculation logic to work with the new day counting approach
-* Update special damages processing to use the new date range interpretation
+*   Update all date range comparisons to use \< instead of \<= for end date checks
+*   Modify interest calculation logic to work with the new day counting approach
+*   Update special damages processing to use the new date range interpretation
 
 **Test Files**:
 
-* Update all test expectations to reflect the new day counting approach
-* Add tests for edge cases like same-day calculations
+*   Update all test expectations to reflect the new day counting approach
+*   Add tests for edge cases like same-day calculations
 
 ## Files and Functions to Update
 
-### 1. utils.date.js
+### 1\. utils.date.js
 
-* `daysBetween`: Modify to exclude the first date (remove the +1 and handle edge cases)
-* `datesEqual`, `dateBefore`, `dateAfter`, `dateOnOrBefore`, `dateOnOrAfter`: Review and ensure compatibility with new approach
+*   `daysBetween`: Modify to exclude the first date (remove the +1 and handle edge cases)
+*   `datesEqual`, `dateBefore`, `dateAfter`, `dateOnOrBefore`, `dateOnOrAfter`: Review and ensure compatibility with new approach
 
-### 2. interestRates.js
+### 2\. interestRates.js
 
-* `rates` data structure: Shift all end dates to be the start date of the next period
-  * Example: Change `{ start: "1993-01-01", end: "1993-06-30" }` to `{ start: "1993-01-01", end: "1993-07-01" }`
-* `processedRates` processing: Update to handle the new date range representation
-* `endOfDayUTC` function: Review and potentially modify or remove if no longer needed
+*   `rates` data structure: Shift all end dates to be the start date of the next period
+    *   Example: Change `{ start: "1993-01-01", end: "1993-06-30" }` to `{ start: "1993-01-01", end: "1993-07-01" }`
+*   `processedRates` processing: Update to handle the new date range representation
+*   `endOfDayUTC` function: Review and potentially modify or remove if no longer needed
 
-### 3. calculations.js
+### 3\. calculations.js
 
-* `getInterestRateForDate`: Update to handle the new date range representation
-* `getApplicableRatePeriods`: Update to handle the new date range representation
-* `calculateSegmentInterest`: Update to work with the new day counting approach
-* `processSpecialDamages`: Update to correctly assign damages to segments
-* `calculateFinalPeriodDamageInterest`: Update to handle the new day counting
+*   `getInterestRateForDate`: Update to handle the new date range representation
+*   `getApplicableRatePeriods`: Update to handle the new date range representation
+*   `calculateSegmentInterest`: Update to work with the new day counting approach
+*   `processSpecialDamages`: Update to correctly assign damages to segments
+*   `calculateFinalPeriodDamageInterest`: Update to handle the new day counting
 
-### 4. Test Files
+### 4\. Test Files
 
-* **calculations.test.periods.js**: Update test expectations for the new day counting approach
-* **calculations.test.perdiem.js**: Update test expectations for the new day counting approach
-* **utils.test.date.js**: Update test expectations for `daysBetween` and other date functions
+*   **calculations.test.periods.js**: Update test expectations for the new day counting approach
+*   **calculations.test.perdiem.js**: Update test expectations for the new day counting approach
+*   **utils.test.date.js**: Update test expectations for `daysBetween` and other date functions
 
 ## Detailed Implementation Steps
 
-### 1. Update `utils.date.js`
+### 1\. Update `utils.date.js`
 
 #### Modify `daysBetween` function:
 
@@ -121,7 +121,7 @@ export function daysBetween(date1, date2) {
 }
 ```
 
-### 2. Update `interestRates.js`
+### 2\. Update `interestRates.js`
 
 #### Modify the `rates` data structure:
 
@@ -176,7 +176,7 @@ return {
 };
 ```
 
-### 3. Update `calculations.js`
+### 3\. Update `calculations.js`
 
 #### Modify `getInterestRateForDate`:
 
@@ -234,7 +234,7 @@ if (normalizedDamageDate >= normalizedSegmentStart && normalizedDamageDate < nor
 }
 ```
 
-### 4. Update Test Files
+### 4\. Update Test Files
 
 #### Update `utils.test.date.js`:
 
@@ -272,39 +272,39 @@ All tests that expect specific day counts or interest calculations will need to 
 
 ## Expected Outcomes
 
-* Consistent day counting across the application (excluding first date, including last date)
-* No gaps or overlaps in interest rate periods
-* Accurate interest calculations with the new approach
-* All tests passing with updated expectations
+*   Consistent day counting across the application (excluding first date, including last date)
+*   No gaps or overlaps in interest rate periods
+*   Accurate interest calculations with the new approach
+*   All tests passing with updated expectations
 
 ## Potential Challenges
 
-* Ensuring backward compatibility with existing data
-* Handling edge cases (e.g., calculations on the same day)
-* Maintaining calculation accuracy during the transition
+*   Ensuring backward compatibility with existing data
+*   Handling edge cases (e.g., calculations on the same day)
+*   Maintaining calculation accuracy during the transition
 
 ## Testing Strategy
 
-1. **Unit Tests**: Update all unit tests to reflect the new day counting approach
-2. **Integration Tests**: Create tests that verify the entire calculation pipeline works correctly
-3. **Edge Cases**: Add specific tests for:
-   * Same day calculations (should return 0 days)
-   * One day apart (should return 1 day)
-   * Calculations spanning rate period boundaries
+1.  **Unit Tests**: Update all unit tests to reflect the new day counting approach
+2.  **Integration Tests**: Create tests that verify the entire calculation pipeline works correctly
+3.  **Edge Cases**: Add specific tests for:
+    *   Same day calculations (should return 0 days)
+    *   One day apart (should return 1 day)
+    *   Calculations spanning rate period boundaries
 
 ## Verification Steps
 
-1. Run all tests to ensure they pass with the new implementation
-2. Manually verify interest calculations for sample periods:
-   * Simple period within a single rate
-   * Period spanning multiple rates
-   * Period with special damages
-3. Compare results with expected values calculated manually
+1.  Run all tests to ensure they pass with the new implementation
+2.  Manually verify interest calculations for sample periods:
+    *   Simple period within a single rate
+    *   Period spanning multiple rates
+    *   Period with special damages
+3.  Compare results with expected values calculated manually
 
 ## Rollout Plan
 
-1. Implement changes in a feature branch
-2. Run comprehensive tests
-3. Review changes with the team
-4. Merge to main branch
-5. Monitor for any issues in production
+1.  Implement changes in a feature branch
+2.  Run comprehensive tests
+3.  Review changes with the team
+4.  Merge to main branch
+5.  Monitor for any issues in production
