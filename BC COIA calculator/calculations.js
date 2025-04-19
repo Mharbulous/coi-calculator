@@ -47,6 +47,384 @@ export function getInterestRateForDate(date, type, jurisdiction, ratesData) {
 }
 
 /**
+ * Validates input parameters for interest calculations.
+ * @param {number} initialPrincipal - The principal amount to start the calculation with.
+ * @param {Date} startDate - The start date for the calculation.
+ * @param {Date} endDate - The end date for the calculation.
+ * @param {object} state - The application state object.
+ * @param {object} ratesData - The processed interest rates object.
+ * @returns {boolean} True if inputs are valid, false otherwise.
+ */
+function isValidInput(initialPrincipal, startDate, endDate, state, ratesData) {
+    const { jurisdiction } = state.inputs;
+    
+    if (initialPrincipal < 0) {
+        console.warn("Invalid principal amount for interest calculation:", initialPrincipal);
+        return false;
+    }
+    
+    if (!startDate || !endDate || isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        console.warn("Invalid date(s) for interest calculation:", { startDate, endDate });
+        return false;
+    }
+    
+    if (endDate < startDate) {
+        console.warn("End date is before start date for interest calculation:", { startDate, endDate });
+        return false;
+    }
+    
+    if (!ratesData[jurisdiction]) {
+        console.warn("Missing rates data for jurisdiction:", jurisdiction);
+        return false;
+    }
+    
+    return true;
+}
+
+/**
+ * Creates an empty result object for interest calculations.
+ * @param {number} initialPrincipal - The principal amount to include in the result.
+ * @returns {object} An empty result object.
+ */
+function createEmptyResult(initialPrincipal) {
+    return { 
+        details: [], 
+        total: 0, 
+        principal: initialPrincipal, 
+        finalPeriodDamageInterestDetails: [] 
+    };
+}
+
+/**
+ * Identifies all interest rate periods that apply to the calculation date range.
+ * @param {Date} startDate - The start date for the calculation.
+ * @param {Date} endDate - The end date for the calculation.
+ * @param {'prejudgment' | 'postjudgment'} interestType - The type of interest to calculate.
+ * @param {string} jurisdiction - The jurisdiction code.
+ * @param {object} ratesData - The processed interest rates object.
+ * @returns {Array<object>} An array of segments with start date, end date, and applicable rate.
+ */
+function getApplicableRatePeriods(startDate, endDate, interestType, jurisdiction, ratesData) {
+    const jurisdictionRates = ratesData[jurisdiction];
+    const segments = [];
+    let currentDate = new Date(startDate);
+    
+    while (currentDate <= endDate) {
+        // Find the rate period applicable to the current date
+        const currentTime = currentDate.getTime();
+        const ratePeriod = jurisdictionRates.find(rate =>
+            currentTime >= rate.start.getTime() && currentTime <= rate.end.getTime()
+        );
+        
+        if (!ratePeriod) {
+            // Skip to the next day if no rate period is found
+            currentDate.setUTCDate(currentDate.getUTCDate() + 1);
+            continue;
+        }
+        
+        // Determine the end date for this segment
+        const segmentEndDate = ratePeriod.end < endDate ? new Date(ratePeriod.end) : new Date(endDate);
+        const rate = ratePeriod[interestType];
+        
+        // Add the segment to the array
+        segments.push({
+            start: new Date(currentDate),
+            end: segmentEndDate,
+            rate: rate,
+            isFinalSegment: segmentEndDate.getTime() === endDate.getTime()
+        });
+        
+        // Move to the day after the segment ends
+        currentDate = new Date(segmentEndDate);
+        currentDate.setUTCDate(currentDate.getUTCDate() + 1);
+    }
+    
+    return segments;
+}
+
+/**
+ * Validates, sorts, and groups special damages by applicable segment.
+ * @param {Array<object>} specialDamages - The special damages array.
+ * @param {Array<object>} segments - The rate segments array.
+ * @returns {Array<object>} Processed damages with segment information.
+ */
+function processSpecialDamages(specialDamages, segments) {
+    // Parse and validate damage dates
+    const validDamages = specialDamages
+        .map(d => {
+            const dateObj = parseDateInput(d.date); // Parse the YYYY-MM-DD string
+            if (!dateObj) return null;
+            return { ...d, dateObj }; // Add the Date object
+        })
+        .filter(d => d !== null)
+        .sort((a, b) => a.dateObj - b.dateObj); // Sort by date
+    
+    // Group damages by applicable segment
+    return validDamages.map(damage => {
+        const normalizedDamageDate = normalizeDate(damage.dateObj);
+        
+        // Find which segment this damage belongs to
+        for (let i = 0; i < segments.length; i++) {
+            const segment = segments[i];
+            const normalizedSegmentStart = normalizeDate(segment.start);
+            const normalizedSegmentEnd = normalizeDate(segment.end);
+            
+            // Check if damage date is within this segment
+            if (normalizedDamageDate >= normalizedSegmentStart && normalizedDamageDate <= normalizedSegmentEnd) {
+                return {
+                    ...damage,
+                    segmentIndex: i,
+                    inFinalSegment: segment.isFinalSegment
+                };
+            }
+        }
+        
+        // If damage is after the last segment, assign it to the final segment
+        if (segments.length > 0 && normalizedDamageDate > normalizeDate(segments[segments.length - 1].end)) {
+            return {
+                ...damage,
+                segmentIndex: segments.length - 1,
+                inFinalSegment: true
+            };
+        }
+        
+        // If damage is before the first segment, assign it to the first segment
+        if (segments.length > 0 && normalizedDamageDate < normalizeDate(segments[0].start)) {
+            return {
+                ...damage,
+                segmentIndex: 0,
+                inFinalSegment: false
+            };
+        }
+        
+        // Default case (should not happen if segments cover the entire date range)
+        return {
+            ...damage,
+            segmentIndex: -1,
+            inFinalSegment: false
+        };
+    });
+}
+
+/**
+ * Calculates interest for a single segment.
+ * @param {object} segment - The segment to calculate interest for.
+ * @param {number} principal - The principal amount for this segment.
+ * @param {number} rate - The interest rate for this segment.
+ * @param {number} year - The year for days in year calculation.
+ * @returns {object} The calculated interest details.
+ */
+function calculateSegmentInterest(segment, principal, rate, year) {
+    const daysInSegment = daysBetween(segment.start, segment.end);
+    const days_in_year = daysInYear(year);
+    
+    if (daysInSegment <= 0 || rate === undefined || principal <= 0 || days_in_year <= 0) {
+        return {
+            interest: 0,
+            details: null
+        };
+    }
+    
+    const interestAmount = (principal * (rate / 100) * daysInSegment) / days_in_year;
+    
+    const details = {
+        start: formatDateForDisplay(segment.start),
+        description: `${daysInSegment} days`,
+        rate: rate,
+        principal: principal,
+        interest: interestAmount,
+        isFinalPeriodDamage: false,
+        _endDate: formatDateForDisplay(segment.end),
+        _days: daysInSegment
+    };
+    
+    return {
+        interest: interestAmount,
+        details: details
+    };
+}
+
+/**
+ * Calculates interest for each segment when no special damages exist.
+ * @param {Array<object>} segments - The rate segments array.
+ * @param {number} principal - The principal amount.
+ * @returns {object} The calculated interest details and total.
+ */
+function calculateSegmentsInterestSimple(segments, principal) {
+    let totalInterest = 0;
+    const details = [];
+    
+    segments.forEach(segment => {
+        const year = segment.start.getUTCFullYear();
+        const result = calculateSegmentInterest(segment, principal, segment.rate, year);
+        
+        if (result.details) {
+            details.push(result.details);
+            totalInterest += result.interest;
+        }
+    });
+    
+    return {
+        details,
+        totalInterest
+    };
+}
+
+/**
+ * Calculates interest for each segment when special damages exist.
+ * @param {Array<object>} segments - The rate segments array.
+ * @param {number} initialPrincipal - The initial principal amount.
+ * @param {Array<object>} processedDamages - The processed special damages.
+ * @returns {object} The calculated interest details, total, and updated principal.
+ */
+function calculateSegmentsInterestWithDamages(segments, initialPrincipal, processedDamages) {
+    let totalInterest = 0;
+    const details = [];
+    let principalForNextSegment = initialPrincipal;
+    let damageIndex = 0;
+    
+    segments.forEach((segment, segmentIndex) => {
+        // Use the principal from the previous segment for this calculation
+        const principalForThisSegment = principalForNextSegment;
+        const year = segment.start.getUTCFullYear();
+        
+        // Calculate interest for this segment
+        const result = calculateSegmentInterest(segment, principalForThisSegment, segment.rate, year);
+        
+        if (result.details) {
+            details.push(result.details);
+            totalInterest += result.interest;
+        }
+        
+        // Update principal for the next segment by adding damages that occurred in this segment
+        let updatedPrincipal = principalForThisSegment;
+        
+        for (let i = damageIndex; i < processedDamages.length; i++) {
+            const damage = processedDamages[i];
+            // Normalize dates for comparison
+            const normalizedDamageDate = normalizeDate(damage.dateObj);
+            const normalizedSegmentEnd = normalizeDate(segment.end);
+            
+            // Add damage if it occurred before or on the segment end date
+            if (dateOnOrBefore(normalizedDamageDate, normalizedSegmentEnd)) {
+                updatedPrincipal += damage.amount;
+                damageIndex = i + 1; // Mark this damage as added
+            } else {
+                break; // Stop once we reach damages after the segment end
+            }
+        }
+        
+        principalForNextSegment = updatedPrincipal;
+    });
+    
+    return {
+        details,
+        totalInterest,
+        finalPrincipal: principalForNextSegment
+    };
+}
+
+/**
+ * Calculates interest individually for each special damage in the final period.
+ * @param {Array<object>} damages - The processed special damages.
+ * @param {Date} endDate - The end date for the calculation.
+ * @param {'prejudgment' | 'postjudgment'} interestType - The type of interest to calculate.
+ * @param {string} jurisdiction - The jurisdiction code.
+ * @param {object} ratesData - The processed interest rates object.
+ * @returns {object} The calculated interest details and total for final period damages.
+ */
+function calculateFinalPeriodDamageInterest(damages, endDate, interestType, jurisdiction, ratesData) {
+    let totalInterest = 0;
+    const details = [];
+    
+    // Get the rate for the final period
+    const finalPeriodRate = getInterestRateForDate(endDate, interestType, jurisdiction, ratesData);
+    const finalYearDays = daysInYear(endDate.getUTCFullYear());
+    
+    if (finalPeriodRate === undefined || finalPeriodRate <= 0 || finalYearDays <= 0) {
+        return { details, totalInterest };
+    }
+    
+    // Filter damages that are in the final segment
+    const finalPeriodDamages = damages.filter(damage => damage.inFinalSegment);
+    
+    finalPeriodDamages.forEach(damage => {
+        const damageDate = damage.dateObj;
+        const normalizedDamageDate = normalizeDate(damageDate);
+        const normalizedEndDate = normalizeDate(endDate);
+        
+        // Special case for damages on the first day of the final period
+        const isFirstDayOfFinalPeriod = formatDateForDisplay(damageDate) === formatDateForDisplay(damages[0].dateObj);
+        
+        // Check if damage date is on or after segment start and before end date
+        // OR if it's the first day of the final period (special case)
+        if ((normalizedDamageDate < normalizedEndDate) || isFirstDayOfFinalPeriod) {
+            const daysInFinalPeriodForDamage = daysBetween(damageDate, endDate);
+            
+            // Only add if interest actually accrues (more than 0 days)
+            if (daysInFinalPeriodForDamage > 0 && damage.amount > 0) {
+                const interestForDamage = (damage.amount * (finalPeriodRate / 100) * daysInFinalPeriodForDamage) / finalYearDays;
+                
+                // Create a detail object for this special damage
+                const damageDetail = {
+                    damageDate: damageDate, // Store Date object
+                    start: formatDateForDisplay(damageDate),
+                    endDate: formatDateForDisplay(endDate), // Store end date for display
+                    description: `${damage.description} (${daysInFinalPeriodForDamage} days)`, // Include damage description
+                    rate: finalPeriodRate,
+                    principal: damage.amount, // Original damage amount
+                    interest: interestForDamage,
+                    isFinalPeriodDamage: true
+                };
+                
+                details.push(damageDetail);
+                totalInterest += interestForDamage;
+            }
+        }
+    });
+    
+    return { details, totalInterest };
+}
+
+/**
+ * Compiles the final results from segment calculations and damage calculations.
+ * @param {object} segmentResults - The results from segment calculations.
+ * @param {object} damageResults - The results from final period damage calculations.
+ * @param {number} initialPrincipal - The initial principal amount.
+ * @param {Array<object>} processedDamages - The processed special damages.
+ * @param {Date} endDate - The end date for the calculation.
+ * @returns {object} The compiled final results.
+ */
+function compileResults(segmentResults, damageResults, initialPrincipal, processedDamages, endDate, interestType) {
+    // Calculate the final principal value by adding ALL applicable damages up to the endDate
+    let finalPrincipal = initialPrincipal;
+    
+    processedDamages.forEach(damage => {
+        // Only add damages that occurred before or on the calculation end date
+        if (damage.dateObj <= endDate) {
+            finalPrincipal += damage.amount;
+        }
+    });
+    
+    // Calculate total interest
+    const totalInterest = segmentResults.totalInterest + damageResults.totalInterest;
+    
+    // Create the result object
+    const result = {
+        details: segmentResults.details,
+        total: totalInterest,
+        principal: finalPrincipal
+    };
+    
+    // Only include finalPeriodDamageInterestDetails for prejudgment calculations
+    if (interestType === 'prejudgment') {
+        result.finalPeriodDamageInterestDetails = damageResults.details;
+    }
+    
+    return result;
+}
+
+/**
  * Calculates interest over a period, breaking it down by applicable rate segments.
  * @param {object} state - The application state object containing inputs and results.
  * @param {'prejudgment' | 'postjudgment'} interestType - The type of interest to calculate.
@@ -57,211 +435,64 @@ export function getInterestRateForDate(date, type, jurisdiction, ratesData) {
  * @returns {{details: Array<object>, total: number, principal: number, finalPeriodDamageInterestDetails?: Array<object>}} An object containing detailed breakdown, total interest, the *final* principal used, and optionally final period damage details.
  */
 export function calculateInterestPeriods(state, interestType, startDate, endDate, initialPrincipal, ratesData) {
-    const { inputs, results } = state;
-    const { jurisdiction } = inputs;
-    const { specialDamages = [] } = results; // Use special damages from results state
-
     // Basic validation
-    if (initialPrincipal < 0 || !startDate || !endDate || isNaN(startDate.getTime()) || isNaN(endDate.getTime()) || endDate < startDate || !ratesData[jurisdiction]) {
-        console.warn("Invalid input for calculateInterestPeriods", { initialPrincipal, startDate, endDate, interestType, jurisdiction, hasRates: !!ratesData[jurisdiction] });
-        return { details: [], total: 0, principal: initialPrincipal, finalPeriodDamageInterestDetails: [] };
+    if (!isValidInput(initialPrincipal, startDate, endDate, state, ratesData)) {
+        return createEmptyResult(initialPrincipal);
     }
-     // If principal is 0 and no damages, no interest accrues
-     if (initialPrincipal === 0 && specialDamages.length === 0) {
-         return { details: [], total: 0, principal: 0, finalPeriodDamageInterestDetails: [] };
-     }
-
-    let currentCalcDate = new Date(startDate);
-    let totalInterest = 0;
-    const details = [];
-    const finalPeriodDamageInterestDetails = []; // Array for final period calculated interest (only relevant for prejudgment)
-    const jurisdictionRates = ratesData[jurisdiction];
-
-    // Parse and sort special damages (Dates are already YYYY-MM-DD strings in the store)
-    const processedDamages = specialDamages
-        .map(d => {
-            const dateObj = parseDateInput(d.date); // Parse the YYYY-MM-DD string
-            if (!dateObj) return null;
-            return { ...d, dateObj }; // Add the Date object
-        })
-        .filter(d => d !== null)
-        .sort((a, b) => a.dateObj - b.dateObj);
-
-    let principalForNextSegment = initialPrincipal; // Start with the passed initial principal
-    let damageIndex = 0; // Track which damages have been added to the principal
-
-    while (currentCalcDate <= endDate) {
-        // Capture the start date for this specific segment calculation
-        const segmentCalculationStartDate = new Date(currentCalcDate);
-
-        // --- Determine Principal for *This* Segment ---
-        // The principal for this segment is the principal carried over from the *previous* segment.
-        // Damages occurring *before* this segment starts are added *after* this segment's calculation
-        // to determine the principal for the *next* segment.
-        const principalForThisSegmentCalculation = principalForNextSegment;
-        // --- End Determine Principal ---
-
-        // Find the rate period applicable to the segment's start date
-        const currentCalcTime = segmentCalculationStartDate.getTime();
-        const ratePeriod = jurisdictionRates.find(rate =>
-            currentCalcTime >= rate.start.getTime() && currentCalcTime <= rate.end.getTime()
+    
+    const { jurisdiction } = state.inputs;
+    const { specialDamages = [] } = state.results;
+    
+    // If principal is 0 and no damages, no interest accrues
+    if (initialPrincipal === 0 && specialDamages.length === 0) {
+        return createEmptyResult(0);
+    }
+    
+    // Get all applicable rate periods
+    const segments = getApplicableRatePeriods(startDate, endDate, interestType, jurisdiction, ratesData);
+    
+    // Check if there are special damages first
+    const hasSpecialDamages = specialDamages.length > 0;
+    
+    // Calculate interest based on whether special damages exist
+    let segmentResults;
+    let processedDamages = [];
+    
+    if (hasSpecialDamages) {
+        // Process special damages
+        processedDamages = processSpecialDamages(specialDamages, segments);
+        
+        // Calculate interest for each segment with special damages
+        segmentResults = calculateSegmentsInterestWithDamages(segments, initialPrincipal, processedDamages);
+    } else {
+        // Calculate interest for each segment without special damages
+        segmentResults = calculateSegmentsInterestSimple(segments, initialPrincipal);
+    }
+    
+    // Calculate special damage interest for final period only if needed
+    // (prejudgment and special damages exist)
+    let damageResults = { details: [], totalInterest: 0 };
+    
+    if (interestType === 'prejudgment' && hasSpecialDamages) {
+        damageResults = calculateFinalPeriodDamageInterest(
+            processedDamages, 
+            endDate, 
+            interestType, 
+            jurisdiction, 
+            ratesData
         );
-
-        if (!ratePeriod) {
-            console.warn(`No rate period found for date: ${formatDateForDisplay(segmentCalculationStartDate)} in ${jurisdiction}. Skipping day.`);
-            currentCalcDate.setUTCDate(currentCalcDate.getUTCDate() + 1);
-            continue;
-        }
-
-        // Determine the end date for this specific rate segment
-        const segmentEndDate = ratePeriod.end < endDate ? new Date(ratePeriod.end) : new Date(endDate);
-        const isFinalSegment = segmentEndDate.getTime() === endDate.getTime();
-
-        // --- Calculate Interest for the Main Segment ---
-        const daysInSegment = daysBetween(segmentCalculationStartDate, segmentEndDate);
-        const rate = ratePeriod[interestType];
-
-        if (daysInSegment > 0 && rate !== undefined && principalForThisSegmentCalculation > 0) {
-            const year = segmentCalculationStartDate.getUTCFullYear();
-            const days_in_year = daysInYear(year);
-            if (days_in_year > 0) {
-                const interestForSegment = (principalForThisSegmentCalculation * (rate / 100) * daysInSegment) / days_in_year;
-                details.push({
-                    start: formatDateForDisplay(segmentCalculationStartDate),
-                    description: `${daysInSegment} days`,
-                    rate: rate,
-                    principal: principalForThisSegmentCalculation,
-                    interest: interestForSegment,
-                    isFinalPeriodDamage: false,
-                    _endDate: formatDateForDisplay(segmentEndDate),
-                    _days: daysInSegment
-                });
-                totalInterest += interestForSegment;
-            } else {
-                 console.error(`Error: Days in year calculated as zero for year ${year}`);
-            }
-        } else if (rate === undefined) {
-            console.warn(`Interest type '${interestType}' not found for period starting ${formatDateForDisplay(ratePeriod.start)} in ${jurisdiction}`);
-        }
-        // --- End Main Segment Calculation ---
-
-        // --- Update Principal for the *Next* Segment ---
-        // Add damages that occurred *before* the *end* of the current segment
-        // This principal will be used in the *next* iteration's calculation.
-        let updatedPrincipalForNextSegment = principalForThisSegmentCalculation;
-        for (let i = damageIndex; i < processedDamages.length; i++) {
-            const damage = processedDamages[i];
-            // Normalize dates for comparison
-            const normalizedDamageDate = normalizeDate(damage.dateObj);
-            const normalizedSegmentEndDate = normalizeDate(segmentEndDate);
-
-            // Add damage if it occurred *before* or *on* the segment end date
-            if (dateOnOrBefore(normalizedDamageDate, normalizedSegmentEndDate)) {
-                 updatedPrincipalForNextSegment += damage.amount;
-                 damageIndex = i + 1; // Mark this damage as added
-            } else {
-                 break; // Stop once we reach damages after the segment end
-            }
-        }
-        principalForNextSegment = updatedPrincipalForNextSegment;
-        // --- End Update Principal ---
-
-        // *** Special Handling for Final Segment Damages (if applicable) ***
-        // For the final segment, we need to calculate interest separately for each damage
-        // that occurred *within* the final segment.
-        if (isFinalSegment) {
-            const finalPeriodRate = getInterestRateForDate(endDate, interestType, jurisdiction, ratesData);
-            const finalYearDays = daysInYear(endDate.getUTCFullYear());
-
-            if (finalPeriodRate !== undefined && finalYearDays > 0) {
-                // For the special case of the final period, we need to calculate interest
-                // separately for each damage that occurred *within* the final segment.
-                // This is different from the normal handling where damages are added to the
-                // principal for the *next* segment.
-                
-                // Process special damages in the final period
-                
-                for (let i = 0; i < processedDamages.length; i++) {
-                    const damage = processedDamages[i];
-                    const damageDate = damage.dateObj;
-                    
-                    // Check if damage occurred *within* this final segment (inclusive start, exclusive end)
-                    // We don't want to calculate interest for damages occurring exactly on the end date
-                    
-                    // Use normalized dates for comparison to avoid timezone issues
-                    const normalizedDamageDate = normalizeDate(damageDate);
-                    const normalizedSegmentStart = normalizeDate(segmentCalculationStartDate);
-                    const normalizedEndDate = normalizeDate(endDate);
-                    
-                    // Special case for damages on the first day of the final period (2023-01-01 in the example)
-                    // Check if the formatted date strings match the first day of the final period
-                    const isFirstDayOfFinalPeriod = formatDateForDisplay(damageDate) === formatDateForDisplay(segmentCalculationStartDate);
-                    
-                    // Check if damage date is on or after segment start and before end date
-                    // OR if it's the first day of the final period (special case)
-                    if ((normalizedDamageDate >= normalizedSegmentStart && normalizedDamageDate < normalizedEndDate) || isFirstDayOfFinalPeriod) {
-                        const daysInFinalPeriodForDamage = daysBetween(damageDate, endDate);
-                        // Only add if interest actually accrues (more than 0 days)
-                        if (daysInFinalPeriodForDamage > 0 && damage.amount > 0) {
-                            const interestForDamage = (damage.amount * (finalPeriodRate / 100) * daysInFinalPeriodForDamage) / finalYearDays;
-                            
-                            // Calculate interest for the special damage in the final period
-                            if (daysInFinalPeriodForDamage > 0 && damage.amount > 0) {
-                                const interestForDamage = (damage.amount * (finalPeriodRate / 100) * daysInFinalPeriodForDamage) / finalYearDays;
-
-                                // Create a detail object for this special damage
-                                const damageDetail = {
-                                    damageDate: damageDate, // Store Date object
-                                    start: formatDateForDisplay(damageDate),
-                                    endDate: formatDateForDisplay(endDate), // Store end date for display
-                                    description: `${damage.description} (${daysInFinalPeriodForDamage} days)`, // Include damage description
-                                    rate: finalPeriodRate,
-                                    principal: damage.amount, // Original damage amount
-                                    interest: interestForDamage,
-                                    isFinalPeriodDamage: true
-                                };
-                                
-                                // Only add to finalPeriodDamageInterestDetails array, not the main details array
-                                // This prevents duplicate rows and allows the DOM functions to handle placement
-                                finalPeriodDamageInterestDetails.push(damageDetail);
-                                
-                                // Add to total interest
-                                totalInterest += interestForDamage;
-                            }
-                        }
-                    }
-                }
-            } else {
-                 console.warn(`Could not calculate final period special damage interest. Rate: ${finalPeriodRate}, Days in Year: ${finalYearDays}`);
-            }
-        }
-        // --- End Special Handling ---
-
-        // Move the calculation date to the day after the current segment ends for the next iteration
-        currentCalcDate = new Date(segmentEndDate);
-        currentCalcDate.setUTCDate(currentCalcDate.getUTCDate() + 1);
-    } // End while loop
-
-    // Calculate the final principal value by adding ALL applicable damages up to the endDate
-    // This reflects the principal at the *end* of the calculation period.
-    let finalPrincipal = initialPrincipal; // Start with initial principal for this calculation type
-    processedDamages.forEach(damage => {
-        // Only add damages that occurred *before* or *on* the calculation end date
-        if (damage.dateObj <= endDate) {
-            finalPrincipal += damage.amount;
-        }
-    });
-
-    // Return structure depends on interest type
-    if (interestType === 'prejudgment') {
-        // Do NOT add the final period damage interest details to the main details array
-        // This prevents duplicate rows and allows the DOM functions to handle placement
-        return { details, total: totalInterest, principal: finalPrincipal, finalPeriodDamageInterestDetails };
-    } else { // postjudgment
-        return { details, total: totalInterest, principal: finalPrincipal };
     }
+    
+    // Compile and return results
+    return compileResults(
+        segmentResults, 
+        damageResults, 
+        initialPrincipal, 
+        processedDamages, 
+        endDate,
+        interestType
+    );
 }
-
 
 /**
  * Calculates the per diem interest rate based on the application state.
