@@ -7,21 +7,21 @@ const createUTCDate = (year, month, day) => new Date(Date.UTC(year, month - 1, d
 // Mock interest rates data for testing
 const mockRatesData = {
     BC: [
-        // Period 1: Jan 1, 2022 - Jun 30, 2022
-        { start: createUTCDate(2022, 1, 1), end: createUTCDate(2022, 6, 30), prejudgment: 2.0, postjudgment: 3.0 },
-        // Period 2: Jul 1, 2022 - Dec 31, 2022
-        { start: createUTCDate(2022, 7, 1), end: createUTCDate(2022, 12, 31), prejudgment: 2.5, postjudgment: 3.5 },
-        // Period 3: Jan 1, 2023 - Jun 30, 2023
-        { start: createUTCDate(2023, 1, 1), end: createUTCDate(2023, 6, 30), prejudgment: 3.0, postjudgment: 4.0 },
-        // Period 4: Jul 1, 2023 - Dec 31, 2023
-        { start: createUTCDate(2023, 7, 1), end: createUTCDate(2023, 12, 31), prejudgment: 3.5, postjudgment: 4.5 },
-        // Period 5: Jan 1, 2024 - Jun 30, 2024 (Leap Year)
-        { start: createUTCDate(2024, 1, 1), end: createUTCDate(2024, 6, 30), prejudgment: 4.0, postjudgment: 5.0 },
-        // Period 6: Jul 1, 2024 - Dec 31, 2024
-        { start: createUTCDate(2024, 7, 1), end: createUTCDate(2024, 12, 31), prejudgment: 4.5, postjudgment: 5.5 },
+        // Period 1: Jan 1, 2022 - Jul 1, 2022 (half-open interval)
+        { start: createUTCDate(2022, 1, 1), end: createUTCDate(2022, 7, 1), prejudgment: 2.0, postjudgment: 3.0 },
+        // Period 2: Jul 1, 2022 - Jan 1, 2023 (half-open interval)
+        { start: createUTCDate(2022, 7, 1), end: createUTCDate(2023, 1, 1), prejudgment: 2.5, postjudgment: 3.5 },
+        // Period 3: Jan 1, 2023 - Jul 1, 2023 (half-open interval)
+        { start: createUTCDate(2023, 1, 1), end: createUTCDate(2023, 7, 1), prejudgment: 3.0, postjudgment: 4.0 },
+        // Period 4: Jul 1, 2023 - Jan 1, 2024 (half-open interval)
+        { start: createUTCDate(2023, 7, 1), end: createUTCDate(2024, 1, 1), prejudgment: 3.5, postjudgment: 4.5 },
+        // Period 5: Jan 1, 2024 - Jul 1, 2024 (half-open interval)
+        { start: createUTCDate(2024, 1, 1), end: createUTCDate(2024, 7, 1), prejudgment: 4.0, postjudgment: 5.0 },
+        // Period 6: Jul 1, 2024 - Jan 1, 2025 (half-open interval)
+        { start: createUTCDate(2024, 7, 1), end: createUTCDate(2025, 1, 1), prejudgment: 4.5, postjudgment: 5.5 },
     ],
     ON: [ // Ontario rates for testing jurisdiction switch
-        { start: createUTCDate(2023, 1, 1), end: createUTCDate(2023, 12, 31), prejudgment: 5.0, postjudgment: 6.0 },
+        { start: createUTCDate(2023, 1, 1), end: createUTCDate(2024, 1, 1), prejudgment: 5.0, postjudgment: 6.0 },
     ],
     // AB: Intentionally left empty to test missing jurisdiction
 };
@@ -49,7 +49,10 @@ describe('getInterestRateForDate', () => {
     });
 
     it('should return the correct rate for a date at the end of a rate period', () => {
-        const date = createUTCDate(2023, 6, 30); // June 30, 2023 (End of Period 3)
+        // With the half-open interval approach [start, end), 
+        // June 30, 2023 is still in Period 3, not Period 4
+        // because Period 3 is [Jan 1, 2023 - Jul 1, 2023)
+        const date = createUTCDate(2023, 6, 30); // June 30, 2023 (Still in Period 3)
         const expectedRate = 3.0; // BC prejudgment rate for Period 3
         const result = getInterestRateForDate(date, 'prejudgment', 'BC', mockRatesData);
         expect(result).toBe(expectedRate);

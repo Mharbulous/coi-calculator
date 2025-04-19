@@ -33,9 +33,9 @@ export function getInterestRateForDate(date, type, jurisdiction, ratesData) {
     
     // Find the rate period that includes the normalized target date
     const ratePeriod = jurisdictionRates.find(rate => {
-        // Check if the normalized date is on or after the start date and on or before the end date
+        // Check if the normalized date is on or after the start date and before the end date
         return normalizedDate.getTime() >= rate.start.getTime() && 
-               normalizedDate.getTime() <= rate.end.getTime();
+               normalizedDate.getTime() < rate.end.getTime();
     });
 
     if (ratePeriod && ratePeriod[type] !== undefined) {
@@ -110,11 +110,11 @@ function getApplicableRatePeriods(startDate, endDate, interestType, jurisdiction
     let currentDate = new Date(startDate);
     
     // Normalize dates for comparison to avoid time component issues
-    while (normalizeDate(currentDate) <= normalizeDate(endDate)) { 
+    while (normalizeDate(currentDate) < normalizeDate(endDate)) { 
         // Find the rate period applicable to the current date
         const currentTime = currentDate.getTime();
         const ratePeriod = jurisdictionRates.find(rate =>
-            currentTime >= rate.start.getTime() && currentTime <= rate.end.getTime()
+            currentTime >= rate.start.getTime() && currentTime < rate.end.getTime()
         );
         
         if (!ratePeriod) {
@@ -171,7 +171,7 @@ function processSpecialDamages(specialDamages, segments) {
             const normalizedSegmentEnd = normalizeDate(segment.end);
             
             // Check if damage date is within this segment
-            if (normalizedDamageDate >= normalizedSegmentStart && normalizedDamageDate <= normalizedSegmentEnd) {
+            if (normalizedDamageDate >= normalizedSegmentStart && normalizedDamageDate < normalizedSegmentEnd) {
                 return {
                     ...damage,
                     segmentIndex: i,
@@ -180,8 +180,8 @@ function processSpecialDamages(specialDamages, segments) {
             }
         }
         
-        // If damage is after the last segment, assign it to the final segment
-        if (segments.length > 0 && normalizedDamageDate > normalizeDate(segments[segments.length - 1].end)) {
+        // If damage is after or equal to the last segment's end date, assign it to the final segment
+        if (segments.length > 0 && normalizedDamageDate >= normalizeDate(segments[segments.length - 1].end)) {
             return {
                 ...damage,
                 segmentIndex: segments.length - 1,

@@ -136,51 +136,51 @@ describe('utils date', () => {
     });
 
     describe('daysBetween', () => {
-        it('should return 1 for the same start and end date', () => {
+        it('should return 0 for the same start and end date', () => {
             const date = createUTCDate(2024, 3, 15);
-            expect(daysBetween(date, date)).toBe(1);
+            expect(daysBetween(date, date)).toBe(0);
         });
 
         it('should return the correct number of days for consecutive dates', () => {
             const date1 = createUTCDate(2024, 3, 15);
             const date2 = createUTCDate(2024, 3, 16);
-            expect(daysBetween(date1, date2)).toBe(2);
+            expect(daysBetween(date1, date2)).toBe(1);
         });
 
         it('should calculate days correctly across month boundaries', () => {
             const date1 = createUTCDate(2024, 3, 30);
             const date2 = createUTCDate(2024, 4, 2); // March 30 to April 2
-            expect(daysBetween(date1, date2)).toBe(4); // 30, 31, 1, 2
+            expect(daysBetween(date1, date2)).toBe(3); // 31, 1, 2 (excluding 30)
         });
 
         it('should calculate days correctly across year boundaries', () => {
             const date1 = createUTCDate(2023, 12, 30);
             const date2 = createUTCDate(2024, 1, 2); // Dec 30, 2023 to Jan 2, 2024
-            expect(daysBetween(date1, date2)).toBe(4); // 30, 31, 1, 2
+            expect(daysBetween(date1, date2)).toBe(3); // 31, 1, 2 (excluding 30)
         });
 
         it('should calculate days correctly including a leap day', () => {
             const date1 = createUTCDate(2024, 2, 28);
             const date2 = createUTCDate(2024, 3, 1); // Feb 28 to Mar 1 (leap year)
-            expect(daysBetween(date1, date2)).toBe(3); // 28, 29, 1
+            expect(daysBetween(date1, date2)).toBe(2); // 29, 1 (excluding 28)
         });
 
         it('should calculate days correctly in a non-leap year', () => {
             const date1 = createUTCDate(2023, 2, 28);
             const date2 = createUTCDate(2023, 3, 1); // Feb 28 to Mar 1 (non-leap)
-            expect(daysBetween(date1, date2)).toBe(2); // 28, 1
+            expect(daysBetween(date1, date2)).toBe(1); // 1 (excluding 28)
         });
 
         it('should calculate days correctly over a longer period', () => {
             const date1 = createUTCDate(2023, 1, 1);
             const date2 = createUTCDate(2023, 12, 31);
-            expect(daysBetween(date1, date2)).toBe(365);
+            expect(daysBetween(date1, date2)).toBe(364); // 365 days in year - 1 for excluding Jan 1
         });
 
         it('should calculate days correctly over a longer period including a leap year', () => {
             const date1 = createUTCDate(2024, 1, 1);
             const date2 = createUTCDate(2024, 12, 31);
-            expect(daysBetween(date1, date2)).toBe(366);
+            expect(daysBetween(date1, date2)).toBe(365); // 366 days in leap year - 1 for excluding Jan 1
         });
 
         it('should return 0 if end date is before start date', () => {
