@@ -1,0 +1,119 @@
+/* --- Form Elements --- */
+
+/* Right Info Block */
+.right-info-block {
+    text-align: right;
+}
+.right-field {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+.right-info-block .field-pair {
+    display: flex;
+    align-items: center;
+    margin-bottom: calc(var(--spacing-unit) * 0.75); /* 3pt */
+    line-height: var(--base-line-height);
+    min-height: 26px; /* Keep min-height for alignment */
+    justify-content: flex-end;
+}
+
+.right-field .label {
+    font-weight: bold;
+    text-align: right;
+    margin-right: calc(var(--spacing-unit) * 2); /* 8px */
+    flex-shrink: 0;
+}
+.right-info-block .registry-row {
+    margin-bottom: calc(var(--spacing-unit) * 0.75); /* 3pt */
+}
+.right-info-block .judgment-amount-row,
+.right-info-block .non-pecuniary-row { /* Added non-pecuniary */
+    margin-top: 1.2em; /* Keep relative margin */
+    margin-bottom: calc(var(--spacing-unit) * 0.75); /* 3pt */
+}
+/* Style for moved costs row */
+.right-info-block .costs-row {
+    margin-top: 1.2em;
+    margin-bottom: calc(var(--spacing-unit) * 0.75); /* 3pt */
+}
+.right-field .value,
+.right-info-block .value {
+    width: var(--value-width-right);
+    flex-shrink: 0;
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* Ensure File No field has enough space */
+.right-field .label {
+    min-width: 60px; /* Ensure enough space for "File No." text */
+}
+
+/* Ensure input fields have proper width */
+.right-field input[type="text"] {
+    border: none;
+    background-color: var(--input-background-color);
+    padding: var(--spacing-unit); /* 4pt */
+    font-family: var(--font-family);
+    font-size: inherit;
+    box-sizing: border-box;
+    text-align: right;
+    width: 100%;
+}
+
+.right-field input[type="text"]:focus {
+    outline: 1px solid var(--focus-outline-color);
+}
+#jurisdictionSelect, /* Keep ID selector for now if needed */
+[data-input="jurisdictionSelect"] {
+    font-family: var(--font-family);
+    font-size: inherit;
+    border: 1px solid var(--focus-outline-color);
+    padding: calc(var(--spacing-unit) * 0.5) var(--spacing-unit); /* 2pt 4pt */
+    background-color: var(--input-background-color);
+    border-radius: 0;
+    width: 100%;
+    text-align: right;
+    text-align-last: right;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    box-sizing: border-box;
+}
+.right-info-block input[type="text"] {
+    border: none;
+    background-color: var(--input-background-color);
+    padding: var(--spacing-unit); /* 4pt */
+    font-family: var(--font-family);
+    font-size: inherit;
+    box-sizing: border-box;
+    text-align: right;
+    width: 100%;
+}
+.right-info-block input[type="text"]:focus {
+    outline: 1px solid var(--focus-outline-color);
+}
+[data-input="judgmentAwarded"],
+[data-input="nonPecuniaryAwarded"], /* Added non-pecuniary */
+[data-input="costsAwarded"] { /* Added costs */
+    font-weight: bold;
+}
+
+/* Checkbox Styles */
+.checkbox-container {
+    display: flex;
+    align-items: center;
+}
+.checkbox-container.left {
+    justify-content: flex-start;
+}
+.checkbox-container input[type="checkbox"] {
+     margin: 0 5px 0 0;
+}
+.checkbox-container label {
+    font-family: var(--font-family);
+    font-weight: normal;
+    cursor: pointer;
+    white-space: nowrap;
+}

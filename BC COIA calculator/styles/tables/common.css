@@ -1,0 +1,40 @@
+/* --- Common Table Styles --- */
+table:not(.dates-table) { /* Assuming .dates-table doesn't exist or isn't relevant */
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: var(--spacing-unit); /* 4pt */
+    line-height: var(--table-line-height);
+}
+th, td {
+    padding: calc(var(--spacing-unit) * 0.75) calc(var(--spacing-unit) * 1.5); /* 3pt 6pt */
+    vertical-align: top;
+}
+.interest-table th, .interest-table td {
+    border: 1px solid var(--border-color);
+}
+.interest-table th {
+    background-color: var(--table-header-background-color);
+    font-weight: bold;
+    text-align: center;
+    white-space: nowrap;
+}
+
+/* Total Row Alignment (Common for all tables) */
+.interest-table tfoot .total td {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    font-weight: bold;
+    padding-top: var(--spacing-unit); /* 4pt */
+}
+/* Align the text label part of the total row */
+.interest-table tfoot .total td[colspan] {
+    text-align: right;
+    padding-right: calc(var(--spacing-unit) * 2); /* 8px */
+}
+/* Ensure amount cells in total row align right */
+.interest-table tfoot .total td:not([colspan]) {
+    text-align: right;
+}
+.interest-table tfoot {
+    margin-top: 0;
+}

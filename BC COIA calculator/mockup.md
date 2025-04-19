@@ -14,7 +14,7 @@
 
 ## Prejudgment Interest
 
-\[ \] Show prejudgment interest
+\[ \] Calculate prejudgment interest
 
 | Date | Description | Rate | Principal | Interest |
 | --- | --- | --- | --- | --- |
@@ -22,23 +22,18 @@
 | 2019-06-01 | Physiotherapy |   | $150.00 |   |
 | 2019-06-30 | Prescription Meds |   | $75.50 |   |
 | 2019-07-01 | 184 days | 1.95% | $10,225.50 | $100.47 |
-| 2019-08-01 | Physiotherapy |   | $300.00 |   |
+| 2019-07-01 | Physiotherapy |   | $300.00 |   |
 | 2019-09-30 | Prescription Meds |   | $39.50 |   |
-
 | 2020-01-01 | 182 days | 1.95% | $10,565.00 | $102.54 |
-
 | 2020-07-01 | 184 days | 0.45% | $10,667.54 | $24.16 |
 | 2020-08-01 | Physiotherapy |   | $300.00 |   |
-
 | 2021-01-01 | 181 days | 0.45% | $10,991.70 | $24.52 |
-
 | 2022-07-01 | 184 days | 1.70% | $11,016.22 | $94.29 |
-
 | 2023-01-01 | 121 days | 4.45% | $11,110.51 | $163.95 |
 | 2023-01-03 | Physiotherapy |   | $300.00 |   |
-| 2023-01-03 | 119 days | 4.45% | $300.00 | $4.36 |
+| 2023-01-03 | 119 days | 4.45% |   | $4.36 |
 | 2023-03-01 | Prescription Meds |   | $39.50 |   |
-| 2023-03-01 | 62 days | 4.45% | $39.50 | $0.30 |
+| 2023-03-01 | 62 days | 4.45% |   | $0.30 |
 | **Total** | **Period Ending 2023-05-01** |   | **$11,450.01** | **$579.77** |
 
 ---
@@ -57,7 +52,7 @@
 
 ## Postjudgment Interest
 
-\[ \] Show prejudgment interest
+\[ \] Calculate prejudgment interest
 
 | Period Ending | Description | Rate | Principal | Interest |
 | --- | --- | --- | --- | --- |

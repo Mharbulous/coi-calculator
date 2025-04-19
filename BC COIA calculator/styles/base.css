@@ -1,0 +1,41 @@
+/* --- Page Setup for Printing --- */
+@page {
+    size: letter; /* Set paper size to US Letter */
+    margin: 0;    /* Remove browser default margins */
+}
+
+/* --- SCREEN STYLES --- */
+body {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    background-color: var(--page-background-color);
+    margin: 0;
+    padding: calc(var(--spacing-unit) * 5); /* 20px */
+    font-family: var(--font-family);
+    font-size: var(--base-font-size);
+    color: var(--text-color);
+}
+
+/* Ensure all input elements use Arial font and 11pt size */
+input, select, textarea, button {
+    font-family: var(--font-family);
+    font-size: var(--base-font-size);
+}
+
+/* Utility Styles */
+.currency {
+    /* Base style for currency spans */
+    white-space: nowrap; /* Prevent wrapping */
+}
+.currency.negative {
+    color: var(--negative-currency-color);
+}
+/* Text alignment utilities */
+.text-right { text-align: right !important; }
+.text-center { text-align: center !important; }
+.text-left { text-align: left !important; }
+
+.bold { font-weight: bold !important; }
+.hidden { display: none !important; }

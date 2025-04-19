@@ -1,0 +1,59 @@
+/* --- Interest Table Specific Styles --- */
+
+/* Column Widths & Alignment - Prejudgment & Postjudgment (5 columns) */
+#prejudgmentTable th:nth-child(1), #prejudgmentTable td:nth-child(1), /* Date / Period Ending */
+#postjudgmentTable th:nth-child(1), #postjudgmentTable td:nth-child(1) { 
+    width: 15%; 
+    text-align: left; 
+}
+
+#prejudgmentTable th:nth-child(2), #prejudgmentTable td:nth-child(2), /* Description */
+#postjudgmentTable th:nth-child(2), #postjudgmentTable td:nth-child(2) { 
+    width: auto; 
+    text-align: left; 
+} /* Let description take space */
+
+#prejudgmentTable th:nth-child(3), #prejudgmentTable td:nth-child(3), /* Rate */
+#postjudgmentTable th:nth-child(3), #postjudgmentTable td:nth-child(3) { 
+    width: 10%; 
+    text-align: center; 
+}
+
+#prejudgmentTable th:nth-child(4), #prejudgmentTable td:nth-child(4), /* Principal */
+#postjudgmentTable th:nth-child(4), #postjudgmentTable td:nth-child(4) { 
+    width: var(--currency-column-width); 
+    text-align: right; 
+}
+
+#prejudgmentTable th:nth-child(5), #prejudgmentTable td:nth-child(5), /* Interest */
+#postjudgmentTable th:nth-child(5), #postjudgmentTable td:nth-child(5) { 
+    width: var(--currency-column-width); 
+    text-align: right; 
+}
+
+/* Column Widths & Alignment - Judgment Table (3 columns) */
+.judgment-table th:nth-child(1), .judgment-table td:nth-child(1) { 
+    width: 15%; 
+    text-align: left; 
+} /* Date */
+
+.judgment-table th:nth-child(2), .judgment-table td:nth-child(2) { 
+    width: auto; 
+    text-align: left; 
+} /* Description */
+
+.judgment-table th:nth-child(3), .judgment-table td:nth-child(3) { 
+    width: var(--currency-column-width); 
+    text-align: right; 
+} /* Amount */
+
+/* Interest calculation details styles */
+.interest-calculation-details {
+    display: block;
+    margin-top: 4px;
+    text-align: right;
+}
+
+.days-count {
+    text-align: right;
+}

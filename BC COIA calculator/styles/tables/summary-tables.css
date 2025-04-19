@@ -1,0 +1,117 @@
+/* --- Summary Table Styles --- */
+.summary-table {
+    margin-top: calc(var(--spacing-unit) * 1); /* Reduced margin */
+    margin-bottom: 0;
+    width: 100%; /* Ensure it takes full width */
+    border-collapse: collapse; /* Needed if adding borders */
+}
+.summary-table th, .summary-table td {
+    border: none; /* Keep borderless for now */
+    padding: calc(var(--spacing-unit) * 0.75) calc(var(--spacing-unit) * 1.5); /* 3pt 6pt - consistent padding */
+    vertical-align: top;
+    line-height: var(--table-line-height);
+}
+.summary-table thead th {
+    font-weight: bold;
+    text-align: center;
+    background-color: var(--table-header-background-color);
+    border: 1px solid var(--border-color); /* Add border to header */
+}
+/* Summary Column Widths */
+.summary-table th:nth-child(1), .summary-table td:nth-child(1) { 
+    width: auto; 
+    text-align: left; 
+} /* Item */
+
+.summary-table th:nth-child(2), .summary-table td:nth-child(2) { 
+    width: 20%; 
+    text-align: center; 
+} /* Date/Value */
+
+.summary-table th:nth-child(3), .summary-table td:nth-child(3) { 
+    width: var(--currency-column-width); 
+    text-align: right; 
+} /* Amount */
+
+/* Summary Body Rows */
+.summary-table tbody td {
+    text-align: right; /* Default right align for amounts */
+}
+.summary-table tbody td:first-child {
+    text-align: left; /* Item name left aligned */
+}
+.summary-table tbody td:nth-child(2) {
+    text-align: center; /* Date centered */
+    /* Remove default padding for the container cell */
+    padding-left: 0;
+    padding-right: 0;
+}
+
+/* New styles for the date label wrapper */
+.date-label-wrapper {
+    display: flex;
+    justify-content: space-between; /* Space out icon, label, and input */
+    align-items: center;
+    width: 100%;
+    padding: 0; /* Removed all padding */
+    box-sizing: border-box; /* Include padding in width calculation */
+    height: 100%; /* Ensure wrapper fills cell height */
+}
+
+.date-prefix-label {
+    margin-right: calc(var(--spacing-unit) * 1); /* Reduced space between label and input */
+    white-space: nowrap; /* Prevent label from wrapping */
+}
+
+/* Adjust date input width if needed, or let flexbox handle it */
+.date-label-wrapper .custom-date-input {
+    flex-grow: 0; /* Don't allow input to take all remaining space */
+    width: auto; /* Override fixed width if previously set */
+    min-width: 90px; /* Ensure a minimum width that fits a date */
+    max-width: 100px; /* Limit maximum width */
+    text-align: right; /* Align date input text to the right */
+}
+
+/* Ensure all inputs in the summary table use Arial font and 11pt size */
+.summary-table input[type="date"],
+.summary-table input[type="text"] {
+    font-family: var(--font-family);
+    font-size: var(--base-font-size);
+    border: none; /* Remove borders from all editable fields */
+    background-color: var(--input-background-color);
+}
+ 
+/* Right align text in amount input fields */
+.summary-table input[data-input="amountValue"] {
+    text-align: right;
+    padding: 0; /* Remove all padding to match date inputs */
+    height: 100%; /* Ensure it fills the cell height */
+}
+
+/* Right align date input fields in summary table */
+.summary-table input[type="date"] {
+    text-align: right;
+    padding: 0; /* Remove all padding to match other inputs */
+    height: 100%; /* Ensure it fills the cell height */
+}
+
+/* Summary Footer Rows */
+.summary-table tfoot td {
+    padding-top: var(--spacing-unit); /* 4pt */
+    border-top: 1px solid var(--border-color);
+}
+.summary-table tfoot .total-row td {
+    font-weight: bold;
+}
+.summary-table tfoot .per-diem-row td {
+    font-style: italic;
+    border-top: none; /* No top border for per-diem */
+    padding-top: calc(var(--spacing-unit) * 0.5); /* 2pt */
+}
+.summary-table tfoot td[colspan] {
+    text-align: right;
+    /* Removed padding-right to allow full right alignment */
+}
+.summary-table tfoot td:not([colspan]) {
+    text-align: right;
+}
