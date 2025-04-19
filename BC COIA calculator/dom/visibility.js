@@ -73,6 +73,23 @@ export function togglePostjudgmentVisibility(isInitializing = false, recalculate
         if (isChecked && postjudgmentEndDate) {
             useStore.getState().setInput('postjudgmentEndDate', postjudgmentEndDate);
         }
+        
+        // If we're turning the checkbox off, clear any validation error that might be related to postjudgment date
+        if (!isChecked) {
+            // Check if all other required dates are valid
+            const inputs = useStore.getState().inputs;
+            const otherDatesValid = 
+                inputs.dateOfJudgment && 
+                inputs.nonPecuniaryJudgmentDate && 
+                inputs.costsAwardedDate && 
+                (inputs.showPrejudgment ? inputs.prejudgmentStartDate : true);
+                
+            // If all other dates are valid, clear the validation error
+            if (otherDatesValid) {
+                useStore.getState().setResult('validationError', false);
+                useStore.getState().setResult('validationMessage', '');
+            }
+        }
     }
 
     // Trigger recalculation unless it's the initial setup phase

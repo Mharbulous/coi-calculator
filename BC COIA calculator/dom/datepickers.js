@@ -299,11 +299,20 @@ function updatePrejudgmentPostjudgmentConstraints() {
         
         // Update background color based on validation status
         if (elements.postjudgmentInterestDateInput) {
-            // Case 1: Postjudgment date is blank
-            // Case 2: Postjudgment date is earlier than judgment date
-            if (!postjudgmentDate || (postjudgmentDate && judgmentDate && postjudgmentDate < judgmentDate)) {
-                elements.postjudgmentInterestDateInput.style.backgroundColor = ERROR_BACKGROUND_COLOR;
+            // Get the current showPostjudgment state from the store
+            const showPostjudgment = useStore.getState().inputs.showPostjudgment;
+            
+            // Only apply error styling if the section is visible
+            if (showPostjudgment) {
+                // Case 1: Postjudgment date is blank
+                // Case 2: Postjudgment date is earlier than judgment date
+                if (!postjudgmentDate || (postjudgmentDate && judgmentDate && postjudgmentDate < judgmentDate)) {
+                    elements.postjudgmentInterestDateInput.style.backgroundColor = ERROR_BACKGROUND_COLOR;
+                } else {
+                    elements.postjudgmentInterestDateInput.style.backgroundColor = NORMAL_BACKGROUND_COLOR;
+                }
             } else {
+                // If section is hidden, always use normal background color
                 elements.postjudgmentInterestDateInput.style.backgroundColor = NORMAL_BACKGROUND_COLOR;
             }
         }
