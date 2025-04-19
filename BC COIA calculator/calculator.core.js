@@ -171,7 +171,8 @@ function calculatePrejudgmentInterest(inputs, specialDamagesTotal, interestRates
         // Prejudgment starts from the dynamic prejudgmentStartDate
         // Prejudgment ends on the judgment date (inclusive)
         const prejudgmentEndDate = new Date(inputs.dateOfJudgment);
-        // No longer subtracting a day
+        // Ensure we're using the judgment date itself, not the day before
+        // This is critical for one-day interest periods to work correctly
 
         // Only calculate if the period is valid (at least one day) and pecuniary amount > 0
         // Use normalized date comparison

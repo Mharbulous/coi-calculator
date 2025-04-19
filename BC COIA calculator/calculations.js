@@ -109,7 +109,8 @@ function getApplicableRatePeriods(startDate, endDate, interestType, jurisdiction
     const segments = [];
     let currentDate = new Date(startDate);
     
-    while (currentDate <= endDate) {
+    // Normalize dates for comparison to avoid time component issues
+    while (normalizeDate(currentDate) <= normalizeDate(endDate)) { 
         // Find the rate period applicable to the current date
         const currentTime = currentDate.getTime();
         const ratePeriod = jurisdictionRates.find(rate =>
@@ -124,15 +125,15 @@ function getApplicableRatePeriods(startDate, endDate, interestType, jurisdiction
         
         // Determine the end date for this segment
         const segmentEndDate = ratePeriod.end < endDate ? new Date(ratePeriod.end) : new Date(endDate);
-        const rate = ratePeriod[interestType];
         
-        // Add the segment to the array
-        segments.push({
+        const rate = ratePeriod[interestType];
+        const newSegment = {
             start: new Date(currentDate),
             end: segmentEndDate,
             rate: rate,
             isFinalSegment: segmentEndDate.getTime() === endDate.getTime()
-        });
+        };
+        segments.push(newSegment);
         
         // Move to the day after the segment ends
         currentDate = new Date(segmentEndDate);
@@ -486,8 +487,8 @@ export function calculateInterestPeriods(state, interestType, startDate, endDate
         );
     }
     
-    // Compile and return results
-    return compileResults(
+    // Compile results
+    const finalResult = compileResults(
         segmentResults, 
         damageResults, 
         initialPrincipal, 
@@ -495,6 +496,8 @@ export function calculateInterestPeriods(state, interestType, startDate, endDate
         endDate,
         interestType
     );
+    
+    return finalResult;
 }
 
 /**
