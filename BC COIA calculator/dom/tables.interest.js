@@ -1,7 +1,8 @@
-import { parseDateInput } from '../utils.date.js';
+import { parseDateInput, formatDateForDisplay } from '../utils.date.js';
 import { formatCurrencyForDisplay } from '../utils.currency.js';
 import elements from './elements.js';
 import { insertSpecialDamagesRowFromData } from './specialDamages.js';
+import useStore from '../store.js';
 
 /**
  * Updates an interest table (prejudgment or postjudgment) with calculated details.
@@ -174,4 +175,43 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
         principalTotalElement.innerHTML = formatCurrencyForDisplay(principalTotal);
     }
     interestTotalElement.innerHTML = formatCurrencyForDisplay(interestTotal);
+    
+    // Add date to the footer row
+    const table = tableBody.closest('table');
+    if (table) {
+        const footerRow = table.querySelector('tfoot tr.total');
+        if (footerRow && footerRow.cells.length > 0) {
+            // Get the appropriate date based on which table this is
+            const state = useStore.getState();
+            let dateToShow = '';
+            
+            if (isPrejudgmentTable) {
+                // For prejudgment table, use the judgment date
+                if (state.inputs.dateOfJudgment) {
+                    dateToShow = formatDateForDisplay(state.inputs.dateOfJudgment);
+                }
+            } else {
+                // For postjudgment table, use the postjudgment end date (finalCalculationDate)
+                if (state.results.finalCalculationDate) {
+                    dateToShow = formatDateForDisplay(state.results.finalCalculationDate);
+                }
+            }
+            
+            // Update the text in the first cell (which has colspan="2")
+            if (dateToShow) {
+                const firstCell = footerRow.cells[0];
+                
+                // Create a span for the date to ensure it doesn't affect layout
+                const dateSpan = document.createElement('span');
+                dateSpan.textContent = dateToShow;
+                dateSpan.style.textAlign = 'left';
+                dateSpan.style.fontWeight = 'normal';
+                dateSpan.style.float = 'left';
+                
+                // Clear the cell and add the date span
+                firstCell.innerHTML = '';
+                firstCell.appendChild(dateSpan);
+            }
+        }
+    }
 }
