@@ -205,7 +205,7 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
                 const dateSpan = document.createElement('span');
                 dateSpan.textContent = dateToShow;
                 dateSpan.style.textAlign = 'left';
-                dateSpan.style.fontWeight = 'normal';
+                dateSpan.style.fontWeight = 'bold';
                 dateSpan.style.float = 'left';
                 
                 // Clear the cell and add the date span

@@ -8,12 +8,12 @@ Add date values to the first cells of the footer rows in both the Prejudgment an
 1. **Prejudgment Interest Table Footer**:
    - Display the Judgment Date in the first cell of the footer row
    - The date should be displayed in the same format as other dates in the table (YYYY-MM-DD)
-   - The date should be left-aligned and in normal font weight (not bold)
+   - The date should be left-aligned and in bold font weight
 
 2. **Postjudgment Interest Table Footer**:
    - Display the Postjudgment Interest Date in the first cell of the footer row
    - The date should be displayed in the same format as other dates in the table (YYYY-MM-DD)
-   - The date should be left-aligned and in normal font weight (not bold)
+   - The date should be left-aligned and in bold font weight
 
 3. **Table Layout Constraints**:
    - The solution must not affect the column widths of the tables
