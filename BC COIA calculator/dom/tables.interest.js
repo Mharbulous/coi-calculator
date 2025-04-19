@@ -176,7 +176,7 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
     }
     interestTotalElement.innerHTML = formatCurrencyForDisplay(interestTotal);
     
-    // Add date to the footer row
+    // Add date and total days to the footer row
     const table = tableBody.closest('table');
     if (table) {
         const footerRow = table.querySelector('tfoot tr.total');
@@ -197,20 +197,38 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
                 }
             }
             
+            // Calculate total days from all periods
+            const totalDays = details.reduce((sum, item) => sum + (item._days || 0), 0);
+            
             // Update the text in the first cell (which has colspan="2")
             if (dateToShow) {
                 const firstCell = footerRow.cells[0];
                 
-                // Create a span for the date to ensure it doesn't affect layout
+                // Create a container for date and total days
+                const footerContainer = document.createElement('div');
+                footerContainer.style.display = 'flex';
+                footerContainer.style.justifyContent = 'space-between';
+                footerContainer.style.width = '100%';
+                
+                // Create a span for the date
                 const dateSpan = document.createElement('span');
                 dateSpan.textContent = dateToShow;
                 dateSpan.style.textAlign = 'left';
-                dateSpan.style.fontWeight = 'bold';
-                dateSpan.style.float = 'left';
+                dateSpan.style.fontWeight = 'normal'; // Changed from bold to normal to match the total days style
                 
-                // Clear the cell and add the date span
+                // Create a span for the total days
+                const daysSpan = document.createElement('span');
+                daysSpan.textContent = `Total: ${totalDays} days`;
+                daysSpan.style.textAlign = 'right';
+                daysSpan.style.fontWeight = 'normal';
+                
+                // Add both spans to the container
+                footerContainer.appendChild(dateSpan);
+                footerContainer.appendChild(daysSpan);
+                
+                // Clear the cell and add the container
                 firstCell.innerHTML = '';
-                firstCell.appendChild(dateSpan);
+                firstCell.appendChild(footerContainer);
             }
         }
     }
