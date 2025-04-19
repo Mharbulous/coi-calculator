@@ -253,6 +253,36 @@ h1 i {
  #prejudgmentTable th:nth-child(5), #prejudgmentTable td:nth-child(5), /* Interest */
  #postjudgmentTable th:nth-child(5), #postjudgmentTable td:nth-child(5) { width: var(--currency-column-width); text-align: right; }
 
+ /* Special button for Prejudgment Interest table rows */
+ #prejudgmentTable tbody tr td:first-child {
+    position: relative; /* For positioning the special button */
+ }
+ 
+ .special-button {
+    position: absolute;
+    left: -70px; /* Moved 5px to the right */
+    top: calc(50% + 15px); /* Moved 15px down */
+    transform: translateY(-50%);
+    font-size: 14px;
+    font-weight: normal; /* Changed from bold to normal */
+    color: #333;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 2px 3px; /* Reduced horizontal padding */
+    cursor: pointer;
+    opacity: 0; /* Hidden by default */
+    transition: opacity 0.2s ease, background-color 0.2s ease; /* Smooth transition */
+ }
+ 
+ .special-button:hover {
+    background-color: #e0e0e0;
+ }
+ 
+ #prejudgmentTable tbody tr:hover .special-button {
+    opacity: 1; /* Visible on hover */
+ }
+
  /* Column Widths & Alignment - Judgment Table (3 columns) */
  .judgment-table th:nth-child(1), .judgment-table td:nth-child(1) { width: 15%; text-align: left; } /* Date */
  .judgment-table th:nth-child(2), .judgment-table td:nth-child(2) { width: auto; text-align: left; } /* Description */
