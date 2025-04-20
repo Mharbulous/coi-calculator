@@ -45,6 +45,7 @@ const elements = {
     costsAwardedDateInput: null,
     costsAwardedAmountInput: null,
     prejudgmentInterestDateInput: null,
+    prejudgmentInterestAmountInput: null, // Added for editable prejudgment interest
     postjudgmentInterestDateInput: null,
 };
 

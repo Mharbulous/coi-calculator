@@ -68,6 +68,11 @@ export function getInputValues() {
     const showPostjudgment = elements.showPostjudgmentCheckbox.checked;
     const showPerDiem = elements.showPerDiemCheckbox ? elements.showPerDiemCheckbox.checked : true;
 
+    // Get the user-entered prejudgment interest amount when checkbox is unchecked
+    const userEnteredPrejudgmentInterest = !showPrejudgment && elements.prejudgmentInterestAmountInput 
+        ? parseCurrency(elements.prejudgmentInterestAmountInput.value) 
+        : useStore.getState().inputs.userEnteredPrejudgmentInterest || 0;
+
     // Create the inputs object
     const inputs = {
         prejudgmentStartDate,
@@ -81,7 +86,8 @@ export function getInputValues() {
         jurisdiction,
         showPrejudgment,
         showPostjudgment,
-        showPerDiem
+        showPerDiem,
+        userEnteredPrejudgmentInterest
     };
     
     // Validate the inputs

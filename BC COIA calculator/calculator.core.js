@@ -199,6 +199,10 @@ function calculatePrejudgmentInterest(inputs, specialDamagesTotal, interestRates
         }
     } else {
         console.log("Prejudgment calculation skipped: Checkbox unchecked.");
+        // When checkbox is unchecked, use the user-entered value for prejudgment interest
+        if (inputs.userEnteredPrejudgmentInterest !== undefined) {
+            prejudgmentResult.total = inputs.userEnteredPrejudgmentInterest;
+        }
         // Even if skipped, the principal used for the total row includes special damages
         prejudgmentResult.principal = inputs.judgmentAwarded + specialDamagesTotal;
     }
@@ -214,8 +218,23 @@ function calculatePrejudgmentInterest(inputs, specialDamagesTotal, interestRates
  * @returns {number} The judgment total.
  */
 function calculateJudgmentTotal(inputs, prejudgmentResult, specialDamagesTotal) {
-    // This total includes the original awards, calculated prejudgment interest, AND special damages total
-    return inputs.judgmentAwarded + prejudgmentResult.total + inputs.nonPecuniaryAwarded + inputs.costsAwarded + specialDamagesTotal;
+    // Determine which prejudgment interest amount to use
+    let prejudgmentInterestAmount = 0;
+    
+    if (inputs.showPrejudgment) {
+        // When checkbox is checked, use the calculated amount
+        prejudgmentInterestAmount = prejudgmentResult.total;
+        console.log("Using calculated prejudgment interest:", prejudgmentInterestAmount);
+    } else {
+        // When checkbox is unchecked, use the user-entered amount
+        prejudgmentInterestAmount = inputs.userEnteredPrejudgmentInterest || 0;
+        console.log("Using user-entered prejudgment interest:", prejudgmentInterestAmount);
+    }
+    
+    // This total includes the original awards, prejudgment interest (calculated or user-entered), AND special damages total
+    const total = inputs.judgmentAwarded + prejudgmentInterestAmount + inputs.nonPecuniaryAwarded + inputs.costsAwarded + specialDamagesTotal;
+    console.log("Judgment total calculated:", total);
+    return total;
 }
 
 /**
@@ -296,6 +315,12 @@ function calculatePostjudgmentInterest(inputs, judgmentTotal, interestRatesData)
 function calculateFinalTotals(judgmentTotal, postjudgmentResult, finalCalculationDate, interestRatesData) {
     // Calculate final total and per diem
     const totalOwing = judgmentTotal + postjudgmentResult.total;
+    
+    // Log the components of the total for debugging
+    console.log("Final total calculation:");
+    console.log("  Judgment total:", judgmentTotal);
+    console.log("  Postjudgment interest:", postjudgmentResult.total);
+    console.log("  Total owing:", totalOwing);
     
     // Create a state object for calculations.js functions with updated totalOwing
     const stateForCalc = {

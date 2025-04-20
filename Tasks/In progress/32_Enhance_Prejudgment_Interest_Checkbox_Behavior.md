@@ -59,3 +59,29 @@ The implementation has been divided into three subtasks to be completed in seque
 3. Finally, ensure the calculation state is preserved when toggling the checkbox (Task 32.3)
 
 Each subtask builds on the previous one, but they are designed to be implemented and tested independently.
+
+## Implementation Notes
+
+### Learnings from Task 32.1
+
+During the implementation of Task 32.1, several important insights were gained that are relevant to the remaining tasks:
+
+1. **Row Template Selection**: The `updateSummaryTable` function in `tables.summary.js` uses different HTML templates for different row types. Understanding this template selection mechanism is crucial for controlling how rows are displayed:
+   - For prejudgment interest row with date input: Template ID `summary-row-editable-date`
+   - For display-only rows: Template ID `summary-row-display-only`
+
+2. **Row Construction Logic**: Unlike the postjudgment interest row which is conditionally added to the summary table only when its checkbox is checked, the prejudgment interest row is always added to the table. This difference in approach required a different strategy for hiding the prejudgment row elements.
+
+3. **DOM Structure**: The date cell container (`.date-cell-container`) contains multiple elements:
+   - The help icon span (`[data-display="helpIcon"]`)
+   - The date label span (`[data-display="dateLabel"]`)
+   - The date input field (`[data-input="dateValue"]`)
+   Each of these elements needs to be handled separately for proper visibility control.
+
+4. **Visibility vs Template Type**: There are two approaches to hiding the date field:
+   - Toggle the visibility of elements within an existing template
+   - Use a different template entirely based on the checkbox state
+   
+   The more robust solution implemented was to use different templates based on the checkbox state, with the display-only template when unchecked and the date-editable template when checked.
+
+These insights will be valuable for implementing Tasks 32.2 and 32.3, particularly for Task 32.2 where we need to make the prejudgment interest amount editable when the checkbox is unchecked.

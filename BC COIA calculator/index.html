@@ -224,6 +224,24 @@
             <td class="text-right" data-display="amountValue"></td>
         </tr>
     </template>
+
+    <!-- New template for editable prejudgment interest amount when checkbox is unchecked -->
+    <template id="summary-row-prejudgment-editable-amount">
+        <tr>
+            <td class="text-left" data-display="itemLabel">
+                <span data-display="itemText"></span>
+                <span class="help-icon" tabindex="0" role="button" aria-label="Help" data-display="helpIcon">?
+                    <span class="tooltip" data-display="tooltipText"></span>
+                </span>
+            </td>
+            <td class="text-center">
+                <!-- No date input when prejudgment checkbox is unchecked -->
+            </td>
+            <td class="text-right">
+                <input type="text" data-input="prejudgmentAmountValue" class="text-right">
+            </td>
+        </tr>
+    </template>
     <!-- End of Templates -->
 
     

@@ -1,5 +1,5 @@
 import { formatDateLong, formatDateForInput, formatDateForDisplay } from '../utils.date.js';
-import { formatCurrencyForDisplay, formatCurrencyForInputWithCommas } from '../utils.currency.js';
+import { formatCurrencyForDisplay, formatCurrencyForInputWithCommas, parseCurrency } from '../utils.currency.js';
 import elements from './elements.js';
 import { setupCustomDateInputListeners, setupCurrencyInputListeners, initializeDatePickers } from './setup.js';
 
@@ -35,7 +35,7 @@ export function updateSummaryTable(store, recalculateCallback) {
         { item: 'Costs & Disbursements', dateValue: '', amount: inputs.costsAwarded, isEditable: true },
     ];
     
-    // Only include prejudgment interest row if showPrejudgment is true
+    // Handle the prejudgment interest row based on checkbox state
     if (inputs.showPrejudgment) {
         items.push({
             item: 'Prejudgment Interest',
@@ -44,12 +44,17 @@ export function updateSummaryTable(store, recalculateCallback) {
             isDateEditable: true
         });
     } else {
-        // If showPrejudgment is false, still include the row but without the date field
+        // If showPrejudgment is false, include the row with an editable amount field
+        // Use the userEnteredPrejudgmentInterest value or fallback to the last calculated value
+        const prejudgmentAmount = inputs.userEnteredPrejudgmentInterest !== undefined 
+            ? inputs.userEnteredPrejudgmentInterest 
+            : prejudgmentResult.total;
+        
         items.push({
             item: 'Prejudgment Interest',
             dateValue: null, // No date value
-            amount: 0, // Zero amount when prejudgment interest is not calculated
-            isDisplayOnly: true // Use display-only template instead of date-editable
+            amount: prejudgmentAmount,
+            isPrejudgmentAmountEditable: true // Use the new editable amount template
         });
     }
     
@@ -71,6 +76,7 @@ export function updateSummaryTable(store, recalculateCallback) {
     elements.costsAwardedDateInput = null;
     elements.costsAwardedAmountInput = null;
     elements.prejudgmentInterestDateInput = null;
+    elements.prejudgmentInterestAmountInput = null;
     elements.postjudgmentInterestDateInput = null;
 
     // Help text for tooltips
@@ -85,8 +91,9 @@ export function updateSummaryTable(store, recalculateCallback) {
     const templateAmountOnly = document.getElementById('summary-row-editable-amount');
     const templateDateOnly = document.getElementById('summary-row-editable-date');
     const templateDisplayOnly = document.getElementById('summary-row-display-only');
+    const templatePrejudgmentEditable = document.getElementById('summary-row-prejudgment-editable-amount');
 
-    if (!templatePecuniary || !templateAmountOnly || !templateDateOnly || !templateDisplayOnly) {
+    if (!templatePecuniary || !templateAmountOnly || !templateDateOnly || !templateDisplayOnly || !templatePrejudgmentEditable) {
         console.error("One or more summary table row templates not found in DOM.");
         return;
     }
@@ -102,6 +109,8 @@ export function updateSummaryTable(store, recalculateCallback) {
             template = templateAmountOnly;
         } else if (item.isDateEditable && (item.item === 'Prejudgment Interest' || item.item === 'Postjudgment Interest')) {
             template = templateDateOnly;
+        } else if (item.isPrejudgmentAmountEditable && item.item === 'Prejudgment Interest') {
+            template = templatePrejudgmentEditable; // New template for editable prejudgment interest
         } else if (item.isDisplayOnly || item.item === 'Special Damages') {
             template = templateDisplayOnly; // For display-only items like Special Damages
         } else {
@@ -118,6 +127,7 @@ export function updateSummaryTable(store, recalculateCallback) {
         const tooltipSpan = rowClone.querySelector('[data-display="tooltipText"]');
         const dateInput = rowClone.querySelector('[data-input="dateValue"]');
         const amountInput = rowClone.querySelector('[data-input="amountValue"]');
+        const prejudgmentAmountInput = rowClone.querySelector('[data-input="prejudgmentAmountValue"]');
         const dateDisplay = rowClone.querySelector('[data-display="dateValue"]');
         const amountDisplay = rowClone.querySelector('[data-display="amountValue"]');
         const dateLabelSpan = rowClone.querySelector('[data-display="dateLabel"]'); // Find the new label span
@@ -127,15 +137,8 @@ export function updateSummaryTable(store, recalculateCallback) {
             itemTextSpan.textContent = item.item;
         }
         
-        // Special case for Prejudgment Interest when showPrejudgment is false
-        if (item.item === 'Prejudgment Interest' && !inputs.showPrejudgment) {
-            // Hide help icon for prejudgment interest when checkbox is unchecked
-            if (helpIconSpan) {
-                helpIconSpan.style.display = 'none';
-            }
-        } 
-        // Normal help text handling for other cases
-        else if (helpTexts[item.item] && helpIconSpan && tooltipSpan) {
+        // Help icon handling
+        if (helpTexts[item.item] && helpIconSpan && tooltipSpan) {
             helpIconSpan.style.display = ''; // Make sure it's visible
             helpIconSpan.setAttribute('aria-label', `Help for ${item.item}`);
             tooltipSpan.textContent = helpTexts[item.item];
@@ -216,6 +219,37 @@ export function updateSummaryTable(store, recalculateCallback) {
                     dateLabelSpan.textContent = ''; // Clear for other rows using this template (if any)
                 }
             }
+        } else if (template === templatePrejudgmentEditable) {
+        // Handle the editable prejudgment interest amount field
+        if (prejudgmentAmountInput) {
+            prejudgmentAmountInput.value = formattedAmountInputWithCommas; // Use comma format initially
+            
+            // Add a direct event listener for the blur event
+            prejudgmentAmountInput.addEventListener('blur', function(event) {
+                // When the value changes, update the store with the user-entered value
+                const userEnteredValue = parseCurrency(event.target.value);
+                console.log("User entered prejudgment interest value on blur:", userEnteredValue);
+                
+                // Update the store with the user-entered value
+                store.getState().setInput('userEnteredPrejudgmentInterest', userEnteredValue);
+                
+                // Also update the prejudgment result total directly to ensure it's used in calculations
+                const currentResults = store.getState().results;
+                store.getState().setPrejudgmentResult({
+                    ...currentResults.prejudgmentResult,
+                    total: userEnteredValue
+                });
+                
+                // Then recalculate
+                recalculateCallback();
+            });
+            
+            // Also set up the standard currency input listeners
+            setupCurrencyInputListeners(prejudgmentAmountInput, null); // Just use the standard formatting
+            
+            // Store reference to the input
+            elements.prejudgmentInterestAmountInput = prejudgmentAmountInput;
+        }
         } else { // templateDisplayOnly
             if (dateDisplay) {
                 dateDisplay.textContent = formattedDate;

@@ -66,10 +66,12 @@ export function togglePrejudgmentVisibility(isInitializing = false, recalculateC
         }
     }
     
-    // Save the current prejudgment date value before updating the store
-    // This ensures we don't lose the date when toggling visibility
+    // Save the current prejudgment values before updating the store
+    // This ensures we don't lose the date or user-entered amount when toggling visibility
     const currentState = useStore.getState();
     const prejudgmentStartDate = currentState.inputs.prejudgmentStartDate;
+    const userEnteredPrejudgmentInterest = currentState.inputs.userEnteredPrejudgmentInterest;
+    const calculatedPrejudgmentInterest = currentState.results.prejudgmentResult.total;
     
     // Update the Zustand store (unless we're initializing)
     if (!isInitializing) {
@@ -78,6 +80,12 @@ export function togglePrejudgmentVisibility(isInitializing = false, recalculateC
         // If we're turning the checkbox back on and we have a saved date, make sure it's still in the store
         if (isChecked && prejudgmentStartDate) {
             useStore.getState().setInput('prejudgmentStartDate', prejudgmentStartDate);
+        }
+        
+        // If we're turning the checkbox off, save the current calculated value as the user-entered value
+        if (!isChecked && calculatedPrejudgmentInterest > 0) {
+            console.log("Saving calculated prejudgment interest as user-entered value:", calculatedPrejudgmentInterest);
+            useStore.getState().setInput('userEnteredPrejudgmentInterest', calculatedPrejudgmentInterest);
         }
         
         // If we're turning the checkbox off, clear any validation error that might be related to prejudgment date

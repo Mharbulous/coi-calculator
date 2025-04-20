@@ -22,6 +22,7 @@ const store = createStore((set) => ({
         showPrejudgment: true,
         showPostjudgment: true,
         showPerDiem: true,
+        userEnteredPrejudgmentInterest: 0, // Added for editable prejudgment interest
         isValid: true,
         validationMessage: ''
     },
@@ -227,15 +228,16 @@ const store = createStore((set) => ({
         return set({
             inputs: {
                 ...inputDateValues,
-                judgmentAwarded: 0,
-                nonPecuniaryAwarded: 0,
-                costsAwarded: 0,
-                jurisdiction: 'BC',
-                showPrejudgment: true,
-                showPostjudgment: true,
-                showPerDiem: true,
-                isValid: true,
-                validationMessage: ''
+            judgmentAwarded: 0,
+            nonPecuniaryAwarded: 0,
+            costsAwarded: 0,
+            jurisdiction: 'BC',
+            showPrejudgment: true,
+            showPostjudgment: true,
+            showPerDiem: true,
+            userEnteredPrejudgmentInterest: 0, // Added for editable prejudgment interest
+            isValid: true,
+            validationMessage: ''
             },
             results: {
                 specialDamages: [],
