@@ -17,6 +17,10 @@ let judgmentDatePicker = null;
 let prejudgmentDatePicker = null;
 let postjudgmentDatePicker = null;
 
+// Store references to special damages flatpickr instances
+// Using a Map with input element as key for each instance
+const specialDamagesDatePickers = new Map();
+
 /**
  * Initializes the date pickers with appropriate configurations and constraints.
  * This function is lifecycle-aware and only initializes datepickers for elements
@@ -383,4 +387,82 @@ function positionCalendar(selectedDates, dateStr, instance) {
         calendar.style.left = `${newLeft}px`;
         calendar.style.top = `${newTop}px`;
     });
+}
+
+/**
+ * Initializes a flatpickr date picker for a special damages date input.
+ * 
+ * @param {HTMLElement} inputElement - The special damages date input element to initialize.
+ * @param {Function} recalculateCallback - Function to call when dates change to trigger recalculation.
+ * @returns {Object} The flatpickr instance.
+ */
+export function initializeSpecialDamagesDatePicker(inputElement, recalculateCallback) {
+    // Destroy any existing instance for this input
+    if (specialDamagesDatePickers.has(inputElement)) {
+        destroySpecialDamagesDatePicker(inputElement);
+    }
+    
+    // Reset background color to default
+    inputElement.style.backgroundColor = NORMAL_BACKGROUND_COLOR;
+    
+    // Initialize flatpickr for the special damages date input
+    const flatpickrInstance = flatpickr(inputElement, {
+        dateFormat: "Y-m-d",
+        allowInput: true,
+        clickOpens: true,
+        disableMobile: true,
+        monthSelectorType: "dropdown",
+        enableTime: false,
+        minDate: "1993-01-01",
+        maxDate: "2025-06-30", // Fixed maximum date as requested
+        onChange: (selectedDates) => {
+            const newDate = selectedDates.length > 0 ? selectedDates[0] : null;
+            
+            // Trigger recalculation
+            if (typeof recalculateCallback === 'function') {
+                recalculateCallback();
+            }
+        },
+        onOpen: positionCalendar
+    });
+    
+    // Store the flatpickr instance with the input element as key
+    specialDamagesDatePickers.set(inputElement, flatpickrInstance);
+    
+    return flatpickrInstance;
+}
+
+/**
+ * Destroys a specific special damages flatpickr instance.
+ * 
+ * @param {HTMLElement} inputElement - The special damages date input element whose flatpickr to destroy.
+ * @returns {boolean} True if the instance was found and destroyed, false otherwise.
+ */
+export function destroySpecialDamagesDatePicker(inputElement) {
+    if (specialDamagesDatePickers.has(inputElement)) {
+        const instance = specialDamagesDatePickers.get(inputElement);
+        
+        // Call the destroy method to clean up
+        instance.destroy();
+        
+        // Remove from the Map
+        specialDamagesDatePickers.delete(inputElement);
+        
+        return true;
+    }
+    
+    return false;
+}
+
+/**
+ * Destroys all special damages flatpickr instances.
+ * This can be useful when needing to reset the entire application state.
+ */
+export function destroyAllSpecialDamagesDatePickers() {
+    specialDamagesDatePickers.forEach((instance, inputElement) => {
+        instance.destroy();
+    });
+    
+    // Clear the Map
+    specialDamagesDatePickers.clear();
 }
