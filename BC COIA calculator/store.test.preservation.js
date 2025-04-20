@@ -98,4 +98,33 @@ describe('Prejudgment State Preservation', () => {
         // Verify user-entered value is preserved
         expect(useStore.getState().inputs.userEnteredPrejudgmentInterest).toBe(500);
     });
+
+    it('should save and restore the prejudgment date when toggling checkbox', () => {
+        // Create a test date
+        const testDate = new Date('2023-05-15');
+        
+        // Set the prejudgment date
+        useStore.getState().setInput('prejudgmentStartDate', testDate);
+        
+        // Verify date was set correctly
+        expect(useStore.getState().inputs.prejudgmentStartDate).toEqual(testDate);
+        
+        // Save the state (simulating turning off the checkbox)
+        useStore.getState().savePrejudgmentState();
+        
+        // Verify the date was saved
+        expect(useStore.getState().savedPrejudgmentState.prejudgmentStartDate).toEqual(testDate);
+        
+        // Clear the current date to simulate what happens when checkbox is off
+        useStore.getState().setInput('prejudgmentStartDate', null);
+        
+        // Verify the date was cleared
+        expect(useStore.getState().inputs.prejudgmentStartDate).toBeNull();
+        
+        // Restore the state (simulating turning on the checkbox)
+        useStore.getState().restorePrejudgmentState();
+        
+        // Verify the date was restored properly
+        expect(useStore.getState().inputs.prejudgmentStartDate).toEqual(testDate);
+    });
 });

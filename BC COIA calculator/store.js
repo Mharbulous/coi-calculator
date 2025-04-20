@@ -204,15 +204,18 @@ const store = createStore((set) => ({
      * Saves the current prejudgment calculation state
      * Used when toggling the prejudgment checkbox off
      */
-    savePrejudgmentState: () => set((state) => ({
-        savedPrejudgmentState: {
-            prejudgmentStartDate: state.inputs.prejudgmentStartDate, // Save the prejudgment date
-            specialDamages: [...state.results.specialDamages],
-            prejudgmentResult: {
-                ...state.results.prejudgmentResult
+    savePrejudgmentState: () => set((state) => {
+        console.log("Saving prejudgment state with date:", state.inputs.prejudgmentStartDate);
+        return {
+            savedPrejudgmentState: {
+                prejudgmentStartDate: state.inputs.prejudgmentStartDate, // Save the prejudgment date
+                specialDamages: [...state.results.specialDamages],
+                prejudgmentResult: {
+                    ...state.results.prejudgmentResult
+                }
             }
-        }
-    })),
+        };
+    }),
 
     /**
      * Restores the saved prejudgment calculation state
