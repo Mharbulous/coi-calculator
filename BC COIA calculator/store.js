@@ -205,7 +205,10 @@ const store = createStore((set) => ({
      * Used when toggling the prejudgment checkbox off
      */
     savePrejudgmentState: () => set((state) => {
-        console.log("Saving prejudgment state with date:", state.inputs.prejudgmentStartDate);
+        console.log("Saved prejudgment state:", {
+            prejudgmentStartDate: state.inputs.prejudgmentStartDate,
+            hasSpecialDamages: state.results.specialDamages.length > 0
+        });
         return {
             savedPrejudgmentState: {
                 prejudgmentStartDate: state.inputs.prejudgmentStartDate, // Save the prejudgment date
@@ -222,7 +225,10 @@ const store = createStore((set) => ({
      * Used when toggling the prejudgment checkbox on
      */
     restorePrejudgmentState: () => set((state) => {
-        console.log("Restoring prejudgment state with date:", state.savedPrejudgmentState?.prejudgmentStartDate);
+        console.log("Restored prejudgment state:", {
+            prejudgmentStartDate: state.savedPrejudgmentState?.prejudgmentStartDate,
+            hasSpecialDamages: state.savedPrejudgmentState?.specialDamages?.length > 0
+        });
         // Check if we have any saved state
         if (state.savedPrejudgmentState) {
             // First, prepare to update inputs

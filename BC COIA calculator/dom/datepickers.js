@@ -40,6 +40,14 @@ export function initializeDatePickers(recalculateCallback) {
     const showPrejudgment = useStore.getState().inputs.showPrejudgment;
     const showPostjudgment = useStore.getState().inputs.showPostjudgment;
     
+    // Debug logging for lifecycle events
+    console.log("Datepickers initialized. Visibility:", {
+        showPrejudgment: useStore.getState().inputs.showPrejudgment,
+        showPostjudgment: useStore.getState().inputs.showPostjudgment,
+        prejudgmentPickerCreated: !!prejudgmentDatePicker,
+        postjudgmentPickerCreated: !!postjudgmentDatePicker
+    });
+    
     // Reset background colors to default
     if (elements.judgmentDateInput) {
         elements.judgmentDateInput.style.backgroundColor = NORMAL_BACKGROUND_COLOR;
