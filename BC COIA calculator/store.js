@@ -222,6 +222,7 @@ const store = createStore((set) => ({
      * Used when toggling the prejudgment checkbox on
      */
     restorePrejudgmentState: () => set((state) => {
+        console.log("Restoring prejudgment state with date:", state.savedPrejudgmentState?.prejudgmentStartDate);
         // Check if we have any saved state
         if (state.savedPrejudgmentState) {
             // First, prepare to update inputs
