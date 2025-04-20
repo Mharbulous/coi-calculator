@@ -91,6 +91,14 @@ export function togglePrejudgmentVisibility(isInitializing = false, recalculateC
                 const formattedDate = formatDateForInput(restoredState.inputs.prejudgmentStartDate);
                 elements.prejudgmentInterestDateInput.value = formattedDate;
                 console.log("Restored prejudgment date to DOM:", formattedDate);
+                
+                // Important: We need to manually trigger a change event on the input
+                // This ensures that any validation or event handlers recognize the new value
+                const changeEvent = new Event('change', { bubbles: true });
+                elements.prejudgmentInterestDateInput.dispatchEvent(changeEvent);
+                
+                // Also update the input's validity state
+                elements.prejudgmentInterestDateInput.style.backgroundColor = '#e0f2f7'; // NORMAL_BACKGROUND_COLOR
             }
         } else {
             // If we're turning the checkbox off:
