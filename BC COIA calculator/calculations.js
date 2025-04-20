@@ -379,16 +379,13 @@ function calculateFinalPeriodDamageInterest(damages, endDate, interestType, juri
         const normalizedDamageDate = normalizeDate(damageDate);
         const normalizedEndDate = normalizeDate(endDate);
         
-        // Special case for damages on the first day of the final period
-        const isFirstDayOfFinalPeriod = formatDateForDisplay(damageDate) === formatDateForDisplay(damages[0].dateObj);
-        
-        // Check if damage date is on or after segment start and before end date
-        // OR if it's the first day of the final period (special case)
-        if ((normalizedDamageDate < normalizedEndDate) || isFirstDayOfFinalPeriod) {
+        // Since we include the first day and exclude the last day, we must ensure
+        // all damages in the final segment are processed, including those on the first day
+        // of the segment
+        if (normalizedDamageDate < normalizedEndDate) {
             const daysInFinalPeriodForDamage = daysBetween(damageDate, endDate);
             
-            // Ensure we calculate interest even for one-day periods
-            // Remove the daysInFinalPeriodForDamage > 0 condition
+            // Process all damages with positive amounts, regardless of day count
             if (damage.amount > 0) {
                 const interestForDamage = (damage.amount * (finalPeriodRate / 100) * daysInFinalPeriodForDamage) / finalYearDays;
                 
