@@ -1,4 +1,4 @@
-import { daysBetween, daysInYear, formatDateForDisplay, parseDateInput, normalizeDate, dateOnOrAfter, dateOnOrBefore } from './utils.date.js';
+import { daysBetween, daysInYear, formatDateForDisplay, parseDateInput, normalizeDate, dateOnOrAfter, dateOnOrBefore, datesEqual } from './utils.date.js';
 
 /**
  * Finds the applicable interest rate for a specific date and type within a jurisdiction.
@@ -114,19 +114,34 @@ function getApplicableRatePeriods(startDate, endDate, interestType, jurisdiction
     while (normalizeDate(currentDate) <= normalizeDate(endDate)) { 
         // Find the rate period applicable to the current date
         const currentTime = currentDate.getTime();
-        const ratePeriod = jurisdictionRates.find(rate =>
+        const ratePeriodIndex = jurisdictionRates.findIndex(rate =>
             // Note: We're still using <= for end date because the rate periods in the data are inclusive
             currentTime >= rate.start.getTime() && currentTime <= rate.end.getTime()
         );
         
-        if (!ratePeriod) {
+        if (ratePeriodIndex === -1) {
             // Skip to the next day if no rate period is found
             currentDate.setUTCDate(currentDate.getUTCDate() + 1);
             continue;
         }
         
+        const ratePeriod = jurisdictionRates[ratePeriodIndex];
+        
+        // Find the next rate period if it exists
+        const nextRatePeriod = ratePeriodIndex < jurisdictionRates.length - 1 ? 
+                              jurisdictionRates[ratePeriodIndex + 1] : null;
+        
         // Determine the end date for this segment
-        const segmentEndDate = ratePeriod.end < endDate ? new Date(ratePeriod.end) : new Date(endDate);
+        let segmentEndDate;
+        
+        if (nextRatePeriod && nextRatePeriod.start <= endDate) {
+            // If there's a next rate period and it starts before or on the end date,
+            // use the next rate period's start date as the end date for this segment
+            segmentEndDate = new Date(nextRatePeriod.start);
+        } else {
+            // Otherwise use the end date of the calculation
+            segmentEndDate = new Date(endDate);
+        }
         
         const rate = ratePeriod[interestType];
         const newSegment = {
@@ -137,9 +152,14 @@ function getApplicableRatePeriods(startDate, endDate, interestType, jurisdiction
         };
         segments.push(newSegment);
         
-        // Move to the day after the segment ends
-        currentDate = new Date(segmentEndDate);
-        currentDate.setUTCDate(currentDate.getUTCDate() + 1);
+        // If we're at the final segment that ends on the endDate, exit the loop
+        if (segmentEndDate.getTime() === endDate.getTime()) {
+            break; // We've reached the end date, so exit the loop
+        } else {
+            // For the next iteration, start at the next rate period's start date
+            // which is the same as the current segment's end date
+            currentDate = new Date(segmentEndDate);
+        }
     }
     
     return segments;
