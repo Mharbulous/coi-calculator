@@ -33,8 +33,25 @@ export function updateSummaryTable(store, recalculateCallback) {
         { item: 'Special Damages', dateValue: '', amount: specialDamagesTotal, isDisplayOnly: true },
         { item: 'Non-pecuniary Damages', dateValue: '', amount: inputs.nonPecuniaryAwarded, isEditable: true },
         { item: 'Costs & Disbursements', dateValue: '', amount: inputs.costsAwarded, isEditable: true },
-        { item: 'Prejudgment Interest', dateValue: inputs.prejudgmentStartDate, amount: prejudgmentResult.total, isDateEditable: true },
     ];
+    
+    // Only include prejudgment interest row if showPrejudgment is true
+    if (inputs.showPrejudgment) {
+        items.push({
+            item: 'Prejudgment Interest',
+            dateValue: inputs.prejudgmentStartDate,
+            amount: prejudgmentResult.total,
+            isDateEditable: true
+        });
+    } else {
+        // If showPrejudgment is false, still include the row but without the date field
+        items.push({
+            item: 'Prejudgment Interest',
+            dateValue: null, // No date value
+            amount: 0, // Zero amount when prejudgment interest is not calculated
+            isDisplayOnly: true // Use display-only template instead of date-editable
+        });
+    }
     
     // Only include postjudgment interest row if showPostjudgment is true
     if (inputs.showPostjudgment) {
@@ -109,7 +126,16 @@ export function updateSummaryTable(store, recalculateCallback) {
         if (itemTextSpan) {
             itemTextSpan.textContent = item.item;
         }
-        if (helpTexts[item.item] && helpIconSpan && tooltipSpan) {
+        
+        // Special case for Prejudgment Interest when showPrejudgment is false
+        if (item.item === 'Prejudgment Interest' && !inputs.showPrejudgment) {
+            // Hide help icon for prejudgment interest when checkbox is unchecked
+            if (helpIconSpan) {
+                helpIconSpan.style.display = 'none';
+            }
+        } 
+        // Normal help text handling for other cases
+        else if (helpTexts[item.item] && helpIconSpan && tooltipSpan) {
             helpIconSpan.style.display = ''; // Make sure it's visible
             helpIconSpan.setAttribute('aria-label', `Help for ${item.item}`);
             tooltipSpan.textContent = helpTexts[item.item];

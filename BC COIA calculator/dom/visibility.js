@@ -4,6 +4,7 @@ import useStore from '../store.js';
 /**
  * Toggles the visibility of the prejudgment section based on the checkbox state.
  * Hides both the table part and the section title when unchecked.
+ * Also hides the prejudgment interest date field in the summary table when unchecked.
  * @param {boolean} isInitializing - Flag to indicate if this is during initial page load.
  * @param {function|null} recalculateCallback - Function to call after toggling (usually recalculate).
  */
@@ -25,9 +26,81 @@ export function togglePrejudgmentVisibility(isInitializing = false, recalculateC
         prejudgmentTitle.style.display = isChecked ? '' : 'none';
     }
     
+    // Find and toggle visibility of prejudgment date field in summary table
+    if (elements.summaryTableBody) {
+        // First attempt: Directly access the prejudgmentInterestDateInput element if available
+        if (elements.prejudgmentInterestDateInput) {
+            // Find the parent date-cell-container
+            let dateCellContainer = elements.prejudgmentInterestDateInput.closest('.date-cell-container');
+            if (dateCellContainer) {
+                // Toggle visibility of the entire date cell container
+                dateCellContainer.style.display = isChecked ? '' : 'none';
+            } else {
+                // If container not found, just hide the input itself
+                elements.prejudgmentInterestDateInput.style.display = isChecked ? '' : 'none';
+            }
+        } else {
+            // Fallback approach: Search for the row in the table
+            const prejudgmentRow = Array.from(elements.summaryTableBody.querySelectorAll('tr')).find(row => {
+                const itemTextEl = row.querySelector('[data-display="itemText"]');
+                return itemTextEl && itemTextEl.textContent === 'Prejudgment Interest';
+            });
+            
+            if (prejudgmentRow) {
+                // Find and hide the date cell container
+                const dateCellContainer = prejudgmentRow.querySelector('.date-cell-container');
+                if (dateCellContainer) {
+                    // Toggle visibility of the date cell container
+                    dateCellContainer.style.display = isChecked ? '' : 'none';
+                }
+                
+                // Also try to find any elements with dateLabel, helpIcon, or dateInput
+                const helpIcon = prejudgmentRow.querySelector('[data-display="helpIcon"]');
+                const dateLabel = prejudgmentRow.querySelector('[data-display="dateLabel"]');
+                const dateInput = prejudgmentRow.querySelector('[data-input="dateValue"]');
+                
+                if (helpIcon) helpIcon.style.display = isChecked ? '' : 'none';
+                if (dateLabel) dateLabel.style.display = isChecked ? '' : 'none';
+                if (dateInput) dateInput.style.display = isChecked ? '' : 'none';
+            }
+        }
+    }
+    
+    // Save the current prejudgment date value before updating the store
+    // This ensures we don't lose the date when toggling visibility
+    const currentState = useStore.getState();
+    const prejudgmentStartDate = currentState.inputs.prejudgmentStartDate;
+    
     // Update the Zustand store (unless we're initializing)
     if (!isInitializing) {
         useStore.getState().setInput('showPrejudgment', isChecked);
+        
+        // If we're turning the checkbox back on and we have a saved date, make sure it's still in the store
+        if (isChecked && prejudgmentStartDate) {
+            useStore.getState().setInput('prejudgmentStartDate', prejudgmentStartDate);
+        }
+        
+        // If we're turning the checkbox off, clear any validation error that might be related to prejudgment date
+        if (!isChecked) {
+            // Check if all other required dates are valid
+            const inputs = useStore.getState().inputs;
+            const otherDatesValid = 
+                inputs.dateOfJudgment && 
+                inputs.nonPecuniaryJudgmentDate && 
+                inputs.costsAwardedDate && 
+                (inputs.showPostjudgment ? inputs.postjudgmentEndDate : true);
+                
+            // If all other dates are valid, clear the validation error
+            if (otherDatesValid) {
+                useStore.getState().setResult('validationError', false);
+                useStore.getState().setResult('validationMessage', '');
+            }
+            
+            // Reset the prejudgment date input background color to normal if it exists
+            if (elements.prejudgmentInterestDateInput) {
+                elements.prejudgmentInterestDateInput.style.backgroundColor = '#e0f2f7'; // NORMAL_BACKGROUND_COLOR
+            }
+        }
     }
 
     // Trigger recalculation unless it's the initial setup phase
