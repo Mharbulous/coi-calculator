@@ -1,4 +1,4 @@
-import { parseDateInput, formatDateForDisplay } from '../utils.date.js';
+import { parseDateInput, formatDateForDisplay, normalizeDate } from '../utils.date.js';
 import { formatCurrencyForDisplay } from '../utils.currency.js';
 import elements from './elements.js';
 import { insertSpecialDamagesRowFromData } from './specialDamages.js';
@@ -84,9 +84,24 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
                 const currentRow = this.closest('tr');
                 if (!currentRow) return;
                 
-                // Create a new special damages row
+                // Create a new special damages row with date +1 day from the current row date
                 import('./specialDamages.js').then(module => {
-                    module.insertSpecialDamagesRow(tableBody, currentRow, item.start);
+                    // Parse the current row date
+                    const currentDate = parseDateInput(item.start);
+                    if (currentDate) {
+                        // Add one day to the date
+                        const nextDate = new Date(normalizeDate(currentDate));
+                        nextDate.setUTCDate(nextDate.getUTCDate() + 1);
+                        
+                        // Format it back to YYYY-MM-DD
+                        const nextDateFormatted = formatDateForDisplay(nextDate);
+                        
+                        // Use this new date for the special damages row
+                        module.insertSpecialDamagesRow(tableBody, currentRow, nextDateFormatted);
+                    } else {
+                        // Fallback to current date if parsing fails
+                        module.insertSpecialDamagesRow(tableBody, currentRow, item.start);
+                    }
                 });
             });
             
