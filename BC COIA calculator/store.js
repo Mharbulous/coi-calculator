@@ -1,3 +1,4 @@
+
 // For Jest tests, we need to use the vanilla version to avoid React dependency
 // In the browser, this will use the main zustand package via the import map
 import { createStore } from 'zustand/vanilla';
@@ -205,10 +206,6 @@ const store = createStore((set) => ({
      * Used when toggling the prejudgment checkbox off
      */
     savePrejudgmentState: () => set((state) => {
-        console.log("Saved prejudgment state:", {
-            prejudgmentStartDate: state.inputs.prejudgmentStartDate,
-            hasSpecialDamages: state.results.specialDamages.length > 0
-        });
         return {
             savedPrejudgmentState: {
                 prejudgmentStartDate: state.inputs.prejudgmentStartDate, // Save the prejudgment date
@@ -225,10 +222,6 @@ const store = createStore((set) => ({
      * Used when toggling the prejudgment checkbox on
      */
     restorePrejudgmentState: () => set((state) => {
-        console.log("Restored prejudgment state:", {
-            prejudgmentStartDate: state.savedPrejudgmentState?.prejudgmentStartDate,
-            hasSpecialDamages: state.savedPrejudgmentState?.specialDamages?.length > 0
-        });
         // Check if we have any saved state
         if (state.savedPrejudgmentState) {
             // First, prepare to update inputs

@@ -12,7 +12,6 @@ import { initializeDatePickers } from './datepickers.js';
  */
 export function togglePrejudgmentVisibility(isInitializing = false, recalculateCallback) {
     if (!elements.showPrejudgmentCheckbox || !elements.prejudgmentSection) {
-        console.error("Required elements for toggling prejudgment visibility not found.");
         return;
     }
     
@@ -82,7 +81,6 @@ export function togglePrejudgmentVisibility(isInitializing = false, recalculateC
             // If we're turning the checkbox back on:
             
             // 1. Restore the saved prejudgment calculation state (if any)
-            console.log("Restoring saved prejudgment calculation state");
             useStore.getState().restorePrejudgmentState();
             
             // 2. Update the DOM with the restored date value
@@ -91,7 +89,6 @@ export function togglePrejudgmentVisibility(isInitializing = false, recalculateC
                 // Format the date for display in the input field
                 const formattedDate = formatDateForInput(restoredState.inputs.prejudgmentStartDate);
                 elements.prejudgmentInterestDateInput.value = formattedDate;
-                console.log("Restored prejudgment date to DOM:", formattedDate);
                 
                 // Important: We need to manually trigger a change event on the input
                 // This ensures that any validation or event handlers recognize the new value
@@ -105,12 +102,10 @@ export function togglePrejudgmentVisibility(isInitializing = false, recalculateC
             // If we're turning the checkbox off:
             
             // 1. Save the current prejudgment calculation state
-            console.log("Saving current prejudgment calculation state");
             useStore.getState().savePrejudgmentState();
             
             // 2. Save the current calculated value as the user-entered value
             if (calculatedPrejudgmentInterest > 0) {
-                console.log("Saving calculated prejudgment interest as user-entered value:", calculatedPrejudgmentInterest);
                 useStore.getState().setInput('userEnteredPrejudgmentInterest', calculatedPrejudgmentInterest);
             }
         }
@@ -164,7 +159,6 @@ export function togglePrejudgmentVisibility(isInitializing = false, recalculateC
  */
 export function togglePostjudgmentVisibility(isInitializing = false, recalculateCallback) {
     if (!elements.showPostjudgmentCheckbox || !elements.postjudgmentSection) {
-        console.error("Required elements for toggling postjudgment visibility not found.");
         return;
     }
     
@@ -242,7 +236,6 @@ export function togglePostjudgmentVisibility(isInitializing = false, recalculate
  */
 export function togglePerDiemVisibility(isInitializing = false, recalculateCallback) {
     if (!elements.showPerDiemCheckbox) {
-        console.error("Required elements for toggling per diem visibility not found.");
         return;
     }
     

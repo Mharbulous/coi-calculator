@@ -53,7 +53,6 @@ function updatePostjudgmentTable(postjudgmentResult) {
 function setupEventListeners() {
     // Listen for the special-damages-updated custom event
     document.addEventListener('special-damages-updated', () => {
-        console.log('Special damages updated, recalculating...');
         recalculate();
     });
     // Check if elements exist before adding listeners
@@ -81,7 +80,6 @@ function setupEventListeners() {
     // Jurisdiction select
     elements.jurisdictionSelect.addEventListener('change', () => {
         const newJurisdiction = elements.jurisdictionSelect.value;
-        console.log(`Jurisdiction changed to ${newJurisdiction}. Recalculating...`);
         
         // Update the Zustand store
         useStore.getState().setInput('jurisdiction', newJurisdiction);
@@ -133,7 +131,6 @@ function initializeCalculator() {
          return; // Stop initialization
      }
 
-    console.log("Initializing Calculator...");
     setDefaultInputValues();
     setupEventListeners();
     togglePrejudgmentVisibility(true, null);
@@ -201,7 +198,6 @@ function initializeCalculator() {
     // --- End initial population ---
 
     recalculate(); // Perform initial calculation based on default state
-    console.log("Calculator Initialized.");
 }
 
 // --- Entry Point ---

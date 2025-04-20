@@ -40,13 +40,7 @@ export function initializeDatePickers(recalculateCallback) {
     const showPrejudgment = useStore.getState().inputs.showPrejudgment;
     const showPostjudgment = useStore.getState().inputs.showPostjudgment;
     
-    // Debug logging for lifecycle events
-    console.log("Datepickers initialized. Visibility:", {
-        showPrejudgment: useStore.getState().inputs.showPrejudgment,
-        showPostjudgment: useStore.getState().inputs.showPostjudgment,
-        prejudgmentPickerCreated: !!prejudgmentDatePicker,
-        postjudgmentPickerCreated: !!postjudgmentDatePicker
-    });
+    // Datepickers are now initialized with visibility awareness
     
     // Reset background colors to default
     if (elements.judgmentDateInput) {
@@ -191,7 +185,6 @@ function onPrejudgmentDateChange(selectedDates, recalculateCallback) {
         // New prejudgment date is after judgment date, reject it by clearing the picker
         // and not updating the store
         prejudgmentDatePicker.clear();
-        console.log("Prejudgment date cannot be later than Judgment date");
         
         // Update background color to indicate error
         if (elements.prejudgmentInterestDateInput) {
@@ -230,7 +223,6 @@ function onPostjudgmentDateChange(selectedDates, recalculateCallback) {
         // New postjudgment date is before judgment date, reject it by clearing the picker
         // and not updating the store
         postjudgmentDatePicker.clear();
-        console.log("Postjudgment date cannot be earlier than Judgment date");
         
         // Update background color to indicate error
         if (elements.postjudgmentInterestDateInput) {
@@ -245,7 +237,6 @@ function onPostjudgmentDateChange(selectedDates, recalculateCallback) {
     if (newDate && newDate > maxDate) {
         // New postjudgment date is after max date, reject it
         postjudgmentDatePicker.clear();
-        console.log("Postjudgment date cannot be later than June 30, 2025");
         
         // Update background color to indicate error
         if (elements.postjudgmentInterestDateInput) {

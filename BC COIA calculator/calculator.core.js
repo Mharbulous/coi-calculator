@@ -39,7 +39,6 @@ function collectSpecialDamages() {
         currentState.savedPrejudgmentState.specialDamages && 
         currentState.savedPrejudgmentState.specialDamages.length > 0) {
         
-        console.log("Using saved special damages from store:", currentState.savedPrejudgmentState.specialDamages);
         return currentState.savedPrejudgmentState.specialDamages;
     }
     
@@ -82,7 +81,7 @@ function collectSpecialDamages() {
  * @param {string} message - The error message to log
  */
 function logValidationError(message) {
-    console.warn("Validation error:", message);
+    // Validation errors are now silently handled
 }
 
 /**
@@ -91,8 +90,6 @@ function logValidationError(message) {
  * @param {string} validationMessage - The validation message to display.
  */
 function handleInvalidInputs(inputs, validationMessage) {
-    console.warn("Recalculation skipped due to invalid inputs:", validationMessage);
-    
     // Log the validation error
     logValidationError(validationMessage || "Please check the input values.");
     
@@ -143,8 +140,6 @@ function handleInvalidInputs(inputs, validationMessage) {
  */
 function handleMissingRates(inputs, jurisdiction) {
     const message = `Interest rates are not available for the selected jurisdiction: ${jurisdiction}.`;
-    console.error(message);
-    
     // Log the validation error
     logValidationError(message);
     
@@ -193,7 +188,6 @@ function calculatePrejudgmentInterest(inputs, specialDamagesTotal, interestRates
         if (hasSavedState && 
             currentState.savedPrejudgmentState.prejudgmentResult.principal === inputs.judgmentAwarded) {
             
-            console.log("Using saved prejudgment calculation state");
             return { ...currentState.savedPrejudgmentState.prejudgmentResult };
         }
         
@@ -223,12 +217,10 @@ function calculatePrejudgmentInterest(inputs, specialDamagesTotal, interestRates
                 interestRatesData
             );
         } else {
-            console.warn("Prejudgment calculation skipped: Invalid date range (start date vs judgment date) or zero pecuniary judgment amount.");
             // Ensure structure is maintained even if skipped
             prejudgmentResult = { details: [], total: 0, principal: inputs.judgmentAwarded, finalPeriodDamageInterestDetails: [] };
         }
     } else {
-        console.log("Prejudgment calculation skipped: Checkbox unchecked.");
         
         // When checkbox is unchecked, check if we have saved state
         const currentState = useStore.getState();
@@ -272,16 +264,13 @@ function calculateJudgmentTotal(inputs, prejudgmentResult, specialDamagesTotal) 
     if (inputs.showPrejudgment) {
         // When checkbox is checked, use the calculated amount
         prejudgmentInterestAmount = prejudgmentResult.total;
-        console.log("Using calculated prejudgment interest:", prejudgmentInterestAmount);
     } else {
         // When checkbox is unchecked, use the user-entered amount
         prejudgmentInterestAmount = inputs.userEnteredPrejudgmentInterest || 0;
-        console.log("Using user-entered prejudgment interest:", prejudgmentInterestAmount);
     }
     
     // This total includes the original awards, prejudgment interest (calculated or user-entered), AND special damages total
     const total = inputs.judgmentAwarded + prejudgmentInterestAmount + inputs.nonPecuniaryAwarded + inputs.costsAwarded + specialDamagesTotal;
-    console.log("Judgment total calculated:", total);
     return total;
 }
 
@@ -329,7 +318,6 @@ function calculatePostjudgmentInterest(inputs, judgmentTotal, interestRatesData)
                  postjudgmentResult = { details: [], total: 0 }; // Ensure structure if principal is 0
             }
         } else {
-             console.warn("Postjudgment calculation skipped: Postjudgment End Date is before the latest judgment date or invalid.");
              postjudgmentResult = { details: [], total: 0 }; // Ensure structure if skipped
              // If range is invalid, use latestJudgmentDate as the final date for summary display
              finalCalculationDate = latestJudgmentDate;
@@ -364,11 +352,6 @@ function calculateFinalTotals(judgmentTotal, postjudgmentResult, finalCalculatio
     // Calculate final total and per diem
     const totalOwing = judgmentTotal + postjudgmentResult.total;
     
-    // Log the components of the total for debugging
-    console.log("Final total calculation:");
-    console.log("  Judgment total:", judgmentTotal);
-    console.log("  Postjudgment interest:", postjudgmentResult.total);
-    console.log("  Total owing:", totalOwing);
     
     // Create a state object for calculations.js functions with updated totalOwing
     const stateForCalc = {
@@ -406,8 +389,7 @@ function recalculate() {
             
         // If all required visible dates are valid, proceed anyway
         if (otherDatesValid) {
-            // Continue with calculation
-            console.log("Proceeding with calculation despite validation issues (hidden elements)");
+            // Continue with calculation despite validation issues (hidden elements)
             
             // Clear any validation error in the store
             useStore.getState().setResult('validationError', false);
