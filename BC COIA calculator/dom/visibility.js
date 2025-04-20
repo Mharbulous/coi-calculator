@@ -1,6 +1,7 @@
 import elements from './elements.js';
 import useStore from '../store.js';
 import { formatDateForInput } from '../utils.date.js';
+import { initializeDatePickers } from './datepickers.js';
 
 /**
  * Toggles the visibility of the prejudgment section based on the checkbox state.
@@ -137,7 +138,19 @@ export function togglePrejudgmentVisibility(isInitializing = false, recalculateC
         }
     }
 
-    // Trigger recalculation unless it's the initial setup phase
+    // Reinitialize datepickers to ensure they're properly created/destroyed based on visibility
+    if (!isInitializing) {
+        // Small delay to ensure DOM is updated before reinitializing datepickers
+        setTimeout(() => {
+            initializeDatePickers(recalculateCallback);
+        }, 0);
+    } else {
+        // During initialization, we don't need a delay
+        initializeDatePickers(recalculateCallback);
+    }
+    
+    // If not initializing and we have a callback, trigger recalculation
+    // This is handled separately from datepicker initialization
     if (!isInitializing && typeof recalculateCallback === 'function') {
         recalculateCallback();
     }
@@ -204,7 +217,19 @@ export function togglePostjudgmentVisibility(isInitializing = false, recalculate
         }
     }
 
-    // Trigger recalculation unless it's the initial setup phase
+    // Reinitialize datepickers to ensure they're properly created/destroyed based on visibility
+    if (!isInitializing) {
+        // Small delay to ensure DOM is updated before reinitializing datepickers
+        setTimeout(() => {
+            initializeDatePickers(recalculateCallback);
+        }, 0);
+    } else {
+        // During initialization, we don't need a delay
+        initializeDatePickers(recalculateCallback);
+    }
+    
+    // If not initializing and we have a callback, trigger recalculation
+    // This is handled separately from datepicker initialization
     if (!isInitializing && typeof recalculateCallback === 'function') {
         recalculateCallback();
     }

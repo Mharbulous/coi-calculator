@@ -124,14 +124,18 @@ function onJudgmentDateChange(selectedDates, recalculateCallback) {
     // Update the Zustand store with the new judgment date
     useStore.getState().setInput('dateOfJudgment', newDate);
     
+    // Get visibility state from store
+    const showPrejudgment = useStore.getState().inputs.showPrejudgment;
+    const showPostjudgment = useStore.getState().inputs.showPostjudgment;
+    
     // Get current values from other pickers
-    const prejudgmentDate = prejudgmentDatePicker && prejudgmentDatePicker.selectedDates.length > 0 ? 
+    const prejudgmentDate = prejudgmentDatePicker && prejudgmentDatePicker.selectedDates?.length > 0 ? 
         prejudgmentDatePicker.selectedDates[0] : null;
-    const postjudgmentDate = postjudgmentDatePicker && postjudgmentDatePicker.selectedDates.length > 0 ? 
+    const postjudgmentDate = postjudgmentDatePicker && postjudgmentDatePicker.selectedDates?.length > 0 ? 
         postjudgmentDatePicker.selectedDates[0] : null;
     
     // Check constraints and clear dependent fields if needed
-    if (newDate && prejudgmentDate && prejudgmentDate > newDate) {
+    if (newDate && prejudgmentDate && prejudgmentDate > newDate && showPrejudgment && prejudgmentDatePicker) {
         // Prejudgment date violates constraint, clear it
         prejudgmentDatePicker.clear();
         useStore.getState().setInput('prejudgmentStartDate', null);
@@ -142,7 +146,7 @@ function onJudgmentDateChange(selectedDates, recalculateCallback) {
         }
     }
     
-    if (newDate && postjudgmentDate && postjudgmentDate < newDate) {
+    if (newDate && postjudgmentDate && postjudgmentDate < newDate && showPostjudgment && postjudgmentDatePicker) {
         // Postjudgment date violates constraint, clear it
         postjudgmentDatePicker.clear();
         useStore.getState().setInput('postjudgmentEndDate', null);
@@ -171,7 +175,7 @@ function onPrejudgmentDateChange(selectedDates, recalculateCallback) {
     const newDate = selectedDates.length > 0 ? selectedDates[0] : null;
     
     // Get current judgment date
-    const judgmentDate = judgmentDatePicker && judgmentDatePicker.selectedDates.length > 0 ? 
+    const judgmentDate = judgmentDatePicker && judgmentDatePicker.selectedDates?.length > 0 ? 
         judgmentDatePicker.selectedDates[0] : null;
     
     // Check constraints - if the new date is after judgment date, reject it
@@ -210,7 +214,7 @@ function onPostjudgmentDateChange(selectedDates, recalculateCallback) {
     const newDate = selectedDates.length > 0 ? selectedDates[0] : null;
     
     // Get current judgment date
-    const judgmentDate = judgmentDatePicker && judgmentDatePicker.selectedDates.length > 0 ? 
+    const judgmentDate = judgmentDatePicker && judgmentDatePicker.selectedDates?.length > 0 ? 
         judgmentDatePicker.selectedDates[0] : null;
     
     // Check constraints - if the new date is before judgment date, reject it
@@ -266,7 +270,7 @@ function updatePrejudgmentPostjudgmentConstraints() {
     const showPostjudgment = useStore.getState().inputs.showPostjudgment;
     
     // Get current judgment date
-    const judgmentDate = judgmentDatePicker && judgmentDatePicker.selectedDates.length > 0 ? 
+    const judgmentDate = judgmentDatePicker && judgmentDatePicker.selectedDates?.length > 0 ? 
         judgmentDatePicker.selectedDates[0] : null;
     
     // Update Judgment Date background color based on validation status
@@ -283,7 +287,7 @@ function updatePrejudgmentPostjudgmentConstraints() {
     if (showPrejudgment && prejudgmentDatePicker) {
         try {
             // Get current prejudgment date
-            const prejudgmentDate = prejudgmentDatePicker.selectedDates.length > 0 ? 
+            const prejudgmentDate = prejudgmentDatePicker.selectedDates?.length > 0 ? 
                 prejudgmentDatePicker.selectedDates[0] : null;
                 
             // Set maxDate to judgment date if it exists
@@ -312,7 +316,7 @@ function updatePrejudgmentPostjudgmentConstraints() {
     if (showPostjudgment && postjudgmentDatePicker) {
         try {
             // Get current postjudgment date
-            const postjudgmentDate = postjudgmentDatePicker.selectedDates.length > 0 ? 
+            const postjudgmentDate = postjudgmentDatePicker.selectedDates?.length > 0 ? 
                 postjudgmentDatePicker.selectedDates[0] : null;
                 
             // Set minDate to judgment date if it exists
