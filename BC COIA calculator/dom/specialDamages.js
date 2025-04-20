@@ -140,8 +140,23 @@ export function insertSpecialDamagesRowFromData(tableBody, index, rowData, final
         const damageDate = parseDateInput(rowData.date);
         const damageAmount = parseCurrency(rowData.amount);
         
+        console.log(`[DOM DEBUG] Processing damage row: ${rowData.description} on ${rowData.date}, amount=${damageAmount}`);
+        console.log(`[DOM DEBUG] Final period start date: ${formatDateForDisplay(finalPeriodStartDate)}`);
+        console.log(`[DOM DEBUG] Available calculated details: ${mutableFinalPeriodDetails.length}`);
+        
+        // Dump all available detail objects to console for inspection
+        mutableFinalPeriodDetails.forEach((detail, idx) => {
+            console.log(`[DOM DEBUG] Detail #${idx}: date=${formatDateForDisplay(detail.damageDate)}, desc=${detail.description}, principal=${detail.principal}`);
+        });
+        
         // Check if this damage falls within the final period
         if (damageDate && finalPeriodStartDate && damageDate >= finalPeriodStartDate) {
+            console.log(`[DOM DEBUG] Damage is in final period`);
+            
+            // First determine if this is a damage on the first day of the final period
+            const isFirstDayOfFinalPeriod = formatDateForDisplay(damageDate) === formatDateForDisplay(finalPeriodStartDate);
+            console.log(`[DOM DEBUG] Is damage on first day of final period: ${isFirstDayOfFinalPeriod}`);
+            
             // Find the matching calculated interest detail
             // Use a more flexible matching approach to handle potential precision issues and timezone differences
             const detailIndex = mutableFinalPeriodDetails.findIndex(detail => {
@@ -155,11 +170,21 @@ export function insertSpecialDamagesRowFromData(tableBody, index, rowData, final
                 const epsilon = 0.001; // Allow for tiny differences due to floating point precision
                 const principalsMatch = Math.abs(detail.principal - damageAmount) < epsilon;
                 
-                return datesMatch && principalsMatch;
+                // Check if this is a first day special damage
+                const isFirstDayMatch = isFirstDayOfFinalPeriod && detail.isFirstDayOfSegment;
+                
+                console.log(`[DOM DEBUG] Comparing with detail: date=${formattedDetailDate}, amount=${detail.principal}, isFirstDayOfSegment=${detail.isFirstDayOfSegment}`);
+                console.log(`[DOM DEBUG] Comparison results: datesMatch=${datesMatch}, principalsMatch=${principalsMatch}, isFirstDayMatch=${isFirstDayMatch}`);
+                
+                // Match if dates and principals match OR this is a first day special damage
+                return (datesMatch && principalsMatch) || isFirstDayMatch;
             });
+            
+            console.log(`[DOM DEBUG] Detail index found: ${detailIndex}`);
             
             if (detailIndex > -1) {
                 calculatedDetail = mutableFinalPeriodDetails[detailIndex];
+                console.log(`[DOM DEBUG] Found matching detail: ${calculatedDetail.description}, interest=${calculatedDetail.interest}`);
                 
                 // Create a container for the interest calculation details (days count with @ symbol)
                 const detailsContainer = document.createElement('div');
