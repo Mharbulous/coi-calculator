@@ -31,6 +31,9 @@ function endOfDayUTC(date) {
 // Track when the rates were last updated
 const lastUpdated = parseUTCDate("2025-04-19");
 
+// Track until when the rates are valid
+const validUntil = parseUTCDate("2025-06-30");
+
 const rates = {
     BC: [
         { start: "1993-01-01", prejudgment: 5.25, postjudgment: 7.25 },
@@ -138,15 +141,15 @@ for (const jurisdiction in rates) {
                 end: endOfDayUTC(endDate) // Ensure end date includes the whole day
             };
         } 
-        // For the last rate period, use lastUpdated as the end date
+        // For the last rate period, use validUntil as the end date
         else {
             return {
                 ...rate,
-                end: endOfDayUTC(lastUpdated) // Ensure end date includes the whole day
+                end: endOfDayUTC(validUntil) // Ensure end date includes the whole day
             };
         }
     });
 }
 
-// Export the processed rates and lastUpdated date
-export { processedRates as default, lastUpdated };
+// Export the processed rates, lastUpdated date, and validUntil date
+export { processedRates as default, lastUpdated, validUntil };
