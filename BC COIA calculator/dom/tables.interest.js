@@ -152,8 +152,8 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
                     }
                 }
 
-                // If we have a valid date for the current row and the new row's date is earlier
-                if (currentRowDate && newRowDate < currentRowDate) {
+                // If we have a valid date for the current row and the new row's date is earlier or equal
+                if (currentRowDate && newRowDate <= currentRowDate) {
                     // Insert user row before currentRow with interest calculation details included
                     const insertedUserRow = insertSpecialDamagesRowFromData(tableBody, i, rowData, finalPeriodStartDate, mutableFinalPeriodDetails);
                     
