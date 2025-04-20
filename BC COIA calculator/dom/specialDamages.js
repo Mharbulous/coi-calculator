@@ -186,10 +186,17 @@ export function insertSpecialDamagesRowFromData(tableBody, index, rowData, final
                 calculatedDetail = mutableFinalPeriodDetails[detailIndex];
                 console.log(`[DOM DEBUG] Found matching detail: ${calculatedDetail.description}, interest=${calculatedDetail.interest}`);
                 
-                // Create a container for the interest calculation details (days count with @ symbol)
+                // Create a container for the interest calculation details 
+                // Extract just the days count from the description, simplifying the format
                 const detailsContainer = document.createElement('div');
                 detailsContainer.className = 'interest-calculation-details';
-                detailsContainer.innerHTML = `<span class="days-count">${calculatedDetail.description} @</span>`;
+                
+                // Extract just the days count from the description string
+                // The description has format like "test 3 (109 days)", we want just "109 days"
+                const daysMatch = calculatedDetail.description.match(/\((\d+) days\)/);
+                const daysText = daysMatch ? `${daysMatch[1]} days` : calculatedDetail.description;
+                
+                detailsContainer.innerHTML = `<span class="days-count">${daysText}</span>`;
                 
                 // Add the details container to the description cell
                 descCell.appendChild(detailsContainer);
