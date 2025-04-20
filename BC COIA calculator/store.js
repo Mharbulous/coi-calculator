@@ -190,23 +190,43 @@ const store = createStore((set) => ({
 
     /**
      * Resets the store to its initial state
+     * @param {boolean} useDefaults - Whether to use default values for dates (true) or null values (false)
      */
-    resetStore: () => {
-        // Calculate current dates for defaults
-        const today = normalizeDate(new Date());
+    resetStore: (useDefaults = false) => {
+        let inputDateValues = {
+            prejudgmentStartDate: null,
+            postjudgmentEndDate: null,
+            dateOfJudgment: null,
+            nonPecuniaryJudgmentDate: null,
+            costsAwardedDate: null
+        };
         
-        // Calculate dates for defaults
-        const millisecondsPerDay = 24 * 60 * 60 * 1000;
-        const date185DaysBefore = normalizeDate(new Date(today.getTime() - 185 * millisecondsPerDay)); // 185 days before today
-        const dateOneYearAgo = normalizeDate(new Date(today.getTime() - 365 * millisecondsPerDay)); // One year ago
+        let finalCalculationDate = null;
         
-        return set({
-            inputs: {
+        // If useDefaults is true, calculate default dates
+        if (useDefaults) {
+            // Calculate current dates for defaults
+            const today = normalizeDate(new Date());
+            
+            // Calculate dates for defaults
+            const millisecondsPerDay = 24 * 60 * 60 * 1000;
+            const date185DaysBefore = normalizeDate(new Date(today.getTime() - 185 * millisecondsPerDay)); // 185 days before today
+            const dateOneYearAgo = normalizeDate(new Date(today.getTime() - 365 * millisecondsPerDay)); // One year ago
+            
+            inputDateValues = {
                 prejudgmentStartDate: dateOneYearAgo,     // Default to one year ago
                 postjudgmentEndDate: today,               // Default to today
                 dateOfJudgment: date185DaysBefore,        // Default to 185 days before today
                 nonPecuniaryJudgmentDate: date185DaysBefore, // Also set to 185 days before today
-                costsAwardedDate: date185DaysBefore,         // Also set to 185 days before today
+                costsAwardedDate: date185DaysBefore         // Also set to 185 days before today
+            };
+            
+            finalCalculationDate = today; // Set to today
+        }
+        
+        return set({
+            inputs: {
+                ...inputDateValues,
                 judgmentAwarded: 0,
                 nonPecuniaryAwarded: 0,
                 costsAwarded: 0,
@@ -233,7 +253,7 @@ const store = createStore((set) => ({
                 judgmentTotal: 0,
                 totalOwing: 0,
                 perDiem: 0,
-                finalCalculationDate: today // Set to today
+                finalCalculationDate: finalCalculationDate
             }
         });
     },
