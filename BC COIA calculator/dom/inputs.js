@@ -20,8 +20,25 @@ export function getInputValues() {
         return { isValid: false, validationMessage: "Initialization error: Missing static input elements." };
     }
     
-    // Read from dynamic inputs
-    const prejudgmentStartDateStr = elements.prejudgmentInterestDateInput ? elements.prejudgmentInterestDateInput.value : '';
+    // Read from dynamic inputs with fallback logic for both prejudgment and postjudgment dates
+    
+    // For prejudgment date, prioritize DOM if element exists, otherwise use store value
+    let prejudgmentStartDateStr = '';
+    if (elements.prejudgmentInterestDateInput) {
+        // If the input element exists, read its current value
+        prejudgmentStartDateStr = elements.prejudgmentInterestDateInput.value;
+    } else {
+        // Element doesn't exist (likely hidden), get value from store if available
+        const storeStartDate = useStore.getState().inputs.prejudgmentStartDate;
+        if (storeStartDate instanceof Date) {
+            // Format the stored Date object back to YYYY-MM-DD string
+            prejudgmentStartDateStr = formatDateForInput(storeStartDate); 
+        } else if (typeof storeStartDate === 'string' && storeStartDate !== '') {
+             // If it's already a valid string in the store (less likely but possible)
+             prejudgmentStartDateStr = storeStartDate;
+        }
+        // If it's null or invalid in the store, prejudgmentStartDateStr remains ''
+    }
 
     // For postjudgment date, prioritize DOM if element exists, otherwise use store value
     let postjudgmentEndDateStr = '';

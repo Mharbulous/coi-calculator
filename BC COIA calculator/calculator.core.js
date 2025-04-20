@@ -250,6 +250,9 @@ function calculatePrejudgmentInterest(inputs, specialDamagesTotal, interestRates
             // Even if skipped, the principal used for the total row includes special damages
             prejudgmentResult.principal = inputs.judgmentAwarded + specialDamagesTotal;
         }
+        
+        // Don't reset the prejudgment date input value when the checkbox is unchecked
+        // This preserves the user's entered date when toggling the checkbox
     }
     
     return prejudgmentResult;
