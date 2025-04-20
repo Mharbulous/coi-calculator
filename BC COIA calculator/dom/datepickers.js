@@ -287,15 +287,21 @@ function updatePrejudgmentPostjudgmentConstraints() {
     
     // Update Postjudgment Date picker constraints
     if (postjudgmentDatePicker) {
-        // Set minDate to judgment date if it exists
-        if (judgmentDate) {
-            postjudgmentDatePicker.set('minDate', judgmentDate);
-        } else {
-            postjudgmentDatePicker.set('minDate', "1993-01-01");
-        }
+        // Get the current showPostjudgment state from the store
+        const showPostjudgment = useStore.getState().inputs.showPostjudgment;
         
-        // Always set maxDate to June 30, 2025
-        postjudgmentDatePicker.set('maxDate', "2025-06-30");
+        // Only update constraints if the section is visible
+        if (showPostjudgment) {
+            // Set minDate to judgment date if it exists
+            if (judgmentDate) {
+                postjudgmentDatePicker.set('minDate', judgmentDate);
+            } else {
+                postjudgmentDatePicker.set('minDate', "1993-01-01");
+            }
+            
+            // Always set maxDate to June 30, 2025
+            postjudgmentDatePicker.set('maxDate', "2025-06-30");
+        }
         
         // Update background color based on validation status
         if (elements.postjudgmentInterestDateInput) {

@@ -109,10 +109,11 @@ export function validateInputValues(inputs) {
     let isValid = true;
     let validationMessage = "";
 
-    // Check all required dates exist
-    if (!inputs.prejudgmentStartDate || !inputs.dateOfJudgment || 
+    // Check all required dates exist, but only check postjudgmentEndDate if showPostjudgment is true
+    if (!inputs.dateOfJudgment || 
         !inputs.nonPecuniaryJudgmentDate || !inputs.costsAwardedDate || 
-        !inputs.postjudgmentEndDate) {
+        (inputs.showPrejudgment && !inputs.prejudgmentStartDate) ||
+        (inputs.showPostjudgment && !inputs.postjudgmentEndDate)) {
         validationMessage = "One or more required dates are missing or invalid.";
         isValid = false;
     } else {

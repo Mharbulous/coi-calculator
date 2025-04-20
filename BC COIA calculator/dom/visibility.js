@@ -89,6 +89,11 @@ export function togglePostjudgmentVisibility(isInitializing = false, recalculate
                 useStore.getState().setResult('validationError', false);
                 useStore.getState().setResult('validationMessage', '');
             }
+            
+            // Reset the postjudgment date input background color to normal if it exists
+            if (elements.postjudgmentInterestDateInput) {
+                elements.postjudgmentInterestDateInput.style.backgroundColor = '#e0f2f7'; // NORMAL_BACKGROUND_COLOR
+            }
         }
     }
 
