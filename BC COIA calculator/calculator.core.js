@@ -107,16 +107,15 @@ function handleInvalidInputs(inputs, validationMessage) {
     const defaultJudgmentDate = inputs.dateOfJudgment || new Date(today.getFullYear() -1, today.getMonth(), today.getDate());
     const defaultPostjudgmentEndDate = inputs.postjudgmentEndDate || today;
     
-    // Check if the validation error is only related to the postjudgment date
-    // and if the postjudgment section is hidden
-    let isPostjudgmentOnlyError = false;
-    if (!inputs.showPostjudgment && 
-        inputs.dateOfJudgment && 
+    // Check if the validation error is only related to hidden elements
+    let isHiddenElementError = false;
+    if (inputs.dateOfJudgment && 
         inputs.nonPecuniaryJudgmentDate && 
         inputs.costsAwardedDate && 
-        (inputs.showPrejudgment ? inputs.prejudgmentStartDate : true)) {
-        // All other required dates are valid, so this must be a postjudgment-only error
-        isPostjudgmentOnlyError = true;
+        (inputs.showPrejudgment ? inputs.prejudgmentStartDate : true) &&
+        (inputs.showPostjudgment ? inputs.postjudgmentEndDate : true)) {
+        // All required visible dates are valid, so this must be an error with hidden elements
+        isHiddenElementError = true;
     }
     
     // Update Zustand store with error state
@@ -129,7 +128,7 @@ function handleInvalidInputs(inputs, validationMessage) {
         totalOwing: baseTotal,
         perDiem: 0,
         finalCalculationDate: defaultPostjudgmentEndDate,
-        validationError: !isPostjudgmentOnlyError, // Only set validation error if it's not a postjudgment-only error when hidden
+        validationError: !isHiddenElementError, // Only set validation error if it's not related to hidden elements
         validationMessage: validationMessage || "One or more required dates are missing or invalid."
     });
     
@@ -391,7 +390,7 @@ function recalculate() {
     // 1. Get and Validate Inputs
     const inputs = getInputValues();
     
-    // Special case: If validation failed but it's only because of a hidden postjudgment date,
+    // Special case: If validation failed but it's only because of a hidden prejudgment or postjudgment date,
     // we should proceed with the calculation and not show an error
     if (!inputs.isValid) {
         // Check if all other required dates are valid
@@ -399,12 +398,13 @@ function recalculate() {
             inputs.dateOfJudgment && 
             inputs.nonPecuniaryJudgmentDate && 
             inputs.costsAwardedDate && 
-            (inputs.showPrejudgment ? inputs.prejudgmentStartDate : true);
+            (inputs.showPrejudgment ? inputs.prejudgmentStartDate : true) &&
+            (inputs.showPostjudgment ? inputs.postjudgmentEndDate : true);
             
-        // If postjudgment is hidden and all other dates are valid, proceed anyway
-        if (!inputs.showPostjudgment && otherDatesValid) {
+        // If all required visible dates are valid, proceed anyway
+        if (otherDatesValid) {
             // Continue with calculation
-            console.log("Proceeding with calculation despite missing postjudgment date (section is hidden)");
+            console.log("Proceeding with calculation despite validation issues (hidden elements)");
             
             // Clear any validation error in the store
             useStore.getState().setResult('validationError', false);

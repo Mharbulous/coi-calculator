@@ -115,7 +115,8 @@ export function validateInputValues(inputs) {
     let isValid = true;
     let validationMessage = "";
 
-    // Check all required dates exist, but only check postjudgmentEndDate if showPostjudgment is true
+    // Check all required dates exist, but only check prejudgmentStartDate if showPrejudgment is true
+    // and only check postjudgmentEndDate if showPostjudgment is true
     if (!inputs.dateOfJudgment || 
         !inputs.nonPecuniaryJudgmentDate || !inputs.costsAwardedDate || 
         (inputs.showPrejudgment && !inputs.prejudgmentStartDate) ||
@@ -125,22 +126,28 @@ export function validateInputValues(inputs) {
     } else {
         // All damage dates are now inputs.dateOfJudgment. Simplify checks.
         
-        // Check judgment date against prejudgment start date
-        if (dateBefore(inputs.dateOfJudgment, inputs.prejudgmentStartDate)) {
-            validationMessage = "Judgment Date cannot be before Prejudgment Start Date.";
-            isValid = false;
+        // Only check prejudgment constraints if the section is visible
+        if (inputs.showPrejudgment) {
+            // Check judgment date against prejudgment start date
+            if (dateBefore(inputs.dateOfJudgment, inputs.prejudgmentStartDate)) {
+                validationMessage = "Judgment Date cannot be before Prejudgment Start Date.";
+                isValid = false;
+            }
+            
+            // Check prejudgment start date against judgment date
+            if (dateAfter(inputs.prejudgmentStartDate, inputs.dateOfJudgment)) {
+                validationMessage = "Cause of action date cannot be later than the Judgment Date.";
+                isValid = false;
+            }
         }
         
-        // Check postjudgment end date against judgment date
-        if (inputs.showPostjudgment && dateBefore(inputs.postjudgmentEndDate, inputs.dateOfJudgment)) {
-            validationMessage = "Accrual date cannot be later than the Judgment Date.";
-            isValid = false;
-        }
-        
-        // Check prejudgment start date against judgment date
-        if (dateAfter(inputs.prejudgmentStartDate, inputs.dateOfJudgment)) {
-            validationMessage = "Cause of action date cannot be later than the Judgment Date.";
-            isValid = false;
+        // Only check postjudgment constraints if the section is visible
+        if (inputs.showPostjudgment) {
+            // Check postjudgment end date against judgment date
+            if (dateBefore(inputs.postjudgmentEndDate, inputs.dateOfJudgment)) {
+                validationMessage = "Accrual date cannot be later than the Judgment Date.";
+                isValid = false;
+            }
         }
     }
     
