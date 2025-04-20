@@ -19,6 +19,9 @@ let postjudgmentDatePicker = null;
 
 /**
  * Initializes the date pickers with appropriate configurations and constraints.
+ * This function is lifecycle-aware and only initializes datepickers for elements
+ * that are both present in the DOM and visible based on the application state.
+ * 
  * @param {Function} recalculateCallback - Function to call when dates change to trigger recalculation.
  * @returns {Object} Object containing the date picker instances.
  */
@@ -28,14 +31,27 @@ export function initializeDatePickers(recalculateCallback) {
     if (prejudgmentDatePicker) prejudgmentDatePicker.destroy();
     if (postjudgmentDatePicker) postjudgmentDatePicker.destroy();
     
+    // Reset references
+    judgmentDatePicker = null;
+    prejudgmentDatePicker = null;
+    postjudgmentDatePicker = null;
+    
+    // Get visibility state from store
+    const showPrejudgment = useStore.getState().inputs.showPrejudgment;
+    const showPostjudgment = useStore.getState().inputs.showPostjudgment;
+    
     // Reset background colors to default
     if (elements.judgmentDateInput) {
         elements.judgmentDateInput.style.backgroundColor = NORMAL_BACKGROUND_COLOR;
     }
-    if (elements.prejudgmentInterestDateInput) {
+    
+    // Only reset prejudgment input if it exists AND is visible
+    if (elements.prejudgmentInterestDateInput && showPrejudgment) {
         elements.prejudgmentInterestDateInput.style.backgroundColor = NORMAL_BACKGROUND_COLOR;
     }
-    if (elements.postjudgmentInterestDateInput) {
+    
+    // Only reset postjudgment input if it exists AND is visible
+    if (elements.postjudgmentInterestDateInput && showPostjudgment) {
         elements.postjudgmentInterestDateInput.style.backgroundColor = NORMAL_BACKGROUND_COLOR;
     }
     
@@ -55,8 +71,8 @@ export function initializeDatePickers(recalculateCallback) {
         });
     }
     
-    // Initialize Prejudgment Date picker if the element exists
-    if (elements.prejudgmentInterestDateInput) {
+    // Initialize Prejudgment Date picker ONLY if the element exists AND section is visible
+    if (elements.prejudgmentInterestDateInput && showPrejudgment) {
         prejudgmentDatePicker = flatpickr(elements.prejudgmentInterestDateInput, {
             dateFormat: "Y-m-d",
             allowInput: true,
@@ -71,8 +87,8 @@ export function initializeDatePickers(recalculateCallback) {
         });
     }
     
-    // Initialize Postjudgment Date picker if the element exists
-    if (elements.postjudgmentInterestDateInput) {
+    // Initialize Postjudgment Date picker ONLY if the element exists AND section is visible
+    if (elements.postjudgmentInterestDateInput && showPostjudgment) {
         postjudgmentDatePicker = flatpickr(elements.postjudgmentInterestDateInput, {
             dateFormat: "Y-m-d",
             allowInput: true,
@@ -242,8 +258,13 @@ function onPostjudgmentDateChange(selectedDates, recalculateCallback) {
 /**
  * Updates the min/max date constraints on prejudgment and postjudgment date pickers based on judgment date.
  * Also updates the background colors of date inputs based on validation status.
+ * This function is lifecycle-aware and only updates constraints for datepickers that exist and are visible.
  */
 function updatePrejudgmentPostjudgmentConstraints() {
+    // Get visibility state from store
+    const showPrejudgment = useStore.getState().inputs.showPrejudgment;
+    const showPostjudgment = useStore.getState().inputs.showPostjudgment;
+    
     // Get current judgment date
     const judgmentDate = judgmentDatePicker && judgmentDatePicker.selectedDates.length > 0 ? 
         judgmentDatePicker.selectedDates[0] : null;
@@ -258,40 +279,42 @@ function updatePrejudgmentPostjudgmentConstraints() {
         }
     }
     
-    // Get current prejudgment and postjudgment dates
-    const prejudgmentDate = prejudgmentDatePicker && prejudgmentDatePicker.selectedDates.length > 0 ? 
-        prejudgmentDatePicker.selectedDates[0] : null;
-    const postjudgmentDate = postjudgmentDatePicker && postjudgmentDatePicker.selectedDates.length > 0 ? 
-        postjudgmentDatePicker.selectedDates[0] : null;
-    
-    // Update Prejudgment Date picker constraints
-    if (prejudgmentDatePicker) {
-        // Set maxDate to judgment date if it exists
-        if (judgmentDate) {
-            prejudgmentDatePicker.set('maxDate', judgmentDate);
-        } else {
-            prejudgmentDatePicker.set('maxDate', "2030-12-31");
-        }
-        
-        // Update background color based on validation status
-        if (elements.prejudgmentInterestDateInput) {
-            // Case 1: Prejudgment date is blank
-            // Case 2: Prejudgment date is later than judgment date
-            if (!prejudgmentDate || (prejudgmentDate && judgmentDate && prejudgmentDate > judgmentDate)) {
-                elements.prejudgmentInterestDateInput.style.backgroundColor = ERROR_BACKGROUND_COLOR;
+    // Only update prejudgment constraints if the section is visible AND the picker exists
+    if (showPrejudgment && prejudgmentDatePicker) {
+        try {
+            // Get current prejudgment date
+            const prejudgmentDate = prejudgmentDatePicker.selectedDates.length > 0 ? 
+                prejudgmentDatePicker.selectedDates[0] : null;
+                
+            // Set maxDate to judgment date if it exists
+            if (judgmentDate) {
+                prejudgmentDatePicker.set('maxDate', judgmentDate);
             } else {
-                elements.prejudgmentInterestDateInput.style.backgroundColor = NORMAL_BACKGROUND_COLOR;
+                prejudgmentDatePicker.set('maxDate', "2030-12-31");
             }
+            
+            // Update background color based on validation status
+            if (elements.prejudgmentInterestDateInput) {
+                // Case 1: Prejudgment date is blank
+                // Case 2: Prejudgment date is later than judgment date
+                if (!prejudgmentDate || (prejudgmentDate && judgmentDate && prejudgmentDate > judgmentDate)) {
+                    elements.prejudgmentInterestDateInput.style.backgroundColor = ERROR_BACKGROUND_COLOR;
+                } else {
+                    elements.prejudgmentInterestDateInput.style.backgroundColor = NORMAL_BACKGROUND_COLOR;
+                }
+            }
+        } catch (error) {
+            console.error("Error updating prejudgment date constraints:", error);
         }
     }
     
-    // Update Postjudgment Date picker constraints
-    if (postjudgmentDatePicker) {
-        // Get the current showPostjudgment state from the store
-        const showPostjudgment = useStore.getState().inputs.showPostjudgment;
-        
-        // Only update constraints if the section is visible
-        if (showPostjudgment) {
+    // Only update postjudgment constraints if the section is visible AND the picker exists
+    if (showPostjudgment && postjudgmentDatePicker) {
+        try {
+            // Get current postjudgment date
+            const postjudgmentDate = postjudgmentDatePicker.selectedDates.length > 0 ? 
+                postjudgmentDatePicker.selectedDates[0] : null;
+                
             // Set minDate to judgment date if it exists
             if (judgmentDate) {
                 postjudgmentDatePicker.set('minDate', judgmentDate);
@@ -301,15 +324,9 @@ function updatePrejudgmentPostjudgmentConstraints() {
             
             // Always set maxDate to June 30, 2025
             postjudgmentDatePicker.set('maxDate', "2025-06-30");
-        }
-        
-        // Update background color based on validation status
-        if (elements.postjudgmentInterestDateInput) {
-            // Get the current showPostjudgment state from the store
-            const showPostjudgment = useStore.getState().inputs.showPostjudgment;
             
-            // Only apply error styling if the section is visible
-            if (showPostjudgment) {
+            // Update background color based on validation status
+            if (elements.postjudgmentInterestDateInput) {
                 // Case 1: Postjudgment date is blank
                 // Case 2: Postjudgment date is earlier than judgment date
                 if (!postjudgmentDate || (postjudgmentDate && judgmentDate && postjudgmentDate < judgmentDate)) {
@@ -317,11 +334,13 @@ function updatePrejudgmentPostjudgmentConstraints() {
                 } else {
                     elements.postjudgmentInterestDateInput.style.backgroundColor = NORMAL_BACKGROUND_COLOR;
                 }
-            } else {
-                // If section is hidden, always use normal background color
-                elements.postjudgmentInterestDateInput.style.backgroundColor = NORMAL_BACKGROUND_COLOR;
             }
+        } catch (error) {
+            console.error("Error updating postjudgment date constraints:", error);
         }
+    } else if (elements.postjudgmentInterestDateInput) {
+        // If section is hidden, always use normal background color for the input
+        elements.postjudgmentInterestDateInput.style.backgroundColor = NORMAL_BACKGROUND_COLOR;
     }
 }
 

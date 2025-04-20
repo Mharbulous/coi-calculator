@@ -26,9 +26,24 @@ import useStore from './store.js';
 
 /**
  * Collects special damages data from the prejudgment table and updates the Zustand store.
+ * If the prejudgment checkbox is unchecked, returns the saved special damages from the store.
  * @returns {Array<object>} Array of special damages objects with date, description, and amount.
  */
 function collectSpecialDamages() {
+    const currentState = useStore.getState();
+    const showPrejudgment = currentState.inputs.showPrejudgment;
+    
+    // If prejudgment is hidden and we have saved special damages, use those
+    if (!showPrejudgment && 
+        currentState.savedPrejudgmentState && 
+        currentState.savedPrejudgmentState.specialDamages && 
+        currentState.savedPrejudgmentState.specialDamages.length > 0) {
+        
+        console.log("Using saved special damages from store:", currentState.savedPrejudgmentState.specialDamages);
+        return currentState.savedPrejudgmentState.specialDamages;
+    }
+    
+    // Otherwise collect from the DOM as usual
     const specialDamages = [];
     const rows = elements.prejudgmentTableBody.querySelectorAll('.special-damages-row');
     
@@ -168,6 +183,22 @@ function calculatePrejudgmentInterest(inputs, specialDamagesTotal, interestRates
     let prejudgmentResult = { details: [], total: 0, principal: inputs.judgmentAwarded, finalPeriodDamageInterestDetails: [] }; // Initial principal is pecuniary only
     
     if (inputs.showPrejudgment) {
+        // Check if we have saved prejudgment result state we can use
+        const currentState = useStore.getState();
+        const hasSavedState = currentState.savedPrejudgmentState && 
+                             currentState.savedPrejudgmentState.prejudgmentResult && 
+                             currentState.savedPrejudgmentState.prejudgmentResult.details && 
+                             currentState.savedPrejudgmentState.prejudgmentResult.details.length > 0;
+        
+        // If we have saved state and the judgment amount hasn't changed, use the saved state
+        if (hasSavedState && 
+            currentState.savedPrejudgmentState.prejudgmentResult.principal === inputs.judgmentAwarded) {
+            
+            console.log("Using saved prejudgment calculation state");
+            return { ...currentState.savedPrejudgmentState.prejudgmentResult };
+        }
+        
+        // Otherwise calculate normally
         // Prejudgment starts from the dynamic prejudgmentStartDate
         // Prejudgment ends on the judgment date (inclusive)
         const prejudgmentEndDate = new Date(inputs.dateOfJudgment);
@@ -199,12 +230,27 @@ function calculatePrejudgmentInterest(inputs, specialDamagesTotal, interestRates
         }
     } else {
         console.log("Prejudgment calculation skipped: Checkbox unchecked.");
-        // When checkbox is unchecked, use the user-entered value for prejudgment interest
-        if (inputs.userEnteredPrejudgmentInterest !== undefined) {
-            prejudgmentResult.total = inputs.userEnteredPrejudgmentInterest;
+        
+        // When checkbox is unchecked, check if we have saved state
+        const currentState = useStore.getState();
+        const hasSavedState = currentState.savedPrejudgmentState && 
+                             currentState.savedPrejudgmentState.prejudgmentResult && 
+                             currentState.savedPrejudgmentState.prejudgmentResult.details;
+        
+        if (hasSavedState) {
+            // Use the structure from saved state but with user-entered total
+            prejudgmentResult = { 
+                ...currentState.savedPrejudgmentState.prejudgmentResult,
+                total: inputs.userEnteredPrejudgmentInterest || 0
+            };
+        } else {
+            // No saved state, use the user-entered value for prejudgment interest
+            if (inputs.userEnteredPrejudgmentInterest !== undefined) {
+                prejudgmentResult.total = inputs.userEnteredPrejudgmentInterest;
+            }
+            // Even if skipped, the principal used for the total row includes special damages
+            prejudgmentResult.principal = inputs.judgmentAwarded + specialDamagesTotal;
         }
-        // Even if skipped, the principal used for the total row includes special damages
-        prejudgmentResult.principal = inputs.judgmentAwarded + specialDamagesTotal;
     }
     
     return prejudgmentResult;

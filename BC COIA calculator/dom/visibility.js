@@ -1,5 +1,6 @@
 import elements from './elements.js';
 import useStore from '../store.js';
+import { formatDateForInput } from '../utils.date.js';
 
 /**
  * Toggles the visibility of the prejudgment section based on the checkbox state.
@@ -66,8 +67,7 @@ export function togglePrejudgmentVisibility(isInitializing = false, recalculateC
         }
     }
     
-    // Save the current prejudgment values before updating the store
-    // This ensures we don't lose the date or user-entered amount when toggling visibility
+    // Get the current state before making changes
     const currentState = useStore.getState();
     const prejudgmentStartDate = currentState.inputs.prejudgmentStartDate;
     const userEnteredPrejudgmentInterest = currentState.inputs.userEnteredPrejudgmentInterest;
@@ -77,15 +77,33 @@ export function togglePrejudgmentVisibility(isInitializing = false, recalculateC
     if (!isInitializing) {
         useStore.getState().setInput('showPrejudgment', isChecked);
         
-        // If we're turning the checkbox back on and we have a saved date, make sure it's still in the store
-        if (isChecked && prejudgmentStartDate) {
-            useStore.getState().setInput('prejudgmentStartDate', prejudgmentStartDate);
-        }
-        
-        // If we're turning the checkbox off, save the current calculated value as the user-entered value
-        if (!isChecked && calculatedPrejudgmentInterest > 0) {
-            console.log("Saving calculated prejudgment interest as user-entered value:", calculatedPrejudgmentInterest);
-            useStore.getState().setInput('userEnteredPrejudgmentInterest', calculatedPrejudgmentInterest);
+        if (isChecked) {
+            // If we're turning the checkbox back on:
+            
+            // 1. Restore the saved prejudgment calculation state (if any)
+            console.log("Restoring saved prejudgment calculation state");
+            useStore.getState().restorePrejudgmentState();
+            
+            // 2. Update the DOM with the restored date value
+            const restoredState = useStore.getState();
+            if (restoredState.inputs.prejudgmentStartDate && elements.prejudgmentInterestDateInput) {
+                // Format the date for display in the input field
+                const formattedDate = formatDateForInput(restoredState.inputs.prejudgmentStartDate);
+                elements.prejudgmentInterestDateInput.value = formattedDate;
+                console.log("Restored prejudgment date to DOM:", formattedDate);
+            }
+        } else {
+            // If we're turning the checkbox off:
+            
+            // 1. Save the current prejudgment calculation state
+            console.log("Saving current prejudgment calculation state");
+            useStore.getState().savePrejudgmentState();
+            
+            // 2. Save the current calculated value as the user-entered value
+            if (calculatedPrejudgmentInterest > 0) {
+                console.log("Saving calculated prejudgment interest as user-entered value:", calculatedPrejudgmentInterest);
+                useStore.getState().setInput('userEnteredPrejudgmentInterest', calculatedPrejudgmentInterest);
+            }
         }
         
         // If we're turning the checkbox off, clear any validation error that might be related to prejudgment date

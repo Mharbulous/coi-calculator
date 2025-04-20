@@ -27,6 +27,17 @@ const store = createStore((set) => ({
         validationMessage: ''
     },
     
+    // Saved state for prejudgment calculations when toggling checkbox
+    savedPrejudgmentState: {
+        specialDamages: [],
+        prejudgmentResult: {
+            details: [],
+            total: 0,
+            principal: 0,
+            finalPeriodDamageInterestDetails: []
+        }
+    },
+    
     // Calculation results
     results: {
         specialDamages: [],
@@ -190,6 +201,70 @@ const store = createStore((set) => ({
     }),
 
     /**
+     * Saves the current prejudgment calculation state
+     * Used when toggling the prejudgment checkbox off
+     */
+    savePrejudgmentState: () => set((state) => ({
+        savedPrejudgmentState: {
+            prejudgmentStartDate: state.inputs.prejudgmentStartDate, // Save the prejudgment date
+            specialDamages: [...state.results.specialDamages],
+            prejudgmentResult: {
+                ...state.results.prejudgmentResult
+            }
+        }
+    })),
+
+    /**
+     * Restores the saved prejudgment calculation state
+     * Used when toggling the prejudgment checkbox on
+     */
+    restorePrejudgmentState: () => set((state) => {
+        // Check if we have any saved state
+        if (state.savedPrejudgmentState) {
+            // First, prepare to update inputs
+            const inputUpdates = {};
+            
+            // Always restore the prejudgment date if it exists
+            if (state.savedPrejudgmentState.prejudgmentStartDate) {
+                inputUpdates.prejudgmentStartDate = state.savedPrejudgmentState.prejudgmentStartDate;
+            }
+            
+            // Check if we have special damages to restore
+            const hasSpecialDamages = state.savedPrejudgmentState.specialDamages && 
+                                     state.savedPrejudgmentState.specialDamages.length > 0;
+            
+            // If we have special damages, restore both inputs and results
+            if (hasSpecialDamages) {
+                return {
+                    inputs: {
+                        ...state.inputs,
+                        ...inputUpdates
+                    },
+                    results: {
+                        ...state.results,
+                        specialDamages: [...state.savedPrejudgmentState.specialDamages],
+                        specialDamagesTotal: state.savedPrejudgmentState.specialDamages.reduce(
+                            (sum, damage) => sum + damage.amount, 0
+                        ),
+                        prejudgmentResult: {
+                            ...state.savedPrejudgmentState.prejudgmentResult
+                        }
+                    }
+                };
+            } else if (Object.keys(inputUpdates).length > 0) {
+                // If no special damages but we have saved inputs, just restore those
+                return {
+                    inputs: {
+                        ...state.inputs,
+                        ...inputUpdates
+                    }
+                };
+            }
+        }
+        return {}; // Return empty object if no saved state to restore
+    }),
+
+    /**
      * Resets the store to its initial state
      * @param {boolean} useDefaults - Whether to use default values for dates (true) or null values (false)
      */
@@ -238,6 +313,15 @@ const store = createStore((set) => ({
             userEnteredPrejudgmentInterest: 0, // Added for editable prejudgment interest
             isValid: true,
             validationMessage: ''
+            },
+            savedPrejudgmentState: {
+                specialDamages: [],
+                prejudgmentResult: {
+                    details: [],
+                    total: 0,
+                    principal: 0,
+                    finalPeriodDamageInterestDetails: []
+                }
             },
             results: {
                 specialDamages: [],
