@@ -65,7 +65,7 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
     tableBody.innerHTML = '';
 
     // Populate new rows (assuming 5 columns: Date/Period, Description, Rate, Principal, Interest)
-    details.forEach(item => {
+    details.forEach((item, index) => {
         const row = tableBody.insertRow();
         row.insertCell().textContent = item.start; // Expect formatted date/period start
         
@@ -125,7 +125,15 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
         descCell.appendChild(descriptionContainer);
         
         row.insertCell().textContent = item.rate.toFixed(2) + '%';
-        row.insertCell().innerHTML = formatCurrencyForDisplay(item.principal); // Principal for the period
+        
+        // For postjudgment table, use the same principal amount for all rows (principalTotal)
+        // This ensures we don't show compound interest in the display
+        if (!isPrejudgmentTable && principalTotal !== null) {
+            row.insertCell().innerHTML = formatCurrencyForDisplay(principalTotal);
+        } else {
+            row.insertCell().innerHTML = formatCurrencyForDisplay(item.principal);
+        }
+        
         row.insertCell().innerHTML = formatCurrencyForDisplay(item.interest); // Interest for the period
 
         // Apply text alignment via CSS classes (adjust indices if needed)
@@ -208,9 +216,14 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
     }
 
     // Update totals in the footer
-    if (principalTotalElement && principalTotal !== null && !isPrejudgmentTable) {
-        // Only update the principal total for non-prejudgment tables
+    if (principalTotalElement && principalTotal !== null) {
         principalTotalElement.innerHTML = formatCurrencyForDisplay(principalTotal);
+    } else {
+        // For postjudgment table, we need to update the principal total element
+        const postjudgmentPrincipalEl = document.querySelector('[data-display="postjudgmentPrincipalTotal"]');
+        if (!isPrejudgmentTable && postjudgmentPrincipalEl && principalTotal !== null) {
+            postjudgmentPrincipalEl.innerHTML = formatCurrencyForDisplay(principalTotal);
+        }
     }
     interestTotalElement.innerHTML = formatCurrencyForDisplay(interestTotal);
     

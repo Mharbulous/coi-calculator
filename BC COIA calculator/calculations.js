@@ -306,12 +306,12 @@ function calculateSegmentsInterestSimple(segments, principal) {
 function calculateSegmentsInterestWithDamages(segments, initialPrincipal, processedDamages) {
     let totalInterest = 0;
     const details = [];
-    let principalForNextSegment = initialPrincipal;
+    let currentPrincipal = initialPrincipal;  // Track current principal for damage additions only
     let damageIndex = 0;
     
     segments.forEach((segment, segmentIndex) => {
-        // Use the principal from the previous segment for this calculation
-        const principalForThisSegment = principalForNextSegment;
+        // Use the current principal (without adding interest) for this calculation
+        const principalForThisSegment = currentPrincipal;
         const year = segment.start.getUTCFullYear();
         
         // Calculate interest for this segment
@@ -322,8 +322,8 @@ function calculateSegmentsInterestWithDamages(segments, initialPrincipal, proces
             totalInterest += result.interest;
         }
         
-        // Update principal for the next segment by adding damages that occurred in this segment
-        let updatedPrincipal = principalForThisSegment;
+        // Update principal only by adding damages that occurred in this segment
+        // Interest is NOT added to the principal
         
         for (let i = damageIndex; i < processedDamages.length; i++) {
             const damage = processedDamages[i];
@@ -333,20 +333,18 @@ function calculateSegmentsInterestWithDamages(segments, initialPrincipal, proces
             
             // Add damage if it occurred before or on the segment end date
             if (dateOnOrBefore(normalizedDamageDate, normalizedSegmentEnd)) {
-                updatedPrincipal += damage.amount;
+                currentPrincipal += damage.amount;
                 damageIndex = i + 1; // Mark this damage as added
             } else {
                 break; // Stop once we reach damages after the segment end
             }
         }
-        
-        principalForNextSegment = updatedPrincipal;
     });
     
     return {
         details,
         totalInterest,
-        finalPrincipal: principalForNextSegment
+        finalPrincipal: currentPrincipal
     };
 }
 
