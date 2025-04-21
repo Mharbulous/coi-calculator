@@ -120,6 +120,7 @@ function validateSpecialDamagesDate(dateStr) {
     minDate.setDate(minDate.getDate() + 1);
     
     // Special damages date must be on or before judgment date
+    // Note: Judgment date itself is the last valid date for special damages
     return date >= minDate && date <= judgmentDate;
 }
 

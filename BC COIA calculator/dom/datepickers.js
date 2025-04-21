@@ -423,21 +423,46 @@ export function initializeSpecialDamagesDatePicker(inputElement, recalculateCall
     let minDate = "1993-01-01"; // Default fallback
     if (prejudgmentDate) {
         // Ensure minDate is the day AFTER prejudgment date
-        const nextDay = new Date(prejudgmentDate);
-        nextDay.setDate(nextDay.getDate() + 1);
-        minDate = nextDay;
+        // IMPORTANT: Use string format to avoid timezone issues
+        const nextDay = new Date(Date.UTC(
+            prejudgmentDate.getUTCFullYear(),
+            prejudgmentDate.getUTCMonth(),
+            prejudgmentDate.getUTCDate() + 1
+        ));
+        minDate = formatDateForDisplay(nextDay); // Use string for consistent timezone handling
     }
     
-    // Use judgment date as max (if available)
-    const maxDate = judgmentDate || "2025-06-30";
+    // Use judgment date as max (if available) - convert to string for consistent handling
+    const maxDate = judgmentDate ? formatDateForDisplay(judgmentDate) : "2025-06-30";
+    console.log("Special damages date range:", minDate, "to", maxDate);
     
     // Create array of dates to explicitly disable
     let disabledDates = [];
+    
+    // Disable the prejudgment date itself
     if (prejudgmentDate) {
         // Create a date string in YYYY-MM-DD format for the prejudgment date
         // Using string format avoids timezone issues
         const dateStr = formatDateForDisplay(prejudgmentDate);
         disabledDates.push(dateStr);
+    }
+    
+    // Disable the day after judgment date
+    if (judgmentDate) {
+        // IMPORTANT: Create a new date to avoid modifying the original
+        // Using UTC methods to avoid timezone issues
+        console.log("Original judgment date:", judgmentDate);
+        
+        const dayAfterJudgment = new Date(Date.UTC(
+            judgmentDate.getUTCFullYear(),
+            judgmentDate.getUTCMonth(),
+            judgmentDate.getUTCDate() + 1
+        ));
+        
+        const dayAfterStr = formatDateForDisplay(dayAfterJudgment);
+        console.log("Day after judgment (disabled):", dayAfterStr);
+        
+        disabledDates.push(dayAfterStr);
     }
     
     // Initialize flatpickr for the special damages date input
@@ -503,23 +528,40 @@ function onSpecialDamagesDateChange(selectedDates, inputElement, recalculateCall
     // Calculate day after prejudgment date (if available)
     let minDate = null;
     if (prejudgmentDate) {
-        minDate = new Date(prejudgmentDate);
-        minDate.setDate(minDate.getDate() + 1);
+        // Use UTC methods to avoid timezone issues
+        minDate = new Date(Date.UTC(
+            prejudgmentDate.getUTCFullYear(),
+            prejudgmentDate.getUTCMonth(),
+            prejudgmentDate.getUTCDate() + 1
+        ));
+        console.log("onSpecialDamagesDateChange - Min date:", formatDateForDisplay(minDate));
     }
     
     // Validate the selected date
     let isValid = true;
     
     if (newDate) {
+        console.log("onSpecialDamagesDateChange - Selected date:", formatDateForDisplay(newDate));
+        
         // Check if date is at least one day after prejudgment date
         // Special damages dates must be strictly AFTER prejudgment date
         if (minDate && newDate < minDate) {
+            console.log("onSpecialDamagesDateChange - Invalid: before minimum date");
             isValid = false;
         }
         
         // Check if date is before or on judgment date
-        if (judgmentDate && newDate > judgmentDate) {
-            isValid = false;
+        // The judgment date itself is valid for special damages
+        if (judgmentDate) {
+            // Compare using formatted strings to avoid timezone issues
+            const selectedDateStr = formatDateForDisplay(newDate);
+            const judgmentDateStr = formatDateForDisplay(judgmentDate);
+            console.log("onSpecialDamagesDateChange - Comparing:", selectedDateStr, "to judgment date:", judgmentDateStr);
+            
+            if (selectedDateStr > judgmentDateStr) {
+                console.log("onSpecialDamagesDateChange - Invalid: after judgment date");
+                isValid = false;
+            }
         }
     }
     
@@ -574,21 +616,45 @@ function updateSpecialDamagesConstraints() {
     if (prejudgmentDate) {
         // Ensure minDate is the day AFTER prejudgment date
         // Special damages can only be 1+ days after prejudgment interest date
-        const nextDay = new Date(prejudgmentDate);
-        nextDay.setDate(nextDay.getDate() + 1);
-        minDate = nextDay;
+        // IMPORTANT: Use string format to avoid timezone issues
+        const nextDay = new Date(Date.UTC(
+            prejudgmentDate.getUTCFullYear(),
+            prejudgmentDate.getUTCMonth(),
+            prejudgmentDate.getUTCDate() + 1
+        ));
+        minDate = formatDateForDisplay(nextDay); // Use string for consistent timezone handling
     }
     
-    // Use judgment date as max (if available)
-    const maxDate = judgmentDate || "2025-06-30";
+    // Use judgment date as max (if available) - convert to string for consistent handling
+    const maxDate = judgmentDate ? formatDateForDisplay(judgmentDate) : "2025-06-30";
+    console.log("updateSpecialDamagesConstraints - Date range:", minDate, "to", maxDate);
     
     // Create array of dates to explicitly disable
     let disabledDates = [];
+    
+    // Disable the prejudgment date itself
     if (prejudgmentDate) {
         // Create a date string in YYYY-MM-DD format for the prejudgment date
         // Using string format avoids timezone issues
         const dateStr = formatDateForDisplay(prejudgmentDate);
         disabledDates.push(dateStr);
+    }
+    
+    // Disable the day after judgment date
+    if (judgmentDate) {
+        console.log("updateSpecialDamagesConstraints - Original judgment date:", judgmentDate);
+        
+        // Using UTC methods to avoid timezone issues
+        const dayAfterJudgment = new Date(Date.UTC(
+            judgmentDate.getUTCFullYear(),
+            judgmentDate.getUTCMonth(),
+            judgmentDate.getUTCDate() + 1
+        ));
+        
+        const dayAfterStr = formatDateForDisplay(dayAfterJudgment);
+        console.log("updateSpecialDamagesConstraints - Day after judgment (disabled):", dayAfterStr);
+        
+        disabledDates.push(dayAfterStr);
     }
     
     // Update all special damages date pickers
@@ -605,23 +671,36 @@ function updateSpecialDamagesConstraints() {
             let isValid = true;
             
             if (selectedDate) {
+                // Get current selection as formatted string for comparison
+                const selectedDateStr = formatDateForDisplay(selectedDate);
                 
                 // Check if date is after one day after prejudgment date
                 if (prejudgmentDate) {
-                    const minDateObj = new Date(prejudgmentDate);
-                    minDateObj.setDate(minDateObj.getDate() + 1);
+                    // Use UTC methods to avoid timezone issues
+                    const minDateObj = new Date(Date.UTC(
+                        prejudgmentDate.getUTCFullYear(),
+                        prejudgmentDate.getUTCMonth(),
+                        prejudgmentDate.getUTCDate() + 1
+                    ));
+                    const minDateStr = formatDateForDisplay(minDateObj);
                     
-                    
-                    if (selectedDate < minDateObj) {
+                    if (selectedDateStr < minDateStr) {
+                        console.log("updateSpecialDamagesConstraints - Invalid: selected", selectedDateStr, "< min date", minDateStr);
                         isValid = false;
                     }
                 }
                 
                 // Check if date is before or on judgment date
-                if (judgmentDate && selectedDate > judgmentDate) {
-                    isValid = false;
+                // The judgment date itself is valid for special damages
+                if (judgmentDate) {
+                    const judgmentDateStr = formatDateForDisplay(judgmentDate);
+                    console.log("updateSpecialDamagesConstraints - Comparing:", selectedDateStr, "to judgment date:", judgmentDateStr);
+                    
+                    if (selectedDateStr > judgmentDateStr) {
+                        console.log("updateSpecialDamagesConstraints - Invalid: selected", selectedDateStr, "> judgment date", judgmentDateStr);
+                        isValid = false;
+                    }
                 }
-                
             }
             
             // Apply visual feedback
