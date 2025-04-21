@@ -1,4 +1,4 @@
-# Task 36: Implement Default Special Damages
+# Task 37: Implement Default Special Damages
 
 ## Overview
 This task involves implementing default special damages in the Court Order Interest Act (COIA) Calculator. The calculator should initialize with three default special damages entries as specified in the requirements, along with the existing defaults for Judgment Date, prejudgment date, and postjudgment date.
@@ -10,7 +10,7 @@ Default values for special damages should be:
 
 ## Subtasks
 
-### 36.0: Default Special Damages Store Implementation
+### 37.0: Default Special Damages Store Implementation
 **Goal**: Add default special damages to the application's initial state in the Zustand store.
 
 **Implementation**:
@@ -23,7 +23,7 @@ Default values for special damages should be:
 - Console log the store state after initialization to confirm special damages are present
 - Verify values match the required defaults
 
-### 36.1: Connect Store Special Damages to DOM Rendering
+### 37.1: Connect Store Special Damages to DOM Rendering
 **Goal**: Ensure special damages in the store are reflected in the DOM during initialization.
 
 **Implementation**:
@@ -36,7 +36,7 @@ Default values for special damages should be:
 - Verify that default special damages appear in the prejudgment interest table on application load
 - Confirm that the special damages total appears correctly in the summary table
 
-### 36.2: Sort and Position Special Damages Correctly
+### 37.2: Sort and Position Special Damages Correctly
 **Goal**: Ensure special damages are sorted by date and positioned correctly relative to interest periods.
 
 **Implementation**:
@@ -50,7 +50,7 @@ Default values for special damages should be:
 - Verify that special damages appear in correct positions relative to interest periods
 - Test sorting with a mix of default and user-added special damages
 
-### 36.3: Handle Special Damages Persistence
+### 37.3: Handle Special Damages Persistence
 **Goal**: Ensure default special damages are correctly handled during state changes.
 
 **Implementation**:
@@ -63,7 +63,7 @@ Default values for special damages should be:
 - Add new special damages, verify all are displayed
 - Delete a special damage, verify others remain
 
-### 36.4: Update Special Damages Summary Display
+### 37.4: Update Special Damages Summary Display
 **Goal**: Ensure the special damages total is correctly displayed in the summary table.
 
 **Implementation**:
@@ -76,7 +76,7 @@ Default values for special damages should be:
 - Add/remove special damages, confirm summary updates correctly
 - Ensure special damages are included in final total calculations
 
-### 36.5: Edge Case Handling and Cleanup
+### 37.5: Edge Case Handling and Cleanup
 **Goal**: Address any edge cases or issues that arise during implementation.
 
 **Implementation**:
