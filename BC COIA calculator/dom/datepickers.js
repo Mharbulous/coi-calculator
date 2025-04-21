@@ -6,6 +6,7 @@
 
 import elements from './elements.js';
 import useStore from '../store.js';
+import { formatDateForDisplay } from '../utils.date.js';
 
 // Define the error background color to match the error message background
 const ERROR_BACKGROUND_COLOR = '#f8d7da';
@@ -417,9 +418,11 @@ export function initializeSpecialDamagesDatePicker(inputElement, recalculateCall
     const judgmentDate = state.inputs.dateOfJudgment;
     const prejudgmentDate = state.inputs.prejudgmentStartDate;
     
+    
     // Calculate day after prejudgment date (if available)
     let minDate = "1993-01-01"; // Default fallback
     if (prejudgmentDate) {
+        // Ensure minDate is the day AFTER prejudgment date
         const nextDay = new Date(prejudgmentDate);
         nextDay.setDate(nextDay.getDate() + 1);
         minDate = nextDay;
@@ -427,6 +430,15 @@ export function initializeSpecialDamagesDatePicker(inputElement, recalculateCall
     
     // Use judgment date as max (if available)
     const maxDate = judgmentDate || "2025-06-30";
+    
+    // Create array of dates to explicitly disable
+    let disabledDates = [];
+    if (prejudgmentDate) {
+        // Create a date string in YYYY-MM-DD format for the prejudgment date
+        // Using string format avoids timezone issues
+        const dateStr = formatDateForDisplay(prejudgmentDate);
+        disabledDates.push(dateStr);
+    }
     
     // Initialize flatpickr for the special damages date input
     const flatpickrInstance = flatpickr(inputElement, {
@@ -438,6 +450,7 @@ export function initializeSpecialDamagesDatePicker(inputElement, recalculateCall
         enableTime: false,
         minDate: minDate,
         maxDate: maxDate,
+        disable: disabledDates, // Explicitly disable the prejudgment date
         onChange: (selectedDates) => onSpecialDamagesDateChange(selectedDates, inputElement, recalculateCallback),
         onOpen: positionCalendar
     });
@@ -498,7 +511,8 @@ function onSpecialDamagesDateChange(selectedDates, inputElement, recalculateCall
     let isValid = true;
     
     if (newDate) {
-        // Check if date is after one day after prejudgment date
+        // Check if date is at least one day after prejudgment date
+        // Special damages dates must be strictly AFTER prejudgment date
         if (minDate && newDate < minDate) {
             isValid = false;
         }
@@ -554,9 +568,12 @@ function updateSpecialDamagesConstraints() {
     const judgmentDate = state.inputs.dateOfJudgment;
     const prejudgmentDate = state.inputs.prejudgmentStartDate;
     
+    
     // Calculate day after prejudgment date (if available)
     let minDate = "1993-01-01"; // Default fallback
     if (prejudgmentDate) {
+        // Ensure minDate is the day AFTER prejudgment date
+        // Special damages can only be 1+ days after prejudgment interest date
         const nextDay = new Date(prejudgmentDate);
         nextDay.setDate(nextDay.getDate() + 1);
         minDate = nextDay;
@@ -565,22 +582,36 @@ function updateSpecialDamagesConstraints() {
     // Use judgment date as max (if available)
     const maxDate = judgmentDate || "2025-06-30";
     
+    // Create array of dates to explicitly disable
+    let disabledDates = [];
+    if (prejudgmentDate) {
+        // Create a date string in YYYY-MM-DD format for the prejudgment date
+        // Using string format avoids timezone issues
+        const dateStr = formatDateForDisplay(prejudgmentDate);
+        disabledDates.push(dateStr);
+    }
+    
     // Update all special damages date pickers
     specialDamagesDatePickers.forEach((instance, inputElement) => {
         try {
+            
             // Update constraints
             instance.set('minDate', minDate);
             instance.set('maxDate', maxDate);
+            instance.set('disable', disabledDates); // Directly disable the prejudgment date
             
             // Validate current selection
             const selectedDate = instance.selectedDates.length > 0 ? instance.selectedDates[0] : null;
             let isValid = true;
             
             if (selectedDate) {
+                
                 // Check if date is after one day after prejudgment date
                 if (prejudgmentDate) {
                     const minDateObj = new Date(prejudgmentDate);
                     minDateObj.setDate(minDateObj.getDate() + 1);
+                    
+                    
                     if (selectedDate < minDateObj) {
                         isValid = false;
                     }
@@ -590,6 +621,7 @@ function updateSpecialDamagesConstraints() {
                 if (judgmentDate && selectedDate > judgmentDate) {
                     isValid = false;
                 }
+                
             }
             
             // Apply visual feedback

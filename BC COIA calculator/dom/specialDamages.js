@@ -115,6 +115,7 @@ function validateSpecialDamagesDate(dateStr) {
     if (!judgmentDate || !prejudgmentDate) return false;
     
     // Special damages date must be after prejudgment date + 1 day
+    // Special damages can only be 1+ days after prejudgment interest date
     const minDate = new Date(prejudgmentDate);
     minDate.setDate(minDate.getDate() + 1);
     
