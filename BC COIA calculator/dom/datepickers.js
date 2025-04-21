@@ -163,8 +163,11 @@ function onJudgmentDateChange(selectedDates, recalculateCallback) {
         }
     }
     
-    // Update constraints on prejudgment and postjudgment pickers only
+    // Update constraints on prejudgment and postjudgment pickers
     updatePrejudgmentPostjudgmentConstraints();
+    
+    // Update constraints on all special damages date pickers
+    updateSpecialDamagesConstraints();
     
     // Trigger recalculation
     if (typeof recalculateCallback === 'function') {
@@ -203,6 +206,9 @@ function onPrejudgmentDateChange(selectedDates, recalculateCallback) {
     
     // Update constraints on prejudgment and postjudgment pickers
     updatePrejudgmentPostjudgmentConstraints();
+    
+    // Update constraints on all special damages date pickers
+    updateSpecialDamagesConstraints();
     
     // Trigger recalculation
     if (typeof recalculateCallback === 'function') {
@@ -391,6 +397,7 @@ function positionCalendar(selectedDates, dateStr, instance) {
 
 /**
  * Initializes a flatpickr date picker for a special damages date input.
+ * Applies date constraints based on Prejudgment Interest Date and Judgment Date.
  * 
  * @param {HTMLElement} inputElement - The special damages date input element to initialize.
  * @param {Function} recalculateCallback - Function to call when dates change to trigger recalculation.
@@ -405,6 +412,22 @@ export function initializeSpecialDamagesDatePicker(inputElement, recalculateCall
     // Reset background color to default
     inputElement.style.backgroundColor = NORMAL_BACKGROUND_COLOR;
     
+    // Get constraint dates from store
+    const state = useStore.getState();
+    const judgmentDate = state.inputs.dateOfJudgment;
+    const prejudgmentDate = state.inputs.prejudgmentStartDate;
+    
+    // Calculate day after prejudgment date (if available)
+    let minDate = "1993-01-01"; // Default fallback
+    if (prejudgmentDate) {
+        const nextDay = new Date(prejudgmentDate);
+        nextDay.setDate(nextDay.getDate() + 1);
+        minDate = nextDay;
+    }
+    
+    // Use judgment date as max (if available)
+    const maxDate = judgmentDate || "2025-06-30";
+    
     // Initialize flatpickr for the special damages date input
     const flatpickrInstance = flatpickr(inputElement, {
         dateFormat: "Y-m-d",
@@ -413,16 +436,9 @@ export function initializeSpecialDamagesDatePicker(inputElement, recalculateCall
         disableMobile: true,
         monthSelectorType: "dropdown",
         enableTime: false,
-        minDate: "1993-01-01",
-        maxDate: "2025-06-30", // Fixed maximum date as requested
-        onChange: (selectedDates) => {
-            const newDate = selectedDates.length > 0 ? selectedDates[0] : null;
-            
-            // Trigger recalculation
-            if (typeof recalculateCallback === 'function') {
-                recalculateCallback();
-            }
-        },
+        minDate: minDate,
+        maxDate: maxDate,
+        onChange: (selectedDates) => onSpecialDamagesDateChange(selectedDates, inputElement, recalculateCallback),
         onOpen: positionCalendar
     });
     
@@ -452,6 +468,126 @@ export function destroySpecialDamagesDatePicker(inputElement) {
     }
     
     return false;
+}
+
+/**
+ * Handler for when a Special Damages Date changes.
+ * Validates the selected date against constraints and provides visual feedback.
+ * 
+ * @param {Array} selectedDates - Array of selected dates from Flatpickr.
+ * @param {HTMLElement} inputElement - The input element associated with the picker.
+ * @param {Function} recalculateCallback - Function to call to trigger recalculation.
+ */
+function onSpecialDamagesDateChange(selectedDates, inputElement, recalculateCallback) {
+    const newDate = selectedDates.length > 0 ? selectedDates[0] : null;
+    
+    // Get constraint dates from store
+    const state = useStore.getState();
+    const judgmentDate = state.inputs.dateOfJudgment;
+    const prejudgmentDate = state.inputs.prejudgmentStartDate;
+    
+    // Calculate day after prejudgment date (if available)
+    let minDate = null;
+    if (prejudgmentDate) {
+        minDate = new Date(prejudgmentDate);
+        minDate.setDate(minDate.getDate() + 1);
+    }
+    
+    // Validate the selected date
+    let isValid = true;
+    
+    if (newDate) {
+        // Check if date is after one day after prejudgment date
+        if (minDate && newDate < minDate) {
+            isValid = false;
+        }
+        
+        // Check if date is before or on judgment date
+        if (judgmentDate && newDate > judgmentDate) {
+            isValid = false;
+        }
+    }
+    
+    // Apply visual feedback
+    if (!isValid) {
+        // Invalid date - clear the picker and set error background
+        const instance = specialDamagesDatePickers.get(inputElement);
+        if (instance) {
+            instance.clear();
+        }
+        inputElement.style.backgroundColor = ERROR_BACKGROUND_COLOR;
+    } else {
+        // Valid date - normal background
+        inputElement.style.backgroundColor = NORMAL_BACKGROUND_COLOR;
+        
+        // Trigger recalculation
+        if (typeof recalculateCallback === 'function') {
+            recalculateCallback();
+        }
+    }
+}
+
+/**
+ * Updates the constraints for all special damages date pickers.
+ * This should be called when judgment date or prejudgment date changes.
+ */
+function updateSpecialDamagesConstraints() {
+    // Get constraint dates from store
+    const state = useStore.getState();
+    const judgmentDate = state.inputs.dateOfJudgment;
+    const prejudgmentDate = state.inputs.prejudgmentStartDate;
+    
+    // Calculate day after prejudgment date (if available)
+    let minDate = "1993-01-01"; // Default fallback
+    if (prejudgmentDate) {
+        const nextDay = new Date(prejudgmentDate);
+        nextDay.setDate(nextDay.getDate() + 1);
+        minDate = nextDay;
+    }
+    
+    // Use judgment date as max (if available)
+    const maxDate = judgmentDate || "2025-06-30";
+    
+    // Update all special damages date pickers
+    specialDamagesDatePickers.forEach((instance, inputElement) => {
+        try {
+            // Update constraints
+            instance.set('minDate', minDate);
+            instance.set('maxDate', maxDate);
+            
+            // Validate current selection
+            const selectedDate = instance.selectedDates.length > 0 ? instance.selectedDates[0] : null;
+            let isValid = true;
+            
+            if (selectedDate) {
+                // Check if date is after one day after prejudgment date
+                if (prejudgmentDate) {
+                    const minDateObj = new Date(prejudgmentDate);
+                    minDateObj.setDate(minDateObj.getDate() + 1);
+                    if (selectedDate < minDateObj) {
+                        isValid = false;
+                    }
+                }
+                
+                // Check if date is before or on judgment date
+                if (judgmentDate && selectedDate > judgmentDate) {
+                    isValid = false;
+                }
+            }
+            
+            // Apply visual feedback
+            if (!isValid && selectedDate) {
+                // Invalid date - clear the picker and set error background
+                instance.clear();
+                inputElement.style.backgroundColor = ERROR_BACKGROUND_COLOR;
+            } else if (selectedDate) {
+                // Valid date - normal background
+                inputElement.style.backgroundColor = NORMAL_BACKGROUND_COLOR;
+            }
+        } catch (error) {
+            console.error("Error updating special damages date constraints:", error);
+        }
+    });
 }
 
 /**
