@@ -176,9 +176,19 @@ function initializeCalculator() {
         validationMessage: ''
     };
     
+    // Define default special damages based on screenshot
+    const defaultSpecialDamages = [
+        { date: '2024-04-30', description: 'test 3', amount: 333 },
+        { date: '2024-07-01', description: 'test 1', amount: 11 },
+        { date: '2024-07-02', description: 'test 2', amount: 222 }
+    ];
+    
+    // Calculate the total of special damages
+    const defaultSpecialDamagesTotal = defaultSpecialDamages.reduce((sum, damage) => sum + damage.amount, 0);
+    
     const defaultResults = {
-        specialDamages: [],
-        specialDamagesTotal: 0,
+        specialDamages: defaultSpecialDamages,
+        specialDamagesTotal: defaultSpecialDamagesTotal,
         prejudgmentResult: { details: [], total: 0, principal: 0, finalPeriodDamageInterestDetails: [] },
         postjudgmentResult: { details: [], total: 0 },
         judgmentTotal: 0,
