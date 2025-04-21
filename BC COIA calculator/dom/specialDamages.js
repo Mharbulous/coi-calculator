@@ -1,6 +1,8 @@
 import { formatDateLong, parseDateInput, formatDateForInput, formatDateForDisplay, validateDateFormat } from '../utils.date.js';
 import { formatCurrencyForDisplay, formatCurrencyForInput, formatCurrencyForInputWithCommas, parseCurrency } from '../utils.currency.js';
 import { setupCustomDateInputListeners, setupCurrencyInputListeners } from './setup.js';
+import { initializeSpecialDamagesDatePicker } from './datepickers.js';
+import useStore from '../store.js';
 
 /**
  * Inserts a new special damages row immediately after the specified row.
@@ -25,10 +27,20 @@ export function insertSpecialDamagesRow(tableBody, currentRow, date) {
     dateInput.placeholder = 'YYYY-MM-DD';
     dateInput.maxLength = 10;
     
-    // Passed date is already YYYY-MM-DD from formatDateForDisplay
-    dateInput.value = date; 
+    // Validate the passed date is within proper range before setting
+    const isValidDate = validateSpecialDamagesDate(date);
     
-    // Use the custom date input listeners
+    // Passed date is already YYYY-MM-DD from formatDateForDisplay
+    dateInput.value = isValidDate ? date : ''; 
+    
+    // Initialize the datepicker for proper constraints
+    initializeSpecialDamagesDatePicker(dateInput, function() {
+        // When the date changes, trigger recalculation
+        const event = new CustomEvent('special-damages-updated');
+        document.dispatchEvent(event);
+    });
+    
+    // Use the custom date input listeners as backup
     setupCustomDateInputListeners(dateInput, function() {
         // When the date changes, trigger recalculation
         const event = new CustomEvent('special-damages-updated');
@@ -62,8 +74,6 @@ export function insertSpecialDamagesRow(tableBody, currentRow, date) {
     principalInput.value = '';
     setupCurrencyInputListeners(principalInput, function() {
         // When the amount changes, trigger recalculation
-        // We need to access the recalculate function from calculator.js
-        // For now, we'll dispatch a custom event that calculator.js can listen for
         const event = new CustomEvent('special-damages-updated');
         document.dispatchEvent(event);
     });
@@ -91,6 +101,31 @@ export function insertSpecialDamagesRow(tableBody, currentRow, date) {
 }
 
 /**
+ * Validates if a special damages date is within the allowed range.
+ * @param {string} dateStr - Date string in YYYY-MM-DD format
+ * @returns {boolean} - True if date is valid, false otherwise
+ */
+function validateSpecialDamagesDate(dateStr) {
+    if (!dateStr) return false;
+    
+    const date = parseDateInput(dateStr);
+    if (!date) return false;
+    
+    const state = useStore.getState();
+    const judgmentDate = state.inputs.dateOfJudgment;
+    const prejudgmentDate = state.inputs.prejudgmentStartDate;
+    
+    if (!judgmentDate || !prejudgmentDate) return false;
+    
+    // Special damages date must be after prejudgment date + 1 day
+    const minDate = new Date(prejudgmentDate);
+    minDate.setDate(minDate.getDate() + 1);
+    
+    // Special damages date must be on or before judgment date
+    return date >= minDate && date <= judgmentDate;
+}
+
+/**
  * Helper function to insert a special damages row from saved data during table update.
  * @param {HTMLTableSectionElement} tableBody - The tbody element of the table.
  * @param {number} index - The index at which to insert the row (-1 to append).
@@ -100,7 +135,13 @@ export function insertSpecialDamagesRow(tableBody, currentRow, date) {
  * @returns {HTMLTableRowElement} The newly inserted row element.
  */
 export function insertSpecialDamagesRowFromData(tableBody, index, rowData, finalPeriodStartDate, mutableFinalPeriodDetails) {
-    const newRow = tableBody.insertRow(index);
+    // Validate inputs to prevent issues with missing data
+    if (!tableBody || !rowData) return null;
+    
+    // Create a safe index value
+    const safeIndex = (index !== undefined && index >= 0) ? index : -1;
+    
+    const newRow = tableBody.insertRow(safeIndex);
     newRow.className = 'special-damages-row'; // No highlight on re-insertion
 
     // Date cell
@@ -111,9 +152,19 @@ export function insertSpecialDamagesRowFromData(tableBody, index, rowData, final
     dateInput.dataset.type = 'special-damages-date';
     dateInput.placeholder = 'YYYY-MM-DD';
     dateInput.maxLength = 10;
-    dateInput.value = rowData.date; // Already in YYYY-MM-DD
     
-    // Use the custom date input listeners
+    // Ensure we have a valid date
+    const validDate = rowData.date || '';
+    dateInput.value = validDate; // Already in YYYY-MM-DD
+    
+    // Initialize the datepicker for proper constraints
+    initializeSpecialDamagesDatePicker(dateInput, function() {
+        // When the date changes, trigger recalculation
+        const event = new CustomEvent('special-damages-updated');
+        document.dispatchEvent(event);
+    });
+    
+    // Also use the custom date input listeners
     setupCustomDateInputListeners(dateInput, function() {
         const event = new CustomEvent('special-damages-updated');
         document.dispatchEvent(event);
@@ -129,22 +180,27 @@ export function insertSpecialDamagesRowFromData(tableBody, index, rowData, final
     descInput.className = 'special-damages-description';
     descInput.placeholder = 'Describe special damages';
     descInput.dataset.type = 'special-damages-description';
-    descInput.value = (rowData.description === descInput.placeholder) ? '' : rowData.description; // Set value, handle placeholder case
+    
+    // Handle various edge cases for description
+    const description = rowData.description || '';
+    descInput.value = (description === descInput.placeholder) ? '' : description; 
     descCell.appendChild(descInput);
     
     // Store the calculated detail for later use
     let calculatedDetail = null;
     
     // Find the matching calculated interest detail if applicable
-    if (finalPeriodStartDate && mutableFinalPeriodDetails && mutableFinalPeriodDetails.length > 0) {
+    if (finalPeriodStartDate && mutableFinalPeriodDetails && mutableFinalPeriodDetails.length > 0 && rowData.date) {
         const damageDate = parseDateInput(rowData.date);
-        const damageAmount = parseCurrency(rowData.amount);
+        const damageAmount = parseCurrency(rowData.amount || 0);
         
         // Check if this damage falls within the final period
         if (damageDate && finalPeriodStartDate && damageDate >= finalPeriodStartDate) {
             // Find the matching calculated interest detail
             // Use a more flexible matching approach to handle potential precision issues and timezone differences
             const detailIndex = mutableFinalPeriodDetails.findIndex(detail => {
+                if (!detail || !detail.damageDate) return false;
+                
                 // Format both dates to YYYY-MM-DD strings for comparison to avoid timezone issues
                 const formattedDamageDate = formatDateForDisplay(damageDate);
                 const formattedDetailDate = formatDateForDisplay(detail.damageDate);
@@ -208,9 +264,11 @@ export function insertSpecialDamagesRowFromData(tableBody, index, rowData, final
     principalInput.type = 'text';
     principalInput.className = 'special-damages-amount';
     principalInput.dataset.type = 'special-damages-amount';
-    // Parse the stored value first, then format with commas for display
-    const numericValue = parseCurrency(rowData.amount);
+    
+    // Handle potentially missing or invalid amounts
+    const numericValue = parseCurrency(rowData.amount || 0);
     principalInput.value = formatCurrencyForInputWithCommas(numericValue);
+    
     setupCurrencyInputListeners(principalInput, function() {
         const event = new CustomEvent('special-damages-updated');
         document.dispatchEvent(event);
@@ -231,7 +289,7 @@ export function insertSpecialDamagesRowFromData(tableBody, index, rowData, final
         // Create a container with the same class for consistent styling
         const interestContainer = document.createElement('div');
         interestContainer.className = 'interest-calculation-details';
-        interestContainer.innerHTML = formatCurrencyForDisplay(calculatedDetail.interest);
+        interestContainer.innerHTML = formatCurrencyForDisplay(calculatedDetail.interest || 0);
         
         // Add the container to the interest cell
         interestCell.appendChild(interestContainer);
@@ -245,7 +303,7 @@ export function insertSpecialDamagesRowFromData(tableBody, index, rowData, final
  * directly in the special damages row. Keeping it as a stub for backward compatibility.
  * @deprecated Use insertSpecialDamagesRowFromData with finalPeriodStartDate and mutableFinalPeriodDetails instead.
  */
-export function insertCalculatedRowIfNeeded(tableBody, referenceNode, rowData, finalPeriodStartDate, mutableFinalPeriodDetails) {
+export function insertCalculatedRowIfNeeded() {
     // This function is now a no-op
     return;
 }

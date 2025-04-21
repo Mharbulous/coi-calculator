@@ -83,11 +83,7 @@ export function togglePrejudgmentVisibility(isInitializing = false, recalculateC
             // 1. Restore the saved prejudgment calculation state (including special damages)
             useStore.getState().restorePrejudgmentState();
             
-            // 2. Log debugging info to verify special damages are being restored 
-            console.log('Special damages restored when toggling prejudgment on:', 
-                useStore.getState().results.specialDamages);
-                
-            // 3. Update the DOM with the restored date value
+            // 2. Update the DOM with the restored date value
             const restoredState = useStore.getState();
             if (restoredState.inputs.prejudgmentStartDate && elements.prejudgmentInterestDateInput) {
                 // Format the date for display in the input field
@@ -112,10 +108,6 @@ export function togglePrejudgmentVisibility(isInitializing = false, recalculateC
             if (calculatedPrejudgmentInterest > 0) {
                 useStore.getState().setInput('userEnteredPrejudgmentInterest', calculatedPrejudgmentInterest);
             }
-            
-            // 3. Log debugging info to verify special damages are being saved
-            console.log('Special damages saved when toggling prejudgment off:', 
-                useStore.getState().savedPrejudgmentState.specialDamages);
         }
         
         // If we're turning the checkbox off, clear any validation error that might be related to prejudgment date

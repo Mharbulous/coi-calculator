@@ -10,7 +10,6 @@ import { setupCustomDateInputListeners, setupCurrencyInputListeners, initializeD
  */
 export function updateSummaryTable(store, recalculateCallback) {
     if (!elements.summaryTableBody || !elements.summaryTotalLabelEl || !elements.summaryTotalEl || !elements.summaryPerDiemEl) {
-        console.error("Missing Summary table elements for updateSummaryTable");
         return;
     }
     elements.summaryTableBody.innerHTML = ''; // Clear previous rows
@@ -100,7 +99,6 @@ export function updateSummaryTable(store, recalculateCallback) {
     const templatePrejudgmentEditable = document.getElementById('summary-row-prejudgment-editable-amount');
 
     if (!templatePecuniary || !templateAmountOnly || !templateDateOnly || !templateDisplayOnly || !templatePrejudgmentEditable) {
-        console.error("One or more summary table row templates not found in DOM.");
         return;
     }
 
@@ -234,7 +232,6 @@ export function updateSummaryTable(store, recalculateCallback) {
             prejudgmentAmountInput.addEventListener('blur', function(event) {
                 // When the value changes, update the store with the user-entered value
                 const userEnteredValue = parseCurrency(event.target.value);
-                console.log("User entered prejudgment interest value on blur:", userEnteredValue);
                 
                 // Update the store with the user-entered value
                 store.getState().setInput('userEnteredPrejudgmentInterest', userEnteredValue);

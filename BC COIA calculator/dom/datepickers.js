@@ -317,7 +317,7 @@ function updatePrejudgmentPostjudgmentConstraints() {
                 }
             }
         } catch (error) {
-            console.error("Error updating prejudgment date constraints:", error);
+            // Silently handle error
         }
     }
     
@@ -349,7 +349,7 @@ function updatePrejudgmentPostjudgmentConstraints() {
                 }
             }
         } catch (error) {
-            console.error("Error updating postjudgment date constraints:", error);
+            // Silently handle error
         }
     } else if (elements.postjudgmentInterestDateInput) {
         // If section is hidden, always use normal background color for the input
@@ -585,7 +585,7 @@ function updateSpecialDamagesConstraints() {
                 inputElement.style.backgroundColor = NORMAL_BACKGROUND_COLOR;
             }
         } catch (error) {
-            console.error("Error updating special damages date constraints:", error);
+            // Silently handle error
         }
     });
 }

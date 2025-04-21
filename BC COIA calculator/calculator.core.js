@@ -40,8 +40,6 @@ function collectSpecialDamages() {
         currentState.savedPrejudgmentState.specialDamages && 
         currentState.savedPrejudgmentState.specialDamages.length > 0) {
         
-        // Log for debugging
-        console.log('Using saved special damages:', currentState.savedPrejudgmentState.specialDamages);
         return currentState.savedPrejudgmentState.specialDamages;
     }
     
@@ -83,12 +81,10 @@ function collectSpecialDamages() {
     else {
         const currentSpecialDamages = currentState.results.specialDamages;
         if (currentSpecialDamages && currentSpecialDamages.length > 0) {
-            console.log('Preserving default special damages from store:', currentSpecialDamages);
             return currentSpecialDamages; // Return without overwriting the store
         }
         // Otherwise there are no special damages anywhere, return empty array
         else {
-            console.log('No special damages in DOM or store');
             return [];
         }
     }
@@ -433,8 +429,6 @@ function recalculate() {
     
     // Store the special damages total in the store
     useStore.getState().setResult('specialDamagesTotal', specialDamagesTotal);
-    
-    console.log('Special damages total for calculations:', formatCurrencyForDisplay(specialDamagesTotal));
 
     // 3. Calculate Prejudgment Interest
     const prejudgmentResult = calculatePrejudgmentInterest(inputs, specialDamagesTotal, interestRatesData);
