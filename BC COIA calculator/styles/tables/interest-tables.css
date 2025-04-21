@@ -1,34 +1,55 @@
 /* --- Interest Table Specific Styles --- */
 
-/* Column Widths & Alignment - Prejudgment & Postjudgment (5 columns) */
-#prejudgmentTable th:nth-child(1), #prejudgmentTable td:nth-child(1), /* Date / Period Ending */
+/* Make all columns shrink to fit content except Description */
+#prejudgmentTable, #postjudgmentTable {
+    table-layout: auto;
+    width: 100%;
+}
+
+/* Date Column - shrink to fit content */
+#prejudgmentTable th:nth-child(1), #prejudgmentTable td:nth-child(1), 
 #postjudgmentTable th:nth-child(1), #postjudgmentTable td:nth-child(1) { 
-    width: 15%; 
+    width: 1%; /* Shrink to fit content */
+    white-space: nowrap; /* Prevent wrapping */
     text-align: left; 
 }
 
-#prejudgmentTable th:nth-child(2), #prejudgmentTable td:nth-child(2), /* Description */
+/* Description Column - takes all remaining space */
+#prejudgmentTable th:nth-child(2), #prejudgmentTable td:nth-child(2), 
 #postjudgmentTable th:nth-child(2), #postjudgmentTable td:nth-child(2) { 
-    width: auto; 
-    text-align: left; 
-} /* Let description take space */
+    width: 100%; /* Take all remaining space */
+    text-align: left;
+}
 
-#prejudgmentTable th:nth-child(3), #prejudgmentTable td:nth-child(3), /* Rate */
+/* Rate Column - shrink to fit content */
+#prejudgmentTable th:nth-child(3), #prejudgmentTable td:nth-child(3), 
 #postjudgmentTable th:nth-child(3), #postjudgmentTable td:nth-child(3) { 
-    width: 10%; 
+    width: 1%; /* Shrink to fit content */
+    white-space: nowrap; /* Prevent wrapping */
     text-align: center; 
 }
 
-#prejudgmentTable th:nth-child(4), #prejudgmentTable td:nth-child(4), /* Principal */
+/* Principal Column - shrink to fit content */
+#prejudgmentTable th:nth-child(4), #prejudgmentTable td:nth-child(4), 
 #postjudgmentTable th:nth-child(4), #postjudgmentTable td:nth-child(4) { 
-    width: var(--currency-column-width); 
-    text-align: right; 
+    width: 1%; /* Shrink to fit content */
+    white-space: nowrap; /* Prevent wrapping */
+    text-align: right;
 }
 
-#prejudgmentTable th:nth-child(5), #prejudgmentTable td:nth-child(5), /* Interest */
+/* Interest Column - shrink to fit content */
+#prejudgmentTable th:nth-child(5), #prejudgmentTable td:nth-child(5), 
 #postjudgmentTable th:nth-child(5), #postjudgmentTable td:nth-child(5) { 
-    width: var(--currency-column-width); 
-    text-align: right; 
+    width: 1%; /* Shrink to fit content */
+    white-space: nowrap; /* Prevent wrapping */
+    text-align: right;
+}
+
+/* Ensure buttons stay within their cells */
+.add-special-damages-btn {
+    max-width: 100%;
+    white-space: normal;
+    word-wrap: break-word;
 }
 
 /* Column Widths & Alignment - Judgment Table (3 columns) */

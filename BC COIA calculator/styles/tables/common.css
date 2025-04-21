@@ -37,6 +37,13 @@ th, td {
     text-align: right;
     padding-right: calc(var(--spacing-unit) * 2); /* 8px */
 }
+
+/* Style for the total days and date cells in footer */
+.interest-table tfoot .total td[data-display$="TotalDays"],
+.interest-table tfoot .total td[data-display$="DateCell"] {
+    text-align: left;
+    font-weight: normal;
+}
 /* Ensure amount cells in total row align right */
 .interest-table tfoot .total td:not([colspan]) {
     text-align: right;

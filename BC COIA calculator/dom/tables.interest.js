@@ -234,7 +234,7 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
     const table = tableBody.closest('table');
     if (table) {
         const footerRow = table.querySelector('tfoot tr.total');
-        if (footerRow && footerRow.cells.length > 0) {
+        if (footerRow) {
             // Get the appropriate date based on which table this is
             const state = useStore.getState();
             let dateToShow = '';
@@ -254,35 +254,30 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
             // Calculate total days from all periods
             const totalDays = details.reduce((sum, item) => sum + (item._days || 0), 0);
             
-            // Update the text in the first cell (which has colspan="2")
+            // Update the text in the cells
             if (dateToShow) {
-                const firstCell = footerRow.cells[0];
+                // Get the cells using the new data-display attributes
+                let totalDaysCell, dateCell;
                 
-                // Create a container for date and total days
-                const footerContainer = document.createElement('div');
-                footerContainer.style.display = 'flex';
-                footerContainer.style.justifyContent = 'space-between';
-                footerContainer.style.width = '100%';
+                if (isPrejudgmentTable) {
+                    totalDaysCell = table.querySelector('[data-display="prejudgmentTotalDays"]');
+                    dateCell = table.querySelector('[data-display="prejudgmentDateCell"]');
+                } else {
+                    totalDaysCell = table.querySelector('[data-display="postjudgmentTotalDays"]');
+                    dateCell = table.querySelector('[data-display="postjudgmentDateCell"]');
+                }
                 
-                // Create a span for the date
-                const dateSpan = document.createElement('span');
-                dateSpan.textContent = dateToShow;
-                dateSpan.style.textAlign = 'left';
-                dateSpan.style.fontWeight = 'normal'; // Changed from bold to normal to match the total days style
+                // Update total days cell
+                if (totalDaysCell) {
+                    totalDaysCell.textContent = `Total: ${totalDays} days`;
+                    totalDaysCell.style.fontWeight = 'normal';
+                }
                 
-                // Create a span for the total days
-                const daysSpan = document.createElement('span');
-                daysSpan.textContent = `Total: ${totalDays} days`;
-                daysSpan.style.textAlign = 'right';
-                daysSpan.style.fontWeight = 'normal';
-                
-                // Add both spans to the container
-                footerContainer.appendChild(dateSpan);
-                footerContainer.appendChild(daysSpan);
-                
-                // Clear the cell and add the container
-                firstCell.innerHTML = '';
-                firstCell.appendChild(footerContainer);
+                // Update date cell
+                if (dateCell) {
+                    dateCell.textContent = dateToShow;
+                    dateCell.style.fontWeight = 'normal';
+                }
             }
         }
     }
