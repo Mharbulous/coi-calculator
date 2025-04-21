@@ -139,64 +139,73 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
 
     // Re-insert existing special damages rows in correct sorted order
     if (isPrejudgmentTable && existingSpecialDamagesRows.length > 0) {
-        // Sort the special damages rows themselves by date first
-        existingSpecialDamagesRows.sort((a, b) => {
-            const dateA = parseDateInput(a.date); // YYYY-MM-DD
-            const dateB = parseDateInput(b.date); // YYYY-MM-DD
-            if (!dateA || !dateB) return 0;
-            return dateA - dateB;
-        });
-
-        // Determine Final Period Start Date for comparison later
+        // Get all dates from interest calculation periods for comparison
+        const periodDates = details.map(item => ({
+            date: parseDateInput(item.start),
+            dateStr: item.start,
+            isStartPeriod: true
+        }));
+        
+        // Add final period start date if available
         let finalPeriodStartDate = null;
         if (details.length > 0) {
             const lastDetail = details[details.length - 1];
-            // lastDetail.start is now in YYYY-MM-DD format from formatDateForDisplay
-            finalPeriodStartDate = parseDateInput(lastDetail.start); // Use parseDateInput
+            finalPeriodStartDate = parseDateInput(lastDetail.start);
         }
+        
         // Make a mutable copy of the final period details for safe removal during iteration
         const mutableFinalPeriodDetails = [...finalPeriodDamageInterestDetails];
 
+        // Parse all special damages dates first and add to our collection for sorting
+        const allRowsToInsert = existingSpecialDamagesRows.map(rowData => {
+            const date = parseDateInput(rowData.date);
+            return {
+                date: date,
+                dateStr: rowData.date,
+                isSpecialDamage: true,
+                rowData: rowData
+            };
+        }).filter(item => item.date !== null); // Filter out invalid dates
 
-        existingSpecialDamagesRows.forEach(rowData => {
-            let inserted = false;
-            const newRowDate = parseDateInput(rowData.date); // YYYY-MM-DD (expects utils.js parseDateInput to handle this)
-            if (!newRowDate) return; // Skip if date is invalid
+        // Sort all rows chronologically
+        allRowsToInsert.sort((a, b) => a.date - b.date);
 
-            // Iterate through the *current* rows in the table body
+        // Now insert each special damages row at the correct position
+        for (const rowToInsert of allRowsToInsert) {
+            let insertIndex = -1; // Default to append at end
+            
+            // Find where to insert this row based on date
             for (let i = 0; i < tableBody.rows.length; i++) {
                 const currentRow = tableBody.rows[i];
                 const currentRowDateCell = currentRow.cells[0];
                 let currentRowDate = null;
-
-                // Check if the current row is a special damages row (already re-inserted)
+                
+                // Check if current row is a special damages row (already inserted)
                 const dateInput = currentRow.querySelector('.special-damages-date');
                 if (dateInput) {
-                    currentRowDate = parseDateInput(dateInput.value); // YYYY-MM-DD from input
+                    currentRowDate = parseDateInput(dateInput.value);
                 } else {
-                    // Otherwise, it's a calculated row (YYYY-MM-DD text)
+                    // Otherwise it's a calculated row
                     const dateStr = currentRowDateCell.textContent.trim();
-                    currentRowDate = parseDateInput(dateStr); // Parse YYYY-MM-DD text
-                    if (!currentRowDate) {
-                        console.warn("Could not parse date from calculated row:", dateStr);
-                    }
+                    currentRowDate = parseDateInput(dateStr);
                 }
-
-                // If we have a valid date for the current row and the new row's date is earlier or equal
-                if (currentRowDate && newRowDate <= currentRowDate) {
-                    // Insert user row before currentRow with interest calculation details included
-                    const insertedUserRow = insertSpecialDamagesRowFromData(tableBody, i, rowData, finalPeriodStartDate, mutableFinalPeriodDetails);
-                    
-                    inserted = true;
-                    break; // Move to the next special damages row
+                
+                // Compare dates for insertion position
+                if (currentRowDate && rowToInsert.date <= currentRowDate) {
+                    insertIndex = i;
+                    break;
                 }
             }
-            // If not inserted yet (it's the latest date among all rows), append at the end
-            if (!inserted) {
-                // Append the user row at the end with interest calculation details included
-                const insertedUserRow = insertSpecialDamagesRowFromData(tableBody, -1, rowData, finalPeriodStartDate, mutableFinalPeriodDetails);
-            }
-        });
+            
+            // Insert the special damages row at the determined position
+            insertSpecialDamagesRowFromData(
+                tableBody, 
+                insertIndex, 
+                rowToInsert.rowData, 
+                finalPeriodStartDate, 
+                mutableFinalPeriodDetails
+            );
+        }
     }
 
     // Update totals in the footer
