@@ -44,6 +44,21 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
                 });
             }
         });
+        
+        // Check if existingSpecialDamagesRows is empty, and if so, retrieve from the store
+        if (existingSpecialDamagesRows.length === 0) {
+            const state = useStore.getState();
+            if (state.results.specialDamages && state.results.specialDamages.length > 0) {
+                // Format store values for DOM insertion
+                state.results.specialDamages.forEach(damage => {
+                    existingSpecialDamagesRows.push({
+                        date: damage.date, // Already in YYYY-MM-DD format
+                        description: damage.description,
+                        amount: damage.amount.toString() // Convert to string for consistent handling
+                    });
+                });
+            }
+        }
     }
     
     // Clear previous rows
