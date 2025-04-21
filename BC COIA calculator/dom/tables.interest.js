@@ -49,6 +49,9 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
         if (existingSpecialDamagesRows.length === 0) {
             const state = useStore.getState();
             if (state.results.specialDamages && state.results.specialDamages.length > 0) {
+                // Log for debugging
+                console.log('Getting special damages from store for table rendering:', state.results.specialDamages);
+                
                 // Format store values for DOM insertion
                 state.results.specialDamages.forEach(damage => {
                     existingSpecialDamagesRows.push({
@@ -57,7 +60,14 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
                         amount: damage.amount.toString() // Convert to string for consistent handling
                     });
                 });
+                
+                // Log the formatted rows we'll insert
+                console.log('Formatted special damages rows for insertion:', existingSpecialDamagesRows);
+            } else {
+                console.log('No special damages found in store, table will be empty');
             }
+        } else {
+            console.log('Using special damages rows collected from DOM:', existingSpecialDamagesRows.length, 'rows');
         }
     }
     

@@ -80,10 +80,14 @@ export function togglePrejudgmentVisibility(isInitializing = false, recalculateC
         if (isChecked) {
             // If we're turning the checkbox back on:
             
-            // 1. Restore the saved prejudgment calculation state (if any)
+            // 1. Restore the saved prejudgment calculation state (including special damages)
             useStore.getState().restorePrejudgmentState();
             
-            // 2. Update the DOM with the restored date value
+            // 2. Log debugging info to verify special damages are being restored 
+            console.log('Special damages restored when toggling prejudgment on:', 
+                useStore.getState().results.specialDamages);
+                
+            // 3. Update the DOM with the restored date value
             const restoredState = useStore.getState();
             if (restoredState.inputs.prejudgmentStartDate && elements.prejudgmentInterestDateInput) {
                 // Format the date for display in the input field
@@ -101,13 +105,17 @@ export function togglePrejudgmentVisibility(isInitializing = false, recalculateC
         } else {
             // If we're turning the checkbox off:
             
-            // 1. Save the current prejudgment calculation state
+            // 1. Save the current prejudgment calculation state including special damages
             useStore.getState().savePrejudgmentState();
             
             // 2. Save the current calculated value as the user-entered value
             if (calculatedPrejudgmentInterest > 0) {
                 useStore.getState().setInput('userEnteredPrejudgmentInterest', calculatedPrejudgmentInterest);
             }
+            
+            // 3. Log debugging info to verify special damages are being saved
+            console.log('Special damages saved when toggling prejudgment off:', 
+                useStore.getState().savedPrejudgmentState.specialDamages);
         }
         
         // If we're turning the checkbox off, clear any validation error that might be related to prejudgment date

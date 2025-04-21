@@ -39,41 +39,58 @@ function collectSpecialDamages() {
         currentState.savedPrejudgmentState.specialDamages && 
         currentState.savedPrejudgmentState.specialDamages.length > 0) {
         
+        // Log for debugging
+        console.log('Using saved special damages:', currentState.savedPrejudgmentState.specialDamages);
         return currentState.savedPrejudgmentState.specialDamages;
     }
     
-    // Otherwise collect from the DOM as usual
-    const specialDamages = [];
+    // First check if we have any special damages in the DOM
     const rows = elements.prejudgmentTableBody.querySelectorAll('.special-damages-row');
     
-    rows.forEach(row => {
-        const dateInput = row.querySelector('.special-damages-date');
-        const descInput = row.querySelector('.special-damages-description');
-        const amountInput = row.querySelector('.special-damages-amount');
-        
-        if (dateInput && descInput && amountInput) {
-            // Get the date from the input field in YYYY-MM-DD format
-            const dateValue = dateInput.value; // Date is already YYYY-MM-DD from input
+    // If we have rows in the DOM, collect from there
+    if (rows.length > 0) {
+        const specialDamages = [];
+        rows.forEach(row => {
+            const dateInput = row.querySelector('.special-damages-date');
+            const descInput = row.querySelector('.special-damages-description');
+            const amountInput = row.querySelector('.special-damages-amount');
             
-            // No conversion needed, store directly as YYYY-MM-DD
-            
-            const description = descInput.value.trim() || descInput.placeholder;
-            const amount = parseCurrency(amountInput.value);
-            
-            if (dateValue && amount > 0) { // Use dateValue directly
-                specialDamages.push({
-                    date: dateValue, // Store as YYYY-MM-DD
-                    description,
-                    amount
-                });
+            if (dateInput && descInput && amountInput) {
+                // Get the date from the input field in YYYY-MM-DD format
+                const dateValue = dateInput.value; // Date is already YYYY-MM-DD from input
+                
+                // No conversion needed, store directly as YYYY-MM-DD
+                
+                const description = descInput.value.trim() || descInput.placeholder;
+                const amount = parseCurrency(amountInput.value);
+                
+                if (dateValue && amount > 0) { // Use dateValue directly
+                    specialDamages.push({
+                        date: dateValue, // Store as YYYY-MM-DD
+                        description,
+                        amount
+                    });
+                }
             }
+        });
+        
+        // Update Zustand store with the special damages from DOM
+        useStore.getState().setSpecialDamages(specialDamages);
+        return specialDamages;
+    } 
+    // If no rows in DOM but we have damages in the store, preserve those defaults
+    else {
+        const currentSpecialDamages = currentState.results.specialDamages;
+        if (currentSpecialDamages && currentSpecialDamages.length > 0) {
+            console.log('Preserving default special damages from store:', currentSpecialDamages);
+            return currentSpecialDamages; // Return without overwriting the store
         }
-    });
-    
-    // Update Zustand store with the special damages
-    useStore.getState().setSpecialDamages(specialDamages);
-    
-    return specialDamages;
+        // Otherwise there are no special damages anywhere, return empty array
+        else {
+            console.log('No special damages in DOM or store');
+            return [];
+        }
+    }
 }
 
 /**
