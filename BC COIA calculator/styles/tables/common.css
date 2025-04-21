@@ -26,6 +26,12 @@ th, td {
     font-weight: bold;
     padding-top: var(--spacing-unit); /* 4pt */
 }
+
+/* Remove bold font weight from principal total cells */
+.interest-table tfoot .total td[data-display="prejudgmentPrincipalTotal"],
+.interest-table tfoot .total td[data-display="postjudgmentPrincipalTotal"] {
+    font-weight: normal;
+}
 /* Align the text label part of the total row */
 .interest-table tfoot .total td[colspan] {
     text-align: right;

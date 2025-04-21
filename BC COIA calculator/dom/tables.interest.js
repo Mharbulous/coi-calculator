@@ -218,13 +218,16 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
     // Update totals in the footer
     if (principalTotalElement && principalTotal !== null) {
         principalTotalElement.innerHTML = formatCurrencyForDisplay(principalTotal);
-    } else {
-        // For postjudgment table, we need to update the principal total element
-        const postjudgmentPrincipalEl = document.querySelector('[data-display="postjudgmentPrincipalTotal"]');
-        if (!isPrejudgmentTable && postjudgmentPrincipalEl && principalTotal !== null) {
+    }
+    
+    // If this is the postjudgment table, update the principal total in the footer
+    if (!isPrejudgmentTable && principalTotal !== null) {
+        const postjudgmentPrincipalEl = elements.postjudgmentPrincipalTotalEl;
+        if (postjudgmentPrincipalEl) {
             postjudgmentPrincipalEl.innerHTML = formatCurrencyForDisplay(principalTotal);
         }
     }
+    
     interestTotalElement.innerHTML = formatCurrencyForDisplay(interestTotal);
     
     // Add date and total days to the footer row
