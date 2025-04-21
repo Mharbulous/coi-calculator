@@ -24,7 +24,13 @@ export function updateSummaryTable(store, recalculateCallback) {
     const { prejudgmentResult, postjudgmentResult } = results;
 
     // Calculate total special damages
-    const specialDamagesTotal = (results.specialDamages || []).reduce((total, damage) => total + damage.amount, 0);
+    const specialDamagesArray = results.specialDamages || [];
+    const specialDamagesTotal = specialDamagesArray.reduce((total, damage) => total + damage.amount, 0);
+    
+    // Update the store with the calculated total if it differs from what's stored
+    if (results.specialDamagesTotal !== specialDamagesTotal) {
+        store.getState().setResult('specialDamagesTotal', specialDamagesTotal);
+    }
 
     // Construct summary items from appState
     // For damage rows, we'll use empty strings for dateValue since the judgment date is now in the header

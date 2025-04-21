@@ -20,7 +20,8 @@ import {
     datesEqual
 } from './utils.date.js';
 import {
-    parseCurrency
+    parseCurrency,
+    formatCurrencyForDisplay
 } from './utils.currency.js';
 import useStore from './store.js';
 
@@ -426,7 +427,14 @@ function recalculate() {
 
     // 2. Collect Special Damages (needed for both prejudgment calc and totals)
     const specialDamages = collectSpecialDamages();
-    const specialDamagesTotal = useStore.getState().results.specialDamagesTotal;
+    
+    // Calculate the total special damages amount
+    const specialDamagesTotal = specialDamages.reduce((total, damage) => total + damage.amount, 0);
+    
+    // Store the special damages total in the store
+    useStore.getState().setResult('specialDamagesTotal', specialDamagesTotal);
+    
+    console.log('Special damages total for calculations:', formatCurrencyForDisplay(specialDamagesTotal));
 
     // 3. Calculate Prejudgment Interest
     const prejudgmentResult = calculatePrejudgmentInterest(inputs, specialDamagesTotal, interestRatesData);
