@@ -214,10 +214,17 @@ export function insertSpecialDamagesRowFromData(tableBody, index, rowData, final
             if (detailIndex > -1) {
                 calculatedDetail = mutableFinalPeriodDetails[detailIndex];
                 
-                // Create a container for the interest calculation details (days count with @ symbol)
+                // Extract just the days count from the description (e.g., "test 2 (108 days) @" -> "108 days")
+                let daysCount = "";
+                const daysMatch = calculatedDetail.description.match(/\((\d+\s*days)\)/);
+                if (daysMatch && daysMatch[1]) {
+                    daysCount = daysMatch[1]; // This will be "108 days" from the example
+                }
+                
+                // Create a container for the simplified days count
                 const detailsContainer = document.createElement('div');
-                detailsContainer.className = 'interest-calculation-details';
-                detailsContainer.innerHTML = `<span class="days-count">${calculatedDetail.description} @</span>`;
+                detailsContainer.className = 'interest-calculation-details days-only';
+                detailsContainer.innerHTML = `<span class="days-count">${daysCount}</span>`;
                 
                 // Add the details container to the description cell
                 descCell.appendChild(detailsContainer);

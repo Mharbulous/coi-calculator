@@ -57,3 +57,12 @@
 .days-count {
     text-align: right;
 }
+
+/* Right align the simplified days count in special damages */
+.interest-calculation-details.days-only {
+    text-align: right;
+}
+
+.interest-calculation-details.days-only .days-count {
+    text-align: right;
+}
