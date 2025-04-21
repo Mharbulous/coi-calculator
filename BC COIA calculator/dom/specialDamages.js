@@ -34,18 +34,15 @@ export function insertSpecialDamagesRow(tableBody, currentRow, date) {
     dateInput.value = isValidDate ? date : ''; 
     
     // Initialize the datepicker for proper constraints
+    // Let flatpickr fully handle the date input
     initializeSpecialDamagesDatePicker(dateInput, function() {
         // When the date changes, trigger recalculation
         const event = new CustomEvent('special-damages-updated');
         document.dispatchEvent(event);
     });
     
-    // Use the custom date input listeners as backup
-    setupCustomDateInputListeners(dateInput, function() {
-        // When the date changes, trigger recalculation
-        const event = new CustomEvent('special-damages-updated');
-        document.dispatchEvent(event);
-    });
+    // Do NOT add setupCustomDateInputListeners for flatpickr-managed inputs
+    // Let flatpickr handle all date input behavior
     
     dateCell.appendChild(dateInput);
     dateCell.classList.add('text-left');
@@ -158,17 +155,15 @@ export function insertSpecialDamagesRowFromData(tableBody, index, rowData, final
     dateInput.value = validDate; // Already in YYYY-MM-DD
     
     // Initialize the datepicker for proper constraints
+    // Let flatpickr fully handle the date input
     initializeSpecialDamagesDatePicker(dateInput, function() {
         // When the date changes, trigger recalculation
         const event = new CustomEvent('special-damages-updated');
         document.dispatchEvent(event);
     });
     
-    // Also use the custom date input listeners
-    setupCustomDateInputListeners(dateInput, function() {
-        const event = new CustomEvent('special-damages-updated');
-        document.dispatchEvent(event);
-    });
+    // Do NOT add setupCustomDateInputListeners for flatpickr-managed inputs
+    // Let flatpickr handle all date input behavior
     
     dateCell.appendChild(dateInput);
     dateCell.classList.add('text-left');

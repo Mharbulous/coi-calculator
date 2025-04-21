@@ -479,6 +479,7 @@ export function destroySpecialDamagesDatePicker(inputElement) {
  * @param {Function} recalculateCallback - Function to call to trigger recalculation.
  */
 function onSpecialDamagesDateChange(selectedDates, inputElement, recalculateCallback) {
+    // Get the new date from selectedDates
     const newDate = selectedDates.length > 0 ? selectedDates[0] : null;
     
     // Get constraint dates from store
@@ -508,7 +509,7 @@ function onSpecialDamagesDateChange(selectedDates, inputElement, recalculateCall
         }
     }
     
-    // Apply visual feedback
+    // Apply visual feedback and update the input
     if (!isValid) {
         // Invalid date - clear the picker and set error background
         const instance = specialDamagesDatePickers.get(inputElement);
@@ -519,6 +520,22 @@ function onSpecialDamagesDateChange(selectedDates, inputElement, recalculateCall
     } else {
         // Valid date - normal background
         inputElement.style.backgroundColor = NORMAL_BACKGROUND_COLOR;
+        
+        // Directly update the input value for valid dates
+        if (newDate) {
+            // Format the date as YYYY-MM-DD
+            const year = newDate.getFullYear();
+            const month = String(newDate.getMonth() + 1).padStart(2, '0');
+            const day = String(newDate.getDate()).padStart(2, '0');
+            const formattedDate = `${year}-${month}-${day}`;
+            
+            // Update the input element's value directly
+            inputElement.value = formattedDate;
+            
+            // Dispatch a change event to ensure DOM state synchronization
+            const changeEvent = new Event('change', { bubbles: true });
+            inputElement.dispatchEvent(changeEvent);
+        }
         
         // Trigger recalculation
         if (typeof recalculateCallback === 'function') {
