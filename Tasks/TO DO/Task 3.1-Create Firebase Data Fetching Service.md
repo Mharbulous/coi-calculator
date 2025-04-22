@@ -1,130 +1,77 @@
-# Task 3.1: Create Firebase Data Fetching Service
+# Task 3.1: Create Firebase Data Fetching Service with Mode Awareness
 
 ## Overview
-Create a new module to fetch interest rate data from Firebase. This service will handle the connection to Firebase, authentication, and retrieval of interest rate data for the calculator.
+This task involves creating a service to fetch interest rate data from Firebase, with support for both demo and real rate data. The service will handle retrieving data based on the current application mode, with appropriate caching and error handling.
 
 ## Complexity
-Simple
+Medium (increased from Simple due to mode-aware functionality)
 
 ## Estimated Time
-30 minutes
+45 minutes (increased from 30 minutes to accommodate dual-mode support)
 
 ## Implementation Steps
 
-1. Create a new file `firebase/rateService.js` to handle Firebase data operations:
-   ```javascript
-   // Import Firebase modules
-   import { getFirestore, collection, getDocs, query, where, orderBy } from 'firebase/firestore';
-   import { getAuth, onAuthStateChanged } from 'firebase/auth';
-   import { firebaseApp } from './config.js';
+### 1. Create Mode-Aware Data Fetching Service
+1. Implement a service to fetch interest rates from Firebase
+   - Support fetching from both real and demo rate documents
+   - Accept a mode parameter to determine which rates to fetch
+   - Use document naming convention (e.g., "BC" for real rates, "BC_demo" for demo rates)
+2. Implement type checking and data validation
+   - Ensure retrieved data matches expected structure
+   - Handle potential data format inconsistencies
 
-   // Initialize Firestore and Auth
-   const db = getFirestore(firebaseApp);
-   const auth = getAuth(firebaseApp);
+### 2. Implement Separate Caching Strategies
+1. Create separate caching mechanisms for demo and real rates
+   - Use distinct cache keys for each mode and jurisdiction
+   - Implement appropriate cache expiration times
+2. Implement cache management functions
+   - Add methods to clear demo or real rate caches independently
+   - Add function to verify cache integrity
 
-   /**
-    * Fetches interest rates for a specified jurisdiction from Firebase
-    * @param {string} jurisdiction - Jurisdiction code (e.g., 'BC', 'AB', 'ON')
-    * @returns {Promise<Object>} - Object containing rates, lastUpdated, and validUntil
-    */
-   export async function fetchRates(jurisdiction) {
-       // Check authentication
-       if (!auth.currentUser) {
-           throw new Error('User not authenticated. Please log in to access interest rates.');
-       }
+### 3. Add Mode-Specific Error Handling
+1. Implement enhanced error handling for different modes
+   - For demo mode errors, attempt to use local mock data as fallback
+   - For real mode errors, offer to switch to demo mode
+   - Include detailed error logging with mode context
+2. Create fallback mechanisms
+   - Import local mockRates.js as last resort for demo mode
+   - Implement graceful degradation strategy
 
-       try {
-           // Get rates collection reference
-           const ratesRef = collection(db, 'interestRates');
-           
-           // Create query for the specific jurisdiction, ordered by start date
-           const q = query(
-               ratesRef,
-               where('jurisdiction', '==', jurisdiction),
-               orderBy('start', 'asc')
-           );
-           
-           // Execute query
-           const querySnapshot = await getDocs(q);
-           
-           // Process results
-           const rates = [];
-           querySnapshot.forEach((doc) => {
-               const data = doc.data();
-               rates.push({
-                   start: data.start.toDate(), // Convert Firestore Timestamp to JS Date
-                   prejudgment: data.prejudgment,
-                   postjudgment: data.postjudgment
-               });
-           });
-           
-           // Get metadata
-           const metadataDoc = await getDoc(doc(db, 'metadata', 'ratesInfo'));
-           const metadata = metadataDoc.data();
-           
-           return {
-               rates,
-               lastUpdated: metadata.lastUpdated.toDate(),
-               validUntil: metadata.validUntil.toDate()
-           };
-       } catch (error) {
-           console.error('Error fetching interest rates:', error);
-           throw new Error('Failed to retrieve interest rates. Please try again later.');
-       }
-   }
+### 4. Add Mode Transition Support
+1. Implement functionality to handle mode transitions
+   - Clear appropriate cache when switching modes
+   - Manage in-flight requests when mode changes
+   - Ensure smooth transitions between modes
 
-   /**
-    * Checks if the user has valid access to the interest rates
-    * @returns {Promise<boolean>} - Whether the user has access
-    */
-   export async function checkRatesAccess() {
-       return new Promise((resolve) => {
-           onAuthStateChanged(auth, (user) => {
-               resolve(!!user);
-           });
-       });
-   }
-   ```
+### 5. Ensure Offline Compatibility
+1. Add support for offline operation in both modes
+   - Prioritize cache use when offline
+   - Include timestamps to identify potentially stale data
+   - Add visual indicators for offline/cached data usage
 
-2. Test the fetchRates function with a simple test case:
-   ```javascript
-   // Test the rates service
-   import { fetchRates, checkRatesAccess } from './firebase/rateService.js';
-
-   async function testRatesService() {
-       try {
-           const hasAccess = await checkRatesAccess();
-           console.log('User has access:', hasAccess);
-           
-           if (hasAccess) {
-               const bcRates = await fetchRates('BC');
-               console.log('BC Rates:', bcRates);
-           }
-       } catch (error) {
-           console.error('Test failed:', error);
-       }
-   }
-
-   // Run the test
-   testRatesService();
-   ```
+### 6. Create a Clean API for Rate Retrieval
+1. Design a simple API for other components to use
+   - Hide mode complexity behind a clean interface
+   - Provide methods that automatically use current application mode
+   - Include helper methods for common rate operations
 
 ## Testing Procedures
-1. Ensure Firebase configuration is properly set up
-2. Login with a test user account
-3. Run the test script to verify rates can be fetched
-4. Check that error handling works correctly when unauthenticated
+1. Test fetching rates in demo mode without authentication
+2. Test fetching rates in paid mode with authentication
+3. Test caching behavior for both modes
+4. Test fallback mechanisms when Firebase is unavailable
+5. Test proper error handling for various failure scenarios
+6. Test mode transitions and their effect on cached data
 
 ## Expected Outcome
-A functioning service that:
-- Successfully connects to Firebase
-- Authenticates the user
-- Retrieves interest rate data
-- Properly formats the data for use by the calculator
-- Handles errors appropriately
+1. A complete data fetching service that supports both demo and real modes
+2. Efficient caching strategy with mode-specific considerations
+3. Robust error handling with appropriate fallbacks
+4. Smooth mode transition support
+5. Clean API that hides mode complexity from other components
 
 ## Notes
-- This service will be used by the modified interestRates.js module
-- Ensure proper error handling for network issues
-- Add appropriate comments for maintainability
-- The service should validate the data received from Firebase
+- The service should be designed to work seamlessly with the mode management system
+- Demo mode should work without authentication, while real mode requires valid authentication
+- Error handling should provide helpful information for debugging without exposing sensitive details
+- This implementation integrates elements from Task A.2 (Modify Access Control for Demo Mode)

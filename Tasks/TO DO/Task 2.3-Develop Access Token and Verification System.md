@@ -2,258 +2,351 @@
 
 ## Overview
 
-This task involves creating a system to verify user access to interest rate data based on payment status. You'll develop the verification logic that checks if a user has paid for access and implement token-based authorization for accessing protected data.
+This task involves creating a mode-aware access control system that supports both demo and paid versions of the application. You'll develop verification logic that checks if a user has paid for access and implement token-based authorization for accessing protected data, while allowing unauthenticated access to demo features.
 
 ## Complexity
 
-Simple
+Medium (increased from Simple due to dual-mode support)
 
 ## Estimated Time
 
-30 minutes
+1 hour (increased from 30 minutes to accommodate demo mode functionality)
 
 ## Implementation Steps
 
-### 1. Extend the Firebase Access Control Module with Payment Verification
+### 1. Implement Mode-Aware Access Control Module
 
-1. Add payment status verification function to `firebase-access-control.js`:
+1. Create a `firebase-access-control.js` module with mode-aware functions:
    ```javascript
    /**
-    * Verify if a user has paid for access
-    * @param {string} userId - Firebase user ID
-    * @returns {Promise<boolean>} True if user has paid
+    * Get interest rates for a specific jurisdiction
+    * @param {string} jurisdiction - Jurisdiction code (e.g., 'BC')
+    * @param {boolean} demoMode - Whether to fetch demo rates (default: false)
+    * @returns {Promise<Array>} Array of interest rate objects
     */
-   async function verifyPaymentStatus(userId) {
+   async function getInterestRates(jurisdiction, demoMode = false) {
      try {
-       // Check if we have cached payment status
-       const cachedStatus = getFromCache(`payment_${userId}`);
-       if (cachedStatus) {
-         return cachedStatus.hasAccess && cachedStatus.expiry > Date.now();
-       }
-
-       // If not cached, check in Firebase
-       const userDoc = await db.collection('users').doc(userId).get();
-       
-       if (userDoc.exists) {
-         const userData = userDoc.data();
-         const hasAccess = userData.hasAccess === true;
-         const expiry = userData.accessExpiry?.toDate?.() || userData.accessExpiry;
+       // If demo mode, fetch demo rates (no authentication required)
+       if (demoMode) {
+         // Use appropriate document ID for demo rates
+         const docId = `${jurisdiction}_demo`;
          
-         // Cache the result
-         if (hasAccess && expiry) {
-           setInCache(`payment_${userId}`, {
-             hasAccess,
-             expiry: expiry.getTime ? expiry.getTime() : expiry
-           });
+         // Check cache first
+         const cacheKey = `rates_demo_${jurisdiction}`;
+         const cachedRates = getFromCache(cacheKey);
+         if (cachedRates) {
+           return cachedRates;
          }
          
-         return hasAccess && expiry > new Date();
-       }
-       
-       return false;
-     } catch (error) {
-       console.error('Payment status verification error:', error);
-       // If there's an error, default to no access
-       return false;
-     }
-   }
-   ```
-
-2. Extend the `checkAuthStatus` function to include payment verification:
-   ```javascript
-   /**
-    * Check the current authentication status and payment verification
-    * @returns {Promise<boolean>} True if user is authenticated and has paid
-    */
-   async function checkAuthStatus() {
-     const user = auth.currentUser;
-     if (user) {
-       // Verify if user has payment status
-       const hasAccess = await verifyPaymentStatus(user.uid);
-       return hasAccess;
-     }
-     return false;
-   }
-   ```
-
-### 2. Implement Access Token Creation and Validation
-
-1. Add function to generate access tokens for authenticated users:
-   ```javascript
-   /**
-    * Generate an access token for the current user
-    * @returns {Promise<string|null>} Access token or null if not authenticated
-    */
-   async function generateAccessToken() {
-     const user = auth.currentUser;
-     if (!user) {
-       return null;
-     }
-     
-     // Verify payment status
-     const hasAccess = await verifyPaymentStatus(user.uid);
-     if (!hasAccess) {
-       return null;
-     }
-     
-     // Create a simple token with user ID, timestamp, and expiry
-     // For a production app, consider using Firebase custom tokens or JWT
-     const token = {
-       uid: user.uid,
-       created: Date.now(),
-       expires: Date.now() + (24 * 60 * 60 * 1000), // 24 hours
-       signature: btoa(`${user.uid}-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`)
-     };
-     
-     // Store token in cache
-     setInCache('access_token', token);
-     
-     return btoa(JSON.stringify(token));
-   }
-   ```
-
-2. Add function to validate access tokens:
-   ```javascript
-   /**
-    * Validate the current access token
-    * @param {string} token - Access token to validate
-    * @returns {Promise<boolean>} True if token is valid
-    */
-   async function validateAccessToken(token) {
-     try {
-       if (!token) {
-         // Check for cached token if none provided
-         const cachedToken = getFromCache('access_token');
-         if (!cachedToken) {
-           return false;
+         // Fetch demo rates from Firebase
+         const demoDoc = await db.collection('interestRates').doc(docId).get();
+         
+         if (!demoDoc.exists) {
+           throw new Error(`No demo rates found for jurisdiction: ${jurisdiction}`);
          }
          
-         // Validate expiry of cached token
-         if (cachedToken.expires < Date.now()) {
-           clearFromCache('access_token');
-           return false;
-         }
+         const ratesData = demoDoc.data();
+         const rates = ratesData.rates || [];
          
-         return true;
+         // Process and cache demo rates
+         const processedRates = rates.map(rate => ({
+           ...rate,
+           start: new Date(rate.start)
+         }));
+         
+         // Cache the result (for 1 day)
+         setInCache(cacheKey, processedRates, 24 * 60 * 60 * 1000);
+         
+         return processedRates;
        }
        
-       // Decode and validate provided token
-       const decodedToken = JSON.parse(atob(token));
-       
-       // Check expiry
-       if (decodedToken.expires < Date.now()) {
-         return false;
+       // For real rates, check authentication and payment status first
+       const hasAccess = await checkAuthStatus();
+       if (!hasAccess) {
+         throw new Error('Access denied. Payment required.');
        }
        
-       // Validate user ID matches current user
-       const user = auth.currentUser;
-       if (!user || user.uid !== decodedToken.uid) {
-         return false;
+       // Proceed with existing code for authenticated access to real rates
+       // Check cache first
+       const cacheKey = `rates_${jurisdiction}`;
+       const cachedRates = getFromCache(cacheKey);
+       if (cachedRates) {
+         return cachedRates;
        }
        
-       // Additional validation could be added here
-       // For production, verify signature with server
+       // Fetch real rates from Firebase
+       const rateDoc = await db.collection('interestRates').doc(jurisdiction).get();
        
-       return true;
+       if (!rateDoc.exists) {
+         throw new Error(`No rates found for jurisdiction: ${jurisdiction}`);
+       }
+       
+       const ratesData = rateDoc.data();
+       const rates = ratesData.rates || [];
+       
+       // Process and cache rates
+       const processedRates = rates.map(rate => ({
+         ...rate,
+         start: new Date(rate.start)
+       }));
+       
+       // Cache the result (for 1 day)
+       setInCache(cacheKey, processedRates, 24 * 60 * 60 * 1000);
+       
+       return processedRates;
      } catch (error) {
-       console.error('Token validation error:', error);
-       return false;
+       // Enhanced error handling with fallback options
+       return handleRateRetrievalError(error, jurisdiction, demoMode);
      }
    }
    ```
 
-### 3. Implement Caching Utilities for Tokens and Payment Status
+### 2. Implement Enhanced Error Handling with Demo Mode Fallback
 
-1. Add caching utilities if not already implemented:
-   ```javascript
-   /**
-    * Set data in cache with optional expiration
-    * @param {string} key - Cache key
-    * @param {any} data - Data to cache
-    * @param {number} [ttl=3600000] - Time to live in milliseconds (default: 1 hour)
-    */
-   function setInCache(key, data, ttl = 3600000) {
-     const item = {
-       data,
-       expiry: Date.now() + ttl
-     };
-     localStorage.setItem(key, JSON.stringify(item));
-   }
+```javascript
+/**
+ * Enhanced error handling for rate retrieval
+ * @param {Error} error - The error that occurred
+ * @param {string} jurisdiction - The jurisdiction code
+ * @param {boolean} demoMode - Whether this was a demo mode request
+ * @returns {Promise<Array|null>} Fallback rates or null
+ */
+async function handleRateRetrievalError(error, jurisdiction, demoMode) {
+  console.error(`Error fetching rates for ${jurisdiction}:`, error);
+  
+  // If in real mode and access is denied, suggest switching to demo mode
+  if (!demoMode && error.message.includes('Access denied')) {
+    document.dispatchEvent(new CustomEvent('suggest-demo-mode', {
+      detail: { error: error.message }
+    }));
+    return null;
+  }
+  
+  // If in demo mode and rates not found, try to use fallback mock data
+  if (demoMode) {
+    console.warn(`Demo rates fetch failed, using local fallback for ${jurisdiction}`);
+    // Attempt to use local fallback mock data
+    try {
+      // Import directly from mockRates.js as last resort
+      const { default: mockRates } = await import('../mockRates.js');
+      return mockRates[jurisdiction] || [];
+    } catch (fallbackError) {
+      console.error('Fallback retrieval failed:', fallbackError);
+      return [];
+    }
+  }
+  
+  // For other errors, return empty array
+  return [];
+}
+```
 
-   /**
-    * Get data from cache if not expired
-    * @param {string} key - Cache key
-    * @returns {any|null} Cached data or null if expired/not found
-    */
-   function getFromCache(key) {
-     try {
-       const item = JSON.parse(localStorage.getItem(key));
-       
-       if (!item) {
-         return null;
-       }
-       
-       // Check if expired
-       if (item.expiry && item.expiry < Date.now()) {
-         localStorage.removeItem(key);
-         return null;
-       }
-       
-       return item.data;
-     } catch (error) {
-       console.error('Cache retrieval error:', error);
-       return null;
-     }
-   }
+### 3. Extend Access Control with Payment Verification
 
-   /**
-    * Clear specific item from cache
-    * @param {string} key - Cache key
-    */
-   function clearFromCache(key) {
-     localStorage.removeItem(key);
-   }
-   ```
+```javascript
+/**
+ * Verify if a user has paid for access
+ * @param {string} userId - Firebase user ID
+ * @returns {Promise<boolean>} True if user has paid
+ */
+async function verifyPaymentStatus(userId) {
+  try {
+    // Check if we have cached payment status
+    const cachedStatus = getFromCache(`payment_${userId}`);
+    if (cachedStatus) {
+      return cachedStatus.hasAccess && cachedStatus.expiry > Date.now();
+    }
 
-### 4. Update Function to Verify Access for Data Requests
+    // If not cached, check in Firebase
+    const userDoc = await db.collection('users').doc(userId).get();
+    
+    if (userDoc.exists) {
+      const userData = userDoc.data();
+      const hasAccess = userData.hasAccess === true;
+      const expiry = userData.accessExpiry?.toDate?.() || userData.accessExpiry;
+      
+      // Cache the result
+      if (hasAccess && expiry) {
+        setInCache(`payment_${userId}`, {
+          hasAccess,
+          expiry: expiry.getTime ? expiry.getTime() : expiry
+        });
+      }
+      
+      return hasAccess && expiry > new Date();
+    }
+    
+    return false;
+  } catch (error) {
+    console.error('Payment status verification error:', error);
+    // If there's an error, default to no access
+    return false;
+  }
+}
+```
 
-1. Create a function to check access before retrieving interest rate data:
-   ```javascript
-   /**
-    * Check if user has access to interest rate data
-    * @returns {Promise<boolean>} True if user has access
-    */
-   async function checkAccessForRates() {
-     try {
-       // First verify authentication status
-       const user = auth.currentUser;
-       if (!user) {
-         return false;
-       }
-       
-       // Check for valid access token
-       const cachedToken = getFromCache('access_token');
-       if (cachedToken && cachedToken.expires > Date.now()) {
-         return true;
-       }
-       
-       // If no valid token, check payment status directly
-       const hasAccess = await verifyPaymentStatus(user.uid);
-       
-       // If has access, generate a new token
-       if (hasAccess) {
-         await generateAccessToken();
-       }
-       
-       return hasAccess;
-     } catch (error) {
-       console.error('Access check error:', error);
-       return false;
-     }
-   }
-   ```
+### 4. Extend the `checkAuthStatus` Function to Include Payment Verification
 
-### 5. Update Module Exports to Include New Functions
+```javascript
+/**
+ * Check the current authentication status and payment verification
+ * @returns {Promise<boolean>} True if user is authenticated and has paid
+ */
+async function checkAuthStatus() {
+  const user = auth.currentUser;
+  if (user) {
+    // Verify if user has payment status
+    const hasAccess = await verifyPaymentStatus(user.uid);
+    return hasAccess;
+  }
+  return false;
+}
+```
+
+### 5. Implement Mode Switching Capabilities
+
+```javascript
+/**
+ * Switch to demo mode
+ * @returns {Promise<void>}
+ */
+async function switchToDemoMode() {
+  // Clear any cached real rates
+  clearRealRatesCache();
+  
+  // Dispatch event for UI updates
+  document.dispatchEvent(new CustomEvent('mode-changed', {
+    detail: { mode: 'demo' }
+  }));
+}
+
+/**
+ * Switch to paid mode after successful payment
+ * @returns {Promise<void>}
+ */
+async function switchToPaidMode() {
+  // Clear any cached demo rates
+  clearDemoRatesCache();
+  
+  // Dispatch event for UI updates
+  document.dispatchEvent(new CustomEvent('mode-changed', {
+    detail: { mode: 'paid' }
+  }));
+}
+
+/**
+ * Clear all cached real rates
+ */
+function clearRealRatesCache() {
+  const keysToRemove = [];
+  
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key.startsWith('rates_') && !key.includes('_demo_')) {
+      keysToRemove.push(key);
+    }
+  }
+  
+  keysToRemove.forEach(key => localStorage.removeItem(key));
+}
+
+/**
+ * Clear all cached demo rates
+ */
+function clearDemoRatesCache() {
+  const keysToRemove = [];
+  
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key.includes('_demo_')) {
+      keysToRemove.push(key);
+    }
+  }
+  
+  keysToRemove.forEach(key => localStorage.removeItem(key));
+}
+```
+
+### 6. Add Access Token Generation and Validation
+
+```javascript
+/**
+ * Generate an access token for the current user
+ * @returns {Promise<string|null>} Access token or null if not authenticated
+ */
+async function generateAccessToken() {
+  const user = auth.currentUser;
+  if (!user) {
+    return null;
+  }
+  
+  // Verify payment status
+  const hasAccess = await verifyPaymentStatus(user.uid);
+  if (!hasAccess) {
+    return null;
+  }
+  
+  // Create a simple token with user ID, timestamp, and expiry
+  // For a production app, consider using Firebase custom tokens or JWT
+  const token = {
+    uid: user.uid,
+    created: Date.now(),
+    expires: Date.now() + (24 * 60 * 60 * 1000), // 24 hours
+    signature: btoa(`${user.uid}-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`)
+  };
+  
+  // Store token in cache
+  setInCache('access_token', token);
+  
+  return btoa(JSON.stringify(token));
+}
+```
+
+### 7. Implement Caching Utilities for Tokens and Payment Status
+
+```javascript
+/**
+ * Set data in cache with optional expiration
+ * @param {string} key - Cache key
+ * @param {any} data - Data to cache
+ * @param {number} [ttl=3600000] - Time to live in milliseconds (default: 1 hour)
+ */
+function setInCache(key, data, ttl = 3600000) {
+  const item = {
+    data,
+    expiry: Date.now() + ttl
+  };
+  localStorage.setItem(key, JSON.stringify(item));
+}
+
+/**
+ * Get data from cache if not expired
+ * @param {string} key - Cache key
+ * @returns {any|null} Cached data or null if expired/not found
+ */
+function getFromCache(key) {
+  try {
+    const item = JSON.parse(localStorage.getItem(key));
+    
+    if (!item) {
+      return null;
+    }
+    
+    // Check if expired
+    if (item.expiry && item.expiry < Date.now()) {
+      localStorage.removeItem(key);
+      return null;
+    }
+    
+    return item.data;
+  } catch (error) {
+    console.error('Cache retrieval error:', error);
+    return null;
+  }
+}
+```
+
+### 8. Update Module Exports to Include Mode-Related Functions
 
 ```javascript
 // Update the exported module interface
@@ -266,124 +359,113 @@ const FirebaseAccessControl = {
   signOut,
   createUserWithEmail,
   
-  // Access verification (new)
+  // Access verification
   verifyPaymentStatus,
   generateAccessToken, 
   validateAccessToken,
-  checkAccessForRates,
+  
+  // Mode management
+  getInterestRates,
+  switchToDemoMode,
+  switchToPaidMode,
   
   // Cache management
   setInCache,
   getFromCache,
-  clearFromCache
+  clearFromCache,
+  clearRealRatesCache,
+  clearDemoRatesCache
 };
 
 export default FirebaseAccessControl;
 ```
 
-### 6. Add Helper Function for Access Denied Handling
-
-```javascript
-/**
- * Handle access denied scenarios (for use by interest rates module)
- * @param {Function} onAccessRequired - Callback function when user needs to authenticate/pay
- * @returns {Promise<void>}
- */
-async function handleAccessDenied(onAccessRequired) {
-  // Get current auth status
-  const user = auth.currentUser;
-  
-  if (!user) {
-    // User not logged in, trigger login
-    document.dispatchEvent(new CustomEvent('auth-access-required'));
-    if (typeof onAccessRequired === 'function') {
-      onAccessRequired('authentication');
-    }
-  } else {
-    // User logged in but no payment
-    document.dispatchEvent(new CustomEvent('payment-required'));
-    if (typeof onAccessRequired === 'function') {
-      onAccessRequired('payment');
-    }
-  }
-}
-
-// Add to exports
-const FirebaseAccessControl = {
-  // ... other exports
-  handleAccessDenied
-};
-```
-
 ## Testing Procedures
 
-1. Test authentication and token generation:
+1. Test demo mode rate retrieval:
    ```javascript
-   // Test user authentication and token generation
-   async function testTokenGeneration() {
+   // Test retrieving demo rates without authentication
+   async function testDemoRates() {
      try {
-       await FirebaseAccessControl.signInAnonymously();
-       const token = await FirebaseAccessControl.generateAccessToken();
-       console.log('Generated token:', token);
-       return token != null;
-     } catch (error) {
-       console.error('Token generation test failed:', error);
-       return false;
-     }
-   }
-   ```
-
-2. Test token validation:
-   ```javascript
-   // Test token validation
-   async function testTokenValidation(token) {
-     try {
-       const isValid = await FirebaseAccessControl.validateAccessToken(token);
-       console.log('Token validation result:', isValid);
-       return isValid;
-     } catch (error) {
-       console.error('Token validation test failed:', error);
-       return false;
-     }
-   }
-   ```
-
-3. Test payment status verification:
-   ```javascript
-   // Test payment status verification
-   async function testPaymentVerification() {
-     try {
-       const user = auth.currentUser;
-       if (!user) {
-         console.error('No user logged in');
-         return false;
-       }
+       // Ensure we're not authenticated
+       await FirebaseAccessControl.signOut();
        
-       const hasAccess = await FirebaseAccessControl.verifyPaymentStatus(user.uid);
-       console.log('Payment verification result:', hasAccess);
-       return hasAccess;
+       // Try to get demo rates
+       const demoRates = await FirebaseAccessControl.getInterestRates('BC', true);
+       console.log('Demo rates retrieved:', demoRates.length > 0);
+       return demoRates.length > 0;
      } catch (error) {
-       console.error('Payment verification test failed:', error);
+       console.error('Demo rates test failed:', error);
        return false;
      }
    }
    ```
 
-4. Create a test script that runs these tests in sequence
+2. Test real rates access denial without authentication:
+   ```javascript
+   // Test that real rates are denied without authentication
+   async function testRealRatesDenial() {
+     try {
+       // Ensure we're not authenticated
+       await FirebaseAccessControl.signOut();
+       
+       // Try to get real rates
+       await FirebaseAccessControl.getInterestRates('BC', false);
+       
+       // Should not reach here if properly denied
+       console.error('Security failure: Accessed real rates without authentication');
+       return false;
+     } catch (error) {
+       // Expected error
+       console.log('Real rates properly denied without auth:', error.message.includes('Access denied'));
+       return error.message.includes('Access denied');
+     }
+   }
+   ```
+
+3. Test mode switching:
+   ```javascript
+   // Test mode switching
+   async function testModeSwitching() {
+     try {
+       // Set up event listener for mode change
+       let modeChangeDetected = false;
+       const listener = () => {
+         modeChangeDetected = true;
+       };
+       document.addEventListener('mode-changed', listener);
+       
+       // Switch to demo mode
+       await FirebaseAccessControl.switchToDemoMode();
+       
+       // Check if event was fired
+       const result = modeChangeDetected;
+       
+       // Clean up
+       document.removeEventListener('mode-changed', listener);
+       
+       console.log('Mode switching test result:', result);
+       return result;
+     } catch (error) {
+       console.error('Mode switching test failed:', error);
+       return false;
+     }
+   }
+   ```
 
 ## Expected Outcome
 
 By the end of this task, you should have:
 
-1. A complete access token generation and validation system
+1. Mode-aware access control implementation supporting both demo and paid versions
 2. Payment status verification integrated with authentication
-3. Caching mechanisms for tokens and payment status
-4. A function to check access before retrieving interest rate data
-5. Helper functions for handling access denied scenarios
+3. Demo/paid mode switching capabilities
+4. Enhanced error handling with graceful fallbacks between modes
+5. Caching mechanisms for tokens, payment status and rate data
 
 ## Notes
 
-- The token implementation in this task is simplified for the purpose of client-side verification
-- For a production system, consider using Firebase custom tokens or a proper JWT implementation
-- The caching helps reduce database reads and improves performance
-- The access control system is designed to work seamlessly with the interest rates module that will be developed in a later task
+- The implementation supports both authenticated (paid) and unauthenticated (demo) modes
+- Demo mode uses specially-named documents (with "_demo" suffix) and doesn't require authentication
+- The error handling includes fallback mechanisms for a smoother user experience
+- This implementation integrates requirements from Task A.2 (Modify Access Control for Demo Mode)

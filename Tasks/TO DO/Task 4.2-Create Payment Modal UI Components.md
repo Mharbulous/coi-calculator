@@ -1,97 +1,81 @@
-# Task 4.2: Create Payment Modal UI Components
+# Task 4.2: Create Payment Modal UI Components with Demo Mode Support
 
 ## Overview
-This task focuses on implementing the necessary UI components for the payment system, particularly the modal dialogs that will be used for user registration, login, and payment processing.
+This task focuses on implementing the necessary UI components for the payment system and demo mode indication. You'll create modal dialogs for user registration, login, and payment processing, as well as visual elements to clearly identify when the application is running in demo mode.
 
 ## Complexity
-Simple
+Medium (increased from Simple due to demo mode UI requirements)
 
 ## Estimated Time
-30 minutes
+1 hour (increased from 30 minutes to accommodate demo mode UI)
 
 ## Implementation Steps
 
 ### 1. Design Modal Framework
-1. Create a reusable modal component structure:
-   - Modal container with overlay
-   - Header section with title and close button
-   - Content area for forms and information
-   - Footer area for action buttons
-   - Animation and styling
+1. Create a reusable modal component structure for payment processing
+2. Include overlay, header with title, content area, and footer for action buttons
+3. Implement smooth transitions and animations for modal display
+4. Ensure accessibility compliance with proper focus management
 
-### 2. Implement User Authentication Modals
-1. Create the registration modal:
-   - Email input
-   - Password input (with confirmation)
-   - Submit button
-   - Link to login for existing users
-   - Form validation feedback
-   
-2. Create the login modal:
-   - Email input
-   - Password input
-   - Submit button
-   - Link to registration for new users
-   - Password reset option
-   - Form validation feedback
+### 2. Create Demo Mode Visual Indicators
+1. Implement a watermark component that displays when in demo mode
+   - Add fixed-position watermark with "DEMO VERSION" text
+   - Style it to be visible but not interfere with usability
+   - Include print-specific styling to ensure watermark appears on printed pages
+2. Create a demo banner that appears at the top of the application
+   - Add sticky positioning so it remains visible during scrolling
+   - Include upgrade button to trigger payment modal
+   - Style with distinctive color to clearly indicate demo status
 
-### 3. Implement Payment Information Modal
-1. Create the payment details modal:
-   - Payment options selection (e.g., credit card, PayPal)
-   - Credit card input fields (if applicable)
-   - Billing information section
-   - Payment amount and summary
-   - Terms and conditions checkbox
-   - Submit payment button
-   - Cancel button
+### 3. Add Warning Messages to Calculation Results
+1. Implement functions to add warning text to calculation results in demo mode
+   - Add warnings to summary tables indicating values use demo rates
+   - Add warnings to interest tables with upgrade buttons
+   - Ensure warnings are clearly visible but don't disrupt layout
+2. Create styles for warning messages and upgrade buttons
+   - Use warning colors to draw attention
+   - Style upgrade links and buttons consistently
 
-### 4. Create Status and Confirmation Modals
-1. Implement payment processing status modal:
-   - Loading indicator
-   - Processing message
-   
-2. Create payment success modal:
-   - Success message and icon
-   - Order/transaction summary
-   - "Continue to calculator" button
-   
-3. Create payment failure modal:
-   - Error message and icon
-   - Suggested resolution steps
-   - Retry payment button
-   - Contact support option
+### 4. Create Demo Mode UI Manager
+1. Develop a manager class to handle demo mode UI elements
+   - Add methods to activate/deactivate demo UI elements
+   - Implement event listeners for mode changes
+   - Include functions to update warnings after recalculation
+2. Implement dynamic CSS loading for demo mode styles
+3. Add template management for demo UI components
 
-### 5. Implement Modal Styling
-1. Create CSS for modal components:
-   - Responsive design for different screen sizes
-   - Consistent styling with the calculator's design
-   - Smooth transitions and animations
-   - Focus management for accessibility
-   - Add to the existing styles folder structure
+### 5. Enhance Payment Modal for Demo Context
+1. Modify payment modal to be aware of application mode
+   - Add demo-specific messaging when in demo mode
+   - Highlight benefits of upgrading to full version
+   - Include comparison between demo and full features
+2. Add tracking for upgrade attempt sources
+3. Implement continuation options for users who want to stay in demo mode
 
-### 6. Add Modal Control Logic
-1. Implement JavaScript functions to:
-   - Show/hide modals
-   - Transition between different modal states
-   - Handle modal stacking (if needed)
-   - Implement ESC key and overlay click handling
+### 6. Implement Integration Hooks
+1. Add integration points with the main application
+   - Connect to mode change events
+   - Add hooks for recalculation events to update warnings
+   - Implement initialization logic based on application mode
+2. Add CSS for styling all demo-related UI components
+3. Ensure proper cleanup when transitioning between modes
 
 ## Testing Procedures
-- Test modal displays on different screen sizes
-- Verify modals open and close properly
-- Ensure keyboard navigation works correctly
-- Test that form fields validate appropriately
-- Verify that modals transition between each other as expected
+1. Test all modal displays on different screen sizes
+2. Verify demo mode visual indicators appear and disappear when modes change
+3. Test that warning messages display correctly in calculation results
+4. Verify all upgrade buttons properly trigger the payment modal
+5. Test proper cleanup of UI elements when switching modes
 
 ## Expected Outcome
-1. A set of styled and functional modal components
-2. JavaScript functions to control modal visibility
-3. Responsive design that works across devices
-4. Clear and intuitive user interface for authentication and payment
+1. A complete set of modals for authentication and payment processing
+2. Clear visual indicators when the application is in demo mode
+3. Warning messages in calculation results with upgrade options
+4. Seamless transition between demo and paid modes
+5. Consistent styling across all components
 
 ## Notes
-- Ensure modals are accessible according to WCAG guidelines
-- Use consistent design language with the rest of the application
-- Consider adding subtle animations for a polished user experience
-- Ensure modals can be closed via multiple methods (X button, ESC key, clicking overlay)
-- Implement form validation before submission to reduce user frustration
+- This implementation combines the original payment UI requirements with demo mode enhancements
+- The demo mode UI should be noticeable without being overly intrusive
+- All UI components should follow a consistent design language
+- This task integrates requirements from Task A.3 (Implement UI Enhancements for Demo Mode)
