@@ -4,6 +4,7 @@
     margin-bottom: 0;
     width: 100%; /* Ensure it takes full width */
     border-collapse: collapse; /* Needed if adding borders */
+    table-layout: fixed; /* Critical: This prevents column width from changing based on content */
 }
 .summary-table th, .summary-table td {
     border: none; /* Keep borderless for now */
@@ -17,19 +18,19 @@
     background-color: var(--table-header-background-color);
     border: 1px solid var(--border-color); /* Add border to header */
 }
-/* Summary Column Widths */
+/* Summary Column Widths - fixed widths prevent wiggling */
 .summary-table th:nth-child(1), .summary-table td:nth-child(1) { 
-    width: auto; 
+    width: 40%; 
     text-align: left; 
 } /* Item */
 
 .summary-table th:nth-child(2), .summary-table td:nth-child(2) { 
-    width: 20%; 
+    width: 30%; 
     text-align: center; 
 } /* Date/Value */
 
 .summary-table th:nth-child(3), .summary-table td:nth-child(3) { 
-    width: var(--currency-column-width); 
+    width: 30%; 
     text-align: right; 
 } /* Amount */
 
@@ -100,6 +101,22 @@
     text-align: right;
     padding: 0; /* Remove all padding to match other inputs */
     height: 100%; /* Ensure it fills the cell height */
+}
+
+/* No duplicate rules needed - already set above */
+
+/* Style the date container with consistent dimensions */
+.date-cell-container {
+    width: 100%; /* Fill the parent cell width */
+    box-sizing: border-box;
+}
+
+/* Create placeholder that maintains layout when cell is empty */
+.summary-table tr td:nth-child(2):empty::after {
+    content: '';
+    display: inline-block;
+    width: 100%;
+    min-height: 24px; /* Match the height of the date input */
 }
 
 /* Summary Footer Rows */
