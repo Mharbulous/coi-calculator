@@ -6,6 +6,8 @@ This document outlines a targeted approach to implementing a paywall for the Cou
 
 ## Incremental Plan
 
+Note:  Initial estimates of Complexity and Time were created by Claude 3.7 Sonnett.  Gemini 3.5 then did it's own review, striking through and replacing opinions that it disagreed with:
+
 | File Name | Description | Complexity | Time Estimate |
 | --- | --- | --- | --- |
 | Task 1.1-Create Firebase Project and Database | Setting up Firebase project and creating a Firestore database | Simple | 30 minutes |
@@ -13,33 +15,33 @@ This document outlines a targeted approach to implementing a paywall for the Cou
 | Task 1.3-Register Web App and Get Configuration | Registering the app with Firebase and obtaining configuration details | Simple | 15 minutes |
 | Task 1.4-Install Firebase SDK and Create Config Module | Adding Firebase SDK and creating a configuration module | Simple | 30 minutes |
 | Task 1.5-Create a Test Script for Firebase Connection | Creating a script to verify Firebase connection works | Simple | 30 minutes |
-| Task 1.6-Configure Basic Security Rules | Setting up security rules for both authenticated and public demo access | Medium | 30 minutes |
+| Task 1.6-Configure Basic Security Rules | Setting up security rules for both authenticated and public demo access | ~Simple~ Medium | 30 minutes |
 | Task 1.7-Document the Firebase Setup | Creating comprehensive Firebase setup documentation | Simple | 30 minutes |
 | Task 2.1-Create Firebase Authentication Setup | Setting up basic Firebase authentication functionality | Simple | 30 minutes |
-| Task 2.2-Implement User Sign-Up and Login UI | Creating user interface for authentication | Simple | 30 minutes |
-| Task 2.3-Develop Access Token and Verification System | Implementing token-based authorization with demo/paid mode awareness | Medium | 1 hour |
-| Task 2.4-Implement Session Management and Persistence | Ensuring users remain logged in with mode awareness across page refreshes | Medium | 1 hour |
-| Task 2.5-Create Payment Verification Integration | Integrating payment verification with authentication | Simple | 30 minutes |
-| Task 2.6-Develop Access Control Error Handling | Implementing error handling for authentication and access | Simple | 30 minutes |
-| Task 3.1-Create Firebase Data Fetching Service | Creating a mode-aware service to handle Firebase data operations | Medium | 45 minutes |
+| Task 2.2-Implement User Sign-Up and Login UI | Creating user interface for authentication | ~Simple~ Medium | 60-90 minutes |
+| Task 2.3-Develop Access Token and Verification System | Implementing token-based authorization with demo/paid mode awareness | ~Medium~ Medium-high | ~1 hour~ 2-3 hours |
+| Task 2.4-Implement Session Management and Persistence | Ensuring users remain logged in with mode awareness across page refreshes | ~Medium~ High | ~1 hour~ 3-4 hours |
+| Task 2.5-Create Payment Verification Integration | Integrating payment verification with authentication | ~Simple~ Medium | ~30 minutes~ 60-90 minutes |
+| Task 2.6-Develop Access Control Error Handling | Implementing error handling for authentication and access | ~Simple~ Medium-high | ~30 minutes~ 1-2 hours |
+| Task 3.1-Create Firebase Data Fetching Service | Creating a mode-aware service to handle Firebase data operations | ~Simple~ Medium | ~45 minutes~ 60-90 minutes |
 | Task 3.2-Implement Local Data Caching Mechanism | Adding a caching layer for offline access and performance | Simple | 30 minutes |
-| Task 3.3-Modify Rate Processing Function for Firebase Data | Refactoring interestRates.js to work with Firebase data | Simple | 30 minutes |
-| Task 3.4-Add Offline Fallback Functionality | Implementing robust offline mode capabilities | Simple | 30 minutes |
-| Task 3.5-Implement Error Handling and Logging | Adding comprehensive error handling and user feedback | Simple | 30 minutes |
-| Task 3.6-Create Rate Data Refresh Mechanism | Adding periodic and manual refresh capabilities | Simple | 30 minutes |
-| Task 3.7-Implement Application Mode Management | Creating core system to manage demo and paid application states | Medium | 1 hour |
+| Task 3.3-Modify Rate Processing Function for Firebase Data | Refactoring interestRates.js to work with Firebase data | ~Simple~ Medium | ~30 minutes~ 45 - 60 minutes |
+| Task 3.4-Add Offline Fallback Functionality | Implementing robust offline mode capabilities | ~Simple~ Medium-low | ~30 minutes~ 45 - 60 minutes |
+| Task 3.5-Implement Error Handling and Logging | Adding comprehensive error handling and user feedback | ~Simple~ Medium | ~30 minutes 45 - 60 minutes~ |
+| Task 3.6-Create Rate Data Refresh Mechanism | Adding periodic and manual refresh capabilities | ~Simple~ Medium | ~30 minutes~ 60-90 minutes |
+| Task 3.7-Implement Application Mode Management | Creating core system to manage demo and paid application states | ~Medium~ High | ~1 hour~ 3-4 hours |
 | Task 4.1-Design Payment Flow and User Experience | Designing the payment flow and user experience for the app | Simple | 30 minutes |
-| Task 4.2-Create Payment Modal UI Components | Implementing modals and demo mode visual indicators | Medium | 1 hour |
-| Task 4.3-Implement Payment Form and Validation | Creating payment form with validation for secure transactions | Simple | 30 minutes |
-| Task 4.4-Set Up Payment Processor Integration | Integrating with a third-party payment processor | Simple | 30 minutes |
-| Task 4.5-Create Payment Success-Failure Handling | Implementing handlers for payment success and failure scenarios | Simple | 30 minutes |
-| Task 4.6-Implement Payment Receipt and Confirmation | Creating receipt generation and confirmation systems | Simple | 30 minutes |
-| Task 4.7-Add User Account Status UI Elements | Adding UI elements with upgrade pathways from demo to paid version | Medium | 1 hour |
-| Task 5.1-Implement Authentication-Based Security Rules | Implementing security rules for both authenticated and demo access | Medium | 45 minutes |
-| Task 5.2-Configure Rate Limiting and Abuse Prevention | Setting up rate limiting mechanisms and preventing abuse | Simple | 30 minutes |
-| Task 5.3-Set Up Monitoring and Analytics | Implementing analytics and monitoring for the Firebase application | Simple | 30 minutes |
-| Task 5.4-Perform End-to-End Integration Testing | Comprehensive testing of the Firebase implementation | Simple | 30 minutes |
-| Task 5.5-Deploy to Production Environment | Final deployment to production with proper configurations | Simple | 30 minutes |
+| Task 4.2-Create Payment Modal UI Components | Implementing modals and demo mode visual indicators | Medium | ~1 hour~ 2-3 hours |
+| Task 4.3-Implement Payment Form and Validation | Creating payment form with validation for secure transactions | ~Simple~ medium | ~30 minutes~ 60-90 minutes |
+| Task 4.4-Set Up Payment Processor Integration | Integrating with a third-party payment processor | ~Simple~ High | ~30 minutes~ 4 - 6 hours |
+| Task 4.5-Create Payment Success-Failure Handling | Implementing handlers for payment success and failure scenarios | ~Simple~ medium | ~30 minutes~ 60-90 minutes |
+| Task 4.6-Implement Payment Receipt and Confirmation | Creating receipt generation and confirmation systems | ~Simple~ Medium-High | ~30 minutes~ 3 - 5 hours |
+| Task 4.7-Add User Account Status UI Elements | Adding UI elements with upgrade pathways from demo to paid version | Medium | ~1 hour~ 2-3 hours |
+| Task 5.1-Implement Authentication-Based Security Rules | Implementing security rules for both authenticated and demo access | Medium | ~45 minutes~ 60 - 90 minutes |
+| Task 5.2-Configure Rate Limiting and Abuse Prevention | Setting up rate limiting mechanisms and preventing abuse | ~Simple~ Medium-High | ~30 minutes~ 2 - 4 hours |
+| Task 5.3-Set Up Monitoring and Analytics | Implementing analytics and monitoring for the Firebase application | ~Simple~ Medium-low | ~30 minutes~ 45 - 60 minutes |
+| Task 5.4-Perform End-to-End Integration Testing | Comprehensive testing of the Firebase implementation | ~Simple~  High | ~30 minutes~ 4 - 8 hours |
+| Task 5.5-Deploy to Production Environment | Final deployment to production with proper configurations | ~Simple~ Medium-High | ~30 minutes~ 2 - 4 hours |
 
 ## Implementation Strategy
 
