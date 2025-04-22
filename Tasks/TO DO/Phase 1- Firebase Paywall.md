@@ -4,16 +4,10 @@
 
 This document outlines a targeted approach to implementing a paywall for the Court Order Interest Calculator. Instead of a full client-side solution or moving all calculations to the cloud, this approach focuses on moving the critical interest rate data to Firebase, effectively creating a dependency that requires authentication and payment to access.
 
-The goal of this approach to get the app to a deployable state where it is deployed behind a paywall and able to start collecting gmoney. The purpose of this document is to plan how to get the app to that goal on a high level, while more detailed files in the /Tasks/TO DO folder will break the plan down into incremental steps.
-
 ## Incremental Plan
 
 | File Name | Description | Complexity | Time Estimate |
 | --- | --- | --- | --- |
-| Task 0.2-Break Down Access Control Module Task | Breaking down Task 2 into smaller subtasks | Simple | 30 minutes |
-| Task 0.3-Break Down Interest Rates Module Task | Breaking down Task 3 into smaller subtasks | Simple | 30 minutes |
-| Task 0.4-Break Down Payment UI and Processing Task | Breaking down Task 4 into smaller subtasks | Simple | 30 minutes |
-| Task 0.5-Break Down Security Rules and Finalization Task | Breaking down Task 5 into smaller subtasks | Simple | 30 minutes |
 | Task 1.1-Create Firebase Project and Database | Setting up Firebase project and creating a Firestore database | Simple | 30 minutes |
 | Task 1.2-Design and Create Interest Rates Collection Structure | Defining and implementing the database structure for interest rates | Simple | 30 minutes |
 | Task 1.3-Register Web App and Get Configuration | Registering the app with Firebase and obtaining configuration details | Simple | 15 minutes |
