@@ -117,3 +117,47 @@
     cursor: pointer;
     white-space: nowrap;
 }
+
+/* Calculation checkbox controls - blue color to indicate not shown on printouts */
+.editable-fields-section .checkbox-container label {
+    color: #3a7bc8; /* Darker blue for the text */
+}
+
+/* Style the checkboxes to match the blue color scheme */
+.editable-fields-section .checkbox-container input[type="checkbox"] {
+    /* Use appearance: none to fully customize checkbox */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    
+    /* Size and position */
+    width: 14px;
+    height: 14px;
+    position: relative;
+    margin-right: 6px;
+    vertical-align: -2px;
+    cursor: pointer;
+    
+    /* Base styling */
+    border: 1px solid #3a7bc8; /* Darker blue border for unchecked state */
+    border-radius: 2px;
+    outline: none;
+    background-color: white;
+}
+
+/* Custom styling for checked state */
+.editable-fields-section .checkbox-container input[type="checkbox"]:checked {
+    background-color: #4a90e2; /* Lighter blue for the checked state */
+    border-color: #4a90e2;
+}
+
+/* Checkmark style for checked state */
+.editable-fields-section .checkbox-container input[type="checkbox"]:checked::after {
+    content: '✓';
+    display: block;
+    position: absolute;
+    top: -1px;
+    left: 2px;
+    font-size: 12px;
+    color: white;
+}

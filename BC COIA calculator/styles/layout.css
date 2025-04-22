@@ -34,6 +34,11 @@ h1 i {
     margin-bottom: calc(var(--spacing-unit) * 1.5); /* 6pt */
 }
 
+/* Reduce spacing between checkbox controls */
+.editable-fields-section .field-row {
+    margin-bottom: calc(var(--spacing-unit) * 0.75); /* 3pt - reduced spacing */
+}
+
 /* Section Titles */
 .section-title {
     font-weight: bold;
