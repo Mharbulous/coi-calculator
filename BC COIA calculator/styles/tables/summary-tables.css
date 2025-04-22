@@ -88,6 +88,13 @@
     height: 100%; /* Ensure it fills the cell height */
 }
 
+/* Remove right padding from prejudgment interest input when checkbox is off */
+.summary-table input[data-input="prejudgmentAmountValue"] {
+    text-align: right;
+    padding: 0;
+    height: 100%;
+}
+
 /* Right align date input fields in summary table */
 .summary-table input[type="date"] {
     text-align: right;
