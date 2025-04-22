@@ -232,12 +232,14 @@
         <tr>
             <td class="text-left" data-display="itemLabel">
                 <span data-display="itemText"></span>
-                <span class="help-icon" tabindex="0" role="button" aria-label="Help" data-display="helpIcon">?
-                    <span class="tooltip" data-display="tooltipText"></span>
-                </span>
             </td>
-            <td class="text-center">
-                <!-- No date input when prejudgment checkbox is unchecked -->
+            <td class="text-center date-cell-container">
+                <!-- This entire cell gets hidden when prejudgment interest checkbox is unchecked -->
+                <div class="date-label-wrapper">
+                    <span class="help-icon" tabindex="0" role="button" aria-label="Help" data-display="helpIcon">?
+                        <span class="tooltip" data-display="tooltipText"></span>
+                    </span>
+                </div>
             </td>
             <td class="text-right">
                 <input type="text" data-input="prejudgmentAmountValue" class="text-right">
