@@ -2,7 +2,105 @@ import { formatDateLong, parseDateInput, formatDateForInput, formatDateForDispla
 import { formatCurrencyForDisplay, formatCurrencyForInput, formatCurrencyForInputWithCommas, parseCurrency } from '../utils.currency.js';
 import { setupCustomDateInputListeners, setupCurrencyInputListeners } from './setup.js';
 import { initializeSpecialDamagesDatePicker } from './datepickers.js';
+import { showSpecialDamagesDeletionModal } from './modal.js';
 import useStore from '../store.js';
+
+/**
+ * Shows a warning message when trying to delete a special damage with description or non-zero amount
+ */
+function showDeletionWarning() {
+    showSpecialDamagesDeletionModal();
+}
+
+/**
+ * Finds the index of a special damage in the state store based on DOM row
+ * @param {HTMLTableRowElement} row - The row element to find in the store
+ * @returns {number} The index in the store, or -1 if not found
+ */
+function findSpecialDamageIndex(row) {
+    const dateInput = row.querySelector('.special-damages-date');
+    const descInput = row.querySelector('.special-damages-description');
+    const amountInput = row.querySelector('.special-damages-amount');
+    
+    if (!dateInput || !descInput || !amountInput) return -1;
+    
+    const rowDate = dateInput.value;
+    const rowDesc = descInput.value;
+    const rowAmount = parseCurrency(amountInput.value);
+    
+    const state = useStore.getState();
+    const specialDamages = state.results.specialDamages;
+    
+    // Find the matching special damage in the store
+    return specialDamages.findIndex(damage => {
+        // Convert date strings to canonical format for comparison
+        const damageDate = damage.date;
+        
+        // Match by date, description, and approximate amount (for float precision issues)
+        const datesMatch = damageDate === rowDate;
+        const descMatch = damage.description === rowDesc;
+        const epsilon = 0.001; // Small tolerance for floating point comparisons
+        const amountsMatch = Math.abs(damage.amount - rowAmount) < epsilon;
+        
+        return datesMatch && descMatch && amountsMatch;
+    });
+}
+
+/**
+ * Handles trash icon click to delete a special damages row
+ * @param {Event} event - The click event
+ */
+function handleTrashIconClick(event) {
+    const trashIcon = event.currentTarget;
+    const row = trashIcon.closest('.special-damages-row');
+    
+    if (!row) return;
+    
+    // Get the description and amount inputs
+    const descInput = row.querySelector('.special-damages-description');
+    const amountInput = row.querySelector('.special-damages-amount');
+    
+    if (!descInput || !amountInput) return;
+    
+    // Check if description is empty and amount is zero
+    const isDescEmpty = descInput.value.trim() === '';
+    const amountValue = parseCurrency(amountInput.value);
+    const isAmountZero = amountValue === 0;
+    
+    if (isDescEmpty && isAmountZero) {
+        // Find the index of this special damage in the store
+        const index = findSpecialDamageIndex(row);
+        
+        // Remove from the DOM
+        row.remove();
+        
+        // Remove from the store if found
+        if (index !== -1) {
+            useStore.getState().removeSpecialDamage(index);
+        }
+        
+        // Trigger recalculation after removing the row
+        const event = new CustomEvent('special-damages-updated');
+        document.dispatchEvent(event);
+    } else {
+        // Show warning message
+        showDeletionWarning();
+    }
+}
+
+/**
+ * Creates a delete icon element for deleting special damages
+ * @returns {HTMLElement} The delete icon element
+ */
+function createDeleteIcon() {
+    const deleteIcon = document.createElement('span');
+    deleteIcon.className = 'delete-icon';
+    deleteIcon.innerHTML = '×';  // Using × character for the X
+    deleteIcon.title = 'Delete special damages';
+    deleteIcon.addEventListener('click', handleTrashIconClick);
+    
+    return deleteIcon;
+}
 
 /**
  * Inserts a new special damages row immediately after the specified row.
@@ -77,10 +175,13 @@ export function insertSpecialDamagesRow(tableBody, currentRow, date) {
     principalCell.appendChild(principalInput);
     principalCell.classList.add('text-right');
     
-    // Interest cell (empty)
+    // Interest cell (empty) with trash icon
     const interestCell = newRow.insertCell();
-    interestCell.textContent = '';
     interestCell.classList.add('text-right');
+    
+    // Add delete icon to interest cell
+    const deleteIcon = createDeleteIcon();
+    interestCell.appendChild(deleteIcon);
     
     // Set focus to the description field
     setTimeout(() => {
@@ -282,21 +383,36 @@ export function insertSpecialDamagesRowFromData(tableBody, index, rowData, final
 
     // Interest cell
     const interestCell = newRow.insertCell();
-    interestCell.textContent = '';
     interestCell.classList.add('text-right');
     
-    // Add interest amount to the interest cell if we have calculated detail
+    // Add interest amount to the interest cell if we have calculated detail (two-line case)
     if (calculatedDetail) {
-        // First add an empty space to align with the first line
-        interestCell.innerHTML = '&nbsp;';
+        // Create an empty space div for the first line with the delete icon
+        const firstLineDiv = document.createElement('div');
+        firstLineDiv.style.display = 'flex';
+        firstLineDiv.style.justifyContent = 'flex-end';
+        firstLineDiv.style.alignItems = 'center';
         
-        // Create a container with the same class for consistent styling
+        // Add the delete icon to the first line
+        const deleteIcon = createDeleteIcon();
+        firstLineDiv.appendChild(deleteIcon);
+        interestCell.appendChild(firstLineDiv);
+        
+        // Create a container for interest details (second line)
         const interestContainer = document.createElement('div');
         interestContainer.className = 'interest-calculation-details';
-        interestContainer.innerHTML = formatCurrencyForDisplay(calculatedDetail.interest || 0);
+        
+        // Add the interest amount
+        const interestSpan = document.createElement('span');
+        interestSpan.innerHTML = formatCurrencyForDisplay(calculatedDetail.interest || 0);
+        interestContainer.appendChild(interestSpan);
         
         // Add the container to the interest cell
         interestCell.appendChild(interestContainer);
+    } else {
+        // Single line case - just add the delete icon directly
+        const deleteIcon = createDeleteIcon();
+        interestCell.appendChild(deleteIcon);
     }
 
     return newRow; // Return the created row element
