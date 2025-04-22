@@ -1,4 +1,4 @@
-# Firebase Interest Rates Paywall Approach
+# Phase 1 - Firebase Interest Rate Paywall Approach
 
 ## Overview
 
@@ -6,11 +6,21 @@ This document outlines a targeted approach to implementing a paywall for the Cou
 
 The goal of this approach to get the app to a deployable state where it is deployed behind a paywall and able to start collecting gmoney. The purpose of this document is to plan how to get the app to that goal on a high level, while more detailed files in the /Tasks/TO DO folder will break the plan down into incremental steps.
 
-## Incremental Steps
+## Incremental Plan
 
 | File Name | Description | Complexity | Time Estimate |
 | --- | --- | --- | --- |
-| Task 1-Firebase Setup and Configuration | Setting up Firebase project, configuring database for interest rate storage | Medium | 1-2 hours |
+| Task 0.2-Break Down Access Control Module Task | Breaking down Task 2 into smaller subtasks | Simple | 30 minutes |
+| Task 0.3-Break Down Interest Rates Module Task | Breaking down Task 3 into smaller subtasks | Simple | 30 minutes |
+| Task 0.4-Break Down Payment UI and Processing Task | Breaking down Task 4 into smaller subtasks | Simple | 30 minutes |
+| Task 0.5-Break Down Security Rules and Finalization Task | Breaking down Task 5 into smaller subtasks | Simple | 30 minutes |
+| Task 1.1-Create Firebase Project and Database | Setting up Firebase project and creating a Firestore database | Simple | 30 minutes |
+| Task 1.2-Design and Create Interest Rates Collection Structure | Defining and implementing the database structure for interest rates | Simple | 30 minutes |
+| Task 1.3-Register Web App and Get Configuration | Registering the app with Firebase and obtaining configuration details | Simple | 15 minutes |
+| Task 1.4-Install Firebase SDK and Create Config Module | Adding Firebase SDK and creating a configuration module | Simple | 30 minutes |
+| Task 1.5-Create a Test Script for Firebase Connection | Creating a script to verify Firebase connection works | Simple | 30 minutes |
+| Task 1.6-Configure Basic Security Rules | Setting up security rules for the Firestore database | Simple | 15 minutes |
+| Task 1.7-Document the Firebase Setup | Creating comprehensive Firebase setup documentation | Simple | 30 minutes |
 | Task 2-Create Access Control Module for Firebase | Creating authentication module, payment verification, and data access methods | Medium | 1-2 hours |
 | Task 3-Modify Interest Rates Module for Firebase | Refactoring interestRates.js to fetch data from Firebase, implementing caching | Medium | 1-2 hours |
 | Task 4-Implement Payment UI and Processing | Creating UI for authentication and payment, integrating payment processing | Complex | 2 hours |
