@@ -10,11 +10,11 @@ The goal of this approach to get the app to a deployable state where it is deplo
 
 | File Name | Description | Complexity | Time Estimate |
 | --- | --- | --- | --- |
-| Step 1-Firebase Setup and Configuration | Setting up Firebase project, configuring database for interest rate storage | Medium | 1-2 hours |
-| Step 2-Create Access Control Module for Firebase | Creating authentication module, payment verification, and data access methods | Medium | 1-2 hours |
-| Step 3-Modify Interest Rates Module for Firebase | Refactoring interestRates.js to fetch data from Firebase, implementing caching | Medium | 1-2 hours |
-| Step 4-Implement Payment UI and Processing | Creating UI for authentication and payment, integrating payment processing | Complex | 2 hours |
-| Step 5-Configure Firebase Security Rules and Finalize | Configuring security rules, finalizing implementation, testing deployment | Simple | 1 hour |
+| Task 1-Firebase Setup and Configuration | Setting up Firebase project, configuring database for interest rate storage | Medium | 1-2 hours |
+| Task 2-Create Access Control Module for Firebase | Creating authentication module, payment verification, and data access methods | Medium | 1-2 hours |
+| Task 3-Modify Interest Rates Module for Firebase | Refactoring interestRates.js to fetch data from Firebase, implementing caching | Medium | 1-2 hours |
+| Task 4-Implement Payment UI and Processing | Creating UI for authentication and payment, integrating payment processing | Complex | 2 hours |
+| Task 5-Configure Firebase Security Rules and Finalize | Configuring security rules, finalizing implementation, testing deployment | Simple | 1 hour |
 
 ## Implementation Strategy
 
