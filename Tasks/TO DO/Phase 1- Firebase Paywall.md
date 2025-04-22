@@ -21,7 +21,12 @@ The goal of this approach to get the app to a deployable state where it is deplo
 | Task 1.5-Create a Test Script for Firebase Connection | Creating a script to verify Firebase connection works | Simple | 30 minutes |
 | Task 1.6-Configure Basic Security Rules | Setting up security rules for the Firestore database | Simple | 15 minutes |
 | Task 1.7-Document the Firebase Setup | Creating comprehensive Firebase setup documentation | Simple | 30 minutes |
-| Task 2-Create Access Control Module for Firebase | Creating authentication module, payment verification, and data access methods | Medium | 1-2 hours |
+| Task 2.1-Create Firebase Authentication Setup | Setting up basic Firebase authentication functionality | Simple | 30 minutes |
+| Task 2.2-Implement User Sign-Up and Login UI | Creating user interface for authentication | Simple | 30 minutes |
+| Task 2.3-Develop Access Token and Verification System | Implementing token-based authorization for data access | Simple | 30 minutes |
+| Task 2.4-Implement Session Management and Persistence | Ensuring users remain logged in across page refreshes | Simple | 30 minutes |
+| Task 2.5-Create Payment Verification Integration | Integrating payment verification with authentication | Simple | 30 minutes |
+| Task 2.6-Develop Access Control Error Handling | Implementing error handling for authentication and access | Simple | 30 minutes |
 | Task 3-Modify Interest Rates Module for Firebase | Refactoring interestRates.js to fetch data from Firebase, implementing caching | Medium | 1-2 hours |
 | Task 4-Implement Payment UI and Processing | Creating UI for authentication and payment, integrating payment processing | Complex | 2 hours |
 | Task 5-Configure Firebase Security Rules and Finalize | Configuring security rules, finalizing implementation, testing deployment | Simple | 1 hour |
