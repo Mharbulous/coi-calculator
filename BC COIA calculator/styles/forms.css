@@ -69,9 +69,9 @@
 [data-input="jurisdictionSelect"] {
     font-family: var(--font-family);
     font-size: inherit;
-    border: 1px solid var(--focus-outline-color);
+    border: none;
     padding: calc(var(--spacing-unit) * 0.5) var(--spacing-unit); /* 2pt 4pt */
-    background-color: var(--input-background-color);
+    background-color: white;
     border-radius: 0;
     width: 100%;
     text-align: right;
