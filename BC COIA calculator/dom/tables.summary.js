@@ -225,6 +225,14 @@ export function updateSummaryTable(store, recalculateCallback) {
             }
         } else if (template === templatePrejudgmentEditable) {
         // Handle the editable prejudgment interest amount field
+        
+        // No help icon exists in this template any more
+        // But check just to be safe and hide it if found
+        const helpIcon = rowClone.querySelector('[data-display="helpIcon"]');
+        if (helpIcon) {
+            helpIcon.style.display = 'none';
+        }
+        
         if (prejudgmentAmountInput) {
             prejudgmentAmountInput.value = formattedAmountInputWithCommas; // Use comma format initially
             

@@ -232,14 +232,10 @@
         <tr>
             <td class="text-left" data-display="itemLabel">
                 <span data-display="itemText"></span>
+                <!-- No help icon here when checkbox is unchecked -->
             </td>
-            <td class="text-center date-cell-container">
-                <!-- This entire cell gets hidden when prejudgment interest checkbox is unchecked -->
-                <div class="date-label-wrapper">
-                    <span class="help-icon" tabindex="0" role="button" aria-label="Help" data-display="helpIcon">?
-                        <span class="tooltip" data-display="tooltipText"></span>
-                    </span>
-                </div>
+            <td class="text-center">
+                <!-- No date cell container or help icon when checkbox is unchecked -->
             </td>
             <td class="text-right">
                 <input type="text" data-input="prejudgmentAmountValue" class="text-right">

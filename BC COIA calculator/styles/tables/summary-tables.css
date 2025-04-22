@@ -50,7 +50,7 @@
 /* New styles for the date label wrapper */
 .date-label-wrapper {
     display: flex;
-    justify-content: space-between; /* Space out icon, label, and input */
+    justify-content: flex-start; /* Changed from space-between to prevent shifting */
     align-items: center;
     width: 100%;
     padding: 0; /* Removed all padding */

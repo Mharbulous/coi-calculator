@@ -48,19 +48,32 @@ export function togglePrejudgmentVisibility(isInitializing = false, recalculateC
             });
             
             if (prejudgmentRow) {
-                // Find and hide the date cell container
-                const dateCellContainer = prejudgmentRow.querySelector('.date-cell-container');
-                if (dateCellContainer) {
-                    // Toggle visibility of the date cell container
-                    dateCellContainer.style.display = isChecked ? '' : 'none';
+                console.log("Found prejudgment row:", prejudgmentRow.innerHTML);
+                
+                // First, directly hide ALL help icons in the row, regardless of container
+                const allHelpIcons = prejudgmentRow.querySelectorAll('[data-display="helpIcon"]');
+                if (allHelpIcons.length > 0) {
+                    console.log(`Found ${allHelpIcons.length} help icons in prejudgment row`);
+                    allHelpIcons.forEach(icon => {
+                        icon.style.display = isChecked ? '' : 'none';
+                        console.log(`Setting help icon display to: ${isChecked ? 'visible' : 'none'}`);
+                    });
                 }
                 
-                // Also try to find any elements with dateLabel, helpIcon, or dateInput
-                const helpIcon = prejudgmentRow.querySelector('[data-display="helpIcon"]');
+                // Also find and hide the date cell container
+                const dateCellContainer = prejudgmentRow.querySelector('.date-cell-container');
+                if (dateCellContainer) {
+                    console.log("Found date cell container:", dateCellContainer.innerHTML);
+                    // Toggle visibility of the date cell container
+                    dateCellContainer.style.display = isChecked ? '' : 'none';
+                } else {
+                    console.log("No date cell container found in prejudgment row");
+                }
+                
+                // Handle other elements
                 const dateLabel = prejudgmentRow.querySelector('[data-display="dateLabel"]');
                 const dateInput = prejudgmentRow.querySelector('[data-input="dateValue"]');
                 
-                if (helpIcon) helpIcon.style.display = isChecked ? '' : 'none';
                 if (dateLabel) dateLabel.style.display = isChecked ? '' : 'none';
                 if (dateInput) dateInput.style.display = isChecked ? '' : 'none';
             }
@@ -172,6 +185,23 @@ export function togglePostjudgmentVisibility(isInitializing = false, recalculate
     elements.postjudgmentSection.style.display = isChecked ? '' : 'none';
     if (postjudgmentTitle && postjudgmentTitle.classList.contains('section-title')) {
         postjudgmentTitle.style.display = isChecked ? '' : 'none';
+    }
+    
+    // Find and manage the postjudgment interest row in the summary table
+    if (elements.summaryTableBody) {
+        const postjudgmentRow = Array.from(elements.summaryTableBody.querySelectorAll('tr')).find(row => {
+            const itemTextEl = row.querySelector('[data-display="itemText"]');
+            return itemTextEl && itemTextEl.textContent === 'Postjudgment Interest';
+        });
+        
+        if (postjudgmentRow) {
+            // Handle the help icon in the postjudgment row
+            const helpIcon = postjudgmentRow.querySelector('[data-display="helpIcon"]');
+            if (helpIcon) {
+                // Ensure consistent display of the help icon
+                helpIcon.style.display = isChecked ? '' : 'none';
+            }
+        }
     }
     
     // Save the current postjudgment date value before updating the store
