@@ -110,4 +110,9 @@
     .summary-table .total-row td { 
         font-weight: bold !important; 
     }
+    
+    /* Hide help icons in print mode */
+    .help-icon {
+        display: none !important;
+    }
 }
