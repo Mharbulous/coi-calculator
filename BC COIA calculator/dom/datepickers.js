@@ -6,6 +6,7 @@
 
 import elements from './elements.js';
 import useStore from '../store.js';
+import { formatDateForDisplay } from '../utils.date.js';
 
 // Define the error background color to match the error message background
 const ERROR_BACKGROUND_COLOR = '#f8d7da';
@@ -16,6 +17,10 @@ const NORMAL_BACKGROUND_COLOR = '#e0f2f7';
 let judgmentDatePicker = null;
 let prejudgmentDatePicker = null;
 let postjudgmentDatePicker = null;
+
+// Store references to special damages flatpickr instances
+// Using a Map with input element as key for each instance
+const specialDamagesDatePickers = new Map();
 
 /**
  * Initializes the date pickers with appropriate configurations and constraints.
@@ -159,8 +164,11 @@ function onJudgmentDateChange(selectedDates, recalculateCallback) {
         }
     }
     
-    // Update constraints on prejudgment and postjudgment pickers only
+    // Update constraints on prejudgment and postjudgment pickers
     updatePrejudgmentPostjudgmentConstraints();
+    
+    // Update constraints on all special damages date pickers
+    updateSpecialDamagesConstraints();
     
     // Trigger recalculation
     if (typeof recalculateCallback === 'function') {
@@ -199,6 +207,9 @@ function onPrejudgmentDateChange(selectedDates, recalculateCallback) {
     
     // Update constraints on prejudgment and postjudgment pickers
     updatePrejudgmentPostjudgmentConstraints();
+    
+    // Update constraints on all special damages date pickers
+    updateSpecialDamagesConstraints();
     
     // Trigger recalculation
     if (typeof recalculateCallback === 'function') {
@@ -307,7 +318,7 @@ function updatePrejudgmentPostjudgmentConstraints() {
                 }
             }
         } catch (error) {
-            console.error("Error updating prejudgment date constraints:", error);
+            // Silently handle error
         }
     }
     
@@ -339,7 +350,7 @@ function updatePrejudgmentPostjudgmentConstraints() {
                 }
             }
         } catch (error) {
-            console.error("Error updating postjudgment date constraints:", error);
+            // Silently handle error
         }
     } else if (elements.postjudgmentInterestDateInput) {
         // If section is hidden, always use normal background color for the input
@@ -383,4 +394,320 @@ function positionCalendar(selectedDates, dateStr, instance) {
         calendar.style.left = `${newLeft}px`;
         calendar.style.top = `${newTop}px`;
     });
+}
+
+/**
+ * Initializes a flatpickr date picker for a special damages date input.
+ * Applies date constraints based on Prejudgment Interest Date and Judgment Date.
+ * 
+ * @param {HTMLElement} inputElement - The special damages date input element to initialize.
+ * @param {Function} recalculateCallback - Function to call when dates change to trigger recalculation.
+ * @returns {Object} The flatpickr instance.
+ */
+export function initializeSpecialDamagesDatePicker(inputElement, recalculateCallback) {
+    // Destroy any existing instance for this input
+    if (specialDamagesDatePickers.has(inputElement)) {
+        destroySpecialDamagesDatePicker(inputElement);
+    }
+    
+    // Reset background color to default
+    inputElement.style.backgroundColor = NORMAL_BACKGROUND_COLOR;
+    
+    // Get constraint dates from store
+    const state = useStore.getState();
+    const judgmentDate = state.inputs.dateOfJudgment;
+    const prejudgmentDate = state.inputs.prejudgmentStartDate;
+    
+    
+    // Calculate day after prejudgment date (if available)
+    let minDate = "1993-01-01"; // Default fallback
+    if (prejudgmentDate) {
+        // Ensure minDate is the day AFTER prejudgment date
+        // IMPORTANT: Use string format to avoid timezone issues
+        const nextDay = new Date(Date.UTC(
+            prejudgmentDate.getUTCFullYear(),
+            prejudgmentDate.getUTCMonth(),
+            prejudgmentDate.getUTCDate() + 1
+        ));
+        minDate = formatDateForDisplay(nextDay); // Use string for consistent timezone handling
+    }
+    
+    // Use judgment date as max (if available) - convert to string for consistent handling
+    const maxDate = judgmentDate ? formatDateForDisplay(judgmentDate) : "2025-06-30";
+    
+    // Create array of dates to explicitly disable
+    let disabledDates = [];
+    
+    // Disable the prejudgment date itself
+    if (prejudgmentDate) {
+        // Create a date string in YYYY-MM-DD format for the prejudgment date
+        // Using string format avoids timezone issues
+        const dateStr = formatDateForDisplay(prejudgmentDate);
+        disabledDates.push(dateStr);
+    }
+    
+    // Disable the day after judgment date
+    if (judgmentDate) {
+        // IMPORTANT: Create a new date to avoid modifying the original
+        // Using UTC methods to avoid timezone issues
+        const dayAfterJudgment = new Date(Date.UTC(
+            judgmentDate.getUTCFullYear(),
+            judgmentDate.getUTCMonth(),
+            judgmentDate.getUTCDate() + 1
+        ));
+        
+        const dayAfterStr = formatDateForDisplay(dayAfterJudgment);
+        disabledDates.push(dayAfterStr);
+    }
+    
+    // Initialize flatpickr for the special damages date input
+    const flatpickrInstance = flatpickr(inputElement, {
+        dateFormat: "Y-m-d",
+        allowInput: true,
+        clickOpens: true,
+        disableMobile: true,
+        monthSelectorType: "dropdown",
+        enableTime: false,
+        minDate: minDate,
+        maxDate: maxDate,
+        disable: disabledDates, // Explicitly disable the prejudgment date
+        onChange: (selectedDates) => onSpecialDamagesDateChange(selectedDates, inputElement, recalculateCallback),
+        onOpen: positionCalendar
+    });
+    
+    // Store the flatpickr instance with the input element as key
+    specialDamagesDatePickers.set(inputElement, flatpickrInstance);
+    
+    return flatpickrInstance;
+}
+
+/**
+ * Destroys a specific special damages flatpickr instance.
+ * 
+ * @param {HTMLElement} inputElement - The special damages date input element whose flatpickr to destroy.
+ * @returns {boolean} True if the instance was found and destroyed, false otherwise.
+ */
+export function destroySpecialDamagesDatePicker(inputElement) {
+    if (specialDamagesDatePickers.has(inputElement)) {
+        const instance = specialDamagesDatePickers.get(inputElement);
+        
+        // Call the destroy method to clean up
+        instance.destroy();
+        
+        // Remove from the Map
+        specialDamagesDatePickers.delete(inputElement);
+        
+        return true;
+    }
+    
+    return false;
+}
+
+/**
+ * Handler for when a Special Damages Date changes.
+ * Validates the selected date against constraints and provides visual feedback.
+ * 
+ * @param {Array} selectedDates - Array of selected dates from Flatpickr.
+ * @param {HTMLElement} inputElement - The input element associated with the picker.
+ * @param {Function} recalculateCallback - Function to call to trigger recalculation.
+ */
+function onSpecialDamagesDateChange(selectedDates, inputElement, recalculateCallback) {
+    // Get the new date from selectedDates
+    const newDate = selectedDates.length > 0 ? selectedDates[0] : null;
+    
+    // Get constraint dates from store
+    const state = useStore.getState();
+    const judgmentDate = state.inputs.dateOfJudgment;
+    const prejudgmentDate = state.inputs.prejudgmentStartDate;
+    
+    // Calculate day after prejudgment date (if available)
+    let minDate = null;
+    if (prejudgmentDate) {
+        // Use UTC methods to avoid timezone issues
+        minDate = new Date(Date.UTC(
+            prejudgmentDate.getUTCFullYear(),
+            prejudgmentDate.getUTCMonth(),
+            prejudgmentDate.getUTCDate() + 1
+        ));
+    }
+    
+    // Validate the selected date
+    let isValid = true;
+    
+    if (newDate) {
+        // Check if date is at least one day after prejudgment date
+        // Special damages dates must be strictly AFTER prejudgment date
+        if (minDate && newDate < minDate) {
+            isValid = false;
+        }
+        
+        // Check if date is before or on judgment date
+        // The judgment date itself is valid for special damages
+        if (judgmentDate) {
+            // Compare using formatted strings to avoid timezone issues
+            const selectedDateStr = formatDateForDisplay(newDate);
+            const judgmentDateStr = formatDateForDisplay(judgmentDate);
+            
+            if (selectedDateStr > judgmentDateStr) {
+                isValid = false;
+            }
+        }
+    }
+    
+    // Apply visual feedback and update the input
+    if (!isValid) {
+        // Invalid date - clear the picker and set error background
+        const instance = specialDamagesDatePickers.get(inputElement);
+        if (instance) {
+            instance.clear();
+        }
+        inputElement.style.backgroundColor = ERROR_BACKGROUND_COLOR;
+    } else {
+        // Valid date - normal background
+        inputElement.style.backgroundColor = NORMAL_BACKGROUND_COLOR;
+        
+        // Directly update the input value for valid dates
+        if (newDate) {
+            // Format the date as YYYY-MM-DD
+            const year = newDate.getFullYear();
+            const month = String(newDate.getMonth() + 1).padStart(2, '0');
+            const day = String(newDate.getDate()).padStart(2, '0');
+            const formattedDate = `${year}-${month}-${day}`;
+            
+            // Update the input element's value directly
+            inputElement.value = formattedDate;
+            
+            // Dispatch a change event to ensure DOM state synchronization
+            const changeEvent = new Event('change', { bubbles: true });
+            inputElement.dispatchEvent(changeEvent);
+        }
+        
+        // Trigger recalculation
+        if (typeof recalculateCallback === 'function') {
+            recalculateCallback();
+        }
+    }
+}
+
+/**
+ * Updates the constraints for all special damages date pickers.
+ * This should be called when judgment date or prejudgment date changes.
+ */
+function updateSpecialDamagesConstraints() {
+    // Get constraint dates from store
+    const state = useStore.getState();
+    const judgmentDate = state.inputs.dateOfJudgment;
+    const prejudgmentDate = state.inputs.prejudgmentStartDate;
+    
+    
+    // Calculate day after prejudgment date (if available)
+    let minDate = "1993-01-01"; // Default fallback
+    if (prejudgmentDate) {
+        // Ensure minDate is the day AFTER prejudgment date
+        // Special damages can only be 1+ days after prejudgment interest date
+        // IMPORTANT: Use string format to avoid timezone issues
+        const nextDay = new Date(Date.UTC(
+            prejudgmentDate.getUTCFullYear(),
+            prejudgmentDate.getUTCMonth(),
+            prejudgmentDate.getUTCDate() + 1
+        ));
+        minDate = formatDateForDisplay(nextDay); // Use string for consistent timezone handling
+    }
+    
+    // Use judgment date as max (if available) - convert to string for consistent handling
+    const maxDate = judgmentDate ? formatDateForDisplay(judgmentDate) : "2025-06-30";
+    
+    // Create array of dates to explicitly disable
+    let disabledDates = [];
+    
+    // Disable the prejudgment date itself
+    if (prejudgmentDate) {
+        // Create a date string in YYYY-MM-DD format for the prejudgment date
+        // Using string format avoids timezone issues
+        const dateStr = formatDateForDisplay(prejudgmentDate);
+        disabledDates.push(dateStr);
+    }
+    
+    // Disable the day after judgment date
+    if (judgmentDate) {
+        // Using UTC methods to avoid timezone issues
+        const dayAfterJudgment = new Date(Date.UTC(
+            judgmentDate.getUTCFullYear(),
+            judgmentDate.getUTCMonth(),
+            judgmentDate.getUTCDate() + 1
+        ));
+        
+        const dayAfterStr = formatDateForDisplay(dayAfterJudgment);
+        disabledDates.push(dayAfterStr);
+    }
+    
+    // Update all special damages date pickers
+    specialDamagesDatePickers.forEach((instance, inputElement) => {
+        try {
+            
+            // Update constraints
+            instance.set('minDate', minDate);
+            instance.set('maxDate', maxDate);
+            instance.set('disable', disabledDates); // Directly disable the prejudgment date
+            
+            // Validate current selection
+            const selectedDate = instance.selectedDates.length > 0 ? instance.selectedDates[0] : null;
+            let isValid = true;
+            
+            if (selectedDate) {
+                // Get current selection as formatted string for comparison
+                const selectedDateStr = formatDateForDisplay(selectedDate);
+                
+                // Check if date is after one day after prejudgment date
+                if (prejudgmentDate) {
+                    // Use UTC methods to avoid timezone issues
+                    const minDateObj = new Date(Date.UTC(
+                        prejudgmentDate.getUTCFullYear(),
+                        prejudgmentDate.getUTCMonth(),
+                        prejudgmentDate.getUTCDate() + 1
+                    ));
+                    const minDateStr = formatDateForDisplay(minDateObj);
+                    
+                    if (selectedDateStr < minDateStr) {
+                        isValid = false;
+                    }
+                }
+                
+                // Check if date is before or on judgment date
+                // The judgment date itself is valid for special damages
+                if (judgmentDate) {
+                    const judgmentDateStr = formatDateForDisplay(judgmentDate);
+                    
+                    if (selectedDateStr > judgmentDateStr) {
+                        isValid = false;
+                    }
+                }
+            }
+            
+            // Apply visual feedback
+            if (!isValid && selectedDate) {
+                // Invalid date - clear the picker and set error background
+                instance.clear();
+                inputElement.style.backgroundColor = ERROR_BACKGROUND_COLOR;
+            } else if (selectedDate) {
+                // Valid date - normal background
+                inputElement.style.backgroundColor = NORMAL_BACKGROUND_COLOR;
+            }
+        } catch (error) {
+            // Silently handle error
+        }
+    });
+}
+
+/**
+ * Destroys all special damages flatpickr instances.
+ * This can be useful when needing to reset the entire application state.
+ */
+export function destroyAllSpecialDamagesDatePickers() {
+    specialDamagesDatePickers.forEach((instance, inputElement) => {
+        instance.destroy();
+    });
+    
+    // Clear the Map
+    specialDamagesDatePickers.clear();
 }

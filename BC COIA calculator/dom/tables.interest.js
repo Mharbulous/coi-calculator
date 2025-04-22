@@ -1,4 +1,4 @@
-import { parseDateInput, formatDateForDisplay } from '../utils.date.js';
+import { parseDateInput, formatDateForDisplay, normalizeDate } from '../utils.date.js';
 import { formatCurrencyForDisplay } from '../utils.currency.js';
 import elements from './elements.js';
 import { insertSpecialDamagesRowFromData } from './specialDamages.js';
@@ -44,13 +44,28 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
                 });
             }
         });
+        
+        // Check if existingSpecialDamagesRows is empty, and if so, retrieve from the store
+        if (existingSpecialDamagesRows.length === 0) {
+            const state = useStore.getState();
+            if (state.results.specialDamages && state.results.specialDamages.length > 0) {
+                // Format store values for DOM insertion
+                state.results.specialDamages.forEach(damage => {
+                    existingSpecialDamagesRows.push({
+                        date: damage.date, // Already in YYYY-MM-DD format
+                        description: damage.description,
+                        amount: damage.amount.toString() // Convert to string for consistent handling
+                    });
+                });
+            }
+        }
     }
     
     // Clear previous rows
     tableBody.innerHTML = '';
 
     // Populate new rows (assuming 5 columns: Date/Period, Description, Rate, Principal, Interest)
-    details.forEach(item => {
+    details.forEach((item, index) => {
         const row = tableBody.insertRow();
         row.insertCell().textContent = item.start; // Expect formatted date/period start
         
@@ -78,15 +93,29 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
             // Add click event listener
             addButton.addEventListener('click', function(event) {
                 event.preventDefault();
-                console.log('Add special damages clicked for:', item);
                 
                 // Get the current row
                 const currentRow = this.closest('tr');
                 if (!currentRow) return;
                 
-                // Create a new special damages row
+                // Create a new special damages row with date +1 day from the current row date
                 import('./specialDamages.js').then(module => {
-                    module.insertSpecialDamagesRow(tableBody, currentRow, item.start);
+                    // Parse the current row date
+                    const currentDate = parseDateInput(item.start);
+                    if (currentDate) {
+                        // Add one day to the date
+                        const nextDate = new Date(normalizeDate(currentDate));
+                        nextDate.setUTCDate(nextDate.getUTCDate() + 1);
+                        
+                        // Format it back to YYYY-MM-DD
+                        const nextDateFormatted = formatDateForDisplay(nextDate);
+                        
+                        // Use this new date for the special damages row
+                        module.insertSpecialDamagesRow(tableBody, currentRow, nextDateFormatted);
+                    } else {
+                        // Fallback to current date if parsing fails
+                        module.insertSpecialDamagesRow(tableBody, currentRow, item.start);
+                    }
                 });
             });
             
@@ -96,7 +125,15 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
         descCell.appendChild(descriptionContainer);
         
         row.insertCell().textContent = item.rate.toFixed(2) + '%';
-        row.insertCell().innerHTML = formatCurrencyForDisplay(item.principal); // Principal for the period
+        
+        // For postjudgment table, use the same principal amount for all rows (principalTotal)
+        // This ensures we don't show compound interest in the display
+        if (!isPrejudgmentTable && principalTotal !== null) {
+            row.insertCell().innerHTML = formatCurrencyForDisplay(principalTotal);
+        } else {
+            row.insertCell().innerHTML = formatCurrencyForDisplay(item.principal);
+        }
+        
         row.insertCell().innerHTML = formatCurrencyForDisplay(item.interest); // Interest for the period
 
         // Apply text alignment via CSS classes (adjust indices if needed)
@@ -109,78 +146,95 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
 
     // Re-insert existing special damages rows in correct sorted order
     if (isPrejudgmentTable && existingSpecialDamagesRows.length > 0) {
-        // Sort the special damages rows themselves by date first
-        existingSpecialDamagesRows.sort((a, b) => {
-            const dateA = parseDateInput(a.date); // YYYY-MM-DD
-            const dateB = parseDateInput(b.date); // YYYY-MM-DD
-            if (!dateA || !dateB) return 0;
-            return dateA - dateB;
-        });
-
-        // Determine Final Period Start Date for comparison later
+        // Get all dates from interest calculation periods for comparison
+        const periodDates = details.map(item => ({
+            date: parseDateInput(item.start),
+            dateStr: item.start,
+            isStartPeriod: true
+        }));
+        
+        // Add final period start date if available
         let finalPeriodStartDate = null;
         if (details.length > 0) {
             const lastDetail = details[details.length - 1];
-            // lastDetail.start is now in YYYY-MM-DD format from formatDateForDisplay
-            finalPeriodStartDate = parseDateInput(lastDetail.start); // Use parseDateInput
+            finalPeriodStartDate = parseDateInput(lastDetail.start);
         }
+        
         // Make a mutable copy of the final period details for safe removal during iteration
         const mutableFinalPeriodDetails = [...finalPeriodDamageInterestDetails];
 
+        // Parse all special damages dates first and add to our collection for sorting
+        const allRowsToInsert = existingSpecialDamagesRows.map(rowData => {
+            const date = parseDateInput(rowData.date);
+            return {
+                date: date,
+                dateStr: rowData.date,
+                isSpecialDamage: true,
+                rowData: rowData
+            };
+        }).filter(item => item.date !== null); // Filter out invalid dates
 
-        existingSpecialDamagesRows.forEach(rowData => {
-            let inserted = false;
-            const newRowDate = parseDateInput(rowData.date); // YYYY-MM-DD (expects utils.js parseDateInput to handle this)
-            if (!newRowDate) return; // Skip if date is invalid
+        // Sort all rows chronologically
+        allRowsToInsert.sort((a, b) => a.date - b.date);
 
-            // Iterate through the *current* rows in the table body
+        // Now insert each special damages row at the correct position
+        for (const rowToInsert of allRowsToInsert) {
+            let insertIndex = -1; // Default to append at end
+            
+            // Find where to insert this row based on date
             for (let i = 0; i < tableBody.rows.length; i++) {
                 const currentRow = tableBody.rows[i];
                 const currentRowDateCell = currentRow.cells[0];
                 let currentRowDate = null;
-
-                // Check if the current row is a special damages row (already re-inserted)
+                
+                // Check if current row is a special damages row (already inserted)
                 const dateInput = currentRow.querySelector('.special-damages-date');
                 if (dateInput) {
-                    currentRowDate = parseDateInput(dateInput.value); // YYYY-MM-DD from input
+                    currentRowDate = parseDateInput(dateInput.value);
                 } else {
-                    // Otherwise, it's a calculated row (YYYY-MM-DD text)
+                    // Otherwise it's a calculated row
                     const dateStr = currentRowDateCell.textContent.trim();
-                    currentRowDate = parseDateInput(dateStr); // Parse YYYY-MM-DD text
-                    if (!currentRowDate) {
-                        console.warn("Could not parse date from calculated row:", dateStr);
-                    }
+                    currentRowDate = parseDateInput(dateStr);
                 }
-
-                // If we have a valid date for the current row and the new row's date is earlier
-                if (currentRowDate && newRowDate < currentRowDate) {
-                    // Insert user row before currentRow with interest calculation details included
-                    const insertedUserRow = insertSpecialDamagesRowFromData(tableBody, i, rowData, finalPeriodStartDate, mutableFinalPeriodDetails);
-                    
-                    inserted = true;
-                    break; // Move to the next special damages row
+                
+                // Compare dates for insertion position
+                if (currentRowDate && rowToInsert.date <= currentRowDate) {
+                    insertIndex = i;
+                    break;
                 }
             }
-            // If not inserted yet (it's the latest date among all rows), append at the end
-            if (!inserted) {
-                // Append the user row at the end with interest calculation details included
-                const insertedUserRow = insertSpecialDamagesRowFromData(tableBody, -1, rowData, finalPeriodStartDate, mutableFinalPeriodDetails);
-            }
-        });
+            
+            // Insert the special damages row at the determined position
+            insertSpecialDamagesRowFromData(
+                tableBody, 
+                insertIndex, 
+                rowToInsert.rowData, 
+                finalPeriodStartDate, 
+                mutableFinalPeriodDetails
+            );
+        }
     }
 
     // Update totals in the footer
-    if (principalTotalElement && principalTotal !== null && !isPrejudgmentTable) {
-        // Only update the principal total for non-prejudgment tables
+    if (principalTotalElement && principalTotal !== null) {
         principalTotalElement.innerHTML = formatCurrencyForDisplay(principalTotal);
     }
+    
+    // If this is the postjudgment table, update the principal total in the footer
+    if (!isPrejudgmentTable && principalTotal !== null) {
+        const postjudgmentPrincipalEl = elements.postjudgmentPrincipalTotalEl;
+        if (postjudgmentPrincipalEl) {
+            postjudgmentPrincipalEl.innerHTML = formatCurrencyForDisplay(principalTotal);
+        }
+    }
+    
     interestTotalElement.innerHTML = formatCurrencyForDisplay(interestTotal);
     
     // Add date and total days to the footer row
     const table = tableBody.closest('table');
     if (table) {
         const footerRow = table.querySelector('tfoot tr.total');
-        if (footerRow && footerRow.cells.length > 0) {
+        if (footerRow) {
             // Get the appropriate date based on which table this is
             const state = useStore.getState();
             let dateToShow = '';
@@ -200,35 +254,30 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
             // Calculate total days from all periods
             const totalDays = details.reduce((sum, item) => sum + (item._days || 0), 0);
             
-            // Update the text in the first cell (which has colspan="2")
+            // Update the text in the cells
             if (dateToShow) {
-                const firstCell = footerRow.cells[0];
+                // Get the cells using the new data-display attributes
+                let totalDaysCell, dateCell;
                 
-                // Create a container for date and total days
-                const footerContainer = document.createElement('div');
-                footerContainer.style.display = 'flex';
-                footerContainer.style.justifyContent = 'space-between';
-                footerContainer.style.width = '100%';
+                if (isPrejudgmentTable) {
+                    totalDaysCell = table.querySelector('[data-display="prejudgmentTotalDays"]');
+                    dateCell = table.querySelector('[data-display="prejudgmentDateCell"]');
+                } else {
+                    totalDaysCell = table.querySelector('[data-display="postjudgmentTotalDays"]');
+                    dateCell = table.querySelector('[data-display="postjudgmentDateCell"]');
+                }
                 
-                // Create a span for the date
-                const dateSpan = document.createElement('span');
-                dateSpan.textContent = dateToShow;
-                dateSpan.style.textAlign = 'left';
-                dateSpan.style.fontWeight = 'normal'; // Changed from bold to normal to match the total days style
+                // Update total days cell
+                if (totalDaysCell) {
+                    totalDaysCell.textContent = `Total: ${totalDays} days`;
+                    totalDaysCell.style.fontWeight = 'normal';
+                }
                 
-                // Create a span for the total days
-                const daysSpan = document.createElement('span');
-                daysSpan.textContent = `Total: ${totalDays} days`;
-                daysSpan.style.textAlign = 'right';
-                daysSpan.style.fontWeight = 'normal';
-                
-                // Add both spans to the container
-                footerContainer.appendChild(dateSpan);
-                footerContainer.appendChild(daysSpan);
-                
-                // Clear the cell and add the container
-                firstCell.innerHTML = '';
-                firstCell.appendChild(footerContainer);
+                // Update date cell
+                if (dateCell) {
+                    dateCell.textContent = dateToShow;
+                    dateCell.style.fontWeight = 'normal';
+                }
             }
         }
     }

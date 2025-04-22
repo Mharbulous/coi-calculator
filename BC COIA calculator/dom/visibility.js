@@ -48,19 +48,25 @@ export function togglePrejudgmentVisibility(isInitializing = false, recalculateC
             });
             
             if (prejudgmentRow) {
-                // Find and hide the date cell container
+                // First, directly hide ALL help icons in the row, regardless of container
+                const allHelpIcons = prejudgmentRow.querySelectorAll('[data-display="helpIcon"]');
+                if (allHelpIcons.length > 0) {
+                    allHelpIcons.forEach(icon => {
+                        icon.style.display = isChecked ? '' : 'none';
+                    });
+                }
+                
+                // Also find and hide the date cell container
                 const dateCellContainer = prejudgmentRow.querySelector('.date-cell-container');
                 if (dateCellContainer) {
                     // Toggle visibility of the date cell container
                     dateCellContainer.style.display = isChecked ? '' : 'none';
                 }
                 
-                // Also try to find any elements with dateLabel, helpIcon, or dateInput
-                const helpIcon = prejudgmentRow.querySelector('[data-display="helpIcon"]');
+                // Handle other elements
                 const dateLabel = prejudgmentRow.querySelector('[data-display="dateLabel"]');
                 const dateInput = prejudgmentRow.querySelector('[data-input="dateValue"]');
                 
-                if (helpIcon) helpIcon.style.display = isChecked ? '' : 'none';
                 if (dateLabel) dateLabel.style.display = isChecked ? '' : 'none';
                 if (dateInput) dateInput.style.display = isChecked ? '' : 'none';
             }
@@ -80,7 +86,7 @@ export function togglePrejudgmentVisibility(isInitializing = false, recalculateC
         if (isChecked) {
             // If we're turning the checkbox back on:
             
-            // 1. Restore the saved prejudgment calculation state (if any)
+            // 1. Restore the saved prejudgment calculation state (including special damages)
             useStore.getState().restorePrejudgmentState();
             
             // 2. Update the DOM with the restored date value
@@ -101,7 +107,7 @@ export function togglePrejudgmentVisibility(isInitializing = false, recalculateC
         } else {
             // If we're turning the checkbox off:
             
-            // 1. Save the current prejudgment calculation state
+            // 1. Save the current prejudgment calculation state including special damages
             useStore.getState().savePrejudgmentState();
             
             // 2. Save the current calculated value as the user-entered value
@@ -172,6 +178,23 @@ export function togglePostjudgmentVisibility(isInitializing = false, recalculate
     elements.postjudgmentSection.style.display = isChecked ? '' : 'none';
     if (postjudgmentTitle && postjudgmentTitle.classList.contains('section-title')) {
         postjudgmentTitle.style.display = isChecked ? '' : 'none';
+    }
+    
+    // Find and manage the postjudgment interest row in the summary table
+    if (elements.summaryTableBody) {
+        const postjudgmentRow = Array.from(elements.summaryTableBody.querySelectorAll('tr')).find(row => {
+            const itemTextEl = row.querySelector('[data-display="itemText"]');
+            return itemTextEl && itemTextEl.textContent === 'Postjudgment Interest';
+        });
+        
+        if (postjudgmentRow) {
+            // Handle the help icon in the postjudgment row
+            const helpIcon = postjudgmentRow.querySelector('[data-display="helpIcon"]');
+            if (helpIcon) {
+                // Ensure consistent display of the help icon
+                helpIcon.style.display = isChecked ? '' : 'none';
+            }
+        }
     }
     
     // Save the current postjudgment date value before updating the store

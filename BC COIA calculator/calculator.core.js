@@ -20,7 +20,8 @@ import {
     datesEqual
 } from './utils.date.js';
 import {
-    parseCurrency
+    parseCurrency,
+    formatCurrencyForDisplay
 } from './utils.currency.js';
 import useStore from './store.js';
 
@@ -42,38 +43,51 @@ function collectSpecialDamages() {
         return currentState.savedPrejudgmentState.specialDamages;
     }
     
-    // Otherwise collect from the DOM as usual
-    const specialDamages = [];
+    // First check if we have any special damages in the DOM
     const rows = elements.prejudgmentTableBody.querySelectorAll('.special-damages-row');
     
-    rows.forEach(row => {
-        const dateInput = row.querySelector('.special-damages-date');
-        const descInput = row.querySelector('.special-damages-description');
-        const amountInput = row.querySelector('.special-damages-amount');
-        
-        if (dateInput && descInput && amountInput) {
-            // Get the date from the input field in YYYY-MM-DD format
-            const dateValue = dateInput.value; // Date is already YYYY-MM-DD from input
+    // If we have rows in the DOM, collect from there
+    if (rows.length > 0) {
+        const specialDamages = [];
+        rows.forEach(row => {
+            const dateInput = row.querySelector('.special-damages-date');
+            const descInput = row.querySelector('.special-damages-description');
+            const amountInput = row.querySelector('.special-damages-amount');
             
-            // No conversion needed, store directly as YYYY-MM-DD
-            
-            const description = descInput.value.trim() || descInput.placeholder;
-            const amount = parseCurrency(amountInput.value);
-            
-            if (dateValue && amount > 0) { // Use dateValue directly
-                specialDamages.push({
-                    date: dateValue, // Store as YYYY-MM-DD
-                    description,
-                    amount
-                });
+            if (dateInput && descInput && amountInput) {
+                // Get the date from the input field in YYYY-MM-DD format
+                const dateValue = dateInput.value; // Date is already YYYY-MM-DD from input
+                
+                // No conversion needed, store directly as YYYY-MM-DD
+                
+                const description = descInput.value.trim() || descInput.placeholder;
+                const amount = parseCurrency(amountInput.value);
+                
+                if (dateValue && amount > 0) { // Use dateValue directly
+                    specialDamages.push({
+                        date: dateValue, // Store as YYYY-MM-DD
+                        description,
+                        amount
+                    });
+                }
             }
+        });
+        
+        // Update Zustand store with the special damages from DOM
+        useStore.getState().setSpecialDamages(specialDamages);
+        return specialDamages;
+    } 
+    // If no rows in DOM but we have damages in the store, preserve those defaults
+    else {
+        const currentSpecialDamages = currentState.results.specialDamages;
+        if (currentSpecialDamages && currentSpecialDamages.length > 0) {
+            return currentSpecialDamages; // Return without overwriting the store
         }
-    });
-    
-    // Update Zustand store with the special damages
-    useStore.getState().setSpecialDamages(specialDamages);
-    
-    return specialDamages;
+        // Otherwise there are no special damages anywhere, return empty array
+        else {
+            return [];
+        }
+    }
 }
 
 /**
@@ -275,13 +289,13 @@ function calculateJudgmentTotal(inputs, prejudgmentResult, specialDamagesTotal) 
 }
 
 /**
- * Calculates postjudgment interest based on inputs and judgment total.
+ * Calculates postjudgment interest based on inputs and principal amount.
  * @param {object} inputs - The input values object.
- * @param {number} judgmentTotal - The judgment total.
+ * @param {number} principal - The principal amount (excluding prejudgment interest).
  * @param {object} interestRatesData - The interest rates data.
  * @returns {object} An object containing postjudgment result and final calculation date.
  */
-function calculatePostjudgmentInterest(inputs, judgmentTotal, interestRatesData) {
+function calculatePostjudgmentInterest(inputs, principal, interestRatesData) {
     let postjudgmentResult = { details: [], total: 0 };
     // Postjudgment starts from the *latest* of the three judgment dates
     const latestJudgmentDate = new Date(Math.max(inputs.dateOfJudgment, inputs.nonPecuniaryJudgmentDate, inputs.costsAwardedDate));
@@ -295,10 +309,9 @@ function calculatePostjudgmentInterest(inputs, judgmentTotal, interestRatesData)
         // Use normalized date comparison
         if (inputs.postjudgmentEndDate && dateOnOrAfter(inputs.postjudgmentEndDate, postjudgmentStartDate)) {
             finalCalculationDate = inputs.postjudgmentEndDate; // Use the dynamic end date for calculation and display
-            // Postjudgment principal is the total judgment amount (including prejudgment interest on pecuniary)
-            const postjudgmentPrincipal = judgmentTotal;
 
-            if (postjudgmentPrincipal > 0) {
+            // Use the passed principal amount directly (without adding prejudgment interest)
+            if (principal > 0) {
                  // Create a state object for calculations.js functions
                  const stateForCalc = {
                      inputs: useStore.getState().inputs,
@@ -311,7 +324,7 @@ function calculatePostjudgmentInterest(inputs, judgmentTotal, interestRatesData)
                      'postjudgment',
                      postjudgmentStartDate, // Start date for this calc
                      inputs.postjudgmentEndDate, // End date for this calc
-                     postjudgmentPrincipal, // Initial principal for postjudgment
+                     principal, // Initial principal for postjudgment (without prejudgment interest)
                      interestRatesData
                  );
             } else {
@@ -409,7 +422,12 @@ function recalculate() {
 
     // 2. Collect Special Damages (needed for both prejudgment calc and totals)
     const specialDamages = collectSpecialDamages();
-    const specialDamagesTotal = useStore.getState().results.specialDamagesTotal;
+    
+    // Calculate the total special damages amount
+    const specialDamagesTotal = specialDamages.reduce((total, damage) => total + damage.amount, 0);
+    
+    // Store the special damages total in the store
+    useStore.getState().setResult('specialDamagesTotal', specialDamagesTotal);
 
     // 3. Calculate Prejudgment Interest
     const prejudgmentResult = calculatePrejudgmentInterest(inputs, specialDamagesTotal, interestRatesData);
@@ -435,8 +453,17 @@ function recalculate() {
     // Update Zustand store with judgment total
     useStore.getState().setResult('judgmentTotal', judgmentTotal);
 
+    // Calculate principal for postjudgment interest (excluding prejudgment interest)
+    // For simple interest calculation, postjudgment interest should only be calculated on:
+    // - judgmentAwarded (General Damages & Debt)
+    // - nonPecuniaryAwarded
+    // - costsAwarded
+    // - specialDamagesTotal
+    // but NOT on prejudgment interest
+    const postjudgmentPrincipal = inputs.judgmentAwarded + inputs.nonPecuniaryAwarded + inputs.costsAwarded + specialDamagesTotal;
+
     // 6. Calculate Postjudgment Interest
-    const { postjudgmentResult, finalCalculationDate } = calculatePostjudgmentInterest(inputs, judgmentTotal, interestRatesData);
+    const { postjudgmentResult, finalCalculationDate } = calculatePostjudgmentInterest(inputs, postjudgmentPrincipal, interestRatesData);
     
     // Update Zustand store with postjudgment results and final calculation date
     useStore.getState().setPostjudgmentResult(postjudgmentResult);
@@ -448,7 +475,7 @@ function recalculate() {
         null, // No principal total element for postjudgment
         elements.postjudgmentInterestTotalEl,
         useStore.getState().results.postjudgmentResult, // Pass the postjudgment result
-        null // No specific footer principal for postjudgment
+        postjudgmentPrincipal // Pass the postjudgment principal for display purposes
     );
 
     // 8. Calculate final total and per diem

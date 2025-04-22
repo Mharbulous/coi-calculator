@@ -10,7 +10,6 @@ import { setupCustomDateInputListeners, setupCurrencyInputListeners, initializeD
  */
 export function updateSummaryTable(store, recalculateCallback) {
     if (!elements.summaryTableBody || !elements.summaryTotalLabelEl || !elements.summaryTotalEl || !elements.summaryPerDiemEl) {
-        console.error("Missing Summary table elements for updateSummaryTable");
         return;
     }
     elements.summaryTableBody.innerHTML = ''; // Clear previous rows
@@ -24,7 +23,13 @@ export function updateSummaryTable(store, recalculateCallback) {
     const { prejudgmentResult, postjudgmentResult } = results;
 
     // Calculate total special damages
-    const specialDamagesTotal = (results.specialDamages || []).reduce((total, damage) => total + damage.amount, 0);
+    const specialDamagesArray = results.specialDamages || [];
+    const specialDamagesTotal = specialDamagesArray.reduce((total, damage) => total + damage.amount, 0);
+    
+    // Update the store with the calculated total if it differs from what's stored
+    if (results.specialDamagesTotal !== specialDamagesTotal) {
+        store.getState().setResult('specialDamagesTotal', specialDamagesTotal);
+    }
 
     // Construct summary items from appState
     // For damage rows, we'll use empty strings for dateValue since the judgment date is now in the header
@@ -94,7 +99,6 @@ export function updateSummaryTable(store, recalculateCallback) {
     const templatePrejudgmentEditable = document.getElementById('summary-row-prejudgment-editable-amount');
 
     if (!templatePecuniary || !templateAmountOnly || !templateDateOnly || !templateDisplayOnly || !templatePrejudgmentEditable) {
-        console.error("One or more summary table row templates not found in DOM.");
         return;
     }
 
@@ -221,6 +225,14 @@ export function updateSummaryTable(store, recalculateCallback) {
             }
         } else if (template === templatePrejudgmentEditable) {
         // Handle the editable prejudgment interest amount field
+        
+        // No help icon exists in this template any more
+        // But check just to be safe and hide it if found
+        const helpIcon = rowClone.querySelector('[data-display="helpIcon"]');
+        if (helpIcon) {
+            helpIcon.style.display = 'none';
+        }
+        
         if (prejudgmentAmountInput) {
             prejudgmentAmountInput.value = formattedAmountInputWithCommas; // Use comma format initially
             
@@ -228,7 +240,6 @@ export function updateSummaryTable(store, recalculateCallback) {
             prejudgmentAmountInput.addEventListener('blur', function(event) {
                 // When the value changes, update the store with the user-entered value
                 const userEnteredValue = parseCurrency(event.target.value);
-                console.log("User entered prejudgment interest value on blur:", userEnteredValue);
                 
                 // Update the store with the user-entered value
                 store.getState().setInput('userEnteredPrejudgmentInterest', userEnteredValue);

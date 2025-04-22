@@ -28,6 +28,7 @@ const elements = {
     prejudgmentTotalLabel: null,
     prejudgmentPrincipalTotalEl: document.querySelector('[data-display="prejudgmentPrincipalTotal"]'),
     prejudgmentInterestTotalEl: document.querySelector('[data-display="prejudgmentInterestTotal"]'),
+    postjudgmentPrincipalTotalEl: document.querySelector('[data-display="postjudgmentPrincipalTotal"]'),
     postjudgmentInterestTotalEl: document.querySelector('[data-display="postjudgmentInterestTotal"]'),
     summaryTotalLabelEl: document.querySelector('[data-display="summaryTotalLabel"]'),
     summaryTotalEl: document.querySelector('[data-display="summaryTotal"]'),

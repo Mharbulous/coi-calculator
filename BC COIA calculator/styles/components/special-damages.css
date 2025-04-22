@@ -1,5 +1,42 @@
 /* --- Special Damages Styles --- */
 
+/* Delete icon styles for deletion functionality */
+.delete-icon {
+    color: #cc0000;
+    cursor: pointer;
+    font-size: 0.9em;
+    opacity: 0.6;
+    transition: opacity 0.2s, transform 0.2s;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: 6px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1px solid #cc0000;
+    vertical-align: middle;
+}
+
+.delete-icon:hover {
+    opacity: 1;
+    transform: scale(1.15);
+    background-color: #ffeeee;
+}
+
+/* For two-line special damages rows, position the delete icon */
+.interest-calculation-details .delete-icon {
+    position: absolute;
+    right: 4px;
+    top: 1px;
+}
+
+/* Position the trash icon container in the interest cell */
+.trash-icon-container {
+    position: relative;
+    display: inline-block;
+}
+
 /* Description container and Add Special Damages button styles */
 .description-container {
     display: flex;
@@ -85,7 +122,8 @@
 
 /* Ensure the button is hidden in print mode */
 @media print {
-    .add-special-damages-btn {
+    .add-special-damages-btn,
+    .delete-icon {
         display: none !important;
     }
     
