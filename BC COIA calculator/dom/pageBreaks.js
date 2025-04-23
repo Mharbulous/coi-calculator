@@ -121,7 +121,7 @@ function insertBetweenTableIndicators(pageHeightPx) {
                 // Add a shadow element to the bottom of the first page
                 const shadowElement = document.createElement('div');
                 shadowElement.className = 'page-break-shadow';
-                shadowElement.style.top = `${breakPosition - 1}px`; // Position 1px higher to eliminate gap
+                shadowElement.style.top = `${breakPosition}px`; // Position exactly at the break
                 paper.appendChild(shadowElement);
                 
                 // Style is now handled in CSS

@@ -8,18 +8,16 @@
 /* Shadow at the bottom of the first page */
 .page-break-shadow {
   position: absolute;
-  left: 0; /* Match page width exactly */
-  right: 0; /* Match page width exactly */
-  height: 15px; /* Tall enough for the gradient to fade out */
-  top: 0; /* Position at the top of the indicator */
+  left: 0;
+  right: 0;
+  height: 1px; /* Very thin element */
   z-index: 10; /* Above the background but below paper content */
+  box-shadow: 0 3px 4px -1px rgba(0,0,0,0.12); /* Refined shadow that only casts downward */
   pointer-events: none; /* Allow clicking through */
-  background-color: var(--paper-background-color); /* Match paper background color exactly */
-  border: none; /* No borders */
-  box-shadow: 0 4px 6px -2px rgba(0,0,0,0.15); /* Shadow only below */
+  background: transparent;
+  border-top: 1px solid white; /* Block any upward shadow with white border */
+  margin-top: -1px; /* Slightly overlap with the page edge */
 }
-
-/* Remove the pseudo-elements that were causing issues */
 
 /* Style for the page break indicator labels */
 .page-break-indicator {
