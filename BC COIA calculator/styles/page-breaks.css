@@ -28,6 +28,22 @@
   pointer-events: none; /* Allow clicking through */
 }
 
+/* Special style for footer break indicators */
+.page-break-indicator.footer-break {
+  border-top: 2px dashed #d9534f; /* Red dashed border */
+  border-bottom: 2px dashed #d9534f;
+  background-color: rgba(255, 100, 100, 0.1) !important;
+  z-index: 110; /* Higher z-index to appear above other indicators */
+}
+
+/* Special style for last row break indicators */
+.page-break-indicator.last-row-break {
+  border-top: 2px dashed #5cb85c; /* Green dashed border */
+  border-bottom: 2px dashed #5cb85c;
+  background-color: rgba(100, 255, 100, 0.1) !important;
+  z-index: 105;
+}
+
 /* --- Table Page Break Rows --- */
 
 /* Special row to represent page breaks within tables */

@@ -233,4 +233,12 @@
         height: 0 !important;
         visibility: hidden !important;
     }
+    
+    /* Special handling for footer breaks - ensure they force a page break */
+    .page-break-indicator.footer-break,
+    .page-break-indicator.last-row-break {
+        page-break-before: always !important;
+        height: 0 !important;
+        visibility: hidden !important;
+    }
 }

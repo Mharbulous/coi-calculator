@@ -83,6 +83,12 @@ function insertBetweenTableIndicators(pageHeightPx) {
         pageBreakPositions.push(i * pageHeightPx);
     }
     
+    // Track which page boundaries we've already inserted indicators for
+    const insertedBreakPositions = new Set();
+    
+    // First, handle table footers and total rows specifically to prevent them from being split
+    handleTableFooters(paper, paperTop, pageHeightPx, insertedBreakPositions);
+    
     // Check each table element to see if a page break occurs at its boundary
     tableElements.forEach(element => {
         const rect = element.getBoundingClientRect();
@@ -91,12 +97,18 @@ function insertBetweenTableIndicators(pageHeightPx) {
         
         // Check if the top or bottom edge of the element is near a page break
         for (const breakPosition of pageBreakPositions) {
+            // Skip if we've already inserted an indicator for this position
+            if (insertedBreakPositions.has(breakPosition)) continue;
+            
             // Check if the element's top or bottom edge is very close to a page break
             // (within 20 pixels)
             const topNearBreak = Math.abs(elementTop - breakPosition) < 20;
             const bottomNearBreak = Math.abs(elementBottom - breakPosition) < 20;
             
-            if (topNearBreak || bottomNearBreak) {
+            // Also check if a page break occurs within the element (not just at edges)
+            const breakWithinElement = elementTop < breakPosition && elementBottom > breakPosition;
+            
+            if (topNearBreak || bottomNearBreak || breakWithinElement) {
                 // Calculate which page this break is on
                 const pageNum = Math.floor(breakPosition / pageHeightPx);
                 
@@ -111,7 +123,104 @@ function insertBetweenTableIndicators(pageHeightPx) {
                 indicator.style.fontWeight = 'bold';
                 
                 paper.appendChild(indicator);
+                
+                // Mark this position as handled
+                insertedBreakPositions.add(breakPosition);
             }
+        }
+    });
+}
+
+/**
+ * Specifically handles table footers and total rows to prevent them from being split across pages.
+ * @param {HTMLElement} paper - The paper element containing all content
+ * @param {number} paperTop - The top position of the paper element
+ * @param {number} pageHeightPx - The height of a printable page in pixels
+ * @param {Set} insertedBreakPositions - Set to track which break positions have been handled
+ */
+function handleTableFooters(paper, paperTop, pageHeightPx, insertedBreakPositions) {
+    // Find all table footers and total rows
+    const footerElements = paper.querySelectorAll('.interest-table tfoot, .interest-table tr.total');
+    
+    // Also find rows that contain "Total:" text (since we can't use :contains in standard JS)
+    const allTableRows = paper.querySelectorAll('.interest-table tr');
+    const totalRows = Array.from(allTableRows).filter(row => {
+        return row.textContent.includes('Total:');
+    });
+    
+    // Combine the footer elements with the total rows
+    const allFooterElements = [...footerElements, ...totalRows];
+    
+    allFooterElements.forEach(footer => {
+        const rect = footer.getBoundingClientRect();
+        const footerTop = rect.top - paperTop;
+        const footerBottom = rect.bottom - paperTop;
+        const footerHeight = rect.height;
+        
+        // Calculate which page the footer starts on
+        const startPage = Math.floor(footerTop / pageHeightPx);
+        // Calculate which page the footer ends on
+        const endPage = Math.floor(footerBottom / pageHeightPx);
+        
+        // If the footer spans across pages, we need to insert a page break before it
+        if (startPage !== endPage) {
+            // Calculate the position for the page break (just before the footer)
+            const breakPosition = startPage * pageHeightPx;
+            
+            // Create a special indicator for this footer break
+            const indicator = document.createElement('div');
+            indicator.className = 'page-break-indicator table-boundary footer-break';
+            indicator.textContent = `~ Page ${startPage} End / Page ${startPage + 1} Start (Footer Protected) ~`;
+            indicator.style.top = `${footerTop - 5}px`; // Position just above the footer
+            
+            // Make it very visible
+            indicator.style.backgroundColor = 'rgba(255, 100, 0, 0.2)';
+            indicator.style.fontWeight = 'bold';
+            indicator.style.zIndex = '200'; // Ensure it's above other indicators
+            
+            paper.appendChild(indicator);
+            
+            // Mark this position as handled
+            insertedBreakPositions.add(breakPosition);
+        }
+    });
+    
+    // Special handling for the last row of each table
+    const tables = paper.querySelectorAll('.interest-table');
+    tables.forEach(table => {
+        const tbody = table.querySelector('tbody');
+        if (!tbody) return;
+        
+        const rows = tbody.querySelectorAll('tr');
+        if (rows.length === 0) return;
+        
+        // Get the last row of the table body
+        const lastRow = rows[rows.length - 1];
+        const rect = lastRow.getBoundingClientRect();
+        const rowTop = rect.top - paperTop;
+        const rowBottom = rect.bottom - paperTop;
+        
+        // Calculate which page the row starts and ends on
+        const startPage = Math.floor(rowTop / pageHeightPx);
+        const endPage = Math.floor(rowBottom / pageHeightPx);
+        
+        // If the last row spans across pages, insert a break before it
+        if (startPage !== endPage) {
+            const breakPosition = startPage * pageHeightPx;
+            
+            // Create a special indicator
+            const indicator = document.createElement('div');
+            indicator.className = 'page-break-indicator table-boundary last-row-break';
+            indicator.textContent = `~ Page ${startPage} End / Page ${startPage + 1} Start (Last Row Protected) ~`;
+            indicator.style.top = `${rowTop - 5}px`;
+            
+            indicator.style.backgroundColor = 'rgba(100, 255, 100, 0.2)';
+            indicator.style.fontWeight = 'bold';
+            
+            paper.appendChild(indicator);
+            
+            // Mark this position as handled
+            insertedBreakPositions.add(breakPosition);
         }
     });
 }
