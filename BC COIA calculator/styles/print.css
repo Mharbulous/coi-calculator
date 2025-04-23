@@ -222,8 +222,15 @@
         page-break-after: avoid;
     }
 
-    /* Hide page break indicators when printing */
+    /* Hide page break indicators when printing, but force page breaks at their positions */
     .page-break-indicator {
         display: none !important;
+    }
+    
+    /* Force page breaks at table boundary indicators */
+    .page-break-indicator.table-boundary {
+        page-break-before: always !important;
+        height: 0 !important;
+        visibility: hidden !important;
     }
 }

@@ -57,6 +57,63 @@ export function updatePageBreakIndicators() {
 
     // After adding the general page break indicators, handle tables
     insertTablePageBreakRows(pageHeightPx);
+    
+    // Add indicators between tables if needed
+    insertBetweenTableIndicators(pageHeightPx);
+}
+
+/**
+ * Inserts page break indicators between tables or at table boundaries when needed.
+ * This handles cases where page breaks occur in gaps between tables or at table edges.
+ * @param {number} pageHeightPx - The height of a printable page in pixels.
+ */
+function insertBetweenTableIndicators(pageHeightPx) {
+    const paper = document.querySelector('.paper');
+    if (!paper) return;
+    
+    const paperRect = paper.getBoundingClientRect();
+    const paperTop = paperRect.top;
+    
+    // Get all table elements (including headers, footers, etc.)
+    const tableElements = paper.querySelectorAll('.interest-table, .interest-table caption, .interest-table thead, .interest-table tfoot, h2');
+    
+    // Calculate page boundaries
+    const pageBreakPositions = [];
+    for (let i = 1; i < 10; i++) { // Support up to 10 pages
+        pageBreakPositions.push(i * pageHeightPx);
+    }
+    
+    // Check each table element to see if a page break occurs at its boundary
+    tableElements.forEach(element => {
+        const rect = element.getBoundingClientRect();
+        const elementTop = rect.top - paperTop;
+        const elementBottom = rect.bottom - paperTop;
+        
+        // Check if the top or bottom edge of the element is near a page break
+        for (const breakPosition of pageBreakPositions) {
+            // Check if the element's top or bottom edge is very close to a page break
+            // (within 20 pixels)
+            const topNearBreak = Math.abs(elementTop - breakPosition) < 20;
+            const bottomNearBreak = Math.abs(elementBottom - breakPosition) < 20;
+            
+            if (topNearBreak || bottomNearBreak) {
+                // Calculate which page this break is on
+                const pageNum = Math.floor(breakPosition / pageHeightPx);
+                
+                // Create a special indicator for this boundary
+                const indicator = document.createElement('div');
+                indicator.className = 'page-break-indicator table-boundary';
+                indicator.textContent = `~ Page ${pageNum} End / Page ${pageNum + 1} Start ~`;
+                indicator.style.top = `${breakPosition}px`;
+                
+                // Add a special class to make it more visible
+                indicator.style.backgroundColor = 'rgba(255, 200, 0, 0.2)';
+                indicator.style.fontWeight = 'bold';
+                
+                paper.appendChild(indicator);
+            }
+        }
+    });
 }
 
 /**

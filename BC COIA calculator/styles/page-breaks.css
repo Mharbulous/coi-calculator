@@ -7,7 +7,25 @@
 
 /* Style for the page break indicator labels */
 .page-break-indicator {
-  display: none; /* Hide the standalone page break indicators */
+  display: none; /* Hide the standard page break indicators */
+}
+
+/* Special style for table boundary indicators */
+.page-break-indicator.table-boundary {
+  display: block; /* Show table boundary indicators */
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 30px;
+  line-height: 30px;
+  text-align: center;
+  z-index: 100;
+  border-top: 2px dashed #f0ad4e;
+  border-bottom: 2px dashed #f0ad4e;
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: #333;
+  pointer-events: none; /* Allow clicking through */
 }
 
 /* --- Table Page Break Rows --- */
