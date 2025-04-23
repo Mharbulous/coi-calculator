@@ -38,6 +38,23 @@
 .summary-table tbody td {
     text-align: right; /* Default right align for amounts */
 }
+
+/* Fix spacing between Special Damages and Non-pecuniary Damages rows */
+/* Target the Special Damages row directly */
+.summary-table tbody tr:nth-child(2) {
+    padding-bottom: 0;
+}
+.summary-table tbody tr:nth-child(2) td {
+    padding-bottom: 0;
+}
+
+/* Target the Non-pecuniary Damages row directly */
+.summary-table tbody tr:nth-child(3) {
+    padding-top: 0;
+}
+.summary-table tbody tr:nth-child(3) td {
+    padding-top: 0;
+}
 .summary-table tbody td:first-child {
     text-align: left; /* Item name left aligned */
 }

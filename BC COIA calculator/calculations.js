@@ -185,15 +185,12 @@ function processSpecialDamages(specialDamages, segments) {
     // Group damages by applicable segment
     return validDamages.map(damage => {
         const normalizedDamageDate = normalizeDate(damage.dateObj);
-        console.log(`[DEBUG] Processing damage: ${damage.description} on date ${formatDateForDisplay(damage.dateObj)}`);
         
         // Find which segment this damage belongs to
         for (let i = 0; i < segments.length; i++) {
             const segment = segments[i];
             const normalizedSegmentStart = normalizeDate(segment.start);
             const normalizedSegmentEnd = normalizeDate(segment.end);
-            
-            console.log(`[DEBUG] Checking segment ${i}: ${formatDateForDisplay(segment.start)} to ${formatDateForDisplay(segment.end)}, isFinal=${segment.isFinalSegment}`);
             
             // Check if damage date is within this segment
             // Special case: If damage date is exactly on the end date of this segment,
@@ -204,7 +201,6 @@ function processSpecialDamages(specialDamages, segments) {
                  (normalizedDamageDate.getTime() === normalizedSegmentEnd.getTime() && segment.isFinalSegment))) {
                 
                 const isFirstDay = normalizedDamageDate.getTime() === normalizedSegmentStart.getTime();
-                console.log(`[DEBUG] Damage is in segment ${i}, isFinalSegment=${segment.isFinalSegment}, isFirstDayOfSegment=${isFirstDay}`);
                 
                 return {
                     ...damage,
@@ -374,37 +370,27 @@ function calculateFinalPeriodDamageInterest(damages, endDate, interestType, juri
     let totalInterest = 0;
     const details = [];
     
-    console.log(`[DEBUG] calculateFinalPeriodDamageInterest called with endDate=${formatDateForDisplay(endDate)}`);
-    
     // Get the rate for the final period
     const finalPeriodRate = getInterestRateForDate(endDate, interestType, jurisdiction, ratesData);
     const finalYearDays = daysInYear(endDate.getUTCFullYear());
     
     if (finalPeriodRate === undefined || finalPeriodRate <= 0 || finalYearDays <= 0) {
-        console.log(`[DEBUG] Exiting early: finalPeriodRate=${finalPeriodRate}, finalYearDays=${finalYearDays}`);
         return { details, totalInterest };
     }
     
     // Filter damages that are in the final segment
     const finalPeriodDamages = damages.filter(damage => damage.inFinalSegment);
-    console.log(`[DEBUG] Found ${finalPeriodDamages.length} damages in final segment`);
     
     finalPeriodDamages.forEach(damage => {
         const damageDate = damage.dateObj;
         const normalizedDamageDate = normalizeDate(damageDate);
         const normalizedEndDate = normalizeDate(endDate);
         
-        console.log(`[DEBUG] Processing final period damage: ${damage.description} on ${formatDateForDisplay(damageDate)}`);
-        console.log(`[DEBUG] Damage properties: isFirstDayOfSegment=${damage.isFirstDayOfSegment}, inFinalSegment=${damage.inFinalSegment}`);
-        console.log(`[DEBUG] Date comparison: normalizedDamageDate=${formatDateForDisplay(normalizedDamageDate)}, normalizedEndDate=${formatDateForDisplay(normalizedEndDate)}`);
-        console.log(`[DEBUG] Date comparison result: normalizedDamageDate < normalizedEndDate=${normalizedDamageDate < normalizedEndDate}`);
-        
         // Since we include the first day and exclude the last day, we must ensure
         // all damages in the final segment are processed, including those on the first day
         // of the segment
         if (normalizedDamageDate < normalizedEndDate || damage.isFirstDayOfSegment) {
             const daysInFinalPeriodForDamage = daysBetween(damageDate, endDate);
-            console.log(`[DEBUG] Condition passed, calculating details. Days=${daysInFinalPeriodForDamage}`);
             
             // Process all damages with positive amounts, regardless of day count
             if (damage.amount > 0) {
@@ -425,16 +411,12 @@ function calculateFinalPeriodDamageInterest(damages, endDate, interestType, juri
                 
                 details.push(damageDetail);
                 totalInterest += interestForDamage;
-                console.log(`[DEBUG] Added detail for ${damage.description}, interest=${interestForDamage}`);
             } else {
-                console.log(`[DEBUG] Skipping damage with non-positive amount: ${damage.amount}`);
+                // Skip damages with non-positive amounts
             }
-        } else {
-            console.log(`[DEBUG] Condition failed, not calculating details for this damage`);
         }
     });
     
-    console.log(`[DEBUG] Returning ${details.length} detailed calculation(s) with total interest ${totalInterest}`);
     return { details, totalInterest };
 }
 
