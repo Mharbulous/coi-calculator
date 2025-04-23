@@ -6,7 +6,7 @@ This approach uses JavaScript to calculate element heights and determine more pr
 
 ## Implementation Details
 
-### 1. Print Margin Fix
+### 1\. Print Margin Fix
 
 Similar to Option 1, enhance the existing `styles/print.css` file to properly define page margins:
 
@@ -30,7 +30,7 @@ Similar to Option 1, enhance the existing `styles/print.css` file to properly de
 }
 ```
 
-### 2. Page Break Indicator Styling
+### 2\. Page Break Indicator Styling
 
 Add CSS for the page break indicators that will be dynamically inserted:
 
@@ -59,7 +59,7 @@ Add CSS for the page break indicators that will be dynamically inserted:
 }
 ```
 
-### 3. JavaScript for Calculating and Displaying Page Breaks
+### 3\. JavaScript for Calculating and Displaying Page Breaks
 
 Create a new JavaScript module (e.g., `dom/pageBreaks.js`) to handle the calculation and display of page breaks:
 
@@ -180,7 +180,7 @@ function initPageBreaks() {
 export { initPageBreaks, calculateAndDisplayPageBreaks };
 ```
 
-### 4. Table Handling for Print
+### 4\. Table Handling for Print
 
 Enhance the print CSS to handle tables properly across page breaks (same as Option 1):
 
@@ -213,7 +213,7 @@ Enhance the print CSS to handle tables properly across page breaks (same as Opti
 }
 ```
 
-### 5. Integration with Main Application
+### 5\. Integration with Main Application
 
 Update the main application code to initialize the page break functionality:
 
@@ -243,33 +243,33 @@ function updateCalculations() {
 
 ## Advantages
 
-1. **More Accurate Visual Representation**: Provides a more precise indication of where page breaks will occur in the printed output.
-2. **Explicit Visual Indicators**: Clear dashed lines with "Page Break" labels make it obvious where content will break across pages.
-3. **Dynamic Recalculation**: Automatically updates page break indicators when content changes or the window is resized.
-4. **Maintains Current UX**: Preserves the single-scroll online user experience while adding visual cues.
-5. **Moderate Complexity**: More complex than Option 1 but less invasive than Option 3.
+1.  **More Accurate Visual Representation**: Provides a more precise indication of where page breaks will occur in the printed output.
+2.  **Explicit Visual Indicators**: Clear dashed lines with "Page Break" labels make it obvious where content will break across pages.
+3.  **Dynamic Recalculation**: Automatically updates page break indicators when content changes or the window is resized.
+4.  **Maintains Current UX**: Preserves the single-scroll online user experience while adding visual cues.
+5.  **Moderate Complexity**: More complex than Option 1 but less invasive than Option 3.
 
 ## Limitations
 
-1. **Calculation Precision**: `offsetHeight` measurements may not perfectly match browser print rendering in all cases.
-2. **Performance Considerations**: Calculating element heights and observing DOM changes has some performance cost.
-3. **Not True WYSIWYG**: Still doesn't visually represent the multi-page layout of the printed version.
-4. **Browser Variations**: Different browsers may interpret print CSS slightly differently.
+1.  **Calculation Precision**: `offsetHeight` measurements may not perfectly match browser print rendering in all cases.
+2.  **Performance Considerations**: Calculating element heights and observing DOM changes has some performance cost.
+3.  **Not True WYSIWYG**: Still doesn't visually represent the multi-page layout of the printed version.
+4.  **Browser Variations**: Different browsers may interpret print CSS slightly differently.
 
 ## Implementation Steps
 
-1. Create the new `dom/pageBreaks.js` module with the page break calculation logic.
-2. Add the page break indicator CSS to the appropriate stylesheet.
-3. Update `styles/print.css` with proper `@page` rules and table handling CSS.
-4. Integrate the page break initialization into the main application code.
-5. Ensure tables have proper `<thead>` elements for consistent printing.
-6. Test the page break indicators with various content amounts and window sizes.
-7. Test printing in multiple browsers to verify margins and table handling.
-8. Fine-tune the page height calculations based on testing results.
+1.  Create the new `dom/pageBreaks.js` module with the page break calculation logic.
+2.  Add the page break indicator CSS to the appropriate stylesheet.
+3.  Update `styles/print.css` with proper `@page` rules and table handling CSS.
+4.  Integrate the page break initialization into the main application code.
+5.  Ensure tables have proper `<thead>` elements for consistent printing.
+6.  Test the page break indicators with various content amounts and window sizes.
+7.  Test printing in multiple browsers to verify margins and table handling.
+8.  Fine-tune the page height calculations based on testing results.
 
 ## Estimated Effort
 
-* **Medium**: 2-3 days of development and testing.
-* Involves both CSS changes and more complex JavaScript for calculations and DOM manipulation.
-* Requires careful testing to ensure page break indicators accurately reflect print output.
-* May need adjustments based on testing with different content volumes and browser variations.
+*   **Medium**: 2-3 days of development and testing.
+*   Involves both CSS changes and more complex JavaScript for calculations and DOM manipulation.
+*   Requires careful testing to ensure page break indicators accurately reflect print output.
+*   May need adjustments based on testing with different content volumes and browser variations.

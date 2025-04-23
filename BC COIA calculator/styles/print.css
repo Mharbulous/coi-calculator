@@ -213,7 +213,8 @@
     }
 
     tfoot {
-        display: table-footer-group;
+        /* Change display to prevent repeating on each page */
+        display: table-row-group; 
     }
 
     /* Avoid breaking after headings */

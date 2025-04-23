@@ -26,7 +26,20 @@ tr.page-break-row td {
   padding: 0 !important;
 }
 
-/* No horizontal line for page breaks */
+/* Add a horizontal line across the page break row */
+tr.page-break-row td::before {
+  content: '';
+  content: '';
+  position: absolute;
+  top: 50%;
+  /* Extend far left and right, hoping it gets clipped by the paper container */
+  left: -100vw;
+  right: -100vw;
+  height: 10px; /* Increased thickness */
+  background-color: #ccc; /* Light gray line */
+  transform: translateY(-50%); /* Center the line vertically */
+  z-index: 1; /* Ensure line is behind the label */
+}
 
 /* Label for the page break row */
 .page-break-label {
@@ -46,9 +59,19 @@ tr.page-break-row td {
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-/* Hide page break rows when printing */
+/* Force page break before the row in print, but hide the row itself */
 @media print {
   tr.page-break-row {
+    page-break-before: always !important; /* Force break before this row */
+    height: 0 !important; /* Ensure it takes no vertical space */
+    visibility: hidden !important; /* Hide content/background */
+    border: none !important; /* Remove any borders */
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  /* Also hide the pseudo-element line and label in print */
+  tr.page-break-row td::before,
+  tr.page-break-row .page-break-label {
     display: none !important;
   }
 }

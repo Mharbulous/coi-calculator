@@ -2,11 +2,11 @@
 
 ## Overview
 
-This approach restructures the online display to render content within fixed-size `div` elements, each visually representing a sheet of paper. It provides the highest fidelity WYSIWYG experience by actually displaying the content in a paginated format that closely mirrors the printed output. This is the most comprehensive solution but also requires the most significant changes to the application's rendering logic.
+This approach restructures the online display to render content within fixed-size `div` elements, each visually representing a sheet of paper. It aims to provide a WYSIWYG experience by actually displaying the content in a paginated format that closely mirrors the printed output. 
 
 ## Implementation Details
 
-### 1. Page Container CSS
+### 1\. Page Container CSS
 
 Create CSS for the page containers that will visually represent sheets of paper:
 
@@ -54,7 +54,7 @@ Create CSS for the page containers that will visually represent sheets of paper:
 }
 ```
 
-### 2. Print CSS for Page Containers
+### 2\. Print CSS for Page Containers
 
 Update the print CSS to handle the page containers properly:
 
@@ -107,7 +107,7 @@ Update the print CSS to handle the page containers properly:
 }
 ```
 
-### 3. JavaScript for Page-Based Content Rendering
+### 3\. JavaScript for Page-Based Content Rendering
 
 Create a new JavaScript module (e.g., `dom/pageRenderer.js`) to handle the pagination and content rendering:
 
@@ -343,7 +343,7 @@ function initPageRenderer() {
 export { initPageRenderer };
 ```
 
-### 4. Integration with Main Application
+### 4\. Integration with Main Application
 
 Update the main application code to initialize the page renderer:
 
@@ -369,7 +369,7 @@ function updateCalculations() {
 }
 ```
 
-### 5. Modify Table Generation Code
+### 5\. Modify Table Generation Code
 
 Update the table generation code to ensure tables have proper `<thead>` elements:
 
@@ -403,79 +403,37 @@ function createInterestTable(data) {
 }
 ```
 
-### 6. Optional: Toggle Between Page View and Normal View
-
-Add a toggle button to switch between the paginated view and the normal scrolling view:
-
-```javascript
-// In dom/pageRenderer.js
-
-/**
- * Add a toggle button to switch between views
- */
-function addViewToggle() {
-  const toggleButton = document.createElement('button');
-  toggleButton.textContent = 'Toggle Page View';
-  toggleButton.className = 'view-toggle-button';
-  
-  // Insert at the top of the page
-  document.body.insertBefore(toggleButton, document.body.firstChild);
-  
-  // Get references to the containers
-  const originalContent = document.getElementById('results-container');
-  const pageContainer = document.querySelector('.page-container');
-  
-  // Set up toggle functionality
-  toggleButton.addEventListener('click', () => {
-    if (originalContent.style.display === 'none') {
-      // Switch to normal view
-      originalContent.style.display = '';
-      pageContainer.style.display = 'none';
-      toggleButton.textContent = 'Show Page View';
-    } else {
-      // Switch to page view
-      originalContent.style.display = 'none';
-      pageContainer.style.display = '';
-      toggleButton.textContent = 'Show Normal View';
-      
-      // Re-render pages in case content changed while in normal view
-      renderContentIntoPages(originalContent, pageContainer);
-    }
-  });
-}
-```
-
 ## Advantages
 
-1. **True WYSIWYG Experience**: Provides the most accurate representation of how the content will appear when printed.
-2. **Visual Page Separation**: Clear visual separation between pages with proper margins and page numbers.
-3. **Consistent Layout**: What you see online is exactly what you get when printing.
-4. **Table Handling**: Properly handles tables that span multiple pages by repeating headers.
-5. **User Control**: Optional toggle allows users to switch between paginated and normal views.
+1.  **True WYSIWYG Experience**: Provides the most accurate representation of how the content will appear when printed.
+2.  **Visual Page Separation**: Clear visual separation between pages with proper margins and page numbers.
+3.  **Consistent Layout**: What you see online is exactly what you get when printing.
+4.  **Table Handling**: Properly handles tables that span multiple pages by repeating headers.
+5.  **User Control**: Optional toggle allows users to switch between paginated and normal views.
 
 ## Limitations
 
-1. **Implementation Complexity**: Requires significant changes to the application's rendering logic.
-2. **Performance Considerations**: More complex DOM manipulation and calculations may impact performance.
-3. **Maintenance Overhead**: More code to maintain and potential for bugs in the pagination logic.
-4. **Browser Compatibility**: May require additional testing and adjustments for different browsers.
-5. **User Experience Change**: Represents a significant change to the current scrolling experience.
+1.  **Implementation Complexity**: Requires significant changes to the application's rendering logic.
+2.  **Performance Considerations**: More complex DOM manipulation and calculations may impact performance.
+3.  **Maintenance Overhead**: More code to maintain and potential for bugs in the pagination logic.
+4.  **Browser Compatibility**: May require additional testing and adjustments for different browsers.
+5.  **User Experience Change**: Represents a significant change to the current scrolling experience.
 
 ## Implementation Steps
 
-1. Create the CSS for page containers and update the print CSS.
-2. Create the `dom/pageRenderer.js` module with the pagination logic.
-3. Modify table generation code to ensure proper `<thead>` elements.
-4. Integrate the page renderer initialization into the main application code.
-5. Implement the optional view toggle functionality.
-6. Test the pagination with various content amounts and window sizes.
-7. Test printing from the paginated view to verify consistency.
-8. Fine-tune the page dimensions and rendering logic based on testing results.
+1.  Create the CSS for page containers and update the print CSS.
+2.  Create the `dom/pageRenderer.js` module with the pagination logic.
+3.  Modify table generation code to ensure proper `<thead>` elements.
+4.  Integrate the page renderer initialization into the main application code.
+5.  Implement the optional view toggle functionality.
+6.  Test the pagination with various content amounts and window sizes.
+7.  Test printing from the paginated view to verify consistency.
+8.  Fine-tune the page dimensions and rendering logic based on testing results.
 
 ## Estimated Effort
 
-* **High**: 4-7 days of development and testing.
-* Involves significant changes to both CSS and JavaScript.
-* Requires careful testing with different content volumes, table sizes, and browser variations.
-* May need multiple iterations to refine the pagination logic and ensure consistent rendering.
-* Consider implementing in phases, starting with basic pagination and then adding more complex features like table splitting.
+*   **High**: 4-7 days of development and testing.
+*   Involves significant changes to both CSS and JavaScript.
+*   Requires careful testing with different content volumes, table sizes, and browser variations.
+*   May need multiple iterations to refine the pagination logic and ensure consistent rendering.
+*   Consider implementing in phases, starting with basic pagination and then adding more complex features like table splitting.
