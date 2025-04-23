@@ -1,129 +1,27 @@
-/* --- Visual Page Break Indicators --- */
+/* --- Simple Page Break Indicators --- */
 
-/* Apply solid background to the paper element - no gradient lines */
+/* Position container for page break indicators */
 .paper {
-  position: relative; /* Needed for absolute positioning of indicator labels */
+  position: relative; /* Needed for absolute positioning of indicators */
 }
 
-/* Shadow at the bottom of the first page */
-.page-break-shadow {
+/* Simple page break band - creates 3D illusion of page separation */
+.page-break-band {
   position: absolute;
   left: 0;
   right: 0;
-  height: 1px; /* Very thin element */
-  z-index: 10; /* Above the background but below paper content */
-  box-shadow: 0 3px 4px -1px rgba(0,0,0,0.12); /* Refined shadow that only casts downward */
+  height: 15px; /* Height of the gray band */
+  background-color: #cccccc; /* Gray color */
+  z-index: 10;
   pointer-events: none; /* Allow clicking through */
-  background: transparent;
-  border-top: 1px solid white; /* Block any upward shadow with white border */
-  margin-top: -1px; /* Slightly overlap with the page edge */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* Enhanced shadow for better 3D effect */
+  border-top: 1px solid #e0e0e0; /* Light top border */
+  border-bottom: 1px solid #999999; /* Darker bottom border for depth */
 }
 
-/* Style for the page break indicator labels */
-.page-break-indicator {
-  display: none; /* Hide the standard page break indicators */
-}
-
-/* Special style for table boundary indicators */
-.page-break-indicator.table-boundary {
-  display: block; /* Show table boundary indicators */
-  position: absolute;
-  left: -20px; /* Extend beyond paper edges */
-  right: -20px; /* Extend beyond paper edges */
-  height: 25px; /* Increased height to be more visible */
-  z-index: 0; /* Place behind paper elements */
-  border: none;
-  box-shadow: none;
-  margin: 0;
-  padding: 0;
-  pointer-events: none; /* Allow clicking through */
-  background-color: var(--page-background-color);
-}
-
-/* Special style for footer break indicators */
-.page-break-indicator.footer-break {
-  height: 25px; /* Increased height to be more visible */
-  border: none;
-  box-shadow: none;
-  margin: 0;
-  padding: 0;
-  background-color: var(--page-background-color);
-  z-index: 0; /* Place behind paper elements */
-}
-
-/* Special style for last row break indicators */
-.page-break-indicator.last-row-break {
-  height: 25px; /* Increased height to be more visible */
-  border: none;
-  box-shadow: none;
-  margin: 0;
-  padding: 0;
-  background-color: var(--page-background-color);
-  z-index: 0; /* Place behind paper elements */
-}
-
-/* --- Table Page Break Rows --- */
-
-/* Special row to represent page breaks within tables */
-tr.page-break-row {
-  height: 1.25in; /* Combined top/bottom margins */
-  background-color: white; /* Changed from #f5f5f5 to white */
-  position: relative;
-}
-
-/* Remove borders from page break row cells */
-tr.page-break-row td {
-  border: none !important;
-  position: relative;
-  padding: 0 !important;
-}
-
-/* Add a horizontal line across the page break row */
-tr.page-break-row td::before {
-  content: '';
-  content: '';
-  position: absolute;
-  top: 50%;
-  /* Extend far left and right, hoping it gets clipped by the paper container */
-  left: -100vw;
-  right: -100vw;
-  height: 10px; /* Increased thickness */
-  background-color: #ccc; /* Light gray line */
-  transform: translateY(-50%); /* Center the line vertically */
-  z-index: 1; /* Ensure line is behind the label */
-}
-
-/* Label for the page break row */
-.page-break-label {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 0.75rem;
-  color: #777;
-  background-color: #f5f5f5; /* Keep the gray background for the label */
-  padding: 2px 10px;
-  border: 1px solid #ddd;
-  border-radius: 12px;
-  z-index: 2;
-  white-space: nowrap;
-  text-align: center;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-/* Force page break before the row in print, but hide the row itself */
+/* Hide page break indicators when printing */
 @media print {
-  tr.page-break-row {
-    page-break-before: always !important; /* Force break before this row */
-    height: 0 !important; /* Ensure it takes no vertical space */
-    visibility: hidden !important; /* Hide content/background */
-    border: none !important; /* Remove any borders */
-    padding: 0 !important;
-    margin: 0 !important;
-  }
-  /* Also hide the pseudo-element line and label in print */
-  tr.page-break-row td::before,
-  tr.page-break-row .page-break-label {
+  .page-break-band {
     display: none !important;
   }
 }

@@ -28,6 +28,7 @@
         page-break-after: auto !important; 
         position: static !important; 
         overflow: visible !important;
+        /* Standard letter size for print, online view uses expanded height */
     }
     
     input[type="date"], input[type="text"], select {
