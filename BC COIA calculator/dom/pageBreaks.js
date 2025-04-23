@@ -9,7 +9,11 @@ export function getPrintablePageHeightPx() {
     // Assume standard screen DPI. 96 is a common default, but this is an approximation.
     const dpi = 96;
     
-    return pageHeightInches * dpi;
+    // Calculate the base height
+    const baseHeight = pageHeightInches * dpi;
+    
+    // Return the base height without any adjustment
+    return baseHeight;
 }
 
 /**
@@ -94,10 +98,12 @@ function insertTablePageBreakRows(pageHeightPx) {
         // Track our current position as we go through rows
         let currentPosition = tableTop;
         
-        // Calculate page boundaries
+        // Calculate page boundaries with an offset to move the cut-off point lower
+        // Estimate about 3 rows worth of height (approximately 90px)
+        const rowOffsetPx = 90; // Approximately 3 rows
         const pageBreakPositions = [];
         for (let i = 1; i < 10; i++) { // Support up to 10 pages
-            pageBreakPositions.push(i * pageHeightPx);
+            pageBreakPositions.push((i * pageHeightPx) + rowOffsetPx);
         }
         
         // Check each row to see if it crosses a page boundary

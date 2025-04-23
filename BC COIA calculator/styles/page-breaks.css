@@ -15,7 +15,7 @@
 /* Special row to represent page breaks within tables */
 tr.page-break-row {
   height: 1.25in; /* Combined top/bottom margins */
-  background-color: #f5f5f5;
+  background-color: white; /* Changed from #f5f5f5 to white */
   position: relative;
 }
 
@@ -36,7 +36,7 @@ tr.page-break-row td {
   transform: translate(-50%, -50%);
   font-size: 0.75rem;
   color: #777;
-  background-color: #f5f5f5;
+  background-color: #f5f5f5; /* Keep the gray background for the label */
   padding: 2px 10px;
   border: 1px solid #ddd;
   border-radius: 12px;
