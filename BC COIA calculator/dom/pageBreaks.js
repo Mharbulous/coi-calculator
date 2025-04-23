@@ -75,7 +75,6 @@ function insertTablePageBreakRows(pageHeightPx) {
     
     const paperRect = paper.getBoundingClientRect();
     const paperTop = paperRect.top;
-    const paperLeft = paperRect.left;
     
     // Find all tables that might need page break rows
     const tables = document.querySelectorAll('.interest-table');
@@ -85,18 +84,12 @@ function insertTablePageBreakRows(pageHeightPx) {
         const tableRect = table.getBoundingClientRect();
         const tableTop = tableRect.top - paperTop;
         
-        // Calculate which page the table starts on
-        const startPage = Math.floor(tableTop / pageHeightPx);
-        
         // Get all rows in the table body (excluding any existing page break rows)
         const tbody = table.querySelector('tbody');
         if (!tbody) return;
         
         const rows = Array.from(tbody.querySelectorAll('tr:not(.page-break-row)'));
         if (rows.length === 0) return;
-        
-        // Track our current position as we go through rows
-        let currentPosition = tableTop;
         
         // Calculate page boundaries with an offset to move the cut-off point lower
         // Estimate about 3 rows worth of height (approximately 90px)
@@ -106,7 +99,12 @@ function insertTablePageBreakRows(pageHeightPx) {
             pageBreakPositions.push((i * pageHeightPx) + rowOffsetPx);
         }
         
-        // Check each row to see if it crosses a page boundary
+        // Track which page boundaries we've already inserted break rows for
+        const insertedBreakPositions = new Set();
+        
+        // First pass: identify all page boundaries that need break rows
+        const breakPositionsNeeded = new Map(); // Maps break position to the row after which to insert
+        
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
             const rowRect = row.getBoundingClientRect();
@@ -116,40 +114,47 @@ function insertTablePageBreakRows(pageHeightPx) {
             
             // Find if this row crosses any page boundary
             for (const breakPosition of pageBreakPositions) {
-                // If the row spans across this page break
-                if (rowTop < breakPosition && rowBottom > breakPosition) {
-                    // Calculate which pages this row spans
-                    const startPage = Math.floor(rowTop / pageHeightPx) + 1;
-                    const endPage = Math.floor(rowBottom / pageHeightPx) + 1;
+                // If the row spans across this page break and we haven't already 
+                // planned to insert a break row for this position
+                if (rowTop < breakPosition && rowBottom > breakPosition && 
+                    !insertedBreakPositions.has(breakPosition)) {
                     
-                    // Create a page break row
-                    const pageBreakRow = document.createElement('tr');
-                    pageBreakRow.className = 'page-break-row';
-                    
-                    // Create a cell that spans all columns
-                    const cell = document.createElement('td');
-                    const columnCount = row.cells.length || 5; // Default to 5 if can't determine
-                    cell.colSpan = columnCount;
-                    
-                    // Add the page break label
-                    const label = document.createElement('div');
-                    label.className = 'page-break-label';
-                    label.textContent = `Page ${startPage} End / Page ${endPage} Start`;
-                    cell.appendChild(label);
-                    
-                    pageBreakRow.appendChild(cell);
-                    
-                    // Insert the page break row after the current row
-                    if (row.nextSibling) {
-                        tbody.insertBefore(pageBreakRow, row.nextSibling);
-                    } else {
-                        tbody.appendChild(pageBreakRow);
-                    }
-                    
-                    // Skip ahead in our loop since we've added a row
-                    // and need to recalculate positions
-                    break;
+                    // Store this row as the one after which to insert the break
+                    breakPositionsNeeded.set(breakPosition, row);
+                    insertedBreakPositions.add(breakPosition);
+                    break; // Only handle one page break per row
                 }
+            }
+        }
+        
+        // Second pass: insert the break rows
+        for (const [breakPosition, row] of breakPositionsNeeded.entries()) {
+            // Calculate which pages this break spans
+            const startPage = Math.floor(breakPosition / pageHeightPx);
+            const endPage = startPage + 1;
+            
+            // Create a page break row
+            const pageBreakRow = document.createElement('tr');
+            pageBreakRow.className = 'page-break-row';
+            
+            // Create a cell that spans all columns
+            const cell = document.createElement('td');
+            const columnCount = row.cells.length || 5; // Default to 5 if can't determine
+            cell.colSpan = columnCount;
+            
+            // Add the page break label
+            const label = document.createElement('div');
+            label.className = 'page-break-label';
+            label.textContent = `Page ${startPage} End / Page ${endPage} Start`;
+            cell.appendChild(label);
+            
+            pageBreakRow.appendChild(cell);
+            
+            // Insert the page break row after the current row
+            if (row.nextSibling) {
+                tbody.insertBefore(pageBreakRow, row.nextSibling);
+            } else {
+                tbody.appendChild(pageBreakRow);
             }
         }
     });
