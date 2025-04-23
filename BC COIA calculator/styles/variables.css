@@ -13,13 +13,14 @@
     --help-icon-color: #4a90e2;
 
     --font-family: Arial, sans-serif;
-    --base-font-size: 11pt;
-    --title-font-size: 12pt;
-    --print-font-size: 10pt;
+    --base-font-size: 10pt; /* Same size for both online and print */
+    --title-font-size: 11pt; /* Title font size */
+    --print-font-size: 10pt; /* Same as base-font-size for consistency */
 
     --paper-width: 8.5in;
     --paper-min-height: 11in;
     --paper-padding: 0.75in;
+    --paper-scale: 1; /* Reset to no scaling */
 
     --label-width-dates: 1.2in;
     --value-width-right: 1.5in;

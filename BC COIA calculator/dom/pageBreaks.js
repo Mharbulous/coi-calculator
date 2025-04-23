@@ -8,6 +8,7 @@ export function getPrintablePageHeightPx() {
     const pageHeightInches = 9.5;
     // Assume standard screen DPI. 96 is a common default, but this is an approximation.
     const dpi = 96;
+    
     return pageHeightInches * dpi;
 }
 

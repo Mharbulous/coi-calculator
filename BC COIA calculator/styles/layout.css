@@ -3,7 +3,7 @@
     background-color: var(--paper-background-color);
     width: var(--paper-width);
     min-height: var(--paper-min-height);
-    padding: var(--paper-padding);
+    padding: var(--paper-padding); /* Use padding to create visual margins in online view */
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     box-sizing: border-box;
     position: relative;

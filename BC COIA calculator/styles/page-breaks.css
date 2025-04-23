@@ -1,38 +1,13 @@
 /* --- Visual Page Break Indicators --- */
 
-/* Apply gradient background to the paper element */
+/* Apply solid background to the paper element - no gradient lines */
 .paper {
-  /* Visual indicator for approximate page breaks using gradient */
-  /* 9.5in = 11in page height - 0.75in top margin - 0.75in bottom margin */
-  background-image: repeating-linear-gradient(
-    to bottom,
-    transparent 0,
-    transparent calc(9.5in), 
-    #e0e0e0 calc(9.5in), /* Use a subtle color from variables.css */
-    #e0e0e0 calc(9.5in + 1px) /* Make the line thin */
-  );
-  
-  /* Ensure the background scrolls with the content */
-  background-attachment: local;
-  background-repeat: repeat-y;
   position: relative; /* Needed for absolute positioning of indicator labels */
 }
 
 /* Style for the page break indicator labels */
 .page-break-indicator {
-  position: absolute;
-  right: 5px; /* Position slightly from the right edge */
-  width: auto; /* Let width adjust to content */
-  padding: 1px 4px; /* Small padding */
-  text-align: center;
-  font-size: 0.65rem; /* Smaller font size */
-  color: #777; /* Dim color */
-  background-color: rgba(224, 224, 224, 0.8); /* Semi-transparent background */
-  border: 1px solid #ccc;
-  border-radius: 3px;
-  pointer-events: none; /* Don't interfere with mouse events */
-  z-index: 10; /* Ensure it's above the gradient */
-  transform: translateY(-50%); /* Center vertically on the line */
+  display: none; /* Hide the standalone page break indicators */
 }
 
 /* --- Table Page Break Rows --- */
@@ -51,17 +26,7 @@ tr.page-break-row td {
   padding: 0 !important;
 }
 
-/* Horizontal line to represent the page break */
-tr.page-break-row::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  height: 1px;
-  background-color: #ccc;
-  z-index: 1;
-}
+/* No horizontal line for page breaks */
 
 /* Label for the page break row */
 .page-break-label {

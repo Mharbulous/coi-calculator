@@ -18,10 +18,15 @@ body {
     color: var(--text-color);
 }
 
-/* Ensure all input elements use Arial font and 11pt size */
-input, select, textarea, button {
+/* Ensure all elements use the same font and size */
+body, input, select, textarea, button, table, th, td, div, span, p, h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-family);
     font-size: var(--base-font-size);
+}
+
+/* Override for headings */
+h1 {
+    font-size: var(--title-font-size);
 }
 
 /* Utility Styles */
