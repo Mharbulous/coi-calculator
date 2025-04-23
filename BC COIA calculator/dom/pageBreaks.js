@@ -5,7 +5,8 @@
  */
 export function getPrintablePageHeightPx() {
     // Printable area height = 11in - (2 * 0.75in) = 9.5in
-    const pageHeightInches = 9.5;
+    // Adding 2.5 inches to make the online pages taller as requested
+    const pageHeightInches = 12.0; // 9.5 + 2.5 = 12.0
     // Assume standard screen DPI. 96 is a common default, but this is an approximation.
     const dpi = 96;
     
