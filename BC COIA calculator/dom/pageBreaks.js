@@ -52,7 +52,9 @@ export function updatePageBreakIndicators() {
         // Create page break band
         const band = document.createElement('div');
         band.className = 'page-break-band';
-        band.style.top = `${breakPositionPx - (band.offsetHeight || 7)}px`;
+        // Position the band exactly at the page break position
+        // This will center it on the page break line
+        band.style.top = `${breakPositionPx}px`;
         paper.appendChild(band);
     }
 }

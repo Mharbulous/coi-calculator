@@ -5,18 +5,18 @@
   position: relative; /* Needed for absolute positioning of indicators */
 }
 
-/* Simple page break band - creates 3D illusion of page separation */
+/* Simple page break band - creates a cleaner page separation similar to print preview */
 .page-break-band {
   position: absolute;
   left: 0;
   right: 0;
-  height: 15px; /* Height of the gray band */
-  background-color: #cccccc; /* Gray color */
+  height: 30px; /* Increased height to match print preview gap */
+  background-color: var(--page-background-color); /* Match the page background color */
   z-index: 10;
   pointer-events: none; /* Allow clicking through */
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* Enhanced shadow for better 3D effect */
-  border-top: 1px solid #e0e0e0; /* Light top border */
-  border-bottom: 1px solid #999999; /* Darker bottom border for depth */
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.1), inset 0 -1px 3px rgba(0,0,0,0.1); /* Subtle inner shadow */
+  border-top: 1px solid #d0d0d0; /* Lighter border */
+  border-bottom: 1px solid #d0d0d0; /* Matching bottom border */
 }
 
 /* Hide page break indicators when printing */
