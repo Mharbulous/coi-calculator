@@ -46,8 +46,21 @@
         text-align: right !important;
     }
     
-    .checkbox-row { 
+    /* Hide checkboxes completely in print mode */
+    .checkbox-container { 
         display: none !important; 
+    }
+    
+    /* Adjust field-row layout for print */
+    .field-row {
+        justify-content: flex-end !important;
+    }
+    
+    /* Stack right-field elements vertically for print */
+    .editable-fields-section {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-end !important;
     }
     
     [data-display="accrualDateRow"], [data-display="postjudgmentSection"] {
