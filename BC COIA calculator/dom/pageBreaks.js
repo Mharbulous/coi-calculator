@@ -12,9 +12,9 @@ export function getPageHeightPx(forPrint = false) {
         const printHeightInches = 11.0;
         return printHeightInches * dpi; // 1056px
     } else {
-        // Online view gets extra space (+0.5 inch)
-        const onlineHeightInches = 11.5; // Standard letter size + 1/2 inch
-        return onlineHeightInches * dpi; // 1104px
+        // Online view gets extra space (+0.75 inch)
+        const onlineHeightInches = 11.75; // Standard letter size + 3/4 inch
+        return onlineHeightInches * dpi; // 1128px
     }
 }
 
