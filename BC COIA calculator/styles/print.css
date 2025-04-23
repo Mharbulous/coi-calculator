@@ -36,9 +36,14 @@
         -moz-appearance: none !important;
         font-family: var(--font-family) !important; 
         font-size: inherit !important; 
-        text-align: inherit !important;
+        /* Removed text-align: inherit to allow specific alignments to work */
         -webkit-print-color-adjust: exact !important; 
         print-color-adjust: exact !important;
+    }
+    
+    /* Ensure right alignment for specific fields */
+    .right-field input[data-input="registry"] {
+        text-align: right !important;
     }
     
     .checkbox-row { 
@@ -62,6 +67,13 @@
     [data-input="costsAwardedAmount"] { 
         font-weight: bold !important; 
         text-align: right !important; 
+    }
+    
+    /* Registry and File No fields - right aligned but not bold */
+    [data-input="registry"],
+    [data-input="fileNo"] {
+        font-weight: normal !important;
+        text-align: right !important;
     }
     
     select { 
