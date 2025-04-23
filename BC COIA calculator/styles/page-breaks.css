@@ -5,6 +5,22 @@
   position: relative; /* Needed for absolute positioning of indicator labels */
 }
 
+/* Shadow at the bottom of the first page */
+.page-break-shadow {
+  position: absolute;
+  left: 0; /* Match page width exactly */
+  right: 0; /* Match page width exactly */
+  height: 15px; /* Tall enough for the gradient to fade out */
+  top: 0; /* Position at the top of the indicator */
+  z-index: 10; /* Above the background but below paper content */
+  pointer-events: none; /* Allow clicking through */
+  background-color: var(--paper-background-color); /* Match paper background color exactly */
+  border: none; /* No borders */
+  box-shadow: 0 4px 6px -2px rgba(0,0,0,0.15); /* Shadow only below */
+}
+
+/* Remove the pseudo-elements that were causing issues */
+
 /* Style for the page break indicator labels */
 .page-break-indicator {
   display: none; /* Hide the standard page break indicators */
@@ -14,34 +30,38 @@
 .page-break-indicator.table-boundary {
   display: block; /* Show table boundary indicators */
   position: absolute;
-  left: 0;
-  right: 0;
-  height: 30px;
-  line-height: 30px;
-  text-align: center;
-  z-index: 100;
-  border-top: 2px dashed #f0ad4e;
-  border-bottom: 2px dashed #f0ad4e;
-  font-size: 0.85rem;
-  font-weight: bold;
-  color: #333;
+  left: -20px; /* Extend beyond paper edges */
+  right: -20px; /* Extend beyond paper edges */
+  height: 25px; /* Increased height to be more visible */
+  z-index: 0; /* Place behind paper elements */
+  border: none;
+  box-shadow: none;
+  margin: 0;
+  padding: 0;
   pointer-events: none; /* Allow clicking through */
+  background-color: var(--page-background-color);
 }
 
 /* Special style for footer break indicators */
 .page-break-indicator.footer-break {
-  border-top: 2px dashed #d9534f; /* Red dashed border */
-  border-bottom: 2px dashed #d9534f;
-  background-color: rgba(255, 100, 100, 0.1) !important;
-  z-index: 110; /* Higher z-index to appear above other indicators */
+  height: 25px; /* Increased height to be more visible */
+  border: none;
+  box-shadow: none;
+  margin: 0;
+  padding: 0;
+  background-color: var(--page-background-color);
+  z-index: 0; /* Place behind paper elements */
 }
 
 /* Special style for last row break indicators */
 .page-break-indicator.last-row-break {
-  border-top: 2px dashed #5cb85c; /* Green dashed border */
-  border-bottom: 2px dashed #5cb85c;
-  background-color: rgba(100, 255, 100, 0.1) !important;
-  z-index: 105;
+  height: 25px; /* Increased height to be more visible */
+  border: none;
+  box-shadow: none;
+  margin: 0;
+  padding: 0;
+  background-color: var(--page-background-color);
+  z-index: 0; /* Place behind paper elements */
 }
 
 /* --- Table Page Break Rows --- */

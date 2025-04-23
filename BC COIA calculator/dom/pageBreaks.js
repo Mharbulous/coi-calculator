@@ -49,8 +49,7 @@ export function updatePageBreakIndicators() {
         const breakPositionPx = i * pageHeightPx;
         const indicator = document.createElement('div');
         indicator.className = 'page-break-indicator';
-        // Label indicates the start of the next page
-        indicator.textContent = `~ Page ${i + 1} ~`;
+        // Remove text content - visual indicator only
         // Position the indicator vertically centered on the calculated break line
         indicator.style.top = `${breakPositionPx}px`;
         paper.appendChild(indicator);
@@ -116,11 +115,16 @@ function insertBetweenTableIndicators(pageHeightPx) {
                 // Create a special indicator for this boundary
                 const indicator = document.createElement('div');
                 indicator.className = 'page-break-indicator table-boundary';
-                indicator.textContent = `~ Page ${pageNum} End / Page ${pageNum + 1} Start ~`;
+                // Remove text content - visual indicator only
                 indicator.style.top = `${breakPosition}px`;
                 
-                // Add a special class to make it more visible
-                indicator.style.backgroundColor = 'rgba(255, 200, 0, 0.2)';
+                // Add a shadow element to the bottom of the first page
+                const shadowElement = document.createElement('div');
+                shadowElement.className = 'page-break-shadow';
+                shadowElement.style.top = `${breakPosition}px`; // Position exactly at the break
+                paper.appendChild(shadowElement);
+                
+                // Style is now handled in CSS
                 indicator.style.fontWeight = 'bold';
                 
                 paper.appendChild(indicator);
@@ -171,11 +175,10 @@ function handleTableFooters(paper, paperTop, pageHeightPx, insertedBreakPosition
             // Create a special indicator for this footer break
             const indicator = document.createElement('div');
             indicator.className = 'page-break-indicator table-boundary footer-break';
-            indicator.textContent = `~ Page ${startPage} End / Page ${startPage + 1} Start (Footer Protected) ~`;
+            // Remove text content - visual indicator only
             indicator.style.top = `${footerTop - 5}px`; // Position just above the footer
             
-            // Make it very visible
-            indicator.style.backgroundColor = 'rgba(255, 100, 0, 0.2)';
+            // Style is now handled in CSS
             indicator.style.fontWeight = 'bold';
             indicator.style.zIndex = '200'; // Ensure it's above other indicators
             
@@ -212,10 +215,10 @@ function handleTableFooters(paper, paperTop, pageHeightPx, insertedBreakPosition
             // Create a special indicator
             const indicator = document.createElement('div');
             indicator.className = 'page-break-indicator table-boundary last-row-break';
-            indicator.textContent = `~ Page ${startPage} End / Page ${startPage + 1} Start (Last Row Protected) ~`;
+            // Remove text content - visual indicator only
             indicator.style.top = `${rowTop - 5}px`;
             
-            indicator.style.backgroundColor = 'rgba(100, 255, 100, 0.2)';
+            // Style is now handled in CSS
             indicator.style.fontWeight = 'bold';
             
             paper.appendChild(indicator);
