@@ -1,8 +1,13 @@
 /* --- PRINT STYLES --- */
 @media print {
-    body {
-        background-color: var(--paper-background-color) !important; 
-        padding: 0 !important; 
+  @page {
+    size: letter;
+    margin: 0.75in; /* Match the existing paper-padding variable */
+  }
+
+  body {
+    background-color: var(--paper-background-color) !important;
+    padding: 0 !important;
         margin: 0 !important;
         display: block !important; 
         min-height: auto !important; 
@@ -13,7 +18,7 @@
     
     .paper {
         margin: 0 !important; 
-        padding: var(--paper-padding) !important; 
+        padding: 0 !important; /* Remove padding since @page already provides margins */
         width: var(--paper-width) !important;
         min-height: 10.9in !important; /* Slightly less than 11 to avoid issues */ 
         height: auto !important; 
@@ -192,5 +197,32 @@
     /* Ensure interest amounts are at the bottom of cells */
     .interest-table td:nth-child(5) {
         vertical-align: bottom !important;
+    }
+
+    /* Table handling for page breaks */
+    table {
+        page-break-inside: auto;
+    }
+
+    tr {
+        page-break-inside: avoid;
+    }
+
+    thead {
+        display: table-header-group;
+    }
+
+    tfoot {
+        display: table-footer-group;
+    }
+
+    /* Avoid breaking after headings */
+    h1, h2, h3, h4, h5, h6, .section-title {
+        page-break-after: avoid;
+    }
+
+    /* Hide page break indicators when printing */
+    .page-break-indicator {
+        display: none !important;
     }
 }

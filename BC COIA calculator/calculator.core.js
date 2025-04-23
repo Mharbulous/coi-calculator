@@ -24,6 +24,7 @@ import {
     formatCurrencyForDisplay
 } from './utils.currency.js';
 import useStore from './store.js';
+import { updatePageBreakIndicators } from './dom/pageBreaks.js'; // Import page break update function
 
 /**
  * Collects special damages data from the prejudgment table and updates the Zustand store.
@@ -494,6 +495,10 @@ function recalculate() {
 
     // 9. Update Summary Table using Zustand store
     updateSummaryTable(useStore, recalculate);
+
+    // 10. Update visual page break indicators after DOM updates
+    // Use setTimeout with a slightly longer delay to ensure DOM has fully rendered
+    setTimeout(updatePageBreakIndicators, 50); 
 }
 
 // Export the recalculate function for use in calculator.ui.js

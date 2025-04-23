@@ -11,6 +11,7 @@ import {
 } from './domUtils.js';
 import { formatDateForInput, normalizeDate } from './utils.date.js';
 import useStore from './store.js';
+import { setupPageBreakIndicatorListeners } from './dom/pageBreaks.js'; // Import page break setup
 
 /**
  * Updates the prejudgment table with the calculated results.
@@ -136,6 +137,7 @@ function initializeCalculator() {
     togglePrejudgmentVisibility(true, null);
     togglePostjudgmentVisibility(true, null);
     togglePerDiemVisibility(true, null);
+    setupPageBreakIndicatorListeners(); // Setup listeners for page break indicators
 
     // --- Perform initial population of summary table to create dynamic inputs ---
     const today = normalizeDate(new Date()); // Today's date
@@ -147,7 +149,7 @@ function initializeCalculator() {
     
     // Set default dates as per requirements
     const defaultJudgmentDate = date185DaysBefore; // Judgment date = 185 days before today
-    const defaultPrejudgmentStartDate = dateOneYearAgo; // Prejudgment interest date = one year ago
+    const defaultPrejudgmentStartDate = normalizeDate(new Date('2017-04-14')); // Prejudgment interest date = 2017-04-14 (for testing)
     const defaultPostjudgmentEndDate = today; // Postjudgment interest date = today
 
     const defaultAmount = 0;
