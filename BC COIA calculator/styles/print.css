@@ -148,4 +148,49 @@
     .help-icon {
         display: none !important;
     }
+    
+    /* Special damages print styles */
+    .add-special-damages-btn {
+        display: none !important;
+    }
+    
+    .delete-icon {
+        display: none !important;
+    }
+    
+    /* Ensure special damages inputs have transparent backgrounds */
+    .special-damages-date,
+    .special-damages-description,
+    .special-damages-amount {
+        background-color: transparent !important;
+        border: none !important;
+    }
+    
+    /* Fix vertical alignment for interest calculation details */
+    .interest-calculation-details {
+        display: block !important;
+        margin-top: 4px !important;
+        text-align: right !important;
+        vertical-align: bottom !important;
+    }
+    
+    /* Ensure days count is right-aligned */
+    .interest-calculation-details.days-only {
+        text-align: right !important;
+    }
+    
+    .interest-calculation-details.days-only .days-count {
+        text-align: right !important;
+    }
+    
+    /* Ensure end date is properly displayed */
+    .end-date {
+        margin-top: 4px !important;
+        text-align: left !important;
+    }
+    
+    /* Ensure interest amounts are at the bottom of cells */
+    .interest-table td:nth-child(5) {
+        vertical-align: bottom !important;
+    }
 }
