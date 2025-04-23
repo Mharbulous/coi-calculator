@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COI Calculator - Page Card Demo</title>
+    <style>
+        /* Base styles */
+        :root {
+            --paper-background-color: white;
+            --page-background-color: #e0e0e0;
+            --text-color: #333;
+            --text-color-muted: #888;
+            --border-color: #ddd;
+            --header-bg-color: #f2f2f2;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--page-background-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--text-color);
+        }
+
+        h1, h2, h3 {
+            margin-top: 0;
+        }
+
+        /* Controls */
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            padding: 8px 16px;
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #3a80d2;
+        }
+
+        /* Container for all pages */
+        .pages-container {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px; /* Space between pages */
+        }
+
+        /* Individual page card */
+        .page-card {
+            width: 8.5in;
+            height: 11in;
+            background-color: var(--paper-background-color);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 0.75in;
+            box-sizing: border-box;
+            position: relative;
+            overflow: hidden; /* Prevent content overflow */
+        }
+
+        /* Table styling for demo */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: var(--header-bg-color);
+        }
+
+        /* Page number indicator */
+        .page-number {
+            position: absolute;
+            bottom: 0.25in;
+            right: 0.25in;
+            color: var(--text-color-muted);
+            font-size: 0.8rem;
+        }
+
+        /* Form styling for demo */
+        .form-section {
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            border-radius: 4px;
+        }
+
+        .form-row {
+            display: flex;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .form-row label {
+            width: 150px;
+            margin-right: 10px;
+        }
+
+        .form-row input {
+            padding: 5px;
+            border: 1px solid var(--border-color);
+            border-radius: 3px;
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                background-color: white;
+                padding: 0;
+                margin: 0;
+            }
+
+            .controls, h1.page-title {
+                display: none;
+            }
+
+            .pages-container {
+                gap: 0;
+            }
+
+            .page-card {
+                box-shadow: none;
+                page-break-after: always;
+                margin: 0;
+                padding: 0.5in;
+                height: auto;
+                min-height: 10in;
+            }
+
+            /* Last page shouldn't force a page break */
+            .page-card:last-child {
+                page-break-after: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1 class="page-title">COI Calculator - Page Card Demo</h1>
+    
+    <div class="controls">
+        <button id="add-page">Add Page</button>
+        <button id="print-preview">Print Preview</button>
+    </div>
+    
+    <div class="pages-container" id="pages-container">
+        <!-- Page 1: Input Form -->
+        <div class="page-card">
+            <h2>Court Order Interest Calculator</h2>
+            <p>Enter the details below to calculate interest on court judgments and special damages.</p>
+            
+            <div class="form-section">
+                <h3>Judgment Details</h3>
+                <div class="form-row">
+                    <label for="judgment-date">Judgment Date:</label>
+                    <input type="date" id="judgment-date" value="2023-01-15">
+                </div>
+                <div class="form-row">
+                    <label for="judgment-amount">Judgment Amount:</label>
+                    <input type="text" id="judgment-amount" value="$50,000.00">
+                </div>
+                <div class="form-row">
+                    <label for="prejudgment-interest">Include Prejudgment Interest:</label>
+                    <input type="checkbox" id="prejudgment-interest" checked>
+                </div>
+                <div class="form-row">
+                    <label for="prejudgment-date">Prejudgment Date:</label>
+                    <input type="date" id="prejudgment-date" value="2022-06-01">
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h3>Special Damages</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Description</th>
+                            <th>Date</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Medical Expenses</td>
+                            <td>2022-07-15</td>
+                            <td>$2,500.00</td>
+                        </tr>
+                        <tr>
+                            <td>Property Damage</td>
+                            <td>2022-08-20</td>
+                            <td>$1,800.00</td>
+                        </tr>
+                        <tr>
+                            <td>Lost Wages</td>
+                            <td>2022-09-10</td>
+                            <td>$3,200.00</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <button style="margin-top: 10px;">Add Special Damage</button>
+            </div>
+            
+            <div class="page-number">Page 1</div>
+        </div>
+        
+        <!-- Page 2: Summary Table -->
+        <div class="page-card">
+            <h2>Interest Calculation Summary</h2>
+            <p>Below is a summary of the calculated interest based on the provided information.</p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>Principal</th>
+                        <th>Interest</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Judgment Amount</td>
+                        <td>$50,000.00</td>
+                        <td>$1,250.00</td>
+                        <td>$51,250.00</td>
+                    </tr>
+                    <tr>
+                        <td>Prejudgment Interest</td>
+                        <td>$50,000.00</td>
+                        <td>$875.00</td>
+                        <td>$50,875.00</td>
+                    </tr>
+                    <tr>
+                        <td>Medical Expenses</td>
+                        <td>$2,500.00</td>
+                        <td>$62.50</td>
+                        <td>$2,562.50</td>
+                    </tr>
+                    <tr>
+                        <td>Property Damage</td>
+                        <td>$1,800.00</td>
+                        <td>$45.00</td>
+                        <td>$1,845.00</td>
+                    </tr>
+                    <tr>
+                        <td>Lost Wages</td>
+                        <td>$3,200.00</td>
+                        <td>$80.00</td>
+                        <td>$3,280.00</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Total</strong></td>
+                        <td><strong>$57,500.00</strong></td>
+                        <td><strong>$2,312.50</strong></td>
+                        <td><strong>$59,812.50</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>Interest Rate Periods</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>From</th>
+                        <th>To</th>
+                        <th>Rate</th>
+                        <th>Days</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>2022-06-01</td>
+                        <td>2022-12-31</td>
+                        <td>2.00%</td>
+                        <td>214</td>
+                    </tr>
+                    <tr>
+                        <td>2023-01-01</td>
+                        <td>2023-06-30</td>
+                        <td>2.50%</td>
+                        <td>181</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="page-number">Page 2</div>
+        </div>
+        
+        <!-- Page 3: Detailed Interest Tables -->
+        <div class="page-card">
+            <h2>Detailed Interest Calculations</h2>
+            <p>The tables below show the detailed interest calculations for each item.</p>
+            
+            <h3>Judgment Amount Interest</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>From</th>
+                        <th>To</th>
+                        <th>Days</th>
+                        <th>Rate</th>
+                        <th>Interest</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>2023-01-15</td>
+                        <td>2023-06-30</td>
+                        <td>166</td>
+                        <td>2.50%</td>
+                        <td>$570.83</td>
+                    </tr>
+                    <tr>
+                        <td>2023-07-01</td>
+                        <td>2023-12-31</td>
+                        <td>184</td>
+                        <td>2.75%</td>
+                        <td>$679.17</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4"><strong>Total Interest:</strong></td>
+                        <td><strong>$1,250.00</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>Special Damages Interest</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>From</th>
+                        <th>To</th>
+                        <th>Days</th>
+                        <th>Rate</th>
+                        <th>Interest</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td rowspan="2">Medical Expenses</td>
+                        <td>2022-07-15</td>
+                        <td>2022-12-31</td>
+                        <td>170</td>
+                        <td>2.00%</td>
+                        <td>$23.29</td>
+                    </tr>
+                    <tr>
+                        <td>2023-01-01</td>
+                        <td>2023-01-15</td>
+                        <td>15</td>
+                        <td>2.50%</td>
+                        <td>$2.57</td>
+                    </tr>
+                    <tr>
+                        <td rowspan="2">Property Damage</td>
+                        <td>2022-08-20</td>
+                        <td>2022-12-31</td>
+                        <td>134</td>
+                        <td>2.00%</td>
+                        <td>$13.21</td>
+                    </tr>
+                    <tr>
+                        <td>2023-01-01</td>
+                        <td>2023-01-15</td>
+                        <td>15</td>
+                        <td>2.50%</td>
+                        <td>$1.85</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="page-number">Page 3</div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const pagesContainer = document.getElementById('pages-container');
+            const addPageButton = document.getElementById('add-page');
+            const printPreviewButton = document.getElementById('print-preview');
+            let pageCount = 3; // Start with 3 pages
+            
+            // Add a new page
+            addPageButton.addEventListener('click', function() {
+                pageCount++;
+                
+                // Create new page card
+                const pageCard = document.createElement('div');
+                pageCard.className = 'page-card';
+                pageCard.innerHTML = `
+                    <h2>Additional Information - Page ${pageCount}</h2>
+                    <p>This is an additional page added to demonstrate the card-based page approach in the context of the COI Calculator.</p>
+                    
+                    <h3>Notes</h3>
+                    <p>This page can contain additional information, notes, or any other content that needs to be included in the calculation report.</p>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Description</th>
+                                <th>Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Note 1</td>
+                                <td>Additional information about the calculation</td>
+                                <td>N/A</td>
+                            </tr>
+                            <tr>
+                                <td>Note 2</td>
+                                <td>Legal reference for interest rates</td>
+                                <td>Section 7</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <div class="page-number">Page ${pageCount}</div>
+                `;
+                pagesContainer.appendChild(pageCard);
+            });
+            
+            // Open print preview
+            printPreviewButton.addEventListener('click', function() {
+                window.print();
+            });
+        });
+    </script>
+</body>
+</html>

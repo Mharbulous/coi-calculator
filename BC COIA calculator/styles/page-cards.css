@@ -1,0 +1,64 @@
+/* --- Card-Based Page Break System --- */
+
+/* Container for all pages */
+.pages-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px; /* Space between pages */
+}
+
+/* Individual page card */
+.page-card {
+  width: 8.5in;
+  height: 11in;
+  background-color: var(--paper-background-color, white);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  padding: 0.75in;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden; /* Prevent content overflow */
+}
+
+/* Page number indicator */
+.page-number {
+  position: absolute;
+  bottom: 0.25in;
+  right: 0.25in;
+  color: var(--text-color-muted, #888);
+  font-size: 0.8rem;
+}
+
+/* Print styles */
+@media print {
+  body {
+    background-color: white;
+    padding: 0;
+    margin: 0;
+  }
+
+  .pages-container {
+    gap: 0;
+  }
+
+  .page-card {
+    box-shadow: none;
+    page-break-after: always;
+    margin: 0;
+    padding: 0.5in;
+    height: auto;
+    min-height: 10in;
+  }
+
+  /* Last page shouldn't force a page break */
+  .page-card:last-child {
+    page-break-after: avoid;
+  }
+  
+  /* Hide page numbers when printing if desired */
+  .page-number {
+    /* Uncomment to hide page numbers when printing */
+    /* display: none; */
+  }
+}
