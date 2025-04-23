@@ -174,8 +174,22 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
             };
         }).filter(item => item.date !== null); // Filter out invalid dates
 
-        // Sort all rows chronologically
-        allRowsToInsert.sort((a, b) => a.date - b.date);
+        // Sort all rows chronologically, with regular interest rows appearing above special damages rows when dates are the same
+        allRowsToInsert.sort((a, b) => {
+            // First compare by date
+            const dateComparison = a.date - b.date;
+            
+            // If dates are the same, sort by row type (regular interest rows above special damages rows)
+            if (dateComparison === 0) {
+                // If a is a special damage and b is not, b should come first
+                if (a.isSpecialDamage && !b.isSpecialDamage) return 1;
+                // If a is not a special damage and b is, a should come first
+                if (!a.isSpecialDamage && b.isSpecialDamage) return -1;
+            }
+            
+            // Otherwise, sort by date
+            return dateComparison;
+        });
 
         // Now insert each special damages row at the correct position
         for (const rowToInsert of allRowsToInsert) {
@@ -198,9 +212,22 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
                 }
                 
                 // Compare dates for insertion position
-                if (currentRowDate && rowToInsert.date <= currentRowDate) {
-                    insertIndex = i;
-                    break;
+                if (currentRowDate) {
+                    // If dates are equal, check if current row is a special damages row
+                    if (rowToInsert.date.getTime() === currentRowDate.getTime()) {
+                        // If current row is NOT a special damages row (i.e., it's a regular interest row),
+                        // insert the special damages row after it
+                        if (!dateInput) {
+                            insertIndex = i + 1; // Insert after the regular interest row
+                            break;
+                        }
+                        // If current row IS a special damages row, continue checking next rows
+                    } 
+                    // If special damages date is less than current row date, insert before it
+                    else if (rowToInsert.date < currentRowDate) {
+                        insertIndex = i;
+                        break;
+                    }
                 }
             }
             
