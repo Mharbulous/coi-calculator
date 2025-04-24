@@ -11,7 +11,7 @@ import {
 } from './domUtils.js';
 import { formatDateForInput, normalizeDate } from './utils.date.js';
 import useStore from './store.js';
-import { setupPageBreakIndicatorListeners } from './dom/pageBreaks.js'; // Import page break setup
+// Page break indicators removed
 
 /**
  * Updates the prejudgment table with the calculated results.
@@ -137,7 +137,7 @@ function initializeCalculator() {
     togglePrejudgmentVisibility(true, null);
     togglePostjudgmentVisibility(true, null);
     togglePerDiemVisibility(true, null);
-    setupPageBreakIndicatorListeners(); // Setup listeners for page break indicators
+    // Page break indicators removed
 
     // --- Perform initial population of summary table to create dynamic inputs ---
     const today = normalizeDate(new Date()); // Today's date
