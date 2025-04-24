@@ -55,6 +55,7 @@ export function updatePageBreakIndicators() {
         // Position the band exactly at the page break position
         // This will center it on the page break line
         band.style.top = `${breakPositionPx}px`;
+        band.textContent = "- page break -";
         paper.appendChild(band);
     }
 }
