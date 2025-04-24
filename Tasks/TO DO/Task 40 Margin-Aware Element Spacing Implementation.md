@@ -8,17 +8,13 @@ This approach implements intelligent blank space insertion to ensure elements re
 
 ### 1\. Element Height Determination
 
-*   Add some code to log the  heights of all relevant elements into the development console, so that we can record them and use them as constants in later functions:
-    *   Table titles (section-title elements)
-    *   Table headers (thead elements)
-    *   Interest calculation rows (standard table rows)
-    *   Special damages rows
-    *   Final period special rows
-    *   Table footers
-*   Run the app once determine static element heights
-*   Record these values for use in the implementation
-
-These heights will be determined via console logging and stored as constants, making the implementation more efficient and reliable.
+*   We have determined the heights of various elements:
+    *   Table titles (section-title elements)  = 26.67px
+    *   Table headers (thead elements) = 27 px
+    *   Interest calculation rows (standard table rows) = 30.67 px
+    *   Special damages rows = 28.54px
+    *   Final period special rows = 49.33px
+    *   Table footers = 27.33
 
 ### 2\. Create the Margin Guideline Spacing Module
 
