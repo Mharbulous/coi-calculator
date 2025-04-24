@@ -1,0 +1,36 @@
+/* Print styles */
+@media print {
+    body {
+        background-color: white;
+        padding: 0;
+        margin: 0;
+    }
+
+    .controls {
+        display: none;
+    }
+
+    .paper-layer .page-card {
+        box-shadow: none;
+        page-break-after: always;
+        margin: 0;
+        height: 11in;
+    }
+
+    .paper-layer .page-card:last-child {
+        page-break-after: avoid;
+    }
+
+    .ink-layer {
+        position: static; /* Reset positioning for print */
+    }
+
+    .page-boundary-spacer {
+        display: none; /* Hide boundary spacers when printing */
+    }
+
+    /* Ensure table headers print on each page */
+    table thead {
+        display: table-header-group;
+    }
+}
