@@ -327,15 +327,11 @@
                 <button style="margin-top: 10px;">Add Special Damage</button>
             </div>
             
-            <div class="page-number">Page 1</div>
-        </div>
-        
-        <!-- Page 2: Summary Table -->
-        <div class="page-card">
-            <h2>Interest Calculation Summary</h2>
-            <p>Below is a summary of the calculated interest based on the provided information.</p>
-            
-            <table class="table-continued-prev">
+            <div class="form-section">
+                <h3>Interest Calculation Summary</h3>
+                <p>Below is a summary of the calculated interest based on the provided information.</p>
+                
+                <table>
                 <thead>
                     <tr>
                         <th>Description</th>
@@ -390,8 +386,8 @@
                 </tfoot>
             </table>
             
-            <h3>Interest Rate Periods</h3>
-            <table class="table-continued-next">
+                <h3>Interest Rate Periods</h3>
+                <table>
                 <thead>
                     <tr>
                         <th>From</th>
@@ -422,10 +418,12 @@
                 </tfoot>
             </table>
             
-            <div class="page-number">Page 2</div>
+            </div>
+            
+            <div class="page-number">Page 1</div>
         </div>
         
-        <!-- Page 3: Detailed Interest Tables -->
+        <!-- Page 2: Detailed Interest Tables -->
         <div class="page-card">
             <h2>Detailed Interest Calculations</h2>
             <p>The tables below show the detailed interest calculations for each item.</p>
@@ -521,7 +519,7 @@
                 </tfoot>
             </table>
             
-            <div class="page-number">Page 3</div>
+            <div class="page-number">Page 2</div>
         </div>
     </div>
 
@@ -530,7 +528,7 @@
             const pagesContainer = document.getElementById('pages-container');
             const addPageButton = document.getElementById('add-page');
             const printPreviewButton = document.getElementById('print-preview');
-            let pageCount = 3; // Start with 3 pages
+            let pageCount = 2; // Start with 2 pages
             
             // Table Pagination Component
             class TablePaginator {
