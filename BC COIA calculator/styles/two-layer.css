@@ -33,6 +33,20 @@
     position: relative;
 }
 
+/* Page margin guidelines - dashed amber lines */
+.page-card::before {
+    content: '';
+    position: absolute;
+    top: var(--paper-padding);
+    right: var(--paper-padding);
+    bottom: var(--paper-padding);
+    left: var(--paper-padding);
+    border: 2px dashed #ffbf00; /* Amber color, dashed line */
+    pointer-events: none; /* Allow clicking through */
+    z-index: 5; /* Above the paper but below the content */
+    box-sizing: border-box;
+}
+
 /* Page number indicator */
 .page-number {
     position: absolute;
@@ -70,6 +84,11 @@
         page-break-after: always;
         margin: 0;
         height: auto;
+    }
+    
+    /* Hide margin guidelines when printing */
+    .page-card::before {
+        display: none;
     }
     
     .paper-layer .page-card:last-child {
