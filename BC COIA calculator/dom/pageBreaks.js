@@ -49,13 +49,14 @@ export function updatePageBreakIndicators() {
     for (let i = 1; i < numPages; i++) {
         const breakPositionPx = i * onlinePageHeightPx;
         
-        // Create page break band
+        // Create page break band with page number
         const band = document.createElement('div');
         band.className = 'page-break-band';
-        // Position the band exactly at the page break position
-        // This will center it on the page break line
-        band.style.top = `${breakPositionPx}px`;
-        band.textContent = "- page break -";
+        // Position the band centered on the page break position
+        // Since the band is now 144px tall, offset it by half its height to center it
+        band.style.top = `${breakPositionPx - 72}px`; // 72px is half of 144px
+        // Add page number (i+1 because i starts at 0, and we're showing bands between pages)
+        band.textContent = `- page ${i+1} -`;
         paper.appendChild(band);
     }
 }
