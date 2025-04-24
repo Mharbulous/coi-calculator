@@ -8,14 +8,14 @@ This approach implements intelligent blank space insertion to ensure elements re
 
 ### 1\. Element Height Determination
 
-*   Create a temporary function to log the heights of all relevant elements:
+*   Add some code to log the  heights of all relevant elements into the development console, so that we can record them and use them as constants in later functions:
     *   Table titles (section-title elements)
     *   Table headers (thead elements)
     *   Interest calculation rows (standard table rows)
     *   Special damages rows
     *   Final period special rows
     *   Table footers
-*   Run this function once to determine static element heights
+*   Run the app once determine static element heights
 *   Record these values for use in the implementation
 
 These heights will be determined via console logging and stored as constants, making the implementation more efficient and reliable.
