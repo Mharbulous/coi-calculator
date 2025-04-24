@@ -12,4 +12,5 @@
 @import url('components/tooltips.css');
 @import url('components/modal.css');
 @import url('page-breaks.css'); /* Import page break styles */
+@import url('two-layer.css'); /* Import two-layer skeuomorphic paper styles */
 @import url('print.css');

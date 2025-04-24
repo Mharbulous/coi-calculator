@@ -17,10 +17,10 @@
     --title-font-size: 11pt; /* Title font size */
     --print-font-size: 10pt; /* Same as base-font-size for consistency */
 
-    --paper-width: 8.5in;
-    --paper-min-height: 11.75in;
+    --paper-width: 9.08in;
+    --paper-height: 11.75in; 
     --paper-padding: 0.75in;
-    --paper-scale: 1; /* Reset to no scaling */
+    --paper-scale: 1; 
 
     --label-width-dates: 1.2in;
     --value-width-right: 1.5in;

@@ -1,0 +1,86 @@
+/* Two-layer skeuomorphic paper implementation */
+
+/* Container for both layers */
+.two-layer-container {
+    position: relative;
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0 auto; /* Center the container */
+}
+
+/* Paper Layer (Bottom) */
+.paper-layer {
+    position: absolute;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px; /* Space between pages */
+    width: 100%;
+    top: 0;
+    left: 0;
+}
+
+/* Individual paper cards */
+.page-card {
+    width: var(--paper-width);
+    height: var(--paper-height); /* Use the renamed CSS variable for height */
+    background-color: var(--paper-background-color);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+/* Page number indicator */
+.page-number {
+    position: absolute;
+    bottom: 0.25in;
+    right: 0.25in;
+    color: #888;
+    font-size: 0.8rem;
+}
+
+/* Adjust existing content to be on top */
+.paper {
+    position: relative;
+    z-index: 2;
+    background-color: transparent; /* Make it transparent so paper shows through */
+    box-shadow: none; /* Remove any existing shadow */
+    width: var(--paper-width); /* Use the CSS variable for width */
+    padding: var(--paper-padding); /* Use the CSS variable for padding */
+    margin-bottom: 30px; /* Add margin to match the gap between paper cards */
+}
+
+/* Print styles */
+@media print {
+    .two-layer-container {
+        display: block;
+    }
+    
+    .paper-layer {
+        position: static;
+        display: block;
+        gap: 0;
+    }
+    
+    .paper-layer .page-card {
+        box-shadow: none;
+        page-break-after: always;
+        margin: 0;
+        height: auto;
+    }
+    
+    .paper-layer .page-card:last-child {
+        page-break-after: avoid;
+    }
+    
+    .page-number {
+        display: none; /* Hide page numbers when printing */
+    }
+    
+    .paper {
+        margin-bottom: 0;
+    }
+}

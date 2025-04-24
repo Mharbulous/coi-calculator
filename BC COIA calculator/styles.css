@@ -17,8 +17,8 @@
     --title-font-size: 12pt;
     --print-font-size: 10pt;
 
-    --paper-width: 8.5in;
-    --paper-min-height: 11in;
+    --paper-width: 9.08in;
+    --paper-height: 11.75in; 
     --paper-padding: 0.75in;
 
     --label-width-dates: 1.2in;
@@ -59,7 +59,7 @@ input, select, textarea, button {
 .paper {
     background-color: var(--paper-background-color);
     width: var(--paper-width);
-    min-height: var(--paper-min-height);
+    min-height: var(--paper-height); /* Updated to use renamed variable */
     padding: var(--paper-padding);
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     box-sizing: border-box;
@@ -765,7 +765,7 @@ h1 i {
     }
     .paper {
         margin: 0 !important; padding: var(--paper-padding) !important; width: var(--paper-width) !important;
-        min-height: 10.9in !important; /* Slightly less than 11 to avoid issues */ height: auto !important; box-shadow: none !important;
+        min-height: 11.9in !important; /* Slightly less than 12in to avoid issues */ height: auto !important; box-shadow: none !important;
         border: none !important; box-sizing: border-box !important;
         page-break-after: auto !important; position: static !important; overflow: visible !important;
     }
