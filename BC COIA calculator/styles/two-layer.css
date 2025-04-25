@@ -63,8 +63,8 @@
     background-color: transparent; /* Make it transparent so paper shows through */
     box-shadow: none; /* Remove any existing shadow */
     width: var(--paper-width); /* Use the CSS variable for width */
-    padding: var(--paper-padding); /* Use the CSS variable for padding */
-    margin-bottom: 30px; /* Add margin to match the gap between paper cards */
+    padding: var(--paper-padding) var(--paper-padding) 0 var(--paper-padding); /* Remove bottom padding */
+    margin-bottom: 0; /* Remove bottom margin */
 }
 
 /* Print styles */

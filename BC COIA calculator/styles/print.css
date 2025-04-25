@@ -18,7 +18,7 @@
     
     .ink-layer {
         margin: 0 !important; 
-        padding: var(--paper-padding) !important; /* Keep padding to match online view */
+        padding: var(--paper-padding) var(--paper-padding) 0 var(--paper-padding) !important; /* Remove bottom padding to match online view */
         width: var(--paper-width) !important;
         min-height: 10.9in !important; /* Slightly less than 11 to avoid issues */ 
         height: auto !important; 
