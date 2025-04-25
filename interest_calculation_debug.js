@@ -14,12 +14,8 @@ const mockRatesData = {
     ]
 };
 
-// We can't directly access getApplicableRatePeriods since it's not exported
-
 // Debug the calculateInterestPeriods function
 function debugCalculateInterestPeriods() {
-    console.log("\n=== Debugging calculateInterestPeriods ===");
-    
     const mockState = {
         inputs: { jurisdiction: 'BC' },
         results: { specialDamages: [] }
@@ -31,8 +27,6 @@ function debugCalculateInterestPeriods() {
     const startDate1 = createUTCDate(2022, 1, 1); // Jan 1, 2022
     const endDate1 = createUTCDate(2022, 1, 1);   // Jan 1, 2022 (same as start)
     
-    console.log(`Test Case 1: Same-day period (${startDate1.toISOString()} to ${endDate1.toISOString()})`);
-    
     // Call calculateInterestPeriods
     const result1 = calculateInterestPeriods(
         mockState,
@@ -43,14 +37,9 @@ function debugCalculateInterestPeriods() {
         mockRatesData
     );
     
-    console.log("Result details:", result1.details);
-    console.log("Total interest:", result1.total);
-    
     // Test case 2: One-day period (2022-01-01 to 2022-01-02)
     const startDate2 = createUTCDate(2022, 1, 1); // Jan 1, 2022
     const endDate2 = createUTCDate(2022, 1, 2);   // Jan 2, 2022 (one day after start)
-    
-    console.log(`\nTest Case 2: One-day period (${startDate2.toISOString()} to ${endDate2.toISOString()})`);
     
     // Call calculateInterestPeriods
     const result2 = calculateInterestPeriods(
@@ -62,9 +51,8 @@ function debugCalculateInterestPeriods() {
         mockRatesData
     );
     
-    console.log("Result details:", result2.details);
-    console.log("Total interest:", result2.total);
+    return { result1, result2 };
 }
 
-// Run the debug function
-debugCalculateInterestPeriods();
+// Export the debug function instead of running it directly
+export { debugCalculateInterestPeriods };
