@@ -8,7 +8,7 @@ This approach implements intelligent blank space insertion to ensure elements re
 
 ### 1\. Element Height Determination
 
-*   We have determined the heights of various elements:
+*   We have already determined the heights of various elements:
     *   Table titles (section-title elements)  = 26.67px
     *   Table headers (thead elements) = 27 px
     *   Interest calculation rows (standard table rows) = 30.67 px
