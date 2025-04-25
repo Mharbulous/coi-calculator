@@ -217,8 +217,8 @@ export function updatePagination() {
         const titleHeight = getElementOuterHeight(postjudgmentTitle);
 
         for (let p = 0; p < workspaceBottom.length; p++) {
-            // Check if the title starts near the bottom of page p
-            if (workspaceBottom[p] > titleTop && workspaceBottom[p] < titleTop + (4 * titleHeight)) {
+            // Check if the title starts near the bottom of page p, using the new threshold
+            if (workspaceBottom[p] > titleTop && workspaceBottom[p] < titleTop + (3 * titleHeight + inkLayerMargin)) {
                  // Ensure there's a next page to calculate the gap against
                  if (p + 1 < workspaceTop.length) {
                     const blankSpaceHeight = workspaceTop[p + 1] - titleTop;
