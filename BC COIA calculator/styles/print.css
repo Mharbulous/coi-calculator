@@ -16,7 +16,7 @@
         print-color-adjust: exact !important;
     }
     
-    .paper {
+    .ink-layer {
         margin: 0 !important; 
         padding: var(--paper-padding) !important; /* Keep padding to match online view */
         width: var(--paper-width) !important;

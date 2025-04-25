@@ -57,7 +57,7 @@
 }
 
 /* Adjust existing content to be on top */
-.paper {
+.ink-layer {
     position: relative;
     z-index: 2;
     background-color: transparent; /* Make it transparent so paper shows through */
@@ -99,7 +99,7 @@
         display: none; /* Hide page numbers when printing */
     }
     
-    .paper {
+    .ink-layer {
         margin-bottom: 0;
     }
 }

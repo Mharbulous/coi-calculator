@@ -36,7 +36,7 @@ const elements = {
 
     // Containers (optional, if needed for broader manipulation)
     editableFieldsSection: document.querySelector('.editable-fields-section'),
-    paperContainer: document.querySelector('.paper'),
+    paperContainer: document.querySelector('.ink-layer'),
 
     // Dynamically created inputs in summary table (will be selected after creation)
     pecuniaryJudgmentDateInput: null,

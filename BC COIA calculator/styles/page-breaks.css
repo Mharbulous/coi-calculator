@@ -1,7 +1,7 @@
 /* --- Simple Page Break Indicators --- */
 
 /* Position container for page break indicators */
-.paper {
+.ink-layer {
   position: relative; /* Needed for absolute positioning of indicators */
 }
 

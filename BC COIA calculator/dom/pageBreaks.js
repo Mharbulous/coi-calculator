@@ -23,9 +23,9 @@ export function getPageHeightPx(forPrint = false) {
  * Creates gray horizontal bands to create a 3D illusion of page separation.
  */
 export function updatePageBreakIndicators() {
-    const paper = document.querySelector('.paper');
+    const paper = document.querySelector('.ink-layer');
     if (!paper) {
-        console.warn("Could not find '.paper' element for page break indicators.");
+        console.warn("Could not find '.ink-layer' element for page break indicators.");
         return;
     }
 

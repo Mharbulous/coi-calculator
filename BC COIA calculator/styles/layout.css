@@ -1,5 +1,5 @@
 /* --- Paper Layout --- */
-.paper {
+.ink-layer {
     background-color: var(--paper-background-color);
     width: var(--paper-width);
     min-height: var(--paper-height); /* Updated to use renamed variable */
