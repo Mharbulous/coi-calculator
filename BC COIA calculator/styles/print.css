@@ -242,4 +242,9 @@
         height: 0 !important;
         visibility: hidden !important;
     }
+
+    /* Hide elements specifically for screen display */
+    .screen-only {
+        display: none !important;
+    }
 }

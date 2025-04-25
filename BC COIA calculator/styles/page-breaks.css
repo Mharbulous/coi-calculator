@@ -1,31 +1,9 @@
-/* --- Simple Page Break Indicators --- */
+/* --- WYSIWYG Pagination Spacing --- */
 
-/* Position container for page break indicators */
-.ink-layer {
-  position: relative; /* Needed for absolute positioning of indicators */
+/* Class for elements inserted by JS for spacing, visible only on screen */
+.screen-only {
+  /* Base style - JS will set specific display (e.g., table-row, block) and height */
+  box-sizing: border-box; /* Ensure padding/border are included if added later */
 }
 
-/* Simple page break band - a simple pale yellow box with text */
-.page-break-band {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 144px; /* 1.5 inches (96px per inch) */
-  z-index: 10;
-  pointer-events: none; /* Allow clicking through */
-  background-color: #FFFACD; /* Pale yellow color */
-  border: none; /* No borders */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 10pt;
-  color: #888888; /* Gray text color */
-  opacity: 0.8; /* 50% transparency */
-}
-
-/* Hide page break indicators when printing */
-@media print {
-  .page-break-band {
-    display: none !important;
-  }
-}
+/* Note: Print styles for .screen-only are handled in print.css */
