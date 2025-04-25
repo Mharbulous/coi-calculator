@@ -268,19 +268,45 @@ export function updatePagination() {
         }
     }
 
-    // 18. Final check: Recalculate page count and add page if needed
-    const finalPageCountCheck = Math.ceil(inkLayerHeight / workspaceHeightPerPage);
-    const currentRenderedPageCount = paperLayer.querySelectorAll('.page-card').length;
+    // 18. Final check: Adjust page count based on final content position
+    const postjudgmentFooterRow = postjudgmentTable.querySelector('tfoot tr.total');
+    if (postjudgmentFooterRow) {
+        const footerTop = getElementAbsoluteTop(postjudgmentFooterRow);
+        const footerHeight = getElementOuterHeight(postjudgmentFooterRow);
+        const footerBottom = footerTop + footerHeight;
 
-    if (finalPageCountCheck > currentRenderedPageCount) {
-        console.log(`Adding ${finalPageCountCheck - currentRenderedPageCount} extra page(s)...`);
-        for (let i = currentRenderedPageCount; i < finalPageCountCheck; i++) {
-            const pageCard = document.createElement('div');
-            pageCard.className = 'page-card';
-            pageCard.innerHTML = `<div class="page-number">Page ${i + 1}</div>`;
-            paperLayer.appendChild(pageCard);
+        let currentRenderedPageCount = paperLayer.querySelectorAll('.page-card').length;
+        if (currentRenderedPageCount > 0) {
+            const lastPageIndex = currentRenderedPageCount - 1;
+            const lastPageWorkspaceTop = workspaceTop[lastPageIndex];
+            const lastPageWorkspaceBottom = workspaceBottom[lastPageIndex];
+
+            // Check if content overflows the last page's workspace
+            if (footerBottom > lastPageWorkspaceBottom) {
+                console.log("Content overflows last page. Adding a page...");
+                const pageCard = document.createElement('div');
+                pageCard.className = 'page-card';
+                pageCard.innerHTML = `<div class="page-number">Page ${currentRenderedPageCount + 1}</div>`;
+                paperLayer.appendChild(pageCard);
+            }
+            // Check if the last page is unnecessary (content ends before its workspace starts)
+            // Only remove if there's more than one page
+            else if (currentRenderedPageCount > 1 && footerBottom < lastPageWorkspaceTop) {
+                 console.log("Content ends before last page workspace. Removing last page...");
+                 const lastPageCardElement = paperLayer.lastElementChild;
+                 if (lastPageCardElement && lastPageCardElement.classList.contains('page-card')) {
+                     lastPageCardElement.remove();
+                 }
+            }
+        } else {
+             // Handle edge case where there are no pages rendered initially (shouldn't happen if inkLayerHeight > 0)
+             console.warn("No pages rendered initially during final check.");
         }
+
+    } else {
+        console.warn("Postjudgment footer row not found for final page check.");
     }
+
 
     console.log("Pagination update finished.");
 }
