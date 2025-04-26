@@ -25,8 +25,9 @@
 .page-number {
   position: absolute;
   bottom: 0.25in;
-  right: 0.25in;
-  color: var(--text-color-muted, #888);
+  left: 50%;
+  transform: translateX(-50%);
+  color: #3a7bc8; /* Blue color matching the checkbox label */
   font-size: 0.8rem;
 }
 
