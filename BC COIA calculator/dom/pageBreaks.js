@@ -69,7 +69,6 @@ function insertBlankRow(referenceRow, height) {
     cell.appendChild(marker);
     
     blankRow.appendChild(cell);
-    console.log(`DEBUG: Inserting blank row of ${height}px before:`, referenceRow);
     referenceRow.parentNode.insertBefore(blankRow, referenceRow);
     return blankRow;
 }
@@ -95,7 +94,6 @@ function insertHeaderRow(referenceRow, originalHeaderRow) {
         </div>`;
     }
     
-    console.log(`DEBUG: Inserting cloned header before:`, referenceRow);
     referenceRow.parentNode.insertBefore(clonedHeader, referenceRow);
     return getElementOuterHeight(clonedHeader);
 }
@@ -128,7 +126,6 @@ function insertBlankSpace(referenceElement, height) {
     marker.classList.add(SCREEN_ONLY_CLASS);
     blankSpace.appendChild(marker);
     
-    console.log(`DEBUG: Inserting blank space of ${height}px before:`, referenceElement);
     referenceElement.parentNode.insertBefore(blankSpace, referenceElement);
     return blankSpace;
 }
@@ -329,26 +326,12 @@ export function updatePagination() {
         const containerTop = getElementAbsoluteTop(postjudgmentTableContainer);
         const containerHeight = getElementOuterHeight(postjudgmentTableContainer);
         const containerBottom = containerTop + containerHeight;
-        
-        console.log('DEBUG: Postjudgment table container position:', {
-            element: postjudgmentTableContainer,
-            top: containerTop,
-            height: containerHeight,
-            bottom: containerBottom
-        });
     }
     
     if (postjudgmentHeader) {
         const headerTop = getElementAbsoluteTop(postjudgmentHeader);
         const headerHeight = getElementOuterHeight(postjudgmentHeader);
         const headerBottom = headerTop + headerHeight;
-        
-        console.log('DEBUG: Postjudgment table header position:', {
-            element: postjudgmentHeader,
-            top: headerTop,
-            height: headerHeight,
-            bottom: headerBottom
-        });
     }
 
     if (postjudgmentTitle) {
@@ -362,28 +345,8 @@ export function updatePagination() {
         const titleParentHeight = getElementOuterHeight(titleParent);
         const titleParentBottom = titleParentTop + titleParentHeight;
         
-        console.log('DEBUG: Postjudgment title position:', {
-            element: postjudgmentTitle,
-            top: titleTop,
-            height: titleHeight,
-            bottom: titleBottom
-        });
-        
-        console.log('DEBUG: Postjudgment title parent container:', {
-            element: titleParent,
-            top: titleParentTop,
-            height: titleParentHeight,
-            bottom: titleParentBottom
-        });
-        
         // Check computed styles for margins and padding
         const titleStyles = window.getComputedStyle(postjudgmentTitle);
-        console.log('DEBUG: Postjudgment title styles:', {
-            marginTop: titleStyles.marginTop,
-            marginBottom: titleStyles.marginBottom,
-            paddingTop: titleStyles.paddingTop,
-            paddingBottom: titleStyles.paddingBottom
-        });
         
         // Check if there's a next sibling element after the title
         const nextSibling = postjudgmentTitle.nextElementSibling;
@@ -392,28 +355,12 @@ export function updatePagination() {
             const nextSiblingHeight = getElementOuterHeight(nextSibling);
             const nextSiblingBottom = nextSiblingTop + nextSiblingHeight;
             
-            console.log('DEBUG: Element after postjudgment title:', {
-                element: nextSibling,
-                top: nextSiblingTop,
-                height: nextSiblingHeight,
-                bottom: nextSiblingBottom,
-                gap: nextSiblingTop - titleBottom
-            });
-            
             // Check computed styles for the next sibling
             const nextSiblingStyles = window.getComputedStyle(nextSibling);
-            console.log('DEBUG: Next sibling styles:', {
-                marginTop: nextSiblingStyles.marginTop,
-                marginBottom: nextSiblingStyles.marginBottom,
-                paddingTop: nextSiblingStyles.paddingTop,
-                paddingBottom: nextSiblingStyles.paddingBottom
-            });
         }
 
         // Log all workspace boundaries for comparison
-        console.log('DEBUG: Workspace boundaries:');
         for (let i = 0; i < workspaceBottom.length; i++) {
-            console.log(`Page ${i + 1}: top=${workspaceTop[i]}, bottom=${workspaceBottom[i]}`);
         }
 
              
@@ -424,12 +371,10 @@ export function updatePagination() {
         for (let p = 0; p < workspaceBottom.length; p++) {
             const distanceToBottom = workspaceBottom[p] - titleTop;
             if (distanceToBottom > 0 && distanceToBottom < titleHeight * 2) {
-                console.log(`DEBUG: Title is too close to bottom of page ${p + 1} (${distanceToBottom}px)`);
                 
                 // Ensure there's a next page to calculate the gap against
                 if (p + 1 < workspaceTop.length) {
                     const blankSpaceHeight = workspaceTop[p + 1] - titleTop;
-                    console.log(`DEBUG: FIXED: Forcing title to page ${p + 2} - too close to bottom`);
                     
                     // Add a special marker to highlight the issue
                     const debugMarker = document.createElement('div');
@@ -487,12 +432,10 @@ export function updatePagination() {
             if (!breakInserted && postjudgmentHeader && distanceToBottom > 0) {
                 const headerHeight = getElementOuterHeight(postjudgmentHeader);
                 if (titleTop + titleHeight + headerHeight > workspaceBottom[p]) {
-                    console.log(`DEBUG: Title plus table header would overflow page ${p + 1} by ${titleTop + titleHeight + headerHeight - workspaceBottom[p]}px`);
                     
                     // Ensure there's a next page to calculate the gap against
                     if (p + 1 < workspaceTop.length) {
                         const blankSpaceHeight = workspaceTop[p + 1] - titleTop;
-                        console.log(`DEBUG: FIXED: Forcing title to page ${p + 2} - would overflow with header`);
                         
                         // Insert the blank space
                         const blankSpace = insertBlankSpace(postjudgmentTitle, blankSpaceHeight);
@@ -523,12 +466,10 @@ export function updatePagination() {
         for (let p = 0; p < workspaceBottom.length; p++) {
             // Check if the title starts near the bottom of page p, using the new threshold
             if (workspaceBottom[p] > titleTop && workspaceBottom[p] < titleTop + (3 * titleHeight + inkLayerMargin)) {
-                console.log(`DEBUG: Title near bottom of page ${p + 1}. Distance to bottom: ${workspaceBottom[p] - titleTop}px`);
                 
                 // Ensure there's a next page to calculate the gap against
                 if (p + 1 < workspaceTop.length) {
                     const blankSpaceHeight = workspaceTop[p + 1] - titleTop;
-                    console.log(`DEBUG: Inserting blank space of ${blankSpaceHeight}px before title`);
                     
                     // Add a special marker to highlight the issue
                     const debugMarker = document.createElement('div');
@@ -580,15 +521,10 @@ export function updatePagination() {
                     setTimeout(() => {
                         const newTitleTop = getElementAbsoluteTop(postjudgmentTitle);
                         const newTitleBottom = newTitleTop + getElementOuterHeight(postjudgmentTitle);
-                        console.log('DEBUG: Title position AFTER inserting blank space:', {
-                            top: newTitleTop,
-                            bottom: newTitleBottom
-                        });
                         
                         // Check which page the title is on now
                         for (let i = 0; i < workspaceBottom.length; i++) {
                             if (newTitleTop >= workspaceTop[i] && newTitleTop < workspaceBottom[i]) {
-                                console.log(`DEBUG: After blank space insertion, title is now on page ${i + 1}`);
                                 break;
                             }
                         }
@@ -602,13 +538,11 @@ export function updatePagination() {
         }
         
         if (!breakInserted) {
-            console.log('DEBUG: No page break inserted for postjudgment title');
             
             // Check if title is at the top of a page
             for (let i = 0; i < workspaceTop.length; i++) {
                 const distanceFromPageTop = titleTop - workspaceTop[i];
                 if (distanceFromPageTop >= 0 && distanceFromPageTop < titleHeight * 2) {
-                    console.log(`DEBUG: Title appears to be at the top of page ${i + 1}. Distance from page top: ${distanceFromPageTop}px`);
                 }
             }
             
@@ -616,7 +550,6 @@ export function updatePagination() {
             for (let i = 0; i < workspaceTop.length; i++) {
                 if (titleTop > workspaceTop[i] && titleBottom < workspaceBottom[i]) {
                     const pageMiddle = workspaceTop[i] + (workspaceBottom[i] - workspaceTop[i]) / 2;
-                    console.log(`DEBUG: Title is in the middle of page ${i + 1}. Distance from page middle: ${Math.abs(titleTop - pageMiddle)}px`);
                 }
             }
         }
@@ -634,24 +567,15 @@ export function updatePagination() {
         const firstRowHeight = getElementOuterHeight(firstRow);
         const firstRowBottom = firstRowTop + firstRowHeight;
         
-        console.log('DEBUG: First postjudgment row position:', {
-            element: firstRow,
-            top: firstRowTop,
-            height: firstRowHeight,
-            bottom: firstRowBottom
-        });
-        
         // Check if there's a gap between the title and the first row
         if (postjudgmentTitle) {
             const titleBottom = getElementAbsoluteTop(postjudgmentTitle) + getElementOuterHeight(postjudgmentTitle);
             const gapBetweenTitleAndFirstRow = firstRowTop - titleBottom;
             
-            console.log(`DEBUG: Gap between postjudgment title and first row: ${gapBetweenTitleAndFirstRow}px`);
             
             // Check if this gap crosses a page boundary
             for (let i = 0; i < workspaceBottom.length; i++) {
                 if (titleBottom < workspaceBottom[i] && firstRowTop > workspaceTop[i + 1]) {
-                    console.log(`DEBUG: Title and first row are on different pages! Title ends on page ${i + 1}, row starts on page ${i + 2}`);
                 }
             }
         }
@@ -660,7 +584,6 @@ export function updatePagination() {
         for (let i = 0; i < workspaceTop.length; i++) {
             const distanceFromPageTop = firstRowTop - workspaceTop[i];
             if (distanceFromPageTop >= 0 && distanceFromPageTop < firstRowHeight) {
-                console.log(`DEBUG: First row appears to be at the top of page ${i + 1}. Distance from page top: ${distanceFromPageTop}px`);
             }
         }
     }
@@ -709,7 +632,6 @@ export function updatePagination() {
 
             // Check if content overflows the last page's workspace
             if (footerBottom > lastPageWorkspaceBottom) {
-                console.log("Content overflows last page. Adding a page...");
                 const pageCard = document.createElement('div');
                 pageCard.className = 'page-card';
                 pageCard.innerHTML = `<div class="page-number">Page ${currentRenderedPageCount + 1}</div>`;
@@ -718,7 +640,6 @@ export function updatePagination() {
             // Check if the last page is unnecessary (content ends before its workspace starts)
             // Only remove if there's more than one page
             else if (currentRenderedPageCount > 1 && footerBottom < lastPageWorkspaceTop) {
-                 console.log("Content ends before last page workspace. Removing last page...");
                  const lastPageCardElement = paperLayer.lastElementChild;
                  if (lastPageCardElement && lastPageCardElement.classList.contains('page-card')) {
                      lastPageCardElement.remove();
@@ -742,5 +663,4 @@ export function setupPaginationListeners() {
     // Example: Trigger updatePagination on relevant state changes or events
     // This needs to be integrated into the main application flow (e.g., in calculator.ui.js)
     // window.addEventListener('some-update-event', updatePagination);
-    console.log("Pagination listeners setup (placeholder).");
 }

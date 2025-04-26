@@ -1,3 +1,4 @@
+
 // Debug script to output the positions of .page-card::before elements (margin guidelines)
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -28,9 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const beforeAbsoluteTop = cardAbsoluteTop + parseFloat(beforeTop);
       const beforeAbsoluteBottom = cardAbsoluteBottom - parseFloat(beforeBottom);
       
-      // Only log the page number and absolute positions (top and bottom margins)
-      console.log(`Page Card ${index + 1}:`);
-      console.log(`  ::before absolute position: top=${beforeAbsoluteTop}px (${pxToInches(beforeAbsoluteTop)}), bottom=${beforeAbsoluteBottom}px (${pxToInches(beforeAbsoluteBottom)})`);
+      // Create visual indicators without logging to console
       
       // Create visual indicators for debugging
       createVisualIndicator(beforeAbsoluteTop, 'red', `Page ${index + 1} ::before top`);
