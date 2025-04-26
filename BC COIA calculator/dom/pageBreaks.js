@@ -50,8 +50,28 @@ function insertBlankRow(referenceRow, height) {
     cell.style.height = `${height}px`;
     cell.style.padding = '0';
     cell.style.border = 'none';
+    
+    // Add a visible marker for debugging
+    cell.style.position = 'relative';
+    const marker = document.createElement('div');
+    marker.textContent = `Row Break (${height}px)`;
+    marker.style.position = 'absolute';
+    marker.style.top = '0';
+    marker.style.left = '0';
+    marker.style.backgroundColor = 'rgba(0, 0, 255, 0.2)';
+    marker.style.color = 'blue';
+    marker.style.padding = '2px';
+    marker.style.fontSize = '10px';
+    marker.style.fontWeight = 'bold';
+    marker.style.zIndex = '1000';
+    marker.style.pointerEvents = 'none';
+    marker.classList.add(SCREEN_ONLY_CLASS);
+    cell.appendChild(marker);
+    
     blankRow.appendChild(cell);
+    console.log(`DEBUG: Inserting blank row of ${height}px before:`, referenceRow);
     referenceRow.parentNode.insertBefore(blankRow, referenceRow);
+    return blankRow;
 }
 
 /**
@@ -64,6 +84,18 @@ function insertHeaderRow(referenceRow, originalHeaderRow) {
     if (!referenceRow || !originalHeaderRow) return 0;
     const clonedHeader = originalHeaderRow.cloneNode(true);
     clonedHeader.classList.add(SCREEN_ONLY_CLASS);
+    
+    // Add a visible marker for debugging
+    const firstCell = clonedHeader.querySelector('th');
+    if (firstCell) {
+        const originalText = firstCell.textContent;
+        firstCell.innerHTML = `<div style="position: relative;">
+            <div style="position: absolute; top: 0; left: 0; background-color: rgba(0, 128, 0, 0.2); color: green; padding: 2px; font-size: 10px; font-weight: bold; z-index: 1000; pointer-events: none;" class="${SCREEN_ONLY_CLASS}">Cloned Header</div>
+            ${originalText}
+        </div>`;
+    }
+    
+    console.log(`DEBUG: Inserting cloned header before:`, referenceRow);
     referenceRow.parentNode.insertBefore(clonedHeader, referenceRow);
     return getElementOuterHeight(clonedHeader);
 }
@@ -78,7 +110,27 @@ function insertBlankSpace(referenceElement, height) {
     const blankSpace = document.createElement('div');
     blankSpace.classList.add(SCREEN_ONLY_CLASS);
     blankSpace.style.height = `${height}px`;
+    
+    // Add a visible marker for debugging
+    blankSpace.style.position = 'relative';
+    const marker = document.createElement('div');
+    marker.textContent = `Page Break (${height}px)`;
+    marker.style.position = 'absolute';
+    marker.style.top = '0';
+    marker.style.left = '0';
+    marker.style.backgroundColor = 'rgba(255, 0, 0, 0.2)';
+    marker.style.color = 'red';
+    marker.style.padding = '2px';
+    marker.style.fontSize = '10px';
+    marker.style.fontWeight = 'bold';
+    marker.style.zIndex = '1000';
+    marker.style.pointerEvents = 'none';
+    marker.classList.add(SCREEN_ONLY_CLASS);
+    blankSpace.appendChild(marker);
+    
+    console.log(`DEBUG: Inserting blank space of ${height}px before:`, referenceElement);
     referenceElement.parentNode.insertBefore(blankSpace, referenceElement);
+    return blankSpace;
 }
 
 /**
@@ -94,7 +146,7 @@ function clearScreenOnlyElements() {
  * Implements WYSIWYG pagination by synchronizing ink and paper layers.
  */
 export function updatePagination() {
-    console.log("Starting pagination update...");
+    
     clearScreenOnlyElements(); // Clear previous breaks
 
     const inkLayer = document.querySelector('.ink-layer');
@@ -165,6 +217,63 @@ export function updatePagination() {
         workspaceTop[index] = pageCardTop + inkLayerMargin;
         // Use calculated workspace height, not card bottom, to define the usable area
         workspaceBottom[index] = pageCardTop + inkLayerMargin + workspaceHeightPerPage;
+        
+        // Add visual indicators for page boundaries (for debugging)
+        const topIndicator = document.createElement('div');
+        topIndicator.classList.add(SCREEN_ONLY_CLASS);
+        topIndicator.style.position = 'absolute';
+        topIndicator.style.left = '0';
+        topIndicator.style.right = '0';
+        topIndicator.style.top = `${workspaceTop[index]}px`;
+        topIndicator.style.height = '2px';
+        topIndicator.style.backgroundColor = 'rgba(0, 255, 0, 0.5)';
+        topIndicator.style.zIndex = '1000';
+        topIndicator.style.pointerEvents = 'none';
+        
+        const topLabel = document.createElement('div');
+        topLabel.textContent = `Page ${index + 1} Top`;
+        topLabel.style.position = 'absolute';
+        topLabel.style.left = '5px';
+        topLabel.style.top = '0';
+        topLabel.style.fontSize = '10px';
+        topLabel.style.fontWeight = 'bold';
+        topLabel.style.color = 'green';
+        topLabel.style.backgroundColor = 'rgba(255, 255, 255, 0.7)';
+        topLabel.style.padding = '2px';
+        topLabel.style.borderRadius = '2px';
+        topLabel.style.pointerEvents = 'none';
+        topLabel.classList.add(SCREEN_ONLY_CLASS);
+        topIndicator.appendChild(topLabel);
+        
+        document.body.appendChild(topIndicator);
+        
+        const bottomIndicator = document.createElement('div');
+        bottomIndicator.classList.add(SCREEN_ONLY_CLASS);
+        bottomIndicator.style.position = 'absolute';
+        bottomIndicator.style.left = '0';
+        bottomIndicator.style.right = '0';
+        bottomIndicator.style.top = `${workspaceBottom[index]}px`;
+        bottomIndicator.style.height = '2px';
+        bottomIndicator.style.backgroundColor = 'rgba(255, 0, 0, 0.5)';
+        bottomIndicator.style.zIndex = '1000';
+        bottomIndicator.style.pointerEvents = 'none';
+        
+        const bottomLabel = document.createElement('div');
+        bottomLabel.textContent = `Page ${index + 1} Bottom`;
+        bottomLabel.style.position = 'absolute';
+        bottomLabel.style.left = '5px';
+        bottomLabel.style.top = '0';
+        bottomLabel.style.fontSize = '10px';
+        bottomLabel.style.fontWeight = 'bold';
+        bottomLabel.style.color = 'red';
+        bottomLabel.style.backgroundColor = 'rgba(255, 255, 255, 0.7)';
+        bottomLabel.style.padding = '2px';
+        bottomLabel.style.borderRadius = '2px';
+        bottomLabel.style.pointerEvents = 'none';
+        bottomLabel.classList.add(SCREEN_ONLY_CLASS);
+        bottomIndicator.appendChild(bottomLabel);
+        
+        document.body.appendChild(bottomIndicator);
     });
 
     // 14. Get table footer height (use prejudgment footer, assume postjudgment is same)
@@ -211,35 +320,352 @@ export function updatePagination() {
     // 16. Check postjudgment title position
     const postjudgmentTitle = Array.from(document.querySelectorAll('.section-title'))
                                    .find(el => el.textContent.includes('Postjudgment Interest Calculations'));
+    
+    // Debug the postjudgment table and its container
+    const postjudgmentTableContainer = postjudgmentTable.closest('[data-display="postjudgmentSection"]');
+    const postjudgmentHeader = postjudgmentTable.querySelector('thead');
+    
+    if (postjudgmentTableContainer) {
+        const containerTop = getElementAbsoluteTop(postjudgmentTableContainer);
+        const containerHeight = getElementOuterHeight(postjudgmentTableContainer);
+        const containerBottom = containerTop + containerHeight;
+        
+        console.log('DEBUG: Postjudgment table container position:', {
+            element: postjudgmentTableContainer,
+            top: containerTop,
+            height: containerHeight,
+            bottom: containerBottom
+        });
+    }
+    
+    if (postjudgmentHeader) {
+        const headerTop = getElementAbsoluteTop(postjudgmentHeader);
+        const headerHeight = getElementOuterHeight(postjudgmentHeader);
+        const headerBottom = headerTop + headerHeight;
+        
+        console.log('DEBUG: Postjudgment table header position:', {
+            element: postjudgmentHeader,
+            top: headerTop,
+            height: headerHeight,
+            bottom: headerBottom
+        });
+    }
 
     if (postjudgmentTitle) {
         const titleTop = getElementAbsoluteTop(postjudgmentTitle);
         const titleHeight = getElementOuterHeight(postjudgmentTitle);
+        const titleBottom = titleTop + titleHeight;
+        
+        // Get the parent container of the title
+        const titleParent = postjudgmentTitle.parentElement;
+        const titleParentTop = getElementAbsoluteTop(titleParent);
+        const titleParentHeight = getElementOuterHeight(titleParent);
+        const titleParentBottom = titleParentTop + titleParentHeight;
+        
+        console.log('DEBUG: Postjudgment title position:', {
+            element: postjudgmentTitle,
+            top: titleTop,
+            height: titleHeight,
+            bottom: titleBottom
+        });
+        
+        console.log('DEBUG: Postjudgment title parent container:', {
+            element: titleParent,
+            top: titleParentTop,
+            height: titleParentHeight,
+            bottom: titleParentBottom
+        });
+        
+        // Check computed styles for margins and padding
+        const titleStyles = window.getComputedStyle(postjudgmentTitle);
+        console.log('DEBUG: Postjudgment title styles:', {
+            marginTop: titleStyles.marginTop,
+            marginBottom: titleStyles.marginBottom,
+            paddingTop: titleStyles.paddingTop,
+            paddingBottom: titleStyles.paddingBottom
+        });
+        
+        // Check if there's a next sibling element after the title
+        const nextSibling = postjudgmentTitle.nextElementSibling;
+        if (nextSibling) {
+            const nextSiblingTop = getElementAbsoluteTop(nextSibling);
+            const nextSiblingHeight = getElementOuterHeight(nextSibling);
+            const nextSiblingBottom = nextSiblingTop + nextSiblingHeight;
+            
+            console.log('DEBUG: Element after postjudgment title:', {
+                element: nextSibling,
+                top: nextSiblingTop,
+                height: nextSiblingHeight,
+                bottom: nextSiblingBottom,
+                gap: nextSiblingTop - titleBottom
+            });
+            
+            // Check computed styles for the next sibling
+            const nextSiblingStyles = window.getComputedStyle(nextSibling);
+            console.log('DEBUG: Next sibling styles:', {
+                marginTop: nextSiblingStyles.marginTop,
+                marginBottom: nextSiblingStyles.marginBottom,
+                paddingTop: nextSiblingStyles.paddingTop,
+                paddingBottom: nextSiblingStyles.paddingBottom
+            });
+        }
 
+        // Log all workspace boundaries for comparison
+        console.log('DEBUG: Workspace boundaries:');
+        for (let i = 0; i < workspaceBottom.length; i++) {
+            console.log(`Page ${i + 1}: top=${workspaceTop[i]}, bottom=${workspaceBottom[i]}`);
+        }
+
+             
+        let breakInserted = false;
+        
+        // Check if the title is within a specific distance from the bottom of any page
+        // or if the title plus table header would overflow the page
+        for (let p = 0; p < workspaceBottom.length; p++) {
+            const distanceToBottom = workspaceBottom[p] - titleTop;
+            if (distanceToBottom > 0 && distanceToBottom < titleHeight * 2) {
+                console.log(`DEBUG: Title is too close to bottom of page ${p + 1} (${distanceToBottom}px)`);
+                
+                // Ensure there's a next page to calculate the gap against
+                if (p + 1 < workspaceTop.length) {
+                    const blankSpaceHeight = workspaceTop[p + 1] - titleTop;
+                    console.log(`DEBUG: FIXED: Forcing title to page ${p + 2} - too close to bottom`);
+                    
+                    // Add a special marker to highlight the issue
+                    const debugMarker = document.createElement('div');
+                    debugMarker.classList.add(SCREEN_ONLY_CLASS);
+                    debugMarker.style.position = 'absolute';
+                    debugMarker.style.left = '0';
+                    debugMarker.style.right = '0';
+                    debugMarker.style.top = `${titleTop}px`;
+                    debugMarker.style.height = '20px';
+                    debugMarker.style.backgroundColor = 'rgba(255, 0, 255, 0.3)';
+                    debugMarker.style.zIndex = '1000';
+                    debugMarker.style.pointerEvents = 'none';
+                    debugMarker.style.border = '2px dashed purple';
+                    
+                    const debugLabel = document.createElement('div');
+                    debugLabel.textContent = `FIXED: Title moved to page ${p + 2}`;
+                    debugLabel.style.position = 'absolute';
+                    debugLabel.style.left = '5px';
+                    debugLabel.style.top = '0';
+                    debugLabel.style.fontSize = '12px';
+                    debugLabel.style.fontWeight = 'bold';
+                    debugLabel.style.color = 'purple';
+                    debugLabel.style.backgroundColor = 'rgba(255, 255, 255, 0.7)';
+                    debugLabel.style.padding = '2px';
+                    debugLabel.style.borderRadius = '2px';
+                    debugLabel.style.pointerEvents = 'none';
+                    debugLabel.classList.add(SCREEN_ONLY_CLASS);
+                    debugMarker.appendChild(debugLabel);
+                    
+                    document.body.appendChild(debugMarker);
+                    
+                    // Insert the blank space
+                    const blankSpace = insertBlankSpace(postjudgmentTitle, blankSpaceHeight);
+                    
+                    // Add a special class to the blank space for debugging
+                    if (blankSpace) {
+                        blankSpace.classList.add('title-page-break');
+                        blankSpace.style.border = '2px dashed purple';
+                        blankSpace.style.backgroundColor = 'rgba(255, 0, 255, 0.1)';
+                    }
+                    
+                    inkLayerHeight += blankSpaceHeight;
+                    
+                    // Update current page index
+                    if (p >= currentPageIndex) {
+                        currentPageIndex = p + 1;
+                    }
+                    
+                    breakInserted = true;
+                    break;
+                }
+            }
+            
+            // Check if the title plus table header would overflow
+            if (!breakInserted && postjudgmentHeader && distanceToBottom > 0) {
+                const headerHeight = getElementOuterHeight(postjudgmentHeader);
+                if (titleTop + titleHeight + headerHeight > workspaceBottom[p]) {
+                    console.log(`DEBUG: Title plus table header would overflow page ${p + 1} by ${titleTop + titleHeight + headerHeight - workspaceBottom[p]}px`);
+                    
+                    // Ensure there's a next page to calculate the gap against
+                    if (p + 1 < workspaceTop.length) {
+                        const blankSpaceHeight = workspaceTop[p + 1] - titleTop;
+                        console.log(`DEBUG: FIXED: Forcing title to page ${p + 2} - would overflow with header`);
+                        
+                        // Insert the blank space
+                        const blankSpace = insertBlankSpace(postjudgmentTitle, blankSpaceHeight);
+                        
+                        // Add a special class to the blank space for debugging
+                        if (blankSpace) {
+                            blankSpace.classList.add('title-page-break');
+                            blankSpace.style.border = '2px dashed purple';
+                            blankSpace.style.backgroundColor = 'rgba(255, 0, 255, 0.1)';
+                        }
+                        
+                        inkLayerHeight += blankSpaceHeight;
+                        
+                        // Update current page index
+                        if (p >= currentPageIndex) {
+                            currentPageIndex = p + 1;
+                        }
+                        
+                        breakInserted = true;
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // If no break was inserted by the improved logic, try the original logic
+        if (!breakInserted) {
         for (let p = 0; p < workspaceBottom.length; p++) {
             // Check if the title starts near the bottom of page p, using the new threshold
             if (workspaceBottom[p] > titleTop && workspaceBottom[p] < titleTop + (3 * titleHeight + inkLayerMargin)) {
-                 // Ensure there's a next page to calculate the gap against
-                 if (p + 1 < workspaceTop.length) {
+                console.log(`DEBUG: Title near bottom of page ${p + 1}. Distance to bottom: ${workspaceBottom[p] - titleTop}px`);
+                
+                // Ensure there's a next page to calculate the gap against
+                if (p + 1 < workspaceTop.length) {
                     const blankSpaceHeight = workspaceTop[p + 1] - titleTop;
-                    insertBlankSpace(postjudgmentTitle, blankSpaceHeight);
+                    console.log(`DEBUG: Inserting blank space of ${blankSpaceHeight}px before title`);
+                    
+                    // Add a special marker to highlight the issue
+                    const debugMarker = document.createElement('div');
+                    debugMarker.classList.add(SCREEN_ONLY_CLASS);
+                    debugMarker.style.position = 'absolute';
+                    debugMarker.style.left = '0';
+                    debugMarker.style.right = '0';
+                    debugMarker.style.top = `${titleTop}px`;
+                    debugMarker.style.height = '20px';
+                    debugMarker.style.backgroundColor = 'rgba(255, 0, 255, 0.3)';
+                    debugMarker.style.zIndex = '1000';
+                    debugMarker.style.pointerEvents = 'none';
+                    debugMarker.style.border = '2px dashed purple';
+                    
+                    const debugLabel = document.createElement('div');
+                    debugLabel.textContent = `Title should move to page ${p + 2}`;
+                    debugLabel.style.position = 'absolute';
+                    debugLabel.style.left = '5px';
+                    debugLabel.style.top = '0';
+                    debugLabel.style.fontSize = '12px';
+                    debugLabel.style.fontWeight = 'bold';
+                    debugLabel.style.color = 'purple';
+                    debugLabel.style.backgroundColor = 'rgba(255, 255, 255, 0.7)';
+                    debugLabel.style.padding = '2px';
+                    debugLabel.style.borderRadius = '2px';
+                    debugLabel.style.pointerEvents = 'none';
+                    debugLabel.classList.add(SCREEN_ONLY_CLASS);
+                    debugMarker.appendChild(debugLabel);
+                    
+                    document.body.appendChild(debugMarker);
+                    
+                    // Insert the blank space
+                    const blankSpace = insertBlankSpace(postjudgmentTitle, blankSpaceHeight);
+                    
+                    // Add a special class to the blank space for debugging
+                    if (blankSpace) {
+                        blankSpace.classList.add('title-page-break');
+                        blankSpace.style.border = '2px dashed purple';
+                        blankSpace.style.backgroundColor = 'rgba(255, 0, 255, 0.1)';
+                    }
+                    
                     inkLayerHeight += blankSpaceHeight;
                     // Update current page index if the break happens before the current page
                     if (p >= currentPageIndex) {
                        currentPageIndex = p + 1;
                     }
+                    
+                    // Log the title position after inserting the blank space
+                    setTimeout(() => {
+                        const newTitleTop = getElementAbsoluteTop(postjudgmentTitle);
+                        const newTitleBottom = newTitleTop + getElementOuterHeight(postjudgmentTitle);
+                        console.log('DEBUG: Title position AFTER inserting blank space:', {
+                            top: newTitleTop,
+                            bottom: newTitleBottom
+                        });
+                        
+                        // Check which page the title is on now
+                        for (let i = 0; i < workspaceBottom.length; i++) {
+                            if (newTitleTop >= workspaceTop[i] && newTitleTop < workspaceBottom[i]) {
+                                console.log(`DEBUG: After blank space insertion, title is now on page ${i + 1}`);
+                                break;
+                            }
+                        }
+                    }, 0);
+                    breakInserted = true;
                     break; // Found a break, no need to check other pages
-                 } else {
-                     console.warn("Title break needed, but no next page exists.");
-                 }
+                } else {
+                    console.warn("Title break needed, but no next page exists.");
+                }
+            }
+        }
+        
+        if (!breakInserted) {
+            console.log('DEBUG: No page break inserted for postjudgment title');
+            
+            // Check if title is at the top of a page
+            for (let i = 0; i < workspaceTop.length; i++) {
+                const distanceFromPageTop = titleTop - workspaceTop[i];
+                if (distanceFromPageTop >= 0 && distanceFromPageTop < titleHeight * 2) {
+                    console.log(`DEBUG: Title appears to be at the top of page ${i + 1}. Distance from page top: ${distanceFromPageTop}px`);
+                }
+            }
+            
+            // Check if title is in the middle of a page
+            for (let i = 0; i < workspaceTop.length; i++) {
+                if (titleTop > workspaceTop[i] && titleBottom < workspaceBottom[i]) {
+                    const pageMiddle = workspaceTop[i] + (workspaceBottom[i] - workspaceTop[i]) / 2;
+                    console.log(`DEBUG: Title is in the middle of page ${i + 1}. Distance from page middle: ${Math.abs(titleTop - pageMiddle)}px`);
+                }
             }
         }
     }
+}
 
 
     // 17. Cycle through postjudgment rows
     const postjudgmentRows = postjudgmentTableBody.querySelectorAll('tr');
-     for (const row of postjudgmentRows) {
+    
+    // Debug the first row of the postjudgment table
+    if (postjudgmentRows.length > 0) {
+        const firstRow = postjudgmentRows[0];
+        const firstRowTop = getElementAbsoluteTop(firstRow);
+        const firstRowHeight = getElementOuterHeight(firstRow);
+        const firstRowBottom = firstRowTop + firstRowHeight;
+        
+        console.log('DEBUG: First postjudgment row position:', {
+            element: firstRow,
+            top: firstRowTop,
+            height: firstRowHeight,
+            bottom: firstRowBottom
+        });
+        
+        // Check if there's a gap between the title and the first row
+        if (postjudgmentTitle) {
+            const titleBottom = getElementAbsoluteTop(postjudgmentTitle) + getElementOuterHeight(postjudgmentTitle);
+            const gapBetweenTitleAndFirstRow = firstRowTop - titleBottom;
+            
+            console.log(`DEBUG: Gap between postjudgment title and first row: ${gapBetweenTitleAndFirstRow}px`);
+            
+            // Check if this gap crosses a page boundary
+            for (let i = 0; i < workspaceBottom.length; i++) {
+                if (titleBottom < workspaceBottom[i] && firstRowTop > workspaceTop[i + 1]) {
+                    console.log(`DEBUG: Title and first row are on different pages! Title ends on page ${i + 1}, row starts on page ${i + 2}`);
+                }
+            }
+        }
+        
+        // Check if the first row is at the top of a page
+        for (let i = 0; i < workspaceTop.length; i++) {
+            const distanceFromPageTop = firstRowTop - workspaceTop[i];
+            if (distanceFromPageTop >= 0 && distanceFromPageTop < firstRowHeight) {
+                console.log(`DEBUG: First row appears to be at the top of page ${i + 1}. Distance from page top: ${distanceFromPageTop}px`);
+            }
+        }
+    }
+    
+    for (const row of postjudgmentRows) {
         const rowTop = getElementAbsoluteTop(row);
         const rowHeight = getElementOuterHeight(row);
         const rowBottom = rowTop + rowHeight;
@@ -308,7 +734,7 @@ export function updatePagination() {
     }
 
 
-    console.log("Pagination update finished.");
+    
 }
 
 // Placeholder for setup function if needed later
