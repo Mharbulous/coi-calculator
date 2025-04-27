@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COI Calculator - Page Card Demo</title>
+    <style>
+        /* Base styles */
+        :root {
+            --paper-background-color: white;
+            --page-background-color: #e0e0e0;
+            --text-color: #333;
+            --text-color-muted: #888;
+            --border-color: #ddd;
+            --header-bg-color: #f2f2f2;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--page-background-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--text-color);
+        }
+
+        h1, h2, h3 {
+            margin-top: 0;
+        }
+
+        /* Controls */
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            padding: 8px 16px;
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #3a80d2;
+        }
+
+        /* Container for all pages */
+        .pages-container {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px; /* Space between pages */
+        }
+
+        /* Individual page card */
+        .page-card {
+            width: 8.5in;
+            height: 11in;
+            background-color: var(--paper-background-color);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 0.75in;
+            box-sizing: border-box;
+            position: relative;
+            overflow: hidden; /* Prevent content overflow */
+        }
+
+        /* Table styling for demo */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: var(--header-bg-color);
+        }
+
+        /* Page number indicator */
+        .page-number {
+            position: absolute;
+            bottom: 0.25in;
+            right: 0.25in;
+            color: var(--text-color-muted);
+            font-size: 0.8rem;
+        }
+
+        /* Form styling for demo */
+        .form-section {
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            border-radius: 4px;
+        }
+
+        .form-row {
+            display: flex;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .form-row label {
+            width: 150px;
+            margin-right: 10px;
+        }
+
+        .form-row input {
+            padding: 5px;
+            border: 1px solid var(--border-color);
+            border-radius: 3px;
+        }
+
+        /* Table continuation indicators */
+        .table-continued-next::after {
+            content: "(Continued on next page)";
+            display: block;
+            text-align: right;
+            font-style: italic;
+            color: var(--text-color-muted);
+            font-size: 0.8rem;
+            margin-top: 5px;
+        }
+
+        .table-continued-prev::before {
+            content: "(Continued from previous page)";
+            display: block;
+            text-align: left;
+            font-style: italic;
+            color: var(--text-color-muted);
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                background-color: white;
+                padding: 0;
+                margin: 0;
+            }
+
+            .controls, h1.page-title {
+                display: none;
+            }
+
+            .pages-container {
+                gap: 0;
+            }
+
+            .page-card {
+                box-shadow: none;
+                page-break-after: always;
+                margin: 0;
+                padding: 0.5in;
+                height: auto;
+                min-height: 10in;
+            }
+
+            /* Last page shouldn't force a page break */
+            .page-card:last-child {
+                page-break-after: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1 class="page-title">COI Calculator - Page Card Demo</h1>
+    
+    <div class="controls">
+        <button id="add-page">Add Page</button>
+        <button id="print-preview">Print Preview</button>
+    </div>
+    
+    <div class="pages-container" id="pages-container">
+        <!-- Page 1: Input Form -->
+        <div class="page-card">
+            <h2>Court Order Interest Calculator</h2>
+            <p>Enter the details below to calculate interest on court judgments and special damages.</p>
+            
+            <div class="form-section">
+                <h3>Judgment Details</h3>
+                <div class="form-row">
+                    <label for="judgment-date">Judgment Date:</label>
+                    <input type="date" id="judgment-date" value="2023-01-15">
+                </div>
+                <div class="form-row">
+                    <label for="judgment-amount">Judgment Amount:</label>
+                    <input type="text" id="judgment-amount" value="$50,000.00">
+                </div>
+                <div class="form-row">
+                    <label for="prejudgment-interest">Include Prejudgment Interest:</label>
+                    <input type="checkbox" id="prejudgment-interest" checked>
+                </div>
+                <div class="form-row">
+                    <label for="prejudgment-date">Prejudgment Date:</label>
+                    <input type="date" id="prejudgment-date" value="2022-06-01">
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h3>Special Damages</h3>
+                <table class="table-continued-next">
+                    <thead>
+                        <tr>
+                            <th>Description</th>
+                            <th>Date</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Medical Expenses</td>
+                            <td>2022-07-15</td>
+                            <td>$2,500.00</td>
+                        </tr>
+                        <tr>
+                            <td>Property Damage</td>
+                            <td>2022-08-20</td>
+                            <td>$1,800.00</td>
+                        </tr>
+                        <tr>
+                            <td>Lost Wages</td>
+                            <td>2022-09-10</td>
+                            <td>$3,200.00</td>
+                        </tr>
+                        <tr>
+                            <td>Physiotherapy Sessions</td>
+                            <td>2022-07-25</td>
+                            <td>$1,250.00</td>
+                        </tr>
+                        <tr>
+                            <td>Prescription Medications</td>
+                            <td>2022-08-05</td>
+                            <td>$475.50</td>
+                        </tr>
+                        <tr>
+                            <td>Diagnostic Imaging</td>
+                            <td>2022-07-18</td>
+                            <td>$1,850.00</td>
+                        </tr>
+                        <tr>
+                            <td>Home Care Services</td>
+                            <td>2022-09-15</td>
+                            <td>$2,200.00</td>
+                        </tr>
+                        <tr>
+                            <td>Medical Equipment</td>
+                            <td>2022-08-12</td>
+                            <td>$950.75</td>
+                        </tr>
+                        <tr>
+                            <td>Specialist Consultation</td>
+                            <td>2022-10-05</td>
+                            <td>$750.00</td>
+                        </tr>
+                        <tr>
+                            <td>Transportation Costs</td>
+                            <td>2022-09-22</td>
+                            <td>$325.50</td>
+                        </tr>
+                        <tr>
+                            <td>Rehabilitation Therapy</td>
+                            <td>2022-10-15</td>
+                            <td>$1,875.00</td>
+                        </tr>
+                        <tr>
+                            <td>Dental Repairs</td>
+                            <td>2022-08-30</td>
+                            <td>$3,450.00</td>
+                        </tr>
+                        <tr>
+                            <td>Childcare Expenses</td>
+                            <td>2022-09-05</td>
+                            <td>$1,200.00</td>
+                        </tr>
+                        <tr>
+                            <td>Property Replacement</td>
+                            <td>2022-11-10</td>
+                            <td>$2,750.00</td>
+                        </tr>
+                        <tr>
+                            <td>Counseling Services</td>
+                            <td>2022-10-25</td>
+                            <td>$1,350.00</td>
+                        </tr>
+                        <tr>
+                            <td>Occupational Therapy</td>
+                            <td>2022-11-05</td>
+                            <td>$1,650.00</td>
+                        </tr>
+                        <tr>
+                            <td>Home Modifications</td>
+                            <td>2022-12-10</td>
+                            <td>$4,200.00</td>
+                        </tr>
+                        <tr>
+                            <td>Pain Management</td>
+                            <td>2022-11-22</td>
+                            <td>$925.00</td>
+                        </tr>
+                        <tr>
+                            <td>Vocational Rehabilitation</td>
+                            <td>2022-12-05</td>
+                            <td>$2,100.00</td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <!-- Empty footer to ensure proper pagination -->
+                        <tr>
+                            <td colspan="3"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+                <button style="margin-top: 10px;">Add Special Damage</button>
+            </div>
+            
+            <div class="form-section">
+                <h3>Interest Calculation Summary</h3>
+                <p>Below is a summary of the calculated interest based on the provided information.</p>
+                
+                <table>
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>Principal</th>
+                        <th>Interest</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Judgment Amount</td>
+                        <td>$50,000.00</td>
+                        <td>$1,250.00</td>
+                        <td>$51,250.00</td>
+                    </tr>
+                    <tr>
+                        <td>Prejudgment Interest</td>
+                        <td>$50,000.00</td>
+                        <td>$875.00</td>
+                        <td>$50,875.00</td>
+                    </tr>
+                    <tr>
+                        <td>Medical Expenses</td>
+                        <td>$2,500.00</td>
+                        <td>$62.50</td>
+                        <td>$2,562.50</td>
+                    </tr>
+                    <tr>
+                        <td>Property Damage</td>
+                        <td>$1,800.00</td>
+                        <td>$45.00</td>
+                        <td>$1,845.00</td>
+                    </tr>
+                    <tr>
+                        <td>Lost Wages</td>
+                        <td>$3,200.00</td>
+                        <td>$80.00</td>
+                        <td>$3,280.00</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Total</strong></td>
+                        <td><strong>$57,500.00</strong></td>
+                        <td><strong>$2,312.50</strong></td>
+                        <td><strong>$59,812.50</strong></td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <!-- Empty footer to ensure proper pagination -->
+                    <tr>
+                        <td colspan="4"></td>
+                    </tr>
+                </tfoot>
+            </table>
+            
+                <h3>Interest Rate Periods</h3>
+                <table>
+                <thead>
+                    <tr>
+                        <th>From</th>
+                        <th>To</th>
+                        <th>Rate</th>
+                        <th>Days</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>2022-06-01</td>
+                        <td>2022-12-31</td>
+                        <td>2.00%</td>
+                        <td>214</td>
+                    </tr>
+                    <tr>
+                        <td>2023-01-01</td>
+                        <td>2023-06-30</td>
+                        <td>2.50%</td>
+                        <td>181</td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <!-- Empty footer to ensure proper pagination -->
+                    <tr>
+                        <td colspan="4"></td>
+                    </tr>
+                </tfoot>
+            </table>
+            
+            </div>
+            
+            <div class="page-number">Page 1</div>
+        </div>
+        
+        <!-- Page 2: Detailed Interest Tables -->
+        <div class="page-card">
+            <h2>Detailed Interest Calculations</h2>
+            <p>The tables below show the detailed interest calculations for each item.</p>
+            
+            <h3>Judgment Amount Interest</h3>
+            <table class="table-continued-prev">
+                <thead>
+                    <tr>
+                        <th>From</th>
+                        <th>To</th>
+                        <th>Days</th>
+                        <th>Rate</th>
+                        <th>Interest</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>2023-01-15</td>
+                        <td>2023-06-30</td>
+                        <td>166</td>
+                        <td>2.50%</td>
+                        <td>$570.83</td>
+                    </tr>
+                    <tr>
+                        <td>2023-07-01</td>
+                        <td>2023-12-31</td>
+                        <td>184</td>
+                        <td>2.75%</td>
+                        <td>$679.17</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4"><strong>Total Interest:</strong></td>
+                        <td><strong>$1,250.00</strong></td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <!-- Empty footer to ensure proper pagination -->
+                    <tr>
+                        <td colspan="5"></td>
+                    </tr>
+                </tfoot>
+            </table>
+            
+            <h3>Special Damages Interest</h3>
+            <table class="table-continued-prev">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>From</th>
+                        <th>To</th>
+                        <th>Days</th>
+                        <th>Rate</th>
+                        <th>Interest</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td rowspan="2">Medical Expenses</td>
+                        <td>2022-07-15</td>
+                        <td>2022-12-31</td>
+                        <td>170</td>
+                        <td>2.00%</td>
+                        <td>$23.29</td>
+                    </tr>
+                    <tr>
+                        <td>2023-01-01</td>
+                        <td>2023-01-15</td>
+                        <td>15</td>
+                        <td>2.50%</td>
+                        <td>$2.57</td>
+                    </tr>
+                    <tr>
+                        <td rowspan="2">Property Damage</td>
+                        <td>2022-08-20</td>
+                        <td>2022-12-31</td>
+                        <td>134</td>
+                        <td>2.00%</td>
+                        <td>$13.21</td>
+                    </tr>
+                    <tr>
+                        <td>2023-01-01</td>
+                        <td>2023-01-15</td>
+                        <td>15</td>
+                        <td>2.50%</td>
+                        <td>$1.85</td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <!-- Empty footer to ensure proper pagination -->
+                    <tr>
+                        <td colspan="6"></td>
+                    </tr>
+                </tfoot>
+            </table>
+            
+            <div class="page-number">Page 2</div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const pagesContainer = document.getElementById('pages-container');
+            const addPageButton = document.getElementById('add-page');
+            const printPreviewButton = document.getElementById('print-preview');
+            let pageCount = 2; // Start with 2 pages
+            
+            // Table Pagination Component
+            class TablePaginator {
+                constructor() {
+                    this.continuationPages = [];
+                    this.originalPageCount = document.querySelectorAll('.page-card:not([data-continuation="true"])').length;
+                }
+                
+                // Reset pagination by removing all continuation pages
+                reset() {
+                    // Remove all continuation pages
+                    const continuationPages = Array.from(document.querySelectorAll('.page-card[data-continuation="true"]'));
+                    continuationPages.forEach(page => page.remove());
+                    
+                    // Reset classes on tables
+                    const tables = document.querySelectorAll('table');
+                    tables.forEach(table => {
+                        table.removeAttribute('data-paginated');
+                        table.classList.remove('table-continued-next');
+                        table.classList.remove('table-continued-prev');
+                    });
+                    
+                    // Reset page count to original
+                    pageCount = this.originalPageCount;
+                    
+                    // Clear continuation pages array
+                    this.continuationPages = [];
+                }
+                
+                // Main pagination function
+                paginateAllTables() {
+                    // Reset pagination first
+                    this.reset();
+                    
+                    // Get all original page cards (not continuation pages)
+                    const pageCards = document.querySelectorAll('.page-card:not([data-continuation="true"])');
+                    
+                    // Process each page card
+                    pageCards.forEach((pageCard, pageIndex) => {
+                        this.paginateTablesInPage(pageCard, pageIndex);
+                    });
+                    
+                    // Update page numbers
+                    this.updatePageNumbers();
+                }
+                
+                // Process tables in a single page
+                paginateTablesInPage(pageCard, pageIndex) {
+                    // Get all tables in the current page card
+                    const tables = pageCard.querySelectorAll('table');
+                    
+                    // Process each table
+                    tables.forEach(table => {
+                        // Skip tables that have already been processed
+                        if (table.hasAttribute('data-paginated')) return;
+                        
+                        // Mark this table as processed
+                        table.setAttribute('data-paginated', 'true');
+                        
+                        // Check if table needs pagination
+                        if (this.needsPagination(table, pageCard)) {
+                            this.paginateTable(table, pageCard);
+                        }
+                    });
+                }
+                
+                // Determine if a table needs pagination
+                needsPagination(table, pageCard) {
+                    // Get table dimensions
+                    const tableRect = table.getBoundingClientRect();
+                    const pageCardRect = pageCard.getBoundingClientRect();
+                    
+                    // Get table position relative to page card
+                    const tableTop = table.offsetTop;
+                    const tableHeight = tableRect.height;
+                    
+                    // Calculate available space in page card
+                    // Account for padding and page number at bottom
+                    const pageCardPadding = 0.75 * 96; // 0.75 inches in pixels
+                    const pageNumberHeight = 30; // Approximate height for page number
+                    const availableHeight = pageCardRect.height - pageCardPadding * 2 - pageNumberHeight;
+                    
+                    // Check if table extends beyond available space
+                    // Also check if table has enough rows to paginate (at least 4)
+                    const tbody = table.querySelector('tbody');
+                    const rows = tbody ? tbody.querySelectorAll('tr') : [];
+                    
+                    return (tableTop + tableHeight > availableHeight) && rows.length > 3;
+                }
+                
+                // Split a table across pages
+                paginateTable(table, pageCard) {
+                    // Get table components
+                    const thead = table.querySelector('thead');
+                    const tbody = table.querySelector('tbody');
+                    const rows = Array.from(tbody.querySelectorAll('tr'));
+                    
+                    // Calculate how many rows can fit on current page
+                    const splitIndex = this.findSplitRowIndex(table, pageCard);
+                    
+                    // If all rows can fit or no valid split point, don't paginate
+                    if (splitIndex <= 0 || splitIndex >= rows.length) return;
+                    
+                    // Add "Continued on next page" indicator
+                    table.classList.add('table-continued-next');
+                    
+                    // Create continuation page and table
+                    const continuationPage = this.createContinuationPage(table, pageCard);
+                    const continuationTable = this.createContinuationTable(table, rows, splitIndex);
+                    
+                    // Add table to continuation page
+                    continuationPage.insertBefore(continuationTable, continuationPage.querySelector('.page-number'));
+                    
+                    // Add continuation page to DOM
+                    this.insertContinuationPage(continuationPage, pageCard);
+                    
+                    // Recursively check if continuation table needs pagination
+                    setTimeout(() => {
+                        this.paginateTablesInPage(continuationPage, Array.from(document.querySelectorAll('.page-card')).indexOf(continuationPage));
+                    }, 0);
+                }
+                
+                // Find the row index where table should be split
+                findSplitRowIndex(table, pageCard) {
+                    const tbody = table.querySelector('tbody');
+                    const rows = Array.from(tbody.querySelectorAll('tr'));
+                    
+                    // Get page card dimensions
+                    const pageCardRect = pageCard.getBoundingClientRect();
+                    
+                    // Calculate available height in page card
+                    const pageCardPadding = 0.75 * 96; // 0.75 inches in pixels
+                    const pageNumberHeight = 30; // Approximate height for page number
+                    const availableBottom = pageCardRect.top + pageCardRect.height - pageCardPadding - pageNumberHeight;
+                    
+                    // Get table header height
+                    const thead = table.querySelector('thead');
+                    const theadHeight = thead ? thead.getBoundingClientRect().height : 0;
+                    
+                    // Get table position
+                    const tableRect = table.getBoundingClientRect();
+                    const tableTop = tableRect.top;
+                    
+                    // Calculate available height for rows
+                    let availableHeight = availableBottom - tableTop;
+                    
+                    // Account for table header and some margin
+                    availableHeight -= theadHeight + 20;
+                    
+                    // Find the last row that fits
+                    let currentHeight = 0;
+                    let splitIndex = 0;
+                    
+                    for (let i = 0; i < rows.length; i++) {
+                        const rowHeight = rows[i].getBoundingClientRect().height;
+                        if (currentHeight + rowHeight > availableHeight) {
+                            splitIndex = i;
+                            break;
+                        }
+                        currentHeight += rowHeight;
+                    }
+                    
+                    // Ensure we have at least one row on each page
+                    if (splitIndex === 0 && rows.length > 1) {
+                        splitIndex = 1;
+                    }
+                    
+                    return splitIndex;
+                }
+                
+                // Create a new page for table continuation
+                createContinuationPage(table, pageCard) {
+                    // Create new page card
+                    const continuationPage = document.createElement('div');
+                    continuationPage.className = 'page-card';
+                    continuationPage.setAttribute('data-continuation', 'true');
+                    
+                    // Get table title (h3 element before the table)
+                    let tableTitle = '';
+                    let prevElement = table.previousElementSibling;
+                    while (prevElement) {
+                        if (prevElement.tagName.match(/^H[1-6]$/)) {
+                            tableTitle = prevElement.textContent;
+                            break;
+                        }
+                        prevElement = prevElement.previousElementSibling;
+                    }
+                    
+                    // Add content to continuation page
+                    continuationPage.innerHTML = `
+                        <h3>${tableTitle} (Continued)</h3>
+                        <div class="page-number">Page ${++pageCount}</div>
+                    `;
+                    
+                    // Add to continuation pages array
+                    this.continuationPages.push(continuationPage);
+                    
+                    return continuationPage;
+                }
+                
+                // Create continuation table with remaining rows
+                createContinuationTable(originalTable, allRows, splitIndex) {
+                    // Clone the original table
+                    const continuationTable = document.createElement('table');
+                    continuationTable.className = 'table-continued-prev';
+                    continuationTable.setAttribute('data-paginated', 'true');
+                    
+                    // Clone the header
+                    const thead = originalTable.querySelector('thead').cloneNode(true);
+                    continuationTable.appendChild(thead);
+                    
+                    // Create new tbody
+                    const tbody = document.createElement('tbody');
+                    
+                    // Move rows after split index to continuation table
+                    const rowsToMove = allRows.slice(splitIndex);
+                    
+                    // Remove these rows from original table
+                    rowsToMove.forEach(row => {
+                        tbody.appendChild(row.cloneNode(true));
+                        row.remove();
+                    });
+                    
+                    continuationTable.appendChild(tbody);
+                    
+                    // Add footer
+                    const tfoot = document.createElement('tfoot');
+                    const tfootRow = document.createElement('tr');
+                    const tfootCell = document.createElement('td');
+                    tfootCell.colSpan = thead.querySelector('tr').children.length;
+                    tfootRow.appendChild(tfootCell);
+                    tfoot.appendChild(tfootRow);
+                    continuationTable.appendChild(tfoot);
+                    
+                    return continuationTable;
+                }
+                
+                // Insert continuation page after original page
+                insertContinuationPage(continuationPage, originalPage) {
+                    // Find the next non-continuation page
+                    let nextOriginalPage = originalPage.nextElementSibling;
+                    while (nextOriginalPage && nextOriginalPage.getAttribute('data-continuation') === 'true') {
+                        nextOriginalPage = nextOriginalPage.nextElementSibling;
+                    }
+                    
+                    // Insert before next original page or at the end
+                    if (nextOriginalPage) {
+                        pagesContainer.insertBefore(continuationPage, nextOriginalPage);
+                    } else {
+                        pagesContainer.appendChild(continuationPage);
+                    }
+                }
+                
+                // Update page numbers on all pages
+                updatePageNumbers() {
+                    const allPages = document.querySelectorAll('.page-card');
+                    allPages.forEach((page, index) => {
+                        const pageNumber = page.querySelector('.page-number');
+                        if (pageNumber) {
+                            pageNumber.textContent = `Page ${index + 1}`;
+                        }
+                    });
+                }
+            }
+            
+            // Create table paginator instance
+            const tablePaginator = new TablePaginator();
+            
+            // Run pagination after initial load
+            setTimeout(() => tablePaginator.paginateAllTables(), 100);
+            
+            // Add a new page
+            addPageButton.addEventListener('click', function() {
+                // Create new page card
+                const pageCard = document.createElement('div');
+                pageCard.className = 'page-card';
+                pageCard.innerHTML = `
+                    <h2>Additional Information - Page ${++pageCount}</h2>
+                    <p>This is an additional page added to demonstrate the card-based page approach in the context of the COI Calculator.</p>
+                    
+                    <h3>Notes</h3>
+                    <p>This page can contain additional information, notes, or any other content that needs to be included in the calculation report.</p>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Description</th>
+                                <th>Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Note 1</td>
+                                <td>Additional information about the calculation</td>
+                                <td>N/A</td>
+                            </tr>
+                            <tr>
+                                <td>Note 2</td>
+                                <td>Legal reference for interest rates</td>
+                                <td>Section 7</td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <!-- Empty footer to ensure proper pagination -->
+                            <tr>
+                                <td colspan="3"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    
+                    <div class="page-number">Page ${pageCount}</div>
+                `;
+                pagesContainer.appendChild(pageCard);
+                
+                // Run pagination after adding a new page
+                setTimeout(() => tablePaginator.paginateAllTables(), 100);
+            });
+            
+            // Handle window resize
+            let resizeTimeout;
+            window.addEventListener('resize', function() {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(() => tablePaginator.paginateAllTables(), 200);
+            });
+            
+            // Open print preview
+            printPreviewButton.addEventListener('click', function() {
+                window.print();
+            });
+            
+            // Add special damage button
+            const addSpecialDamageButton = document.querySelector('.form-section button');
+            if (addSpecialDamageButton) {
+                addSpecialDamageButton.addEventListener('click', function() {
+                    // Get the special damages table
+                    const specialDamagesTable = document.querySelector('.form-section table tbody');
+                    
+                    // Create a new row
+                    const newRow = document.createElement('tr');
+                    newRow.innerHTML = `
+                        <td>New Special Damage</td>
+                        <td>${new Date().toISOString().split('T')[0]}</td>
+                        <td>$1,000.00</td>
+                    `;
+                    
+                    // Add the row to the table
+                    specialDamagesTable.appendChild(newRow);
+                    
+                    // Run pagination after adding a new row
+                    setTimeout(() => tablePaginator.paginateAllTables(), 100);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
