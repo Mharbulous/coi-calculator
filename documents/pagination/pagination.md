@@ -1,5 +1,21 @@
 # Pagination Flow Diagram
 
+## Event-Based Architecture Overview
+
+```mermaid
+flowchart LR
+    A["UI Events"] -->|"dispatch"| B["content-changed Event"]
+    B -->|"triggers"| C["setupPaginationListeners()"]
+    C -->|"calls"| D["updatePagination()"]
+    
+    style A fill:#d4f1f9,stroke:#333
+    style B fill:#d4f1f9,stroke:#333
+    style C fill:#ffecb3,stroke:#333
+    style D fill:#ffecb3,stroke:#333
+```
+
+## Detailed Pagination Process
+
 ```mermaid
 flowchart TD
     A["Start: Pagination Update"] --> B{"Render Ink Layer"}

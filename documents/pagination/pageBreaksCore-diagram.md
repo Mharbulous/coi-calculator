@@ -1,6 +1,6 @@
 # Page Breaks Core Framework (pageBreaksCore.js)
 
-This diagram illustrates the flow of the `updatePagination()` function in the `pageBreaksCore.js` file, which is the main pagination framework.
+This diagram illustrates the flow of the `updatePagination()` function and the event-based architecture implemented through `setupPaginationListeners()` in the `pageBreaksCore.js` file, which is the main pagination framework.
 
 ```mermaid
 flowchart TD
@@ -71,9 +71,36 @@ flowchart TD
     class A current;
 ```
 
+## Event-Based Pagination Architecture
+
+```mermaid
+flowchart LR
+    A["UI Events"] -->|"dispatch"| B["content-changed Event"]
+    B -->|"triggers"| C["setupPaginationListeners()"]
+    C -->|"calls"| D["updatePagination()"]
+    
+    subgraph "UI Layer"
+        A
+        B
+    end
+    
+    subgraph "Pagination Layer"
+        C
+        D
+    end
+    
+    classDef uiLayer fill:#d4f1f9,stroke:#333;
+    classDef paginationLayer fill:#ffecb3,stroke:#333;
+    
+    class A,B uiLayer;
+    class C,D paginationLayer;
+```
+
 ## Description
 
-The `pageBreaksCore.js` file contains the main pagination framework, with the `updatePagination()` function as its core. The function:
+The `pageBreaksCore.js` file contains the main pagination framework, with two key functions:
+
+1. **updatePagination()**: The core pagination logic that:
 
 1. **Initialization**:
    - Clears previous page breaks
@@ -96,3 +123,11 @@ The `pageBreaksCore.js` file contains the main pagination framework, with the `u
    - Adds or removes pages as needed
 
 The function delegates the actual page break insertion logic to specialized processors, maintaining a clean separation of concerns.
+
+2. **setupPaginationListeners()**: Sets up event listeners for pagination updates:
+   - Listens for the custom 'content-changed' event
+   - When triggered, calls updatePagination()
+   - Centralizes all pagination triggers to a single event handler
+   - Decouples UI events from pagination logic
+
+This event-based architecture improves maintainability by separating UI concerns from pagination logic. UI components only need to dispatch a 'content-changed' event when content changes, without needing to know about pagination implementation details.
