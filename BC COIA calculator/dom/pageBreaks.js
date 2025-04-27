@@ -84,15 +84,8 @@ function insertHeaderRow(referenceRow, originalHeaderRow) {
     const clonedHeader = originalHeaderRow.cloneNode(true);
     clonedHeader.classList.add(SCREEN_ONLY_CLASS);
     
-    // Add a visible marker for debugging
-    const firstCell = clonedHeader.querySelector('th');
-    if (firstCell) {
-        const originalText = firstCell.textContent;
-        firstCell.innerHTML = `<div style="position: relative;">
-            <div style="position: absolute; top: 0; left: 0; background-color: rgba(0, 128, 0, 0.2); color: green; padding: 2px; font-size: 10px; font-weight: bold; z-index: 1000; pointer-events: none;" class="${SCREEN_ONLY_CLASS}">Cloned Header</div>
-            ${originalText}
-        </div>`;
-    }
+    // What does this do?
+    const firstCell = clonedHeader.querySelector('th');    
     
     referenceRow.parentNode.insertBefore(clonedHeader, referenceRow);
     return getElementOuterHeight(clonedHeader);
@@ -376,36 +369,6 @@ export function updatePagination() {
                 if (p + 1 < workspaceTop.length) {
                     const blankSpaceHeight = workspaceTop[p + 1] - titleTop;
                     
-                    // Add a special marker to highlight the issue
-                    const debugMarker = document.createElement('div');
-                    debugMarker.classList.add(SCREEN_ONLY_CLASS);
-                    debugMarker.style.position = 'absolute';
-                    debugMarker.style.left = '0';
-                    debugMarker.style.right = '0';
-                    debugMarker.style.top = `${titleTop}px`;
-                    debugMarker.style.height = '20px';
-                    debugMarker.style.backgroundColor = 'rgba(255, 0, 255, 0.3)';
-                    debugMarker.style.zIndex = '1000';
-                    debugMarker.style.pointerEvents = 'none';
-                    debugMarker.style.border = '2px dashed purple';
-                    
-                    const debugLabel = document.createElement('div');
-                    debugLabel.textContent = `FIXED: Title moved to page ${p + 2}`;
-                    debugLabel.style.position = 'absolute';
-                    debugLabel.style.left = '5px';
-                    debugLabel.style.top = '0';
-                    debugLabel.style.fontSize = '12px';
-                    debugLabel.style.fontWeight = 'bold';
-                    debugLabel.style.color = 'purple';
-                    debugLabel.style.backgroundColor = 'rgba(255, 255, 255, 0.7)';
-                    debugLabel.style.padding = '2px';
-                    debugLabel.style.borderRadius = '2px';
-                    debugLabel.style.pointerEvents = 'none';
-                    debugLabel.classList.add(SCREEN_ONLY_CLASS);
-                    debugMarker.appendChild(debugLabel);
-                    
-                    document.body.appendChild(debugMarker);
-                    
                     // Insert the blank space
                     const blankSpace = insertBlankSpace(postjudgmentTitle, blankSpaceHeight);
                     
@@ -470,36 +433,6 @@ export function updatePagination() {
                 // Ensure there's a next page to calculate the gap against
                 if (p + 1 < workspaceTop.length) {
                     const blankSpaceHeight = workspaceTop[p + 1] - titleTop;
-                    
-                    // Add a special marker to highlight the issue
-                    const debugMarker = document.createElement('div');
-                    debugMarker.classList.add(SCREEN_ONLY_CLASS);
-                    debugMarker.style.position = 'absolute';
-                    debugMarker.style.left = '0';
-                    debugMarker.style.right = '0';
-                    debugMarker.style.top = `${titleTop}px`;
-                    debugMarker.style.height = '20px';
-                    debugMarker.style.backgroundColor = 'rgba(255, 0, 255, 0.3)';
-                    debugMarker.style.zIndex = '1000';
-                    debugMarker.style.pointerEvents = 'none';
-                    debugMarker.style.border = '2px dashed purple';
-                    
-                    const debugLabel = document.createElement('div');
-                    debugLabel.textContent = `Title should move to page ${p + 2}`;
-                    debugLabel.style.position = 'absolute';
-                    debugLabel.style.left = '5px';
-                    debugLabel.style.top = '0';
-                    debugLabel.style.fontSize = '12px';
-                    debugLabel.style.fontWeight = 'bold';
-                    debugLabel.style.color = 'purple';
-                    debugLabel.style.backgroundColor = 'rgba(255, 255, 255, 0.7)';
-                    debugLabel.style.padding = '2px';
-                    debugLabel.style.borderRadius = '2px';
-                    debugLabel.style.pointerEvents = 'none';
-                    debugLabel.classList.add(SCREEN_ONLY_CLASS);
-                    debugMarker.appendChild(debugLabel);
-                    
-                    document.body.appendChild(debugMarker);
                     
                     // Insert the blank space
                     const blankSpace = insertBlankSpace(postjudgmentTitle, blankSpaceHeight);
@@ -653,9 +586,6 @@ export function updatePagination() {
     } else {
         console.warn("Postjudgment footer row not found for final page check.");
     }
-
-
-    
 }
 
 // Placeholder for setup function if needed later
