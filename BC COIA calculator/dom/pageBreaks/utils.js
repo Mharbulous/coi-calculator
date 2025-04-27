@@ -45,13 +45,27 @@ export function getElementAbsoluteTop(element) {
 export function insertBlankRow(referenceRow, height) {
     if (!referenceRow || height <= 0) return;
     const blankRow = document.createElement('tr');
-    blankRow.classList.add(SCREEN_ONLY_CLASS);
+    blankRow.classList.add(SCREEN_ONLY_CLASS, 'page-break-spacer'); // Add spacer class
     const cell = document.createElement('td');
-    cell.setAttribute('colspan', '5'); // Span all columns
+    // Attempt to find the number of columns from the table header or the reference row
+    let colspan = 5; // Default colspan
+    const table = referenceRow.closest('table');
+    if (table) {
+        const header = table.querySelector('thead tr');
+        if (header) {
+            colspan = header.cells.length;
+        } else {
+             // Fallback to reference row if no header
+             colspan = referenceRow.cells.length;
+        }
+    } else {
+        colspan = referenceRow.cells.length;
+    }
+    cell.setAttribute('colspan', colspan.toString());
     cell.style.height = `${height}px`;
     cell.style.padding = '0';
     cell.style.border = 'none';
-    
+
     // Add a visible marker for debugging
     cell.style.position = 'relative';
     const marker = document.createElement('div');
@@ -68,7 +82,7 @@ export function insertBlankRow(referenceRow, height) {
     marker.style.pointerEvents = 'none';
     marker.classList.add(SCREEN_ONLY_CLASS);
     cell.appendChild(marker);
-    
+
     blankRow.appendChild(cell);
     referenceRow.parentNode.insertBefore(blankRow, referenceRow);
     return blankRow;
@@ -83,11 +97,11 @@ export function insertBlankRow(referenceRow, height) {
 export function insertHeaderRow(referenceRow, originalHeaderRow) {
     if (!referenceRow || !originalHeaderRow) return 0;
     const clonedHeader = originalHeaderRow.cloneNode(true);
-    clonedHeader.classList.add(SCREEN_ONLY_CLASS);
-    
-    // What does this do?
-    const firstCell = clonedHeader.querySelector('th');    
-    
+    clonedHeader.classList.add(SCREEN_ONLY_CLASS, 'repeated-header'); // Add repeated-header class
+
+    // Optional: Add styling or markers to distinguish repeated headers
+    clonedHeader.style.backgroundColor = 'rgba(200, 200, 200, 0.1)'; // Subtle background
+
     referenceRow.parentNode.insertBefore(clonedHeader, referenceRow);
     return getElementOuterHeight(clonedHeader);
 }
@@ -100,9 +114,9 @@ export function insertHeaderRow(referenceRow, originalHeaderRow) {
 export function insertBlankSpace(referenceElement, height) {
     if (!referenceElement || height <= 0) return;
     const blankSpace = document.createElement('div');
-    blankSpace.classList.add(SCREEN_ONLY_CLASS);
+    blankSpace.classList.add(SCREEN_ONLY_CLASS, 'page-break-spacer'); // Add spacer class
     blankSpace.style.height = `${height}px`;
-    
+
     // Add a visible marker for debugging
     blankSpace.style.position = 'relative';
     const marker = document.createElement('div');
@@ -119,14 +133,45 @@ export function insertBlankSpace(referenceElement, height) {
     marker.style.pointerEvents = 'none';
     marker.classList.add(SCREEN_ONLY_CLASS);
     blankSpace.appendChild(marker);
-    
+
     referenceElement.parentNode.insertBefore(blankSpace, referenceElement);
     return blankSpace;
 }
 
 /**
+ * Inserts a page break (spacer and potentially repeated header) before a given element.
+ * @param {HTMLElement} element - The .breakable element requiring a page break before it.
+ * @param {number} requiredSpacerHeight - The calculated height needed for the spacer.
+ */
+export function insertPageBreakBeforeElement(element, requiredSpacerHeight) {
+    if (!element || requiredSpacerHeight <= 0) return;
+
+    if (element.tagName === 'TR') {
+        // Handle table rows: insert blank row spacer and repeat header
+        const table = element.closest('table');
+        const originalHeaderRow = table ? table.querySelector('thead tr') : null;
+
+        // Insert the main spacer row
+        const spacerRow = insertBlankRow(element, requiredSpacerHeight);
+
+        // Insert the repeated header *after* the spacer, *before* the element
+        if (originalHeaderRow) {
+            const headerHeight = insertHeaderRow(element, originalHeaderRow);
+            // Adjust spacer height if needed? For now, assume spacer height is primary.
+            // If header repetition needs to be *part* of the space, this logic needs refinement.
+        }
+
+    } else {
+        // Handle other elements: insert a generic div spacer
+        insertBlankSpace(element, requiredSpacerHeight);
+    }
+}
+
+
+/**
  * Removes all elements with the screen-only class.
  */
 export function clearScreenOnlyElements() {
+    // Include spacers and repeated headers in removal
     document.querySelectorAll(`.${SCREEN_ONLY_CLASS}`).forEach(el => el.remove());
 }

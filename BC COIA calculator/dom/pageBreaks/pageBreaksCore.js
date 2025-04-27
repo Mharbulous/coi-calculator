@@ -3,20 +3,22 @@
  */
 
 import elements from '../elements.js';
-import { 
-    clearScreenOnlyElements, 
-    getElementTopPadding, 
-    getElementOuterHeight, 
-    getElementAbsoluteTop 
+import {
+    clearScreenOnlyElements,
+    getElementTopPadding,
+    getElementOuterHeight,
+    getElementAbsoluteTop,
+    insertPageBreakBeforeElement // Assuming this new utility function will be created
 } from './utils.js';
-import { processTableRow } from './tableRowProcessor.js';
-import { processSectionTitle } from './sectionTitleProcessor.js';
+// Remove imports for specific processors as logic will be integrated or handled differently
+// import { processTableRow } from './tableRowProcessor.js';
+// import { processSectionTitle } from './sectionTitleProcessor.js';
 
 /**
- * Implements WYSIWYG pagination by synchronizing ink and paper layers.
+ * Implements WYSIWYG pagination using a generalized ".breakable" class approach.
  */
 export function updatePagination() {
-    clearScreenOnlyElements(); // Clear previous breaks
+    clearScreenOnlyElements(); // Clear previous breaks and spacers
 
     // Get DOM elements
     const inkLayer = document.querySelector('.ink-layer');
@@ -149,80 +151,75 @@ export function updatePagination() {
         document.body.appendChild(bottomIndicator);
     });
 
-    // Get table footer height
-    const prejudgmentFooterRow = prejudgmentTable.querySelector('tfoot tr.total');
-    const tableFootHeight = getElementOuterHeight(prejudgmentFooterRow);
+    // --- Process Elements using .breakable class ---
 
-    // --- Process Elements ---
-    
-    let currentPageIndex = 0;
-    const originalPrejudgmentHeader = prejudgmentTable.querySelector('thead tr');
-    const originalPostjudgmentHeader = postjudgmentTable.querySelector('thead tr');
+    const breakableElements = Array.from(inkLayer.querySelectorAll('.breakable'));
 
-    // Process prejudgment rows
-    const prejudgmentRows = prejudgmentTableBody.querySelectorAll('tr');
-    for (const row of prejudgmentRows) {
-        const context = {
-            currentPageIndex,
-            workspaceBottom,
-            workspaceTop,
-            tableFootHeight,
-            headerRow: originalPrejudgmentHeader
-        };
-        
-        const result = processTableRow(row, context);
-        
-        if (result && result.pageBreakInserted) {
-            inkLayerHeight += result.heightAdded;
-            currentPageIndex = result.newPageIndex;
+    for (let i = 0; i < breakableElements.length; i++) {
+        const currentElement = breakableElements[i];
+        const nextElement = breakableElements[i + 1] || null; // Get the next breakable element
+
+        const currentElementTop = getElementAbsoluteTop(currentElement);
+
+        // Calculate block height (from current top to next top, or just current height if it's the last)
+        let blockHeight;
+        if (nextElement) {
+            const nextElementTop = getElementAbsoluteTop(nextElement);
+            blockHeight = nextElementTop - currentElementTop;
+        } else {
+            // If it's the last breakable element, measure its own height as the block
+            // This might need refinement depending on how trailing content is handled
+            blockHeight = getElementOuterHeight(currentElement);
         }
-    }
 
-    // Process postjudgment title
-    const postjudgmentTitle = Array.from(document.querySelectorAll('.section-title'))
-                                   .find(el => el.textContent.includes('Postjudgment Interest Calculations'));
-    
-    const postjudgmentHeader = postjudgmentTable.querySelector('thead');
-    
-    if (postjudgmentTitle) {
-        const context = {
-            currentPageIndex,
-            workspaceBottom,
-            workspaceTop,
-            inkLayerMargin,
-            headerElement: postjudgmentHeader
-        };
-        
-        const result = processSectionTitle(postjudgmentTitle, context);
-        
-        if (result && result.pageBreakInserted) {
-            inkLayerHeight += result.heightAdded;
-            currentPageIndex = result.newPageIndex;
+        // Check for oversized blocks
+        if (blockHeight > workspaceHeightPerPage) {
+            console.error("Oversized breakable block detected. Content may overflow.", currentElement);
+            // Decide how to handle this - skip break check? For now, continue processing.
         }
-    }
 
-    // Process postjudgment rows
-    const postjudgmentRows = postjudgmentTableBody.querySelectorAll('tr');
-    for (const row of postjudgmentRows) {
-        const context = {
-            currentPageIndex,
-            workspaceBottom,
-            workspaceTop,
-            tableFootHeight,
-            headerRow: originalPostjudgmentHeader
-        };
-        
-        const result = processTableRow(row, context);
-        
-        if (result && result.pageBreakInserted) {
-            inkLayerHeight += result.heightAdded;
-            currentPageIndex = result.newPageIndex;
+        // Determine current page index based on element's position
+        let currentPageIndex = 0;
+        for (let pageIdx = 0; pageIdx < workspaceTop.length; pageIdx++) {
+            // Find the page where the element starts
+            if (currentElementTop >= workspaceTop[pageIdx]) {
+                currentPageIndex = pageIdx;
+            } else {
+                break; // Element starts before this page, so it belongs to the previous one
+            }
+        }
+
+        const currentPageBottom = workspaceBottom[currentPageIndex];
+        const elementBottom = currentElementTop + blockHeight;
+
+        // Check if the element block overflows the current page
+        if (elementBottom > currentPageBottom) {
+            // Ensure there's a next page boundary to calculate against
+            if (currentPageIndex + 1 < workspaceTop.length) {
+                const nextPageTop = workspaceTop[currentPageIndex + 1];
+                const requiredSpacerHeight = nextPageTop - currentElementTop;
+
+                if (requiredSpacerHeight > 0) {
+                    insertPageBreakBeforeElement(currentElement, requiredSpacerHeight);
+                    // Recalculate inkLayerHeight potentially? Or handle in final adjustments.
+                    // For now, rely on final adjustment phase.
+                } else {
+                     console.warn("Calculated negative or zero spacer height. Skipping break.", currentElement);
+                }
+            } else {
+                // This case means the element overflows the *last calculated page*.
+                // The final adjustment phase should handle adding a new page if needed.
+                console.warn("Element overflows last calculated page. Final adjustments should handle this.", currentElement);
+            }
         }
     }
 
     // --- Final Page Adjustments ---
-    
-    const postjudgmentFooterRow = postjudgmentTable.querySelector('tfoot tr.total');
+    // This logic remains largely the same, checking the final content position
+    // (e.g., the postjudgment footer) against the initially calculated page boundaries
+    // and adding/removing pages as needed.
+
+    const postjudgmentFooterRow = postjudgmentTable.querySelector('tfoot tr.total'); // Assuming footer isn't 'breakable'
     if (postjudgmentFooterRow) {
         const footerTop = getElementAbsoluteTop(postjudgmentFooterRow);
         const footerHeight = getElementOuterHeight(postjudgmentFooterRow);

@@ -67,6 +67,12 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
     // Populate new rows (assuming 5 columns: Date/Period, Description, Rate, Principal, Interest)
     details.forEach((item, index) => {
         const row = tableBody.insertRow();
+
+        // Add .breakable class to all rows except the first one
+        if (index > 0) {
+            row.classList.add('breakable');
+        }
+
         row.insertCell().textContent = item.start; // Expect formatted date/period start
         
         // Description cell with potential button
