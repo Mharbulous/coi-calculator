@@ -75,20 +75,24 @@ flowchart TD
 
 The `sectionTitleProcessor.js` file contains the `processSectionTitle()` function, which determines if a section title needs to be pushed to the next page. The function:
 
-1. **Initial Checks**:
-   - Validates the title element exists
-   - Gets the title's dimensions
+**Initial Checks**:
 
-2. **Primary Logic**:
-   - Checks if the title is too close to the bottom of any page
-   - Checks if the title plus header would overflow the page
+*   Validates the title element exists
+*   Gets the title's dimensions
 
-3. **Fallback Logic**:
-   - If no break was inserted by the primary logic, tries the original logic
-   - Uses a different threshold for determining if the title is near the bottom
+**Primary Logic**:
 
-4. **Result**:
-   - Returns break information if a break was inserted
-   - Returns null if no break was needed
+*   Checks if the title is too close to the bottom of any page
+*   Checks if the title plus header would overflow the page
+
+**Fallback Logic**:
+
+*   If no break was inserted by the primary logic, tries the original logic
+*   Uses a different threshold for determining if the title is near the bottom
+
+**Result**:
+
+*   Returns break information if a break was inserted
+*   Returns null if no break was needed
 
 The function uses multiple strategies to determine if a title needs pagination, ensuring that titles are properly positioned on pages.
