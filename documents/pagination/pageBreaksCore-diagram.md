@@ -73,7 +73,7 @@ flowchart TD
 
 ## Event-Based Pagination Architecture
 
-```mermaid
+```
 flowchart LR
     A["UI Events"] -->|"dispatch"| B["content-changed Event"]
     B -->|"triggers"| C["setupPaginationListeners()"]
@@ -100,34 +100,38 @@ flowchart LR
 
 The `pageBreaksCore.js` file contains the main pagination framework, with two key functions:
 
-1. **updatePagination()**: The core pagination logic that:
+**updatePagination()**: The core pagination logic that:
 
-1. **Initialization**:
-   - Clears previous page breaks
-   - Gets references to DOM elements
-   - Performs initial measurements
+**Initialization**:
 
-2. **Page Setup**:
-   - Renders page cards
-   - Calculates workspace boundaries
-   - Adds visual indicators for debugging
+*   Clears previous page breaks
+*   Gets references to DOM elements
+*   Performs initial measurements
 
-3. **Element Processing**:
-   - Processes prejudgment table rows
-   - Processes the postjudgment title
-   - Processes postjudgment table rows
-   - Uses specialized processors for each element type
+**Page Setup**:
 
-4. **Final Adjustments**:
-   - Checks if content overflows the last page
-   - Adds or removes pages as needed
+*   Renders page cards
+*   Calculates workspace boundaries
+*   Adds visual indicators for debugging
+
+**Element Processing**:
+
+*   Processes prejudgment table rows
+*   Processes the postjudgment title
+*   Processes postjudgment table rows
+*   Uses specialized processors for each element type
+
+**Final Adjustments**:
+
+*   Checks if content overflows the last page
+*   Adds or removes pages as needed
 
 The function delegates the actual page break insertion logic to specialized processors, maintaining a clean separation of concerns.
 
-2. **setupPaginationListeners()**: Sets up event listeners for pagination updates:
-   - Listens for the custom 'content-changed' event
-   - When triggered, calls updatePagination()
-   - Centralizes all pagination triggers to a single event handler
-   - Decouples UI events from pagination logic
+1.  **setupPaginationListeners()**: Sets up event listeners for pagination updates:
+    *   Listens for the custom 'content-changed' event
+    *   When triggered, calls updatePagination()
+    *   Centralizes all pagination triggers to a single event handler
+    *   Decouples UI events from pagination logic
 
 This event-based architecture improves maintainability by separating UI concerns from pagination logic. UI components only need to dispatch a 'content-changed' event when content changes, without needing to know about pagination implementation details.
