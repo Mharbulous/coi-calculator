@@ -11,7 +11,7 @@ import {
 } from './domUtils.js';
 import { formatDateForInput, normalizeDate } from './utils.date.js';
 import useStore from './store.js';
-import { updatePagination } from './dom/pageBreaks.js'; // Import pagination function
+import { updatePagination, setupPaginationListeners } from './dom/pageBreaks.js'; // Import pagination functions
 
 /**
  * Updates the prejudgment table with the calculated results.
@@ -55,7 +55,7 @@ function setupEventListeners() {
     // Listen for the special-damages-updated custom event
     document.addEventListener('special-damages-updated', () => {
         recalculate();
-        updatePagination(); // Update pagination after recalculation
+        document.dispatchEvent(new CustomEvent('content-changed')); // Trigger pagination update
     });
     // Check if elements exist before adding listeners
     const requiredElements = [
@@ -76,7 +76,7 @@ function setupEventListeners() {
         // (though this is now handled in initializeDatePickers)
         module.setupCustomDateInputListeners(elements.judgmentDateInput, () => {
             recalculate();
-            updatePagination(); // Update pagination after recalculation
+            document.dispatchEvent(new CustomEvent('content-changed')); // Trigger pagination update
         });
     });
 
@@ -90,7 +90,7 @@ function setupEventListeners() {
         useStore.getState().setInput('jurisdiction', newJurisdiction);
         
         recalculate(); 
-        updatePagination(); // Update pagination after recalculation
+        document.dispatchEvent(new CustomEvent('content-changed')); // Trigger pagination update
     });
 
     // Show Prejudgment checkbox
@@ -101,19 +101,19 @@ function setupEventListeners() {
 
     // Show Postjudgment checkbox
     elements.showPostjudgmentCheckbox.addEventListener('change', () => {
-        // Pass 'recalculate' and 'updatePagination' as callbacks
+        // Pass 'recalculate' and event dispatch as callbacks
         togglePostjudgmentVisibility(false, () => {
             recalculate();
-            updatePagination();
+            document.dispatchEvent(new CustomEvent('content-changed')); // Trigger pagination update
         });
     });
 
     // Show Per Diem checkbox
     elements.showPerDiemCheckbox.addEventListener('change', () => {
-        // Pass 'recalculate' and 'updatePagination' as callbacks
+        // Pass 'recalculate' and event dispatch as callbacks
         togglePerDiemVisibility(false, () => {
             recalculate();
-            updatePagination();
+            document.dispatchEvent(new CustomEvent('content-changed')); // Trigger pagination update
         });
     });
 
@@ -217,15 +217,18 @@ function initializeCalculator() {
     });
     
     // Update summary table using the Zustand store
-    // Pass recalculate and updatePagination as the callback
+    // Pass recalculate and event dispatch as the callback
     updateSummaryTable(useStore, () => {
         recalculate();
-        updatePagination();
+        document.dispatchEvent(new CustomEvent('content-changed')); // Trigger pagination update
     });
     // --- End initial population ---
 
+    // Initialize pagination listeners
+    setupPaginationListeners();
+    
     recalculate(); 
-    updatePagination(); // Perform initial pagination update
+    document.dispatchEvent(new CustomEvent('content-changed')); // Perform initial pagination update
 }
 
 // --- Entry Point ---

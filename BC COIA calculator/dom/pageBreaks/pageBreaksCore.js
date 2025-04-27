@@ -258,9 +258,14 @@ export function updatePagination() {
 
 /**
  * Sets up pagination event listeners.
+ * Centralizes all pagination update triggers to a single event listener.
  */
 export function setupPaginationListeners() {
-    // Example: Trigger updatePagination on relevant state changes or events
-    // This needs to be integrated into the main application flow (e.g., in calculator.ui.js)
-    // window.addEventListener('some-update-event', updatePagination);
+    // Listen for a custom "content-changed" event that will trigger pagination updates
+    document.addEventListener('content-changed', () => {
+        // Optional: Add debouncing here if needed for performance
+        updatePagination();
+    });
+    
+    console.log("Pagination listeners initialized");
 }
