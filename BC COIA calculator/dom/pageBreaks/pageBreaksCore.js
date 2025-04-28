@@ -37,6 +37,14 @@ export function updatePagination() {
 
         // Get DOM elements
         const inkLayer = document.querySelector('.ink-layer');
+        
+        // *** ADDED: Attempt to force browser reflow before measurements ***
+        // Reading offsetHeight can trigger layout calculation, potentially ensuring
+        // measurements later in the function are based on the updated layout.
+        if (inkLayer) inkLayer.offsetHeight; 
+        // *** END ADDED ***
+
+        // Get DOM elements (inkLayer already declared above)
         const paperLayer = document.querySelector('.paper-layer');
         const prejudgmentTableBody = elements.prejudgmentTableBody;
         const postjudgmentTableBody = elements.postjudgmentTableBody;
@@ -425,8 +433,8 @@ export function setupPaginationListeners() {
             // Update the previous height tracker
             previousInkLayerHeight = currentHeight;
             
-            // Call the pagination update function
-            // This will handle the isUpdatingPagination flag internally
+            // Call the pagination update function directly for general resizes.
+            // Visibility toggles now trigger their own rAF update via visibility.js
             updatePagination();
         }
     });

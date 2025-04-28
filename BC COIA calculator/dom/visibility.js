@@ -2,6 +2,7 @@ import elements from './elements.js';
 import useStore from '../store.js';
 import { formatDateForInput } from '../utils.date.js';
 import { initializeDatePickers } from './datepickers.js';
+// Removed direct import of updatePagination
 
 /**
  * Toggles the visibility of the prejudgment section based on the checkbox state.
@@ -26,6 +27,12 @@ export function togglePrejudgmentVisibility(isInitializing = false, recalculateC
     if (prejudgmentTitle && prejudgmentTitle.classList.contains('section-title')) {
         prejudgmentTitle.style.display = isChecked ? '' : 'none';
     }
+
+    // Dispatch content-changed event after style change is likely processed
+    requestAnimationFrame(() => {
+        console.log("Dispatching content-changed event from togglePrejudgmentVisibility");
+        document.dispatchEvent(new CustomEvent('content-changed', { bubbles: true }));
+    });
     
     // Find and toggle visibility of prejudgment date field in summary table
     if (elements.summaryTableBody) {
@@ -179,6 +186,12 @@ export function togglePostjudgmentVisibility(isInitializing = false, recalculate
     if (postjudgmentTitle && postjudgmentTitle.classList.contains('section-title')) {
         postjudgmentTitle.style.display = isChecked ? '' : 'none';
     }
+
+    // Dispatch content-changed event after style change is likely processed
+    requestAnimationFrame(() => {
+        console.log("Dispatching content-changed event from togglePostjudgmentVisibility");
+        document.dispatchEvent(new CustomEvent('content-changed', { bubbles: true }));
+    });
     
     // Find and manage the postjudgment interest row in the summary table
     if (elements.summaryTableBody) {
