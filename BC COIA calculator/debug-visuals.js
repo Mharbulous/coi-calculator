@@ -48,6 +48,7 @@ function createVisualIndicator(yPosition, color, label) {
   indicator.style.backgroundColor = color;
   indicator.style.zIndex = '1000';
   indicator.style.pointerEvents = 'none';
+  indicator.className = 'debug-visual-indicator';
   
   // Add label
   const labelElement = document.createElement('span');
@@ -63,3 +64,16 @@ function createVisualIndicator(yPosition, color, label) {
   indicator.appendChild(labelElement);
   document.body.appendChild(indicator);
 }
+
+// Add a style to hide debug visualizations when printing
+(function addPrintStyles() {
+  const style = document.createElement('style');
+  style.textContent = `
+    @media print {
+      .debug-visual-indicator {
+        display: none !important;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+})();
