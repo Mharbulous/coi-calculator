@@ -114,7 +114,7 @@ export function insertSpecialDamagesRow(tableBody, currentRow, date) {
     
     // Create a new row and insert it after the current row
     const newRow = tableBody.insertRow(rowIndex); // Insert at the correct index
-    newRow.className = 'special-damages-row highlight-new-row';
+    newRow.className = 'special-damages-row highlight-new-row breakable'; // Add breakable class
     
     // Date cell (editable, pre-populated with the date from the current row)
     const dateCell = newRow.insertCell();
@@ -242,7 +242,7 @@ export function insertSpecialDamagesRowFromData(tableBody, index, rowData, final
     const safeIndex = (index !== undefined && index >= 0) ? index : -1;
     
     const newRow = tableBody.insertRow(safeIndex);
-    newRow.className = 'special-damages-row'; // No highlight on re-insertion
+    newRow.className = 'special-damages-row breakable'; // Add breakable class, no highlight on re-insertion
 
     // Date cell
     const dateCell = newRow.insertCell();
