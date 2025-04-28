@@ -200,12 +200,19 @@ export function updatePagination() {
                 blockHeight = nextElementTop - currentElementTop;
             } else {
                 // If it's the last visible breakable element, measure its own height as the block
-                blockHeight = getElementOuterHeight(currentElement);
-            }
-            
-            // Ensure blockHeight is positive
-             blockHeight = Math.max(0, blockHeight);
-
+                 // If it's the last visible breakable element, measure from its top
+                 // to the actual bottom of the ink layer's content.
+                 const inkLayerRect = inkLayer.getBoundingClientRect();
+                 // scrollHeight includes content height + padding, which is what we want.
+                 const inkLayerContentBottomAbsolute = inkLayerRect.top + window.scrollY + inkLayer.scrollHeight; 
+                 
+                 blockHeight = inkLayerContentBottomAbsolute - currentElementTop;
+             }
+             
+             // Ensure blockHeight is positive
+              blockHeight = Math.max(0, blockHeight);
+              
+              console.log(`Processing Element:`, currentElement, `Block Height: ${blockHeight}`);
 
             // Check for oversized blocks
             if (blockHeight > workspaceHeightPerPage) {
