@@ -200,13 +200,59 @@ export function updatePagination() {
                 blockHeight = nextElementTop - currentElementTop;
             } else {
                 // If it's the last visible breakable element, measure its own height as the block
-                 // If it's the last visible breakable element, measure from its top
-                 // to the actual bottom of the ink layer's content.
-                 const inkLayerRect = inkLayer.getBoundingClientRect();
-                 // scrollHeight includes content height + padding, which is what we want.
-                 const inkLayerContentBottomAbsolute = inkLayerRect.top + window.scrollY + inkLayer.scrollHeight; 
-                 
-                 blockHeight = inkLayerContentBottomAbsolute - currentElementTop;
+                // If it's the last visible breakable element, measure the actual height
+                // of all content from this element until the end of the visible content.
+                
+                // First, get the height of the element itself (minimum height)
+                blockHeight = getElementOuterHeight(currentElement);
+                
+                // Then find the furthest visible descendant element after this one
+                let maxBottom = currentElementTop + blockHeight;
+                
+                // Only check non-breakable elements that come after this one
+                const allElements = Array.from(inkLayer.querySelectorAll('*:not(.screen-only):not(.page-break-spacer)'));
+                
+                // Start after the current element in the DOM
+                let foundCurrent = false;
+                for (const el of allElements) {
+                    if (!foundCurrent) {
+                        // Skip until we find the current element
+                        if (el === currentElement) {
+                            foundCurrent = true;
+                        }
+                        continue;
+                    }
+                    
+                    // Skip elements inside the current element (already accounted for by its height)
+                    if (currentElement.contains(el)) {
+                        continue;
+                    }
+                    
+                    // Skip hidden elements
+                    if (el.offsetParent === null || getElementOuterHeight(el) === 0) {
+                        continue;
+                    }
+                    
+                    // Skip any subsequent breakable elements (we only want non-breakable elements)
+                    if (el.classList.contains('breakable')) {
+                        continue;
+                    }
+                    
+                    // Calculate the bottom edge of this element
+                    const elTop = getElementAbsoluteTop(el);
+                    const elHeight = getElementOuterHeight(el);
+                    const elBottom = elTop + elHeight;
+                    
+                    // Update maximum bottom if this element extends further
+                    if (elBottom > maxBottom) {
+                        maxBottom = elBottom;
+                    }
+                }
+                
+                // Final block height is from currentElement to the furthest visible element
+                blockHeight = maxBottom - currentElementTop;
+                
+                console.log(`Last breakable element: Height calculation from ${currentElementTop} to ${maxBottom}`);
              }
              
              // Ensure blockHeight is positive
