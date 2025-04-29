@@ -1,12 +1,10 @@
-# Phase 1 - Firebase Interest Rate Paywall Approach
+# Firebase Interest Rate Paywall Approach
 
 ## Overview
 
 This document outlines a targeted approach to implementing a paywall for the Court Order Interest Calculator. Instead of a full client-side solution or moving all calculations to the cloud, this approach focuses on moving the critical interest rate data to Firebase, effectively creating a dependency that requires authentication and payment to access. The implementation includes a demo mode with intentionally incorrect rates for users to try before purchasing.
 
 ## Incremental Plan
-
-Note:  Initial estimates of Complexity and Time were created by Claude 3.7 Sonnett.  Gemini 3.5 then did it's own review, striking through and replacing opinions that it disagreed with:
 
 | File Name | Description | Complexity | Time Estimate |
 | --- | --- | --- | --- |
