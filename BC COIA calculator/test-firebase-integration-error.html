@@ -48,23 +48,10 @@
     <script type="module">
         import { showFirebaseError } from './error-handling.js';
         
-        // Set up event listener for the Firebase error event
-        document.addEventListener('firebase-rates-error', (event) => {
-            console.log('Received firebase-rates-error event:', event.detail);
-            
-            // Show the error UI
-            showFirebaseError(event.detail);
-            
-            // Update test status
-            const statusEl = document.getElementById('testStatus');
-            const messageEl = document.getElementById('statusMessage');
-            statusEl.style.display = 'block';
-            statusEl.style.background = '#ffebee';
-            messageEl.textContent = 'Error received and displayed successfully! The error UI should be visible above.';
-        });
-        
         // Function to trigger the Firebase error test
         async function runFirebaseErrorTest() {
+            console.log('Starting Firebase error test...');
+            
             // Update status
             const statusEl = document.getElementById('testStatus');
             const messageEl = document.getElementById('statusMessage');
@@ -77,10 +64,12 @@
                 const { testFirebaseError } = await import('./test-firebase-error.js');
                 
                 // Run the test
+                console.log('Calling testFirebaseError()...');
                 await testFirebaseError();
                 
                 // If we get here without an error being thrown, update status
                 // (though the error should have been caught and dispatched as an event)
+                console.log('testFirebaseError() completed without throwing an error');
                 messageEl.textContent = 'Test completed. Check console for details.';
             } catch (error) {
                 // This shouldn't happen as errors should be caught in testFirebaseError
@@ -90,11 +79,70 @@
             }
         }
         
+        // Set up event listener for the Firebase error event BEFORE adding button listener
+        document.addEventListener('firebase-rates-error', (event) => {
+            console.log('%c RECEIVED FIREBASE ERROR EVENT! ', 'background: red; color: white; font-size: 16px; font-weight: bold;');
+            console.log('Error details:', event.detail);
+            
+            try {
+                // Clear the ink layer first to ensure the error UI is visible
+                const inkLayer = document.querySelector('.ink-layer');
+                if (inkLayer) {
+                    console.log('Clearing ink layer content...');
+                    // Save the test controls
+                    const testControls = document.querySelector('.test-controls');
+                    const testControlsClone = testControls ? testControls.cloneNode(true) : null;
+                    
+                    // Clear the ink layer
+                    inkLayer.innerHTML = '';
+                    
+                    // Show the error UI
+                    console.log('Showing Firebase error UI...');
+                    showFirebaseError(event.detail);
+                    
+                    // Re-add the test controls at the bottom if they existed
+                    if (testControlsClone) {
+                        console.log('Re-adding test controls...');
+                        inkLayer.appendChild(testControlsClone);
+                        
+                        // Update test status
+                        const statusEl = testControlsClone.querySelector('#testStatus');
+                        const messageEl = testControlsClone.querySelector('#statusMessage');
+                        if (statusEl && messageEl) {
+                            statusEl.style.display = 'block';
+                            statusEl.style.background = '#ffebee';
+                            messageEl.textContent = 'Error received and displayed successfully! The error UI should be visible above.';
+                        }
+                        
+                        // Re-add event listener to the button
+                        const triggerBtn = testControlsClone.querySelector('#triggerErrorBtn');
+                        if (triggerBtn) {
+                            triggerBtn.addEventListener('click', runFirebaseErrorTest);
+                        }
+                    }
+                } else {
+                    console.error('Could not find .ink-layer element');
+                }
+            } catch (err) {
+                console.error('Error in firebase-rates-error event handler:', err);
+                alert('Error handling Firebase error: ' + err.message);
+            }
+        });
+        
+        // Add a direct test function for debugging
+        window.testErrorUI = function() {
+            console.log('Directly testing error UI...');
+            const testError = new Error('Test error message for direct UI testing');
+            showFirebaseError(testError);
+            return 'Error UI test triggered';
+        };
+        
         // Add event listener to the button
         document.getElementById('triggerErrorBtn').addEventListener('click', runFirebaseErrorTest);
         
         // Automatically run the test after 1 second if the URL has ?auto=true
         if (window.location.search.includes('auto=true')) {
+            console.log('Auto-running test in 1 second...');
             setTimeout(runFirebaseErrorTest, 1000);
         }
     </script>
