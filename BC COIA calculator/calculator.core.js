@@ -1,4 +1,44 @@
-import interestRatesData from './interestRates.js';
+// Import getInterestRates function from Firebase integration instead of using local rates
+import { getInterestRates } from './firebaseIntegration.js';
+
+// Initialize with empty rates data structure - will be populated with Firebase data
+let interestRatesData = {};
+
+// Flag to track if rates have been loaded
+let ratesLoaded = false;
+
+// Async function to load rates from Firebase
+async function loadRatesFromFirebase() {
+    try {
+        const result = await getInterestRates();
+        // Store the rates for use in calculations
+        interestRatesData = result.rates;
+        ratesLoaded = true;
+        console.log("Firebase rates loaded for calculator core");
+        
+        // Trigger a recalculation after rates are loaded
+        if (typeof window !== 'undefined') {
+            // Only run in browser context
+            setTimeout(() => {
+                console.log("Triggering recalculation after Firebase rates loaded");
+                recalculate();
+            }, 100);
+        }
+        
+        return true;
+    } catch (error) {
+        console.error("Error loading Firebase rates in calculator core:", error);
+        // Propagate the error to the UI
+        throw error;
+    }
+}
+
+// Trigger Firebase rate loading when this module is imported
+loadRatesFromFirebase().catch(error => {
+    console.error("Failed to load interest rates from Firebase:", error);
+    // Show an alert to inform the user about the error
+    alert("Error: Could not load interest rates from Firebase. Please check your internet connection and try again.");
+});
 import { calculateInterestPeriods, calculatePerDiem } from './calculations.js';
 import {
     elements,
@@ -415,6 +455,13 @@ function recalculate() {
         }
     }
 
+    // Check if rates have been loaded and if they exist for the selected jurisdiction
+    if (!ratesLoaded) {
+        console.log("Firebase rates not loaded yet, waiting...");
+        // Don't show an error, just return and wait for rates to load
+        return;
+    }
+    
     // Check if rates exist for the selected jurisdiction
     if (!interestRatesData[inputs.jurisdiction] || interestRatesData[inputs.jurisdiction].length === 0) {
         handleMissingRates(inputs, inputs.jurisdiction);

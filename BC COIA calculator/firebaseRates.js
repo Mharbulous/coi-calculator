@@ -4,7 +4,6 @@
 
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "./firebaseConfig.js";
-import { default as localRates, lastUpdated as localLastUpdated, validUntil as localValidUntil } from "./interestRates.js";
 
 // Log module initialization
 console.log("Firebase Rates module loaded");
@@ -36,10 +35,6 @@ function endOfDayUTC(date) {
     return newDate;
 }
 
-// Create variables to store the Firebase data when it arrives
-let firebaseRates = { ...localRates };
-let firebaseLastUpdated = localLastUpdated;
-let firebaseValidUntil = localValidUntil;
 
 // Function to fetch rates from Firebase
 export async function fetchRatesFromFirebase() {
@@ -108,40 +103,29 @@ export async function fetchRatesFromFirebase() {
                     else {
                         return {
                             ...rate,
-                            end: endOfDayUTC(fetchedValidUntil || localValidUntil) // Ensure end date includes the whole day
+                            end: endOfDayUTC(fetchedValidUntil) // Ensure end date includes the whole day
                         };
                     }
                 });
             }
             
-            // Update the global variables with the fetched data
-            firebaseRates = processedFetchedRates;
-            if (fetchedLastUpdated) firebaseLastUpdated = fetchedLastUpdated;
-            if (fetchedValidUntil) firebaseValidUntil = fetchedValidUntil;
-            
-            console.log("Firebase rates processed and ready to use");
-            
             // Return the processed rates with source information
             return {
-                rates: firebaseRates,
-                lastUpdated: firebaseLastUpdated,
-                validUntil: firebaseValidUntil,
+                rates: processedFetchedRates,
+                lastUpdated: fetchedLastUpdated,
+                validUntil: fetchedValidUntil,
                 source: 'firebase'
             };
+        } else {
+            // If no data was retrieved, throw an error
+            throw new Error("No interest rate data retrieved from Firebase");
         }
     } catch (error) {
         console.error("Error fetching rates from Firebase:", error);
-        // We still have local rates as fallback
+        // Instead of falling back to local rates, throw the error to be handled by the caller
+        throw error;
     }
-    
-    // Return the local rates if Firebase fetch failed
-    return {
-        rates: localRates,
-        lastUpdated: localLastUpdated,
-        validUntil: localValidUntil,
-        source: 'local'
-    };
 }
 
-// Export the function to fetch rates from Firebase
-export { firebaseRates, firebaseLastUpdated, firebaseValidUntil };
+// Export was already included in the function declaration (export async function fetchRatesFromFirebase)
+// So no need to export it again

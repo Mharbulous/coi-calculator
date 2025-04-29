@@ -3,7 +3,6 @@
 
 import { firebaseApp, db } from './firebaseConfig.js';
 import { fetchRatesFromFirebase } from './firebaseRates.js';
-import { default as localRates, lastUpdated, validUntil } from './interestRates.js';
 
 // Initialize Firebase when this module is loaded
 console.log('*************************************************************');
@@ -16,25 +15,23 @@ export async function getInterestRates() {
     // Try to fetch rates from Firebase
     const result = await fetchRatesFromFirebase();
     
-    // Check if we got data from Firebase or are using the fallback
+    // Check if we got data from Firebase
     if (result.source === 'firebase') {
       console.log('%c✅ USING FIREBASE DATA: Successfully fetched interest rates from Firebase', 'color: green; font-weight: bold');
+      return result;
     } else {
-      console.log('%c⚠️ USING LOCAL FALLBACK DATA: Firebase fetch returned no data', 'color: orange; font-weight: bold');
+      // This should not happen with our updated fetchRatesFromFirebase function
+      // But just in case, throw an error
+      console.error('Unexpected result from fetchRatesFromFirebase');
+      throw new Error('Failed to fetch interest rates from Firebase');
     }
-    
-    return result;
   } catch (error) {
-    // Log error and fall back to local rates
+    // Log error and propagate it (no fallback to local rates)
     console.error('Error fetching interest rates from Firebase:', error);
-    console.log('%c❌ USING LOCAL FALLBACK DATA: Error connecting to Firebase', 'color: red; font-weight: bold');
+    console.log('%c❌ FIREBASE ERROR: Unable to load interest rates', 'color: red; font-weight: bold');
     
-    return {
-      rates: localRates,
-      lastUpdated,
-      validUntil,
-      source: 'local'
-    };
+    // Propagate the error instead of falling back to local rates
+    throw error;
   }
 }
 

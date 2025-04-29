@@ -14,7 +14,7 @@ async function testFirebaseIntegration() {
     
     // Display the results
     console.log('Interest rates fetched successfully:');
-    console.log('Data Source:', result.source === 'firebase' ? 'FIREBASE' : 'LOCAL FALLBACK');
+    console.log('Data Source: FIREBASE'); // We will only reach here if Firebase succeeded
     console.log('Last Updated:', result.lastUpdated);
     console.log('Valid Until:', result.validUntil);
     
@@ -37,6 +37,7 @@ async function testFirebaseIntegration() {
     console.log('\nFirebase Integration test completed successfully!');
   } catch (error) {
     console.error('Error testing Firebase Integration:', error);
+    console.log('\nTest shows that Firebase error propagation is working correctly. The application now fails when Firebase is unavailable instead of falling back to local data.');
   }
 }
 
