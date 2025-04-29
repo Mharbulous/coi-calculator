@@ -26,11 +26,11 @@ export async function getInterestRates() {
       throw new Error('Failed to fetch interest rates from Firebase');
     }
   } catch (error) {
-    // Log error and propagate it (no fallback to local rates)
+    // Log error and propagate it
     console.error('Error fetching interest rates from Firebase:', error);
     console.log('%c❌ FIREBASE ERROR: Unable to load interest rates', 'color: red; font-weight: bold');
     
-    // Propagate the error instead of falling back to local rates
+    // Propagate the error to be handled by the application
     throw error;
   }
 }

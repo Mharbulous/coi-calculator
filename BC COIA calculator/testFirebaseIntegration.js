@@ -14,7 +14,7 @@ async function testFirebaseIntegration() {
     
     // Display the results
     console.log('Interest rates fetched successfully:');
-    console.log('Data Source: FIREBASE'); // We will only reach here if Firebase succeeded
+    console.log('Data Source: FIREBASE');
     console.log('Last Updated:', result.lastUpdated);
     console.log('Valid Until:', result.validUntil);
     

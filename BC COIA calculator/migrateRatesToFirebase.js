@@ -1,14 +1,14 @@
 // Data Migration Script for Interest Rates
-// This script uploads all historical interest rate data from interestRates.js to Firebase Firestore
+// This script uploads all historical interest rate data to Firebase Firestore
 
 import { collection, doc, setDoc } from "firebase/firestore";
 import { db } from "./firebaseConfig.js";
-// Import the raw rates object from interestRates.js
-// Note: We need to access the raw rates object before processing
-import { default as processedRates, lastUpdated, validUntil } from "./interestRates.js";
 
-// The raw rates are defined in the interestRates.js file
-// We'll need to access them directly
+// Define the last updated and valid until dates
+const lastUpdated = new Date(Date.UTC(2025, 3, 19)); // 2025-04-19
+const validUntil = new Date(Date.UTC(2025, 5, 30));  // 2025-06-30
+
+// The raw rates are defined directly in this file for migration purposes
 const rates = {
     BC: [
         { start: "1993-01-01", prejudgment: 5.25, postjudgment: 7.25 },

@@ -4,7 +4,7 @@ This document explains how the Court Order Interest Calculator has been integrat
 
 ## Overview
 
-The application now fetches interest rate data from Firebase Firestore instead of relying solely on hardcoded values. This allows for:
+The application fetches interest rate data exclusively from Firebase Firestore. This allows for:
 
 1. Remote updates to interest rates without code changes
 2. Centralized management of rate data
@@ -18,7 +18,7 @@ The Firebase configuration is stored in `firebaseConfig.js`. This file contains 
 
 ### 2. Data Migration
 
-To upload the existing interest rate data to Firebase, run:
+To upload the interest rate data to Firebase, run:
 
 ```bash
 cd "BC COIA calculator"
@@ -26,7 +26,7 @@ npm install
 npm run migrate
 ```
 
-This will install the Firebase SDK and execute the `migrateRatesToFirebase.js` script, which uploads all historical interest rate data to your Firebase Firestore database.
+This will install the Firebase SDK and execute the `migrateRatesToFirebase.js` script, which uploads the interest rate data to your Firebase Firestore database.
 
 ## How It Works
 
@@ -46,18 +46,15 @@ In Firebase Firestore:
 
 2. **firebaseRates.js**: 
    - Contains functions to fetch and process rates from Firebase
-   - Handles errors and provides fallback to local rates
+   - Provides proper error handling when rates cannot be retrieved
 
 3. **firebaseIntegration.js**:
    - Provides a simple interface for the application to fetch rates
-   - Handles errors and ensures the application always has rate data
+   - Handles errors and propagates them to the application
 
-4. **interestRates.js**: 
-   - Maintains the original hardcoded rates as a fallback
-   - Used when Firebase is unavailable or the fetch fails
-
-5. **migrateRatesToFirebase.js**:
-   - One-time script to upload all historical rate data to Firebase
+4. **error-handling.js**:
+   - Displays user-friendly error messages when Firebase fails
+   - Provides options to retry the connection
 
 ## Browser Integration
 
@@ -89,35 +86,31 @@ To update rates in Firebase:
 5. Edit the document for the jurisdiction you want to update (e.g., `BC-COIA`)
 6. Update the `rates` array, `lastUpdated`, or `validUntil` fields as needed
 
-## Fallback Mechanism
+## Error Handling
 
-If Firebase is unavailable or the fetch fails, the application will use the local hardcoded rates. This ensures the calculator continues to function even without an internet connection.
+If Firebase is unavailable or the fetch fails, the application will display a clear error message to the user with options to retry the connection. This ensures users are aware of the issue and can take appropriate action.
 
 ## Console Logging
 
-The application includes clear console log messages to indicate whether Firebase data or local fallback data is being used:
+The application includes clear console log messages to indicate whether Firebase data is being used:
 
 - **Firebase Data**: When data is successfully fetched from Firebase, you'll see a green message in the console:
   ```
   ✅ USING FIREBASE DATA: Successfully fetched interest rates from Firebase
   ```
 
-- **Local Fallback Data**: When Firebase data cannot be fetched, you'll see an orange or red message:
+- **Firebase Error**: When Firebase data cannot be fetched, you'll see a red message:
   ```
-  ⚠️ USING LOCAL FALLBACK DATA: Firebase fetch returned no data
-  ```
-  or
-  ```
-  ❌ USING LOCAL FALLBACK DATA: Error connecting to Firebase
+  ❌ FIREBASE ERROR: Unable to load interest rates
   ```
 
-These messages make it easy to verify whether the application is using Firebase data or falling back to local data.
+These messages make it easy to verify whether the application is using Firebase data correctly.
 
 ## Troubleshooting
 
 If you encounter issues with the Firebase integration:
 
-1. Check the browser console for error messages and data source indicators
+1. Check the browser console for error messages
 2. Verify that the Firebase configuration in `firebaseConfig.js` is correct
 3. Ensure that the Firestore database has been properly set up with the `interestRates` collection
 4. Check that the security rules allow read access to the `interestRates` collection

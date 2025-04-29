@@ -1,6 +1,6 @@
 // Firebase Interest Rates Module
 // This module fetches interest rates from Firebase and provides them in a format
-// compatible with the existing application, without breaking core functionality.
+// compatible with the application.
 
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "./firebaseConfig.js";
@@ -122,7 +122,7 @@ export async function fetchRatesFromFirebase() {
         }
     } catch (error) {
         console.error("Error fetching rates from Firebase:", error);
-        // Instead of falling back to local rates, throw the error to be handled by the caller
+        // Throw the error to be handled by the caller
         throw error;
     }
 }

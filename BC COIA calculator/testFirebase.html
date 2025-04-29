@@ -87,11 +87,7 @@
                 log('Interest rates fetched successfully:');
                 
                 // Display the data source with color
-                if (result.source === 'firebase') {
-                    log('%c📡 DATA SOURCE: FIREBASE', 'color: green; font-weight: bold');
-                } else {
-                    log('%c💾 DATA SOURCE: LOCAL FALLBACK', 'color: orange; font-weight: bold');
-                }
+                log('%c📡 DATA SOURCE: FIREBASE', 'color: green; font-weight: bold');
                 
                 log('Last Updated: ' + result.lastUpdated);
                 log('Valid Until: ' + result.validUntil);
