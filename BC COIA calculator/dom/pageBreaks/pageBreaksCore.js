@@ -188,17 +188,18 @@ export function updatePagination() {
 
         // --- Process Elements using .breakable class ---
 
-        const breakableElements = Array.from(inkLayer.querySelectorAll('.breakable'));
+        // Filter for visible breakable elements upfront instead of checking inside the loop
+        const breakableElements = Array.from(inkLayer.querySelectorAll('.breakable'))
+            .filter(element => element.offsetParent !== null && getElementOuterHeight(element) > 0);
+        
+        console.log(`Processing ${breakableElements.length} visible breakable elements`);
 
         for (let i = 0; i < breakableElements.length; i++) {
             const currentElement = breakableElements[i];
-            // Ensure the element is visible before processing
-            if (currentElement.offsetParent === null || getElementOuterHeight(currentElement) === 0) {
-                 console.log("Skipping hidden breakable element:", currentElement);
-                 continue;
-            }
+            // No need to check visibility here as all elements are already filtered
 
-            const nextElement = breakableElements.slice(i + 1).find(el => el.offsetParent !== null && getElementOuterHeight(el) > 0); // Find next *visible* breakable element
+            // Since our array only contains visible elements now, we can simply take the next element
+            const nextElement = breakableElements[i + 1]; // Next element is already guaranteed to be visible
 
             const currentElementTop = getElementAbsoluteTop(currentElement);
 
