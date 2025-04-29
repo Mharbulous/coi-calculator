@@ -85,15 +85,11 @@ const rates = {
 // Function to migrate rates to Firebase
 async function migrateRatesToFirebase() {
   try {
-    console.log("Starting migration of interest rates to Firebase...");
-    
     // Reference to the interestRates collection
     const ratesCollection = collection(db, "interestRates");
     
     // For each jurisdiction (BC, AB, ON)
     for (const jurisdiction in rates) {
-      console.log(`Migrating ${jurisdiction} rates...`);
-      
       // Create a document for this jurisdiction
       const jurisdictionDoc = doc(ratesCollection, `${jurisdiction}-COIA`);
       
@@ -110,10 +106,7 @@ async function migrateRatesToFirebase() {
       
       // Upload to Firestore
       await setDoc(jurisdictionDoc, data);
-      console.log(`Successfully migrated ${jurisdiction} rates to Firebase.`);
     }
-    
-    console.log("Migration completed successfully!");
   } catch (error) {
     console.error("Error during migration:", error);
   }

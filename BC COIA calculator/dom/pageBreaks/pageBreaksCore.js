@@ -24,13 +24,11 @@ let resizeTimeout; // Timeout for throttling ResizeObserver callbacks
 export function updatePagination() {
     // Prevent recursive calls
     if (isUpdatingPagination) {
-        console.log("Pagination update skipped: already in progress.");
         return;
     }
     
     // Set the flag at the entry point
     isUpdatingPagination = true;
-    console.log("Pagination update started...");
     
     try {
         // Core pagination implementation
@@ -55,10 +53,6 @@ export function updatePagination() {
         if (!inkLayer || !paperLayer) {
              console.error("Ink or Paper layer not found. Aborting pagination.");
              return; // Exit early if essential layers are missing
-        }
-        // Check for tables, but don't abort if they are missing (might be hidden)
-        if (!prejudgmentTable || !postjudgmentTable) {
-             console.warn("Prejudgment or Postjudgment table element not found. Pagination might be incomplete if they are intended to be visible.");
         }
 
 
@@ -96,7 +90,6 @@ export function updatePagination() {
         // Ensure at least one page is calculated even if inkLayerHeight is 0
         const currentInkLayerHeight = getElementOuterHeight(inkLayer);
         const initialPageCount = Math.max(1, Math.ceil(currentInkLayerHeight / workspaceHeightPerPage));
-        console.log(`Initial Page Count: ${initialPageCount}, Ink Height: ${currentInkLayerHeight}, Workspace Height: ${workspaceHeightPerPage}`);
 
 
         // Render all paper pages
@@ -191,8 +184,6 @@ export function updatePagination() {
         // Filter for visible breakable elements upfront instead of checking inside the loop
         const breakableElements = Array.from(inkLayer.querySelectorAll('.breakable'))
             .filter(element => element.offsetParent !== null && getElementOuterHeight(element) > 0);
-        
-        console.log(`Processing ${breakableElements.length} visible breakable elements`);
 
         for (let i = 0; i < breakableElements.length; i++) {
             const currentElement = breakableElements[i];
@@ -261,41 +252,34 @@ export function updatePagination() {
                 
                 // Final block height is from currentElement to the furthest visible element
                 blockHeight = maxBottom - currentElementTop;
-                
-                console.log(`Last breakable element: Height calculation from ${currentElementTop} to ${maxBottom}`);
-             }
+            }
              
-             // Ensure blockHeight is positive
-              blockHeight = Math.max(0, blockHeight);
-              
-              console.log(`Processing Element:`, currentElement, `Block Height: ${blockHeight}`);
+            // Ensure blockHeight is positive
+            blockHeight = Math.max(0, blockHeight);
 
             // Check for oversized blocks
             if (blockHeight > workspaceHeightPerPage) {
-                console.error("Oversized breakable block detected. Content may overflow.", currentElement);
+                console.error("Oversized breakable block detected. Content may overflow.");
             }
 
             // Determine current page index based on element's position
             let currentPageIndex = -1; // Initialize to -1
-             for (let pageIdx = 0; pageIdx < workspaceTop.length; pageIdx++) {
-                 // Element starts on or after this page's top boundary
-                 if (currentElementTop >= workspaceTop[pageIdx]) {
-                     // Check if it also starts before the *next* page's top boundary (if one exists)
-                     // or if it's the last page
-                     if (pageIdx + 1 >= workspaceTop.length || currentElementTop < workspaceTop[pageIdx + 1]) {
-                         currentPageIndex = pageIdx;
-                         break;
-                     }
-                 }
-             }
-
+            for (let pageIdx = 0; pageIdx < workspaceTop.length; pageIdx++) {
+                // Element starts on or after this page's top boundary
+                if (currentElementTop >= workspaceTop[pageIdx]) {
+                    // Check if it also starts before the *next* page's top boundary (if one exists)
+                    // or if it's the last page
+                    if (pageIdx + 1 >= workspaceTop.length || currentElementTop < workspaceTop[pageIdx + 1]) {
+                        currentPageIndex = pageIdx;
+                        break;
+                    }
+                }
+            }
 
             // Check if workspace boundaries exist for the determined index
             if (currentPageIndex === -1 || currentPageIndex >= workspaceBottom.length) {
-                 console.warn("Could not determine current page index or index out of bounds.", currentElement, currentPageIndex);
-                 continue; // Skip processing if page index is invalid
+                continue; // Skip processing if page index is invalid
             }
-
 
             const currentPageBottom = workspaceBottom[currentPageIndex];
             const elementBottom = currentElementTop + blockHeight;
@@ -308,15 +292,8 @@ export function updatePagination() {
                     const requiredSpacerHeight = nextPageTop - currentElementTop;
 
                     if (requiredSpacerHeight > 0) {
-                        console.log(`Inserting break before:`, currentElement, `Spacer Height: ${requiredSpacerHeight}`);
                         insertPageBreakBeforeElement(currentElement, requiredSpacerHeight);
-                    } else {
-                         console.warn("Calculated negative or zero spacer height. Skipping break.", currentElement, `Required: ${requiredSpacerHeight}`);
                     }
-                } else {
-                    // This case means the element overflows the *last calculated page*.
-                    // The final adjustment phase should handle adding a new page if needed.
-                    console.warn("Element overflows last calculated page. Final adjustments should handle this.", currentElement);
                 }
             }
         }
@@ -339,56 +316,40 @@ export function updatePagination() {
             }
         });
         
-        console.log(`Final Adjustments: Content Bottom = ${contentBottom}`);
-
-
         let currentRenderedPageCount = paperLayer.querySelectorAll('.page-card').length;
 
         if (currentRenderedPageCount > 0) {
             const lastPageIndex = currentRenderedPageCount - 1;
             
             // Ensure workspace boundaries exist for the last page index
-             if (lastPageIndex < workspaceTop.length && lastPageIndex < workspaceBottom.length) {
-                 const lastPageWorkspaceTop = workspaceTop[lastPageIndex];
-                 const lastPageWorkspaceBottom = workspaceBottom[lastPageIndex];
-                 
-                 console.log(`Final Adjustments: Last Page Top = ${lastPageWorkspaceTop}, Last Page Bottom = ${lastPageWorkspaceBottom}`);
-
-
-                 // Check if content overflows the last page's workspace
-                 if (contentBottom > lastPageWorkspaceBottom) {
-                     // Content overflows, add a new page card
-                     const pageCard = document.createElement('div');
-                     pageCard.className = 'page-card';
-                     pageCard.innerHTML = `<div class="page-number">Page ${currentRenderedPageCount + 1}</div>`;
-                     paperLayer.appendChild(pageCard);
-                     console.log("Final Adjustments: Added page due to content overflow.");
-                 }
-                 // Check if the last page is unnecessary (content ends before the last page starts)
-                 else if (currentRenderedPageCount > 1 && contentBottom < lastPageWorkspaceTop) {
-                     // Content ends before the last page begins, remove the last page card
-                     const lastPageCardElement = paperLayer.lastElementChild;
-                     if (lastPageCardElement && lastPageCardElement.classList.contains('page-card')) {
-                         lastPageCardElement.remove();
-                         console.log("Final Adjustments: Removed unnecessary last page.");
-                     }
-                 } else {
-                      console.log("Final Adjustments: No page addition or removal needed.");
-                 }
-             } else {
-                  console.warn("Final Adjustments: Last page index out of bounds for workspace boundaries.");
-             }
-
-        } else {
-            console.warn("Final Adjustments: No pages rendered initially during final check.");
+            if (lastPageIndex < workspaceTop.length && lastPageIndex < workspaceBottom.length) {
+                const lastPageWorkspaceTop = workspaceTop[lastPageIndex];
+                const lastPageWorkspaceBottom = workspaceBottom[lastPageIndex];
+                
+                // Check if content overflows the last page's workspace
+                if (contentBottom > lastPageWorkspaceBottom) {
+                    // Content overflows, add a new page card
+                    const pageCard = document.createElement('div');
+                    pageCard.className = 'page-card';
+                    pageCard.innerHTML = `<div class="page-number">Page ${currentRenderedPageCount + 1}</div>`;
+                    paperLayer.appendChild(pageCard);
+                }
+                // Check if the last page is unnecessary (content ends before the last page starts)
+                else if (currentRenderedPageCount > 1 && contentBottom < lastPageWorkspaceTop) {
+                    // Content ends before the last page begins, remove the last page card
+                    const lastPageCardElement = paperLayer.lastElementChild;
+                    if (lastPageCardElement && lastPageCardElement.classList.contains('page-card')) {
+                        lastPageCardElement.remove();
+                    }
+                }
+            }
         }
 
     } finally {
         // Always reset the flag when done, even if an error occurred
         // Use requestAnimationFrame to reset the flag after the browser has painted
         requestAnimationFrame(() => {
-             isUpdatingPagination = false;
-             console.log("Pagination update finished.");
+            isUpdatingPagination = false;
         });
     }
 }
@@ -401,7 +362,6 @@ export function setupPaginationListeners() {
     // Clean up any previous observers to prevent duplicate listeners
     if (cleanupObservers) {
         cleanupObservers();
-        console.log("Previous pagination observers cleaned up.");
     }
     
     // Get the ink layer element
@@ -438,7 +398,6 @@ export function setupPaginationListeners() {
             
             // Only trigger if the height actually changed significantly and we're not already updating
             if (Math.abs(currentHeight - previousInkLayerHeight) > 1 && !isUpdatingPagination) {
-                console.log(`ResizeObserver detected height change: ${previousInkLayerHeight} -> ${currentHeight}`);
                 // Update the previous height tracker
                 previousInkLayerHeight = currentHeight;
                 
@@ -459,10 +418,7 @@ export function setupPaginationListeners() {
     
     // Keep the content-changed event listener as a manual trigger option
     document.addEventListener('content-changed', () => {
-        console.log("Manual 'content-changed' event received.");
         // The updatePagination function will handle the isUpdatingPagination flag
         updatePagination();
     });
-    
-    console.log("Pagination observers initialized with ResizeObserver");
 }

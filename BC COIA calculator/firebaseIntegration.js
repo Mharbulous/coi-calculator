@@ -4,11 +4,6 @@
 import { firebaseApp, db } from './firebaseConfig.js';
 import { fetchRatesFromFirebase } from './firebaseRates.js';
 
-// Initialize Firebase when this module is loaded
-console.log('*************************************************************');
-console.log('************** FIREBASE INTEGRATION MODULE LOADED ***********');
-console.log('*************************************************************');
-
 // Function to fetch rates and handle errors
 export async function getInterestRates() {
   try {
@@ -17,7 +12,6 @@ export async function getInterestRates() {
     
     // Check if we got data from Firebase
     if (result.source === 'firebase') {
-      console.log('%c✅ USING FIREBASE DATA: Successfully fetched interest rates from Firebase', 'color: green; font-weight: bold');
       return result;
     } else {
       // This should not happen with our updated fetchRatesFromFirebase function
@@ -28,7 +22,6 @@ export async function getInterestRates() {
   } catch (error) {
     // Log error and propagate it
     console.error('Error fetching interest rates from Firebase:', error);
-    console.log('%c❌ FIREBASE ERROR: Unable to load interest rates', 'color: red; font-weight: bold');
     
     // Propagate the error to be handled by the application
     throw error;

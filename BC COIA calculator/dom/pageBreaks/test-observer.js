@@ -5,14 +5,11 @@
 
 // Wait for DOM content to be loaded
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('Initializing ResizeObserver test script...');
-    
     // Add test log to ResizeObserver callbacks
     const originalUpdatePagination = window.updatePagination || null;
     
     if (typeof originalUpdatePagination === 'function') {
         window.updatePagination = function() {
-            console.log('[ResizeObserver Test] Pagination update triggered at', new Date().toLocaleTimeString());
             return originalUpdatePagination.apply(this, arguments);
         };
     }
@@ -29,8 +26,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (checkbox) {
             // Log when checkbox is clicked
             checkbox.addEventListener('change', () => {
-                console.log(`[ResizeObserver Test] Checkbox ${selector} changed to ${checkbox.checked}`);
-                
                 // Optional: Add a small delay and force a height change to test ResizeObserver
                 setTimeout(() => {
                     // Find ink layer
@@ -46,8 +41,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }, 100);
             });
-            
-            console.log(`[ResizeObserver Test] Monitoring checkbox: ${selector}`);
         }
     });
 
@@ -67,8 +60,6 @@ document.addEventListener('DOMContentLoaded', () => {
     testButton.classList.add('screen-only');
     
     testButton.addEventListener('click', () => {
-        console.log('[ResizeObserver Test] Manual test triggered');
-        
         // Dispatch a content-changed event
         const contentChangedEvent = new Event('content-changed');
         document.dispatchEvent(contentChangedEvent);
@@ -80,12 +71,9 @@ document.addEventListener('DOMContentLoaded', () => {
             inkLayer.style.paddingBottom = '2px';
             setTimeout(() => {
                 inkLayer.style.paddingBottom = '';
-                console.log('[ResizeObserver Test] Height change applied');
             }, 50);
         }
     });
     
     document.body.appendChild(testButton);
-    
-    console.log('ResizeObserver test script initialized');
 });

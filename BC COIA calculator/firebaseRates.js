@@ -5,9 +5,6 @@
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "./firebaseConfig.js";
 
-// Log module initialization
-console.log("Firebase Rates module loaded");
-
 // Helper function to parse date strings consistently to UTC Date objects
 function parseUTCDate(dateString) {
     // Assumes YYYY-MM-DD format
@@ -39,7 +36,6 @@ function endOfDayUTC(date) {
 // Function to fetch rates from Firebase
 export async function fetchRatesFromFirebase() {
     try {
-        console.log("Fetching interest rates from Firebase...");
         const ratesCollection = collection(db, "interestRates");
         
         // Get all jurisdiction documents
@@ -72,8 +68,6 @@ export async function fetchRatesFromFirebase() {
         
         // If we got data from Firebase, process it
         if (Object.keys(fetchedRates).length > 0) {
-            console.log("Successfully fetched rates from Firebase");
-            
             // Process the fetched rates
             const processedFetchedRates = {};
             for (const jurisdiction in fetchedRates) {

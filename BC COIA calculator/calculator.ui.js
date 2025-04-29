@@ -237,8 +237,6 @@ function initializeCalculator() {
  */
 async function initializeApplication() {
   try {
-    console.log('Initializing application with Firebase error handling...');
-    
     // Listen for Firebase errors
     document.addEventListener('firebase-rates-error', (event) => {
       console.error('Firebase rates error event received:', event.detail);

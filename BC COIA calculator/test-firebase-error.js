@@ -7,10 +7,6 @@ import { showFirebaseError, logErrorDetails } from './error-handling.js';
 
 // Function to attempt to fetch data and trigger an error
 async function testFirebaseError() {
-  console.log('*************************************************************');
-  console.log('************** TESTING FIREBASE ERROR HANDLING **************');
-  console.log('*************************************************************');
-
   // Invalid Firebase configuration to trigger an error
   const invalidFirebaseConfig = {
     apiKey: "INVALID_API_KEY",
@@ -25,14 +21,11 @@ async function testFirebaseError() {
     // Initialize Firebase with invalid config - moved inside function
     const app = initializeApp(invalidFirebaseConfig);
     const db = getFirestore(app);
-    console.log('Attempting to fetch data with invalid Firebase configuration...');
-    
     // Try to fetch data from a non-existent collection
     const querySnapshot = await getDocs(collection(db, "nonExistentCollection"));
     
     // If we get here, it means the query unexpectedly succeeded
     // Force an error anyway for testing purposes
-    console.log('Firebase query unexpectedly succeeded. Forcing an error for testing...');
     throw new Error('Forced error for testing: Firebase should not work with invalid configuration');
     
   } catch (error) {
@@ -47,7 +40,7 @@ async function testFirebaseError() {
       // Dispatch a custom event that the main application can listen for
       const errorEvent = new CustomEvent('firebase-rates-error', { detail: error });
       document.dispatchEvent(errorEvent);
-      console.log('Dispatched firebase-rates-error event');
+      // Event dispatched
     }, 100);
     
     return error;
@@ -59,6 +52,5 @@ export { testFirebaseError };
 
 // Auto-execute the test if this script is loaded directly
 if (document.currentScript && document.currentScript.getAttribute('data-auto-test') === 'true') {
-  console.log('Auto-executing Firebase error test...');
   testFirebaseError();
 }

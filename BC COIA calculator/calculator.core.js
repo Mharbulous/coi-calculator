@@ -14,13 +14,11 @@ async function loadRatesFromFirebase() {
         // Store the rates for use in calculations
         interestRatesData = result.rates;
         ratesLoaded = true;
-        console.log("Firebase rates loaded for calculator core");
         
         // Trigger a recalculation after rates are loaded
         if (typeof window !== 'undefined') {
             // Only run in browser context
             setTimeout(() => {
-                console.log("Triggering recalculation after Firebase rates loaded");
                 recalculate();
             }, 100);
         }
@@ -35,6 +33,7 @@ async function loadRatesFromFirebase() {
 
 // Trigger Firebase rate loading when this module is imported
 loadRatesFromFirebase().catch(error => {
+    // Log error but don't show debugging info
     console.error("Failed to load interest rates from Firebase:", error);
     // Show an alert to inform the user about the error
     alert("Error: Could not load interest rates from Firebase. Please check your internet connection and try again.");
@@ -457,7 +456,6 @@ function recalculate() {
 
     // Check if rates have been loaded and if they exist for the selected jurisdiction
     if (!ratesLoaded) {
-        console.log("Firebase rates not loaded yet, waiting...");
         // Don't show an error, just return and wait for rates to load
         return;
     }

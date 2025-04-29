@@ -30,7 +30,6 @@ export function togglePrejudgmentVisibility(isInitializing = false, recalculateC
 
     // Dispatch content-changed event after style change is likely processed
     requestAnimationFrame(() => {
-        console.log("Dispatching content-changed event from togglePrejudgmentVisibility");
         document.dispatchEvent(new CustomEvent('content-changed', { bubbles: true }));
     });
     
@@ -189,7 +188,6 @@ export function togglePostjudgmentVisibility(isInitializing = false, recalculate
 
     // Dispatch content-changed event after style change is likely processed
     requestAnimationFrame(() => {
-        console.log("Dispatching content-changed event from togglePostjudgmentVisibility");
         document.dispatchEvent(new CustomEvent('content-changed', { bubbles: true }));
     });
     
