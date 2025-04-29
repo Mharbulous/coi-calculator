@@ -12,6 +12,7 @@ import {
 import { formatDateForInput, normalizeDate } from './utils.date.js';
 import useStore from './store.js';
 import { updatePagination, setupPaginationListeners } from './dom/pageBreaks.js'; // Import pagination functions
+import { showFirebaseError } from './error-handling.js'; // Import error handling function
 
 /**
  * Updates the prejudgment table with the calculated results.
@@ -231,6 +232,29 @@ function initializeCalculator() {
     document.dispatchEvent(new CustomEvent('content-changed')); // Perform initial pagination update
 }
 
+/**
+ * Initializes the application with error handling for Firebase
+ */
+async function initializeApplication() {
+  try {
+    console.log('Initializing application with Firebase error handling...');
+    
+    // Listen for Firebase errors
+    document.addEventListener('firebase-rates-error', (event) => {
+      console.error('Firebase rates error event received:', event.detail);
+      showFirebaseError(event.detail);
+    });
+    
+    // Initialize the calculator
+    initializeCalculator();
+    
+  } catch (error) {
+    // Handle any unexpected errors during initialization
+    console.error('Failed to initialize application:', error);
+    showFirebaseError(error);
+  }
+}
+
 // --- Entry Point ---
 // Wait for the DOM to be fully loaded before initializing
-document.addEventListener('DOMContentLoaded', initializeCalculator);
+document.addEventListener('DOMContentLoaded', initializeApplication);

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Integration Error Test</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <script type="importmap">
+    {
+      "imports": {
+        "zustand": "https://esm.sh/zustand@4.4.1",
+        "zustand/vanilla": "https://esm.sh/zustand@4.4.1/vanilla",
+        "firebase/app": "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js",
+        "firebase/firestore": "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"
+      }
+    }
+    </script>
+</head>
+<body>
+    <div class="two-layer-container">
+        <!-- Paper Layer (Bottom) -->
+        <div class="paper-layer">
+            <div class="page-card">
+                <div class="page-number">Page 1</div>
+            </div>
+        </div>
+        
+        <!-- Ink Layer (Top) -->
+        <div class="ink-layer">
+            <h1>Firebase Integration Error Test</h1>
+            <p>This page tests the Firebase error handling with a real Firebase integration error.</p>
+            <p>It uses an invalid Firebase configuration to trigger a real error from the Firebase SDK.</p>
+            
+            <div class="test-controls" style="margin: 20px 0; padding: 15px; background: #f5f5f5; border-radius: 4px;">
+                <h2>Test Controls</h2>
+                <button id="triggerErrorBtn" style="padding: 10px 15px; background: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer; margin-top: 10px;">
+                    Trigger Firebase Integration Error
+                </button>
+                
+                <div id="testStatus" style="margin-top: 15px; padding: 10px; background: #e8f5e9; border-radius: 4px; display: none;">
+                    <h3>Test Status</h3>
+                    <p id="statusMessage">Waiting to run test...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { showFirebaseError } from './error-handling.js';
+        
+        // Set up event listener for the Firebase error event
+        document.addEventListener('firebase-rates-error', (event) => {
+            console.log('Received firebase-rates-error event:', event.detail);
+            
+            // Show the error UI
+            showFirebaseError(event.detail);
+            
+            // Update test status
+            const statusEl = document.getElementById('testStatus');
+            const messageEl = document.getElementById('statusMessage');
+            statusEl.style.display = 'block';
+            statusEl.style.background = '#ffebee';
+            messageEl.textContent = 'Error received and displayed successfully! The error UI should be visible above.';
+        });
+        
+        // Function to trigger the Firebase error test
+        async function runFirebaseErrorTest() {
+            // Update status
+            const statusEl = document.getElementById('testStatus');
+            const messageEl = document.getElementById('statusMessage');
+            statusEl.style.display = 'block';
+            statusEl.style.background = '#e8f5e9';
+            messageEl.textContent = 'Running Firebase error test...';
+            
+            try {
+                // Dynamically import the test module
+                const { testFirebaseError } = await import('./test-firebase-error.js');
+                
+                // Run the test
+                await testFirebaseError();
+                
+                // If we get here without an error being thrown, update status
+                // (though the error should have been caught and dispatched as an event)
+                messageEl.textContent = 'Test completed. Check console for details.';
+            } catch (error) {
+                // This shouldn't happen as errors should be caught in testFirebaseError
+                console.error('Unexpected error in test runner:', error);
+                messageEl.textContent = 'Unexpected error in test runner. Check console.';
+                statusEl.style.background = '#ffebee';
+            }
+        }
+        
+        // Add event listener to the button
+        document.getElementById('triggerErrorBtn').addEventListener('click', runFirebaseErrorTest);
+        
+        // Automatically run the test after 1 second if the URL has ?auto=true
+        if (window.location.search.includes('auto=true')) {
+            setTimeout(runFirebaseErrorTest, 1000);
+        }
+    </script>
+</body>
+</html>
