@@ -15,6 +15,7 @@ import {
 let isUpdatingPagination = false;
 let previousInkLayerHeight = 0;
 let cleanupObservers = null;
+let resizeTimeout; // Timeout for throttling ResizeObserver callbacks
 
 /**
  * Main pagination function that calculates and applies page breaks.
@@ -414,29 +415,37 @@ export function setupPaginationListeners() {
     
     // Create a ResizeObserver to monitor the ink-layer height
     const resizeObserver = new ResizeObserver(entries => {
-        // Get the ink layer entry (should be the first one as we're only observing one element)
-        const inkLayerEntry = entries[0];
-        
-        // Get the current height from borderBoxSize if available, fallback to contentRect
-        let currentHeight;
-        if (inkLayerEntry.borderBoxSize && inkLayerEntry.borderBoxSize.length > 0) {
-            // Modern browsers with full ResizeObserver implementation
-            currentHeight = inkLayerEntry.borderBoxSize[0].blockSize;
-        } else {
-            // Fallback for older browsers
-            currentHeight = inkLayerEntry.contentRect.height;
+        // Clear any pending timeout to prevent multiple queued updates
+        if (resizeTimeout) {
+            clearTimeout(resizeTimeout);
         }
         
-        // Only trigger if the height actually changed significantly and we're not already updating
-        if (Math.abs(currentHeight - previousInkLayerHeight) > 1 && !isUpdatingPagination) {
-            console.log(`ResizeObserver detected height change: ${previousInkLayerHeight} -> ${currentHeight}`);
-            // Update the previous height tracker
-            previousInkLayerHeight = currentHeight;
+        // Set a new timeout to throttle the update frequency
+        resizeTimeout = setTimeout(() => {
+            // Get the ink layer entry (should be the first one as we're only observing one element)
+            const inkLayerEntry = entries[0];
             
-            // Call the pagination update function directly for general resizes.
-            // Visibility toggles now trigger their own rAF update via visibility.js
-            updatePagination();
-        }
+            // Get the current height from borderBoxSize if available, fallback to contentRect
+            let currentHeight;
+            if (inkLayerEntry.borderBoxSize && inkLayerEntry.borderBoxSize.length > 0) {
+                // Modern browsers with full ResizeObserver implementation
+                currentHeight = inkLayerEntry.borderBoxSize[0].blockSize;
+            } else {
+                // Fallback for older browsers
+                currentHeight = inkLayerEntry.contentRect.height;
+            }
+            
+            // Only trigger if the height actually changed significantly and we're not already updating
+            if (Math.abs(currentHeight - previousInkLayerHeight) > 1 && !isUpdatingPagination) {
+                console.log(`ResizeObserver detected height change: ${previousInkLayerHeight} -> ${currentHeight}`);
+                // Update the previous height tracker
+                previousInkLayerHeight = currentHeight;
+                
+                // Call the pagination update function directly for general resizes.
+                // Visibility toggles now trigger their own rAF update via visibility.js
+                updatePagination();
+            }
+        }, 150); // 150ms throttle delay - adjust based on performance testing
     });
     
     // Start observing the ink-layer
