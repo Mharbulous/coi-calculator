@@ -1,0 +1,14 @@
+{
+  "name": "coi-calculator",
+  "version": "1.0.0",
+  "description": "Court Order Interest Calculator",
+  "type": "module",
+  "scripts": {
+    "migrate": "node migrateRatesToFirebase.js",
+    "test:firebase": "node testFirebaseIntegration.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "firebase": "^10.7.0"
+  }
+}

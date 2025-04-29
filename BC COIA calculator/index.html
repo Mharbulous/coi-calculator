@@ -11,7 +11,9 @@
     {
       "imports": {
         "zustand": "https://esm.sh/zustand@4.4.1",
-        "zustand/vanilla": "https://esm.sh/zustand@4.4.1/vanilla"
+        "zustand/vanilla": "https://esm.sh/zustand@4.4.1/vanilla",
+        "firebase/app": "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js",
+        "firebase/firestore": "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"
       }
     }
     </script>
@@ -263,8 +265,8 @@
     <!-- Load the main script as a module -->
     <script src="calculator.ui.js" type="module" defer></script>
     
-    <!-- Debug script for page card positions -->
-    <script src="debug-page-card-positions.js"></script>
+    <!-- Load the Firebase integration -->
+    <script src="firebaseLoader.js" type="module"></script>
     
     <!-- Test script for ResizeObserver-based pagination -->
     <script src="dom/pageBreaks/test-observer.js"></script>

@@ -1,43 +1,14 @@
-// Interest Rate Data Store
-// Structure: { JurisdictionCode: [ { start: Date, prejudgment: Number, postjudgment: Number }, ... ] }
-// Now with Firebase integration for remote data fetching
+// Data Migration Script for Interest Rates
+// This script uploads all historical interest rate data from interestRates.js to Firebase Firestore
 
-import { collection, getDocs, doc, getDoc } from "firebase/firestore";
+import { collection, doc, setDoc } from "firebase/firestore";
 import { db } from "./firebaseConfig.js";
+// Import the raw rates object from interestRates.js
+// Note: We need to access the raw rates object before processing
+import { default as processedRates, lastUpdated, validUntil } from "./interestRates.js";
 
-// Helper function to parse date strings consistently to UTC Date objects
-function parseUTCDate(dateString) {
-    // Assumes YYYY-MM-DD format
-    const parts = dateString.split('-');
-    if (parts.length === 3) {
-        const year = parseInt(parts[0], 10);
-        const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
-        const day = parseInt(parts[2], 10);
-        // Create date in UTC
-        const date = new Date(Date.UTC(year, month, day));
-        // Basic validation
-        if (!isNaN(date.getTime()) && date.getUTCFullYear() === year && date.getUTCMonth() === month && date.getUTCDate() === day) {
-            return date;
-        }
-    }
-    console.error(`Invalid date string format for UTC parsing: ${dateString}`);
-    return null; // Or throw an error
-}
-
-// Helper function to set the time to the end of the day in UTC
-function endOfDayUTC(date) {
-    if (!date || isNaN(date.getTime())) return date;
-    const newDate = new Date(date);
-    newDate.setUTCHours(23, 59, 59, 999);
-    return newDate;
-}
-
-// Track when the rates were last updated
-const lastUpdated = parseUTCDate("2025-04-19");
-
-// Track until when the rates are valid
-const validUntil = parseUTCDate("2025-06-30");
-
+// The raw rates are defined in the interestRates.js file
+// We'll need to access them directly
 const rates = {
     BC: [
         { start: "1993-01-01", prejudgment: 5.25, postjudgment: 7.25 },
@@ -105,59 +76,48 @@ const rates = {
         { start: "2024-01-01", prejudgment: 5.20, postjudgment: 7.20 },
         { start: "2024-07-01", prejudgment: 4.95, postjudgment: 6.95 },
         { start: "2025-01-01", prejudgment: 3.45, postjudgment: 5.45 },
-        // Add future rates here
     ],
-    // Add AB rates here
-    AB: [
-        // Example: { start: "YYYY-MM-DD", prejudgment: X.XX, postjudgment: Y.YY },
-        // This needs to be populated with actual AB data.
-    ],
-    // Add ON rates here
-    ON: [
-        // Example: { start: "YYYY-MM-DD", prejudgment: X.XX, postjudgment: Y.YY },
-        // This needs to be populated with actual ON data.
-    ]
+    // Empty placeholders for other jurisdictions
+    AB: [],
+    ON: []
 };
 
-// Process the raw rates into Date objects for easier comparison
-// and calculate end dates dynamically
-const processedRates = {};
-for (const jurisdiction in rates) {
-    // Sort rates by start date to ensure proper order
-    const sortedRates = [...rates[jurisdiction]]
-        .map(rate => ({
-            ...rate,
-            start: parseUTCDate(rate.start)
-        }))
-        .filter(rate => rate.start !== null) // Skip invalid entries
-        .sort((a, b) => a.start - b.start); // Ensure rates are sorted by start date
+// Function to migrate rates to Firebase
+async function migrateRatesToFirebase() {
+  try {
+    console.log("Starting migration of interest rates to Firebase...");
     
-    // Calculate end dates dynamically
-    processedRates[jurisdiction] = sortedRates.map((rate, index) => {
-        // If this is not the last rate period, the end date is the day before the next period starts
-        if (index < sortedRates.length - 1) {
-            const nextStartDate = new Date(sortedRates[index + 1].start);
-            // Set end date to the day before the next period starts
-            const endDate = new Date(nextStartDate);
-            endDate.setUTCDate(endDate.getUTCDate() - 1);
-            return {
-                ...rate,
-                end: endOfDayUTC(endDate) // Ensure end date includes the whole day
-            };
-        } 
-        // For the last rate period, use validUntil as the end date
-        else {
-            return {
-                ...rate,
-                end: endOfDayUTC(validUntil) // Ensure end date includes the whole day
-            };
-        }
-    });
+    // Reference to the interestRates collection
+    const ratesCollection = collection(db, "interestRates");
+    
+    // For each jurisdiction (BC, AB, ON)
+    for (const jurisdiction in rates) {
+      console.log(`Migrating ${jurisdiction} rates...`);
+      
+      // Create a document for this jurisdiction
+      const jurisdictionDoc = doc(ratesCollection, `${jurisdiction}-COIA`);
+      
+      // Prepare the data to upload
+      const data = {
+        rates: rates[jurisdiction].map(rate => ({
+          start: rate.start, // Keep as string for simplicity
+          prejudgment: rate.prejudgment,
+          postjudgment: rate.postjudgment
+        })),
+        lastUpdated: lastUpdated.toISOString().split('T')[0], // Format as YYYY-MM-DD
+        validUntil: validUntil.toISOString().split('T')[0]    // Format as YYYY-MM-DD
+      };
+      
+      // Upload to Firestore
+      await setDoc(jurisdictionDoc, data);
+      console.log(`Successfully migrated ${jurisdiction} rates to Firebase.`);
+    }
+    
+    console.log("Migration completed successfully!");
+  } catch (error) {
+    console.error("Error during migration:", error);
+  }
 }
 
-// Export the processed rates, lastUpdated date, and validUntil date
-// For now, we'll just use the local rates to ensure the app works
-export { processedRates as default, lastUpdated, validUntil };
-
-// We'll add Firebase integration in a separate file to avoid breaking the app
-// This will be implemented in a future update
+// Run the migration
+migrateRatesToFirebase();
