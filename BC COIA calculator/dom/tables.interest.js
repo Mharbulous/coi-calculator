@@ -97,7 +97,7 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
             addButton.dataset.amount = item.interest;
             
             // Add click event listener
-            addButton.addEventListener('click', function(event) {
+            addButton.addEventListener('click', async function(event) {
                 event.preventDefault();
                 
                 // Get the current row
@@ -105,24 +105,25 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
                 if (!currentRow) return;
                 
                 // Create a new special damages row with date +1 day from the current row date
-                import('./specialDamages.js').then(module => {
-                    // Parse the current row date
-                    const currentDate = parseDateInput(item.start);
-                    if (currentDate) {
-                        // Add one day to the date
-                        const nextDate = new Date(normalizeDate(currentDate));
-                        nextDate.setUTCDate(nextDate.getUTCDate() + 1);
-                        
-                        // Format it back to YYYY-MM-DD
-                        const nextDateFormatted = formatDateForDisplay(nextDate);
-                        
-                        // Use this new date for the special damages row
-                        module.insertSpecialDamagesRow(tableBody, currentRow, nextDateFormatted);
-                    } else {
-                        // Fallback to current date if parsing fails
-                        module.insertSpecialDamagesRow(tableBody, currentRow, item.start);
-                    }
-                });
+                // Use a static import instead of dynamic import to prevent multiple module instances
+                const specialDamagesModule = await import('./specialDamages.js');
+                
+                // Parse the current row date
+                const currentDate = parseDateInput(item.start);
+                if (currentDate) {
+                    // Add one day to the date
+                    const nextDate = new Date(normalizeDate(currentDate));
+                    nextDate.setUTCDate(nextDate.getUTCDate() + 1);
+                    
+                    // Format it back to YYYY-MM-DD
+                    const nextDateFormatted = formatDateForDisplay(nextDate);
+                    
+                    // Use this new date for the special damages row
+                    specialDamagesModule.insertSpecialDamagesRow(tableBody, currentRow, nextDateFormatted);
+                } else {
+                    // Fallback to current date if parsing fails
+                    specialDamagesModule.insertSpecialDamagesRow(tableBody, currentRow, item.start);
+                }
             });
             
             descriptionContainer.appendChild(addButton);

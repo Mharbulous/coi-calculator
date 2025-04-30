@@ -1,7 +1,7 @@
 import { formatDateLong, parseDateInput, formatDateForInput, formatDateForDisplay, validateDateFormat } from '../utils.date.js';
 import { formatCurrencyForDisplay, formatCurrencyForInput, formatCurrencyForInputWithCommas, parseCurrency } from '../utils.currency.js';
 import { setupCustomDateInputListeners, setupCurrencyInputListeners } from './setup.js';
-import { initializeSpecialDamagesDatePicker } from './datepickers.js';
+import { initializeSpecialDamagesDatePicker, destroySpecialDamagesDatePicker } from './datepickers.js'; // Import destroy function
 import { showSpecialDamagesDeletionModal } from './modal.js';
 import useStore from '../store.js';
 
@@ -70,6 +70,14 @@ function handleTrashIconClick(event) {
     if (isDescEmpty && isAmountZero) {
         // Find the index of this special damage in the store
         const index = findSpecialDamageIndex(row);
+        
+        // Get the date input element BEFORE removing the row
+        const dateInput = row.querySelector('.special-damages-date');
+        
+        // Destroy the associated Flatpickr instance
+        if (dateInput) {
+            destroySpecialDamagesDatePicker(dateInput);
+        }
         
         // Remove from the DOM
         row.remove();

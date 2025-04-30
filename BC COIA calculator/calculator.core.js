@@ -63,6 +63,7 @@ import {
     formatCurrencyForDisplay
 } from './utils.currency.js';
 import useStore from './store.js';
+import { destroyAllSpecialDamagesDatePickers } from './dom/datepickers.js'; // Import the cleanup function
 // Page break indicators removed
 
 /**
@@ -485,6 +486,8 @@ function recalculate() {
     const totalPrincipalForFooter = inputs.judgmentAwarded + specialDamagesTotal;
 
     // 4. Update Prejudgment Table
+    // Destroy existing special damages pickers BEFORE rebuilding the table
+    destroyAllSpecialDamagesDatePickers(); 
     updateInterestTable(
         elements.prejudgmentTableBody,
         elements.prejudgmentPrincipalTotalEl,

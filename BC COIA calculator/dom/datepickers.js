@@ -31,10 +31,33 @@ const specialDamagesDatePickers = new Map();
  * @returns {Object} Object containing the date picker instances.
  */
 export function initializeDatePickers(recalculateCallback) {
+    // We don't want to clean up all flatpickr calendars, as some belong to special damages rows
+    // Instead, we'll only clean up the main date pickers (judgment, prejudgment, postjudgment)
+    
     // Destroy existing instances if they exist
-    if (judgmentDatePicker) judgmentDatePicker.destroy();
-    if (prejudgmentDatePicker) prejudgmentDatePicker.destroy();
-    if (postjudgmentDatePicker) postjudgmentDatePicker.destroy();
+    if (judgmentDatePicker) {
+        const calendarContainer = judgmentDatePicker.calendarContainer;
+        judgmentDatePicker.destroy();
+        if (calendarContainer && calendarContainer.parentNode) {
+            calendarContainer.parentNode.removeChild(calendarContainer);
+        }
+    }
+    
+    if (prejudgmentDatePicker) {
+        const calendarContainer = prejudgmentDatePicker.calendarContainer;
+        prejudgmentDatePicker.destroy();
+        if (calendarContainer && calendarContainer.parentNode) {
+            calendarContainer.parentNode.removeChild(calendarContainer);
+        }
+    }
+    
+    if (postjudgmentDatePicker) {
+        const calendarContainer = postjudgmentDatePicker.calendarContainer;
+        postjudgmentDatePicker.destroy();
+        if (calendarContainer && calendarContainer.parentNode) {
+            calendarContainer.parentNode.removeChild(calendarContainer);
+        }
+    }
     
     // Reset references
     judgmentDatePicker = null;
@@ -405,9 +428,10 @@ function positionCalendar(selectedDates, dateStr, instance) {
  * @returns {Object} The flatpickr instance.
  */
 export function initializeSpecialDamagesDatePicker(inputElement, recalculateCallback) {
-    // Destroy any existing instance for this input
+    // Check if this input already has a flatpickr instance
     if (specialDamagesDatePickers.has(inputElement)) {
-        destroySpecialDamagesDatePicker(inputElement);
+        // Return the existing instance instead of destroying and recreating it
+        return specialDamagesDatePickers.get(inputElement);
     }
     
     // Reset background color to default
@@ -483,6 +507,7 @@ export function initializeSpecialDamagesDatePicker(inputElement, recalculateCall
 
 /**
  * Destroys a specific special damages flatpickr instance.
+ * Ensures all DOM elements created by flatpickr are properly removed.
  * 
  * @param {HTMLElement} inputElement - The special damages date input element whose flatpickr to destroy.
  * @returns {boolean} True if the instance was found and destroyed, false otherwise.
@@ -491,8 +516,16 @@ export function destroySpecialDamagesDatePicker(inputElement) {
     if (specialDamagesDatePickers.has(inputElement)) {
         const instance = specialDamagesDatePickers.get(inputElement);
         
+        // Store reference to the calendar container before destroying
+        const calendarContainer = instance.calendarContainer;
+        
         // Call the destroy method to clean up
         instance.destroy();
+        
+        // Manually remove the calendar container from the DOM if it still exists
+        if (calendarContainer && calendarContainer.parentNode) {
+            calendarContainer.parentNode.removeChild(calendarContainer);
+        }
         
         // Remove from the Map
         specialDamagesDatePickers.delete(inputElement);
@@ -701,13 +734,31 @@ function updateSpecialDamagesConstraints() {
 
 /**
  * Destroys all special damages flatpickr instances.
+ * Ensures all DOM elements created by flatpickr are properly removed.
  * This can be useful when needing to reset the entire application state.
  */
 export function destroyAllSpecialDamagesDatePickers() {
     specialDamagesDatePickers.forEach((instance, inputElement) => {
+        // Store reference to the calendar container before destroying
+        const calendarContainer = instance.calendarContainer;
+        
+        // Call the destroy method to clean up
         instance.destroy();
+        
+        // Manually remove the calendar container from the DOM if it still exists
+        if (calendarContainer && calendarContainer.parentNode) {
+            calendarContainer.parentNode.removeChild(calendarContainer);
+        }
     });
     
     // Clear the Map
     specialDamagesDatePickers.clear();
+    
+    // Additional cleanup: remove any orphaned flatpickr calendars from the DOM
+    const orphanedCalendars = document.querySelectorAll('.flatpickr-calendar');
+    orphanedCalendars.forEach(calendar => {
+        if (calendar.parentNode) {
+            calendar.parentNode.removeChild(calendar);
+        }
+    });
 }
