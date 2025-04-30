@@ -1,36 +1,43 @@
 # Task 45: Implement Mock Interest Rate Data
 
 ## Objective
+
 Create a modified version of the interest rate data for demo mode and implement a mechanism to switch between real and mock data based on payment status.
 
 ## Estimated Time
+
 1-2 hours
 
 ## Prerequisites
-- Understanding of the current interest rate data structure
-- Knowledge of ES modules and JavaScript export patterns
+
+*   Understanding of the current interest rate data structure
+*   Knowledge of ES modules and JavaScript export patterns
 
 ## Tasks
 
-### 1. Create Mock Interest Rate Data
-- Make a copy of the real interest rate data
-- Modify the interest rates by small amounts (±0.25-0.5%)
-- Keep the same date ranges and structure to ensure calculations work correctly
-- Ensure the modifications are consistent and logical
+### 1\. Create Mock Interest Rate Data
 
-### 2. Implement Payment Status Check
-- Create a function to check if the user has made a payment
-- Use localStorage to persist payment status
-- Implement timestamp checking to enforce time-limited access if desired
+*   Make a copy of the real interest rate data
+*   Modify the interest rates by small amounts (±0.25-1.5%)
+*   Keep the same date ranges and structure to ensure calculations work correctly
+*   Ensure the modifications are consistent and logical.  Post judgment should always be higher than prejudgment rates, and rates should never go below 0.5%
 
-### 3. Implement Data Switching Logic
-- Modify the interest rates module to export either real or mock data based on payment status
-- Ensure the switching mechanism is clean and doesn't cause side effects
-- Add appropriate logging for debugging purposes
+### 2\. Implement Payment Status Check
 
-### 4. Update Import References
-- Update any import references in the codebase that use the interest rate data
-- Ensure backward compatibility with existing code
+*   Create a function to check if the user has made a payment
+*   Use localStorage to persist payment status
+*   Implement timestamp checking to enforce time-limited access if desired
+
+### 3\. Implement Data Switching Logic
+
+*   Modify the interest rates module to export either real or mock data based on payment status
+*   Ensure the switching mechanism is clean and doesn't cause side effects
+*   Add appropriate logging for debugging purposes
+
+### 4\. Update Import References
+
+*   Update any import references in the codebase that use the interest rate data
+*   Ensure backward compatibility with existing code
 
 ## Implementation Details
 
@@ -98,14 +105,16 @@ document.addEventListener('DOMContentLoaded', logRateSource);
 ```
 
 ## Acceptance Criteria
-- Mock interest rate data is created with appropriate modifications (±0.25-0.5%)
-- Payment status checking function works correctly with localStorage
-- The application correctly switches between real and mock data based on payment status
-- All calculations work correctly with both real and mock data
-- Console logging clearly indicates which data set is being used
+
+*   Mock interest rate data is created with appropriate modifications (±0.25-0.5%)
+*   Payment status checking function works correctly with localStorage
+*   The application correctly switches between real and mock data based on payment status
+*   All calculations work correctly with both real and mock data
+*   Console logging clearly indicates which data set is being used
 
 ## Notes
-- Be careful not to modify the real interest rates accidentally
-- Keep modifications to mock data small enough to be realistic but noticeable in calculations
-- Consider adding a mechanism to clear payment status for testing purposes
-- Ensure the localStorage implementation works across different browsers
+
+*   Be careful not to modify the real interest rates accidentally
+*   Keep modifications to mock data small enough to be realistic but noticeable in calculations
+*   Consider adding a mechanism to clear payment status for testing purposes
+*   Ensure the localStorage implementation works across different browsers
