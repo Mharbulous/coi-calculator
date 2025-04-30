@@ -1,16 +1,26 @@
 // Demo Mode Implementation
+import { hasVerifiedPayment, setPaymentVerified, clearPaymentVerification, getPaymentExpirationDate } from './paymentVerification.js';
 
 /**
  * Initialize the demo mode features
  */
 function initializeDemoMode() {
-  // Add demo-mode class to body
-  document.body.classList.add('demo-mode');
+  // Check payment status
+  const isPaid = hasVerifiedPayment();
   
-  addDemoBanner();
-  addWatermarks();
-  setupDemoModeListeners();
-  createDemoModal();
+  // Only add demo mode features if not paid
+  if (!isPaid) {
+    // Add demo-mode class to body
+    document.body.classList.add('demo-mode');
+    
+    addDemoBanner();
+    addWatermarks();
+    setupDemoModeListeners();
+    createDemoModal();
+  } else {
+    // Show a small indicator that real rates are being used
+    addPaidModeIndicator();
+  }
 }
 
 /**
@@ -19,7 +29,7 @@ function initializeDemoMode() {
 function addDemoBanner() {
   const bannerHTML = `
     <div id="demo-mode-banner" class="demo-banner">
-      <span>DEMO MODE - Purchase a calculation using the actual court order interest rates</span>
+      <span>DEMO MODE - Please purchase access to accurate court order interest rates</span>
       <button id="get-accurate-results" class="payment-button">Purchase Calculation - $24.99</button>
     </div>
   `;
@@ -27,6 +37,29 @@ function addDemoBanner() {
   
   // Add click handler for the payment button
   document.getElementById('get-accurate-results').addEventListener('click', handlePaymentClick);
+}
+
+/**
+ * Add a paid mode indicator if the user has purchased the calculation
+ */
+function addPaidModeIndicator() {
+  // Get expiration date
+  const expirationDate = getPaymentExpirationDate();
+  const formattedExpiration = expirationDate ? expirationDate.toLocaleString() : 'Unknown';
+  
+  const indicatorHTML = `
+    <div id="paid-mode-indicator" class="paid-mode-indicator">
+      <span>✓ Using verified court order interest rates (expires: ${formattedExpiration})</span>
+      <button id="reset-to-demo" class="demo-button">Reset to Demo Mode</button>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('afterbegin', indicatorHTML);
+  
+  // Add fallback class for browsers that don't support :has()
+  document.body.classList.add('paid-mode-body-padding');
+  
+  // Add click handler for the reset button (for testing)
+  document.getElementById('reset-to-demo').addEventListener('click', handleResetToDemoClick);
 }
 
 /**
@@ -71,9 +104,25 @@ function addWatermarks() {
  * Handle the payment button click
  */
 function handlePaymentClick() {
-  // For now, just show the modal
-  // This will be replaced with actual payment processing in Task 46
-  showDemoModal();
+  // For now, simulate a successful payment for testing purposes
+  // This will be replaced with actual Stripe payment processing in Task 46
+  if (confirm("This will simulate a successful payment and provide access to the real interest rates. Do you want to continue?")) {
+    // Set payment as verified in localStorage
+    setPaymentVerified();
+  } else {
+    // If canceled, just show the modal
+    showDemoModal();
+  }
+}
+
+/**
+ * Handle the reset to demo mode button click (for testing)
+ */
+function handleResetToDemoClick() {
+  if (confirm("This will reset to demo mode and use mock interest rates. Do you want to continue?")) {
+    // Clear payment verification in localStorage
+    clearPaymentVerification();
+  }
 }
 
 /**
@@ -112,6 +161,14 @@ function createDemoModal() {
       <div class="demo-modal-content">
         <h2>Demonstration Mode</h2>
         <p>The interest rates used in this demonstration version of this app are for demonstration purposes only. Accurate court order interest rates are only in the paid version.</p>
+        <div class="demo-modal-notice">
+          <p>The demo version uses slightly modified interest rates:</p>
+          <ul>
+            <li>Mock rates differ from real rates by ±0.25-1.5%</li>
+            <li>Calculations are fully functional but use these approximate rates</li>
+            <li>Purchase to use the accurate court-ordered interest rates</li>
+          </ul>
+        </div>
         <div class="demo-modal-buttons">
           <button id="demo-modal-dismiss" class="demo-modal-dismiss">Dismiss</button>
           <button id="demo-modal-purchase" class="demo-modal-purchase">Purchase - $24.99</button>
