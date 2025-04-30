@@ -1,0 +1,114 @@
+/* Demo Mode Styles */
+
+/* Demo Banner */
+.demo-banner {
+  background-color: #ffeb3b;
+  color: #000;
+  padding: 10px;
+  text-align: center;
+  font-weight: bold;
+  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Add padding to the body to account for the fixed banner */
+body.demo-mode {
+  padding-top: 40px; /* Adjust based on banner height */
+}
+
+/* Watermark */
+/* Positioned relative to #title-container in JS */
+.demo-watermark {
+  position: absolute;
+  top: 100px;   /* Pixels below the top of #title-container */
+  left: 200px;  /* Pixels to the right of the left edge of #title-container */
+  transform: rotate(-30deg);
+  transform-origin: center center;
+  font-size: 2.4rem; /* Reduced size by 20% */
+  opacity: 0.2;    /* Reduced opacity by 20% */
+  color: #ff0000;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 9999; /* Increased z-index to ensure it's above other content */
+  font-family: Arial, sans-serif;
+  font-weight: bold;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+/* Make sure watermark appears in print */
+@media print {
+  .demo-watermark {
+    opacity: 0.2;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+/* Payment Button */
+.payment-button {
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-left: 15px;
+  transition: background-color 0.3s;
+}
+
+.payment-button:hover {
+  background-color: #45a049;
+}
+
+/* Demo Mode Modal */
+.demo-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  z-index: 2000;
+  justify-content: center;
+  align-items: center;
+}
+
+.demo-modal-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 5px;
+  max-width: 500px;
+  width: 90%;
+  text-align: center;
+}
+
+.demo-modal-buttons {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.demo-modal-dismiss {
+  background-color: #f1f1f1;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.demo-modal-purchase {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
