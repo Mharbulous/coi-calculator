@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paywall Browser Compatibility Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #007bff;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        .test-card {
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .test-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .test-description {
+            margin-bottom: 15px;
+            color: #666;
+        }
+        .test-result {
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 3px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .pass {
+            color: #28a745;
+        }
+        .fail {
+            color: #dc3545;
+        }
+        .button {
+            display: inline-block;
+            background-color: #007bff;
+            color: white;
+            padding: 8px 16px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        .button:hover {
+            background-color: #0069d9;
+        }
+        #browser-info {
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #e9ecef;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Paywall Browser Compatibility Test</h1>
+    
+    <div id="browser-info">
+        <strong>Browser Information:</strong> <span id="browser-details"></span>
+    </div>
+    
+    <div class="test-card">
+        <div class="test-title">Test: LocalStorage Availability</div>
+        <div class="test-description">Checks if localStorage is available in this browser</div>
+        <button class="button" onclick="runLocalStorageTest()">Run Test</button>
+        <div id="localStorage-test-result" class="test-result">Not run yet</div>
+    </div>
+    
+    <div class="test-card">
+        <div class="test-title">Test: Payment Token Persistence</div>
+        <div class="test-description">Tests storing and retrieving payment data in localStorage</div>
+        <button class="button" onclick="runTokenPersistenceTest()">Run Test</button>
+        <div id="token-test-result" class="test-result">Not run yet</div>
+    </div>
+    
+    <div class="test-card">
+        <div class="test-title">Test: ES Modules Support</div>
+        <div class="test-description">Checks if this browser supports ES modules, required for the app</div>
+        <button class="button" onclick="runESModulesTest()">Run Test</button>
+        <div id="esmodules-test-result" class="test-result">Not run yet</div>
+    </div>
+    
+    <div class="test-card">
+        <div class="test-title">Test: CSS Features</div>
+        <div class="test-description">Tests CSS features used in the paywall styling (flexbox, transitions, etc)</div>
+        <button class="button" onclick="runCSSTest()">Run Test</button>
+        <div id="css-test-result" class="test-result">Not run yet</div>
+        <div id="css-test-demo" style="margin-top: 10px;"></div>
+    </div>
+    
+    <div class="test-card">
+        <div class="test-title">Test: Fetch API</div>
+        <div class="test-description">Tests if Fetch API is available for payment verification</div>
+        <button class="button" onclick="runFetchTest()">Run Test</button>
+        <div id="fetch-test-result" class="test-result">Not run yet</div>
+    </div>
+    
+    <div class="test-card">
+        <div class="test-title">Test: Shadow DOM Support</div>
+        <div class="test-description">Tests if Shadow DOM is supported (used by Stripe elements)</div>
+        <button class="button" onclick="runShadowDOMTest()">Run Test</button>
+        <div id="shadow-dom-test-result" class="test-result">Not run yet</div>
+    </div>
+    
+    <div class="test-card">
+        <div class="test-title">Run All Tests</div>
+        <div class="test-description">Runs all compatibility tests at once</div>
+        <button class="button" onclick="runAllTests()">Run All Tests</button>
+    </div>
+    
+    <script>
+        // Detect browser information
+        function getBrowserInfo() {
+            const userAgent = navigator.userAgent;
+            let browserName;
+            let browserVersion;
+            
+            if (userAgent.match(/chrome|chromium|crios/i)) {
+                browserName = "Chrome";
+                browserVersion = userAgent.match(/(?:chrome|chromium|crios)\/([\d.]+)/i)[1];
+            } else if (userAgent.match(/firefox|fxios/i)) {
+                browserName = "Firefox";
+                browserVersion = userAgent.match(/(?:firefox|fxios)\/([\d.]+)/i)[1];
+            } else if (userAgent.match(/safari/i) && !userAgent.match(/chrome|chromium|crios/i)) {
+                browserName = "Safari";
+                browserVersion = userAgent.match(/version\/([\d.]+)/i)[1];
+            } else if (userAgent.match(/opr\//i)) {
+                browserName = "Opera";
+                browserVersion = userAgent.match(/opr\/([\d.]+)/i)[1];
+            } else if (userAgent.match(/edg/i)) {
+                browserName = "Edge";
+                browserVersion = userAgent.match(/edg\/([\d.]+)/i)[1];
+            } else {
+                browserName = "Unknown";
+                browserVersion = "Unknown";
+            }
+            
+            return `${browserName} ${browserVersion} | ${navigator.platform} | ${window.innerWidth}x${window.innerHeight}`;
+        }
+        
+        document.getElementById('browser-details').textContent = getBrowserInfo();
+
+        // Test localStorage availability
+        function runLocalStorageTest() {
+            const resultDiv = document.getElementById('localStorage-test-result');
+            resultDiv.textContent = '';
+            
+            try {
+                const testKey = '_test_' + Date.now();
+                localStorage.setItem(testKey, 'test_value');
+                const retrievedValue = localStorage.getItem(testKey);
+                localStorage.removeItem(testKey);
+                
+                if (retrievedValue === 'test_value') {
+                    resultDiv.textContent = '✓ PASS: localStorage is available and working correctly.';
+                    resultDiv.classList.add('pass');
+                    resultDiv.classList.remove('fail');
+                } else {
+                    resultDiv.textContent = '✗ FAIL: localStorage is available but not storing/retrieving values correctly.';
+                    resultDiv.classList.add('fail');
+                    resultDiv.classList.remove('pass');
+                }
+            } catch (error) {
+                resultDiv.textContent = `✗ FAIL: localStorage is not available. Error: ${error.message}`;
+                resultDiv.classList.add('fail');
+                resultDiv.classList.remove('pass');
+            }
+        }
+        
+        // Test payment token persistence
+        function runTokenPersistenceTest() {
+            const resultDiv = document.getElementById('token-test-result');
+            resultDiv.textContent = '';
+            
+            try {
+                // Test token data
+                const mockToken = 'test_token_' + Date.now();
+                const mockExpires = Date.now() + 86400000; // 24 hours
+                const mockCustomerId = 'cus_' + Date.now();
+                
+                // Store values
+                localStorage.setItem('payment_token', mockToken);
+                localStorage.setItem('payment_expires_at', mockExpires.toString());
+                localStorage.setItem('customer_id', mockCustomerId);
+                
+                // Retrieve values
+                const storedToken = localStorage.getItem('payment_token');
+                const storedExpires = localStorage.getItem('payment_expires_at');
+                const storedCustomerId = localStorage.getItem('customer_id');
+                
+                // Compare
+                const tokenMatches = storedToken === mockToken;
+                const expiresMatches = storedExpires === mockExpires.toString();
+                const customerIdMatches = storedCustomerId === mockCustomerId;
+                
+                // Format result
+                let resultText = '';
+                
+                if (tokenMatches && expiresMatches && customerIdMatches) {
+                    resultText = '✓ PASS: Payment token data persists correctly.\n\n';
+                    resultText += `Token: ${storedToken}\n`;
+                    resultText += `Expires: ${new Date(parseInt(storedExpires)).toLocaleString()}\n`;
+                    resultText += `Customer ID: ${storedCustomerId}`;
+                    
+                    resultDiv.classList.add('pass');
+                    resultDiv.classList.remove('fail');
+                } else {
+                    resultText = '✗ FAIL: Payment token data does not persist correctly.\n\n';
+                    resultText += `Token Match: ${tokenMatches}\n`;
+                    resultText += `Expires Match: ${expiresMatches}\n`;
+                    resultText += `Customer ID Match: ${customerIdMatches}`;
+                    
+                    resultDiv.classList.add('fail');
+                    resultDiv.classList.remove('pass');
+                }
+                
+                resultDiv.textContent = resultText;
+                
+                // Clean up
+                localStorage.removeItem('payment_token');
+                localStorage.removeItem('payment_expires_at');
+                localStorage.removeItem('customer_id');
+                
+            } catch (error) {
+                resultDiv.textContent = `✗ FAIL: Error testing token persistence. Error: ${error.message}`;
+                resultDiv.classList.add('fail');
+                resultDiv.classList.remove('pass');
+            }
+        }
+        
+        // Test ES Modules support
+        function runESModulesTest() {
+            const resultDiv = document.getElementById('esmodules-test-result');
+            resultDiv.textContent = '';
+            
+            try {
+                // Create a test script with type="module"
+                const testScript = document.createElement('script');
+                testScript.type = 'module';
+                testScript.textContent = `
+                    window._esModulesTestResult = true;
+                `;
+                document.head.appendChild(testScript);
+                
+                // Check after a short delay
+                setTimeout(() => {
+                    if (window._esModulesTestResult === true) {
+                        resultDiv.textContent = '✓ PASS: ES Modules are supported.';
+                        resultDiv.classList.add('pass');
+                        resultDiv.classList.remove('fail');
+                    } else {
+                        resultDiv.textContent = '✗ FAIL: ES Modules are not supported or not working correctly.';
+                        resultDiv.classList.add('fail');
+                        resultDiv.classList.remove('pass');
+                    }
+                }, 100);
+            } catch (error) {
+                resultDiv.textContent = `✗ FAIL: Error testing ES Modules support. Error: ${error.message}`;
+                resultDiv.classList.add('fail');
+                resultDiv.classList.remove('pass');
+            }
+        }
+        
+        // Test CSS features
+        function runCSSTest() {
+            const resultDiv = document.getElementById('css-test-result');
+            const demoDiv = document.getElementById('css-test-demo');
+            resultDiv.textContent = '';
+            demoDiv.innerHTML = '';
+            
+            try {
+                // Test flexbox
+                const flexboxSupported = CSS.supports('display', 'flex');
+                
+                // Test transitions
+                const transitionsSupported = CSS.supports('transition', 'all 0.3s ease');
+                
+                // Test position fixed
+                const positionFixedSupported = CSS.supports('position', 'fixed');
+                
+                // Test transform
+                const transformSupported = CSS.supports('transform', 'rotate(-30deg)');
+                
+                // Test animations
+                const animationsSupported = CSS.supports('animation', 'spin 2s linear infinite') || 
+                                           CSS.supports('-webkit-animation', 'spin 2s linear infinite');
+                
+                // Display test banner that uses these features
+                demoDiv.innerHTML = `
+                    <style>
+                        @keyframes spin {
+                            0% { transform: rotate(0deg); }
+                            100% { transform: rotate(360deg); }
+                        }
+                        
+                        #test-banner {
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            background-color: #ffeb3b;
+                            padding: 10px;
+                            margin-bottom: 10px;
+                            transition: all 0.3s ease;
+                        }
+                        
+                        #test-banner:hover {
+                            background-color: #ffd600;
+                        }
+                        
+                        #test-banner .spinner {
+                            border: 2px solid #f3f3f3;
+                            border-top: 2px solid #3498db;
+                            border-radius: 50%;
+                            width: 20px;
+                            height: 20px;
+                            animation: spin 2s linear infinite;
+                            margin-right: 10px;
+                        }
+                    </style>
+                    <div id="test-banner">
+                        <div class="spinner"></div>
+                        <span>CSS Features Demo</span>
+                    </div>
+                `;
+                
+                // Format result
+                let resultText = '';
+                let allPassed = true;
+                
+                resultText += `Flexbox: ${flexboxSupported ? '✓' : '✗'}\n`;
+                if (!flexboxSupported) allPassed = false;
+                
+                resultText += `Transitions: ${transitionsSupported ? '✓' : '✗'}\n`;
+                if (!transitionsSupported) allPassed = false;
+                
+                resultText += `Position Fixed: ${positionFixedSupported ? '✓' : '✗'}\n`;
+                if (!positionFixedSupported) allPassed = false;
+                
+                resultText += `Transform: ${transformSupported ? '✓' : '✗'}\n`;
+                if (!transformSupported) allPassed = false;
+                
+                resultText += `Animations: ${animationsSupported ? '✓' : '✗'}`;
+                if (!animationsSupported) allPassed = false;
+                
+                if (allPassed) {
+                    resultText = '✓ PASS: All required CSS features are supported.\n\n' + resultText;
+                    resultDiv.classList.add('pass');
+                    resultDiv.classList.remove('fail');
+                } else {
+                    resultText = '✗ FAIL: Some CSS features are not supported.\n\n' + resultText;
+                    resultDiv.classList.add('fail');
+                    resultDiv.classList.remove('pass');
+                }
+                
+                resultDiv.textContent = resultText;
+                
+            } catch (error) {
+                resultDiv.textContent = `✗ FAIL: Error testing CSS features. Error: ${error.message}`;
+                resultDiv.classList.add('fail');
+                resultDiv.classList.remove('pass');
+            }
+        }
+        
+        // Test Fetch API
+        function runFetchTest() {
+            const resultDiv = document.getElementById('fetch-test-result');
+            resultDiv.textContent = '';
+            
+            try {
+                if (window.fetch) {
+                    // Try a real fetch to test CORS
+                    resultDiv.textContent = 'Testing Fetch API...';
+                    
+                    fetch('https://jsonplaceholder.typicode.com/todos/1')
+                        .then(response => {
+                            if (response.ok) {
+                                return response.json();
+                            }
+                            throw new Error('Network response was not ok');
+                        })
+                        .then(data => {
+                            resultDiv.textContent = '✓ PASS: Fetch API is available and working correctly.';
+                            resultDiv.classList.add('pass');
+                            resultDiv.classList.remove('fail');
+                        })
+                        .catch(error => {
+                            resultDiv.textContent = `⚠️ PARTIAL: Fetch API is available but the test request failed: ${error.message}`;
+                            resultDiv.classList.add('fail');
+                            resultDiv.classList.remove('pass');
+                        });
+                } else {
+                    resultDiv.textContent = '✗ FAIL: Fetch API is not available in this browser.';
+                    resultDiv.classList.add('fail');
+                    resultDiv.classList.remove('pass');
+                }
+            } catch (error) {
+                resultDiv.textContent = `✗ FAIL: Error testing Fetch API. Error: ${error.message}`;
+                resultDiv.classList.add('fail');
+                resultDiv.classList.remove('pass');
+            }
+        }
+        
+        // Test Shadow DOM Support
+        function runShadowDOMTest() {
+            const resultDiv = document.getElementById('shadow-dom-test-result');
+            resultDiv.textContent = '';
+            
+            try {
+                const testDiv = document.createElement('div');
+                
+                if (testDiv.attachShadow) {
+                    // Try to actually use the Shadow DOM
+                    try {
+                        const shadowRoot = testDiv.attachShadow({mode: 'open'});
+                        const paragraph = document.createElement('p');
+                        paragraph.textContent = 'Shadow DOM test content';
+                        shadowRoot.appendChild(paragraph);
+                        
+                        resultDiv.textContent = '✓ PASS: Shadow DOM is supported and working correctly.';
+                        resultDiv.classList.add('pass');
+                        resultDiv.classList.remove('fail');
+                    } catch (implementationError) {
+                        resultDiv.textContent = `⚠️ PARTIAL: Shadow DOM API exists but failed in implementation: ${implementationError.message}`;
+                        resultDiv.classList.add('fail');
+                        resultDiv.classList.remove('pass');
+                    }
+                } else {
+                    resultDiv.textContent = '✗ FAIL: Shadow DOM is not supported in this browser.';
+                    resultDiv.classList.add('fail');
+                    resultDiv.classList.remove('pass');
+                }
+            } catch (error) {
+                resultDiv.textContent = `✗ FAIL: Error testing Shadow DOM support. Error: ${error.message}`;
+                resultDiv.classList.add('fail');
+                resultDiv.classList.remove('pass');
+            }
+        }
+        
+        // Run all tests
+        function runAllTests() {
+            runLocalStorageTest();
+            runTokenPersistenceTest();
+            runESModulesTest();
+            runCSSTest();
+            runFetchTest();
+            runShadowDOMTest();
+        }
+    </script>
+</body>
+</html>

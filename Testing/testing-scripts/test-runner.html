@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paywall Test Runner</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        .test-section {
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .test-title {
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        .test-description {
+            color: #666;
+            margin-bottom: 15px;
+        }
+        .button-container {
+            margin-bottom: 15px;
+        }
+        .test-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        .test-button:hover {
+            background-color: #0069d9;
+        }
+        .results {
+            background-color: #e9ecef;
+            border-radius: 3px;
+            padding: 15px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            overflow-x: auto;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .error {
+            color: #dc3545;
+        }
+        .success {
+            color: #28a745;
+        }
+        .warning {
+            color: #ffc107;
+        }
+        .clear-button {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .token-control {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .token-status {
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .has-token {
+            color: #28a745;
+        }
+        .no-token {
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <h1>Court Order Interest Calculator - Paywall Test Runner</h1>
+    
+    <p>
+        This page allows you to run tests on the paywall implementation to verify each component is working correctly.
+        Tests run directly in this page without needing to use the browser console.
+    </p>
+    
+    <div class="token-control">
+        <div class="token-status" id="token-status">Checking payment status...</div>
+        <div class="button-container">
+            <button id="set-test-token" class="test-button">Set Test Payment Token</button>
+            <button id="clear-token" class="test-button" style="background-color: #dc3545;">Clear Payment Token</button>
+        </div>
+        <p>
+            <small>Current token information will appear here. Setting a test token enables testing paid mode features.</small>
+        </p>
+    </div>
+    
+    <div class="test-section">
+        <div class="test-title">Demo Mode Tests</div>
+        <div class="test-description">Verify demo mode features (banner, watermarks, mock data)</div>
+        <div class="button-container">
+            <button id="test-demo-mode" class="test-button">Test Demo Mode</button>
+            <button id="clear-demo-results" class="clear-button">Clear Results</button>
+        </div>
+        <div class="results" id="demo-mode-results">Results will appear here...</div>
+    </div>
+    
+    <div class="test-section">
+        <div class="test-title">Paid Mode Tests</div>
+        <div class="test-description">Verify paid mode features (remove banner, use real data)</div>
+        <div class="button-container">
+            <button id="test-paid-mode" class="test-button">Test Paid Mode</button>
+            <button id="clear-paid-results" class="clear-button">Clear Results</button>
+        </div>
+        <div class="results" id="paid-mode-results">Results will appear here...</div>
+    </div>
+    
+    <div class="test-section">
+        <div class="test-title">Payment Persistence Tests</div>
+        <div class="test-description">Test localStorage persistence of payment tokens</div>
+        <div class="button-container">
+            <button id="test-persistence" class="test-button">Test Payment Persistence</button>
+            <button id="clear-persistence-results" class="clear-button">Clear Results</button>
+        </div>
+        <div class="results" id="persistence-results">Results will appear here...</div>
+    </div>
+    
+    <div class="test-section">
+        <div class="test-title">Data Source Tests</div>
+        <div class="test-description">Test switching between mock and real data sources</div>
+        <div class="button-container">
+            <button id="test-data-sources" class="test-button">Test Data Sources</button>
+            <button id="clear-data-results" class="clear-button">Clear Results</button>
+        </div>
+        <div class="results" id="data-source-results">Results will appear here...</div>
+    </div>
+    
+    <script type="module">
+        // Helper function to safely append logs with color coding
+        function appendLog(elementId, message, type = 'normal') {
+            const resultElement = document.getElementById(elementId);
+            const logEntry = document.createElement('div');
+            logEntry.textContent = message;
+            
+            if (type === 'error') {
+                logEntry.classList.add('error');
+            } else if (type === 'success') {
+                logEntry.classList.add('success');
+            } else if (type === 'warning') {
+                logEntry.classList.add('warning');
+            }
+            
+            resultElement.appendChild(logEntry);
+            resultElement.scrollTop = resultElement.scrollHeight;
+        }
+        
+        // Helper function to clear results
+        function clearResults(elementId) {
+            document.getElementById(elementId).innerHTML = 'Results cleared.';
+        }
+        
+        // Set up the clear buttons
+        document.getElementById('clear-demo-results').addEventListener('click', () => clearResults('demo-mode-results'));
+        document.getElementById('clear-paid-results').addEventListener('click', () => clearResults('paid-mode-results'));
+        document.getElementById('clear-persistence-results').addEventListener('click', () => clearResults('persistence-results'));
+        document.getElementById('clear-data-results').addEventListener('click', () => clearResults('data-source-results'));
+        
+        // Check and display current token status
+        function updateTokenStatus() {
+            const statusElement = document.getElementById('token-status');
+            const token = localStorage.getItem('payment_token');
+            const expiresAt = localStorage.getItem('payment_expires_at');
+            
+            if (token && expiresAt) {
+                const expires = new Date(parseInt(expiresAt));
+                const isValid = parseInt(expiresAt) > Date.now();
+                
+                statusElement.innerHTML = `
+                    <div class="${isValid ? 'has-token' : 'no-token'}">
+                        Payment Token: ${token.substring(0, 10)}...
+                        <br>Expires: ${expires.toLocaleString()}
+                        <br>Status: ${isValid ? 'Valid' : 'Expired'}
+                    </div>
+                `;
+            } else {
+                statusElement.innerHTML = `
+                    <div class="no-token">
+                        No payment token found. Application should be in demo mode.
+                    </div>
+                `;
+            }
+        }
+        
+        // Set test payment token
+        document.getElementById('set-test-token').addEventListener('click', () => {
+            const token = 'test_token_' + Date.now();
+            const expiresAt = Date.now() + (24 * 60 * 60 * 1000); // 24 hours from now
+            
+            localStorage.setItem('payment_token', token);
+            localStorage.setItem('payment_expires_at', expiresAt.toString());
+            localStorage.setItem('customer_id', 'test_customer_' + Date.now());
+            
+            updateTokenStatus();
+            appendLog('persistence-results', 'Test token set: ' + token, 'success');
+            appendLog('persistence-results', 'Expires at: ' + new Date(expiresAt).toLocaleString(), 'success');
+            appendLog('persistence-results', 'NOTE: Refresh the main application page to see the effect', 'warning');
+        });
+        
+        // Clear payment token
+        document.getElementById('clear-token').addEventListener('click', () => {
+            localStorage.removeItem('payment_token');
+            localStorage.removeItem('payment_expires_at');
+            localStorage.removeItem('customer_id');
+            
+            updateTokenStatus();
+            appendLog('persistence-results', 'Payment tokens cleared', 'warning');
+            appendLog('persistence-results', 'NOTE: Refresh the main application page to see the effect', 'warning');
+        });
+        
+        // Initialize status
+        updateTokenStatus();
+        
+        // Function to test demo mode
+        document.getElementById('test-demo-mode').addEventListener('click', async () => {
+            const resultElement = document.getElementById('demo-mode-results');
+            resultElement.innerHTML = 'Running demo mode tests...\n';
+            
+            try {
+                // Check for demo mode banner
+                const demoBanner = document.getElementById('demo-mode-banner');
+                appendLog('demo-mode-results', 'Checking demo banner...', 'normal');
+                
+                if (demoBanner) {
+                    appendLog('demo-mode-results', '✓ Demo banner exists', 'success');
+                    const computedStyle = window.getComputedStyle(demoBanner);
+                    appendLog('demo-mode-results', 'Banner visibility: ' + computedStyle.display, 'normal');
+                } else {
+                    appendLog('demo-mode-results', '✗ Demo banner not found', 'error');
+                }
+                
+                // Check for watermarks
+                const watermarks = document.querySelectorAll('.demo-watermark');
+                appendLog('demo-mode-results', 'Checking watermarks...', 'normal');
+                
+                if (watermarks.length > 0) {
+                    appendLog('demo-mode-results', `✓ Found ${watermarks.length} watermarks`, 'success');
+                } else {
+                    appendLog('demo-mode-results', '✗ No watermarks found', 'error');
+                }
+                
+                // Check body class for demo mode
+                appendLog('demo-mode-results', 'Checking body class...', 'normal');
+                
+                if (document.body.classList.contains('demo-mode')) {
+                    appendLog('demo-mode-results', '✓ Body has demo-mode class', 'success');
+                } else {
+                    appendLog('demo-mode-results', '✗ Body does not have demo-mode class', 'error');
+                }
+                
+                // Check that payment button exists
+                const paymentButton = document.getElementById('get-accurate-results');
+                appendLog('demo-mode-results', 'Checking payment button...', 'normal');
+                
+                if (paymentButton) {
+                    appendLog('demo-mode-results', '✓ Payment button exists', 'success');
+                } else {
+                    appendLog('demo-mode-results', '✗ Payment button not found', 'error');
+                }
+                
+                appendLog('demo-mode-results', 'Demo mode tests completed', 'normal');
+                
+            } catch (error) {
+                appendLog('demo-mode-results', 'Error running tests: ' + error.message, 'error');
+            }
+        });
+        
+        // Function to test paid mode
+        document.getElementById('test-paid-mode').addEventListener('click', async () => {
+            const resultElement = document.getElementById('paid-mode-results');
+            resultElement.innerHTML = 'Running paid mode tests...\n';
+            
+            try {
+                // Check that demo banner is NOT present
+                const demoBanner = document.getElementById('demo-mode-banner');
+                appendLog('paid-mode-results', 'Checking demo banner...', 'normal');
+                
+                if (!demoBanner) {
+                    appendLog('paid-mode-results', '✓ Demo banner correctly not present', 'success');
+                } else {
+                    appendLog('paid-mode-results', '✗ Demo banner should not be visible in paid mode', 'error');
+                }
+                
+                // Check that watermarks are NOT present
+                const watermarks = document.querySelectorAll('.demo-watermark');
+                appendLog('paid-mode-results', 'Checking watermarks...', 'normal');
+                
+                if (watermarks.length === 0) {
+                    appendLog('paid-mode-results', '✓ No watermarks as expected', 'success');
+                } else {
+                    appendLog('paid-mode-results', `✗ Found ${watermarks.length} watermarks when there should be none`, 'error');
+                }
+                
+                // Check body class does NOT have demo-mode
+                appendLog('paid-mode-results', 'Checking body class...', 'normal');
+                
+                if (!document.body.classList.contains('demo-mode')) {
+                    appendLog('paid-mode-results', '✓ Body correctly does not have demo-mode class', 'success');
+                } else {
+                    appendLog('paid-mode-results', '✗ Body should not have demo-mode class in paid mode', 'error');
+                }
+                
+                // Check for paid mode indicator
+                const paidIndicator = document.getElementById('paid-mode-indicator');
+                appendLog('paid-mode-results', 'Checking paid mode indicator...', 'normal');
+                
+                if (paidIndicator) {
+                    appendLog('paid-mode-results', '✓ Paid mode indicator exists', 'success');
+                } else {
+                    appendLog('paid-mode-results', '✗ Paid mode indicator not found', 'error');
+                }
+                
+                // Check localStorage for payment token
+                appendLog('paid-mode-results', 'Checking localStorage payment tokens...', 'normal');
+                
+                const hasToken = !!localStorage.getItem('payment_token');
+                const expiresAt = localStorage.getItem('payment_expires_at');
+                
+                if (hasToken) {
+                    appendLog('paid-mode-results', '✓ Payment token exists', 'success');
+                    
+                    if (expiresAt) {
+                        appendLog('paid-mode-results', '✓ Expiration date exists', 'success');
+                        const isValid = parseInt(expiresAt) > Date.now();
+                        appendLog('paid-mode-results', isValid ? 
+                            '✓ Token is valid until ' + new Date(parseInt(expiresAt)).toLocaleString() : 
+                            '✗ Token is expired', isValid ? 'success' : 'error');
+                    } else {
+                        appendLog('paid-mode-results', '✗ No expiration date found', 'error');
+                    }
+                } else {
+                    appendLog('paid-mode-results', '✗ No payment token found', 'error');
+                }
+                
+                appendLog('paid-mode-results', 'Paid mode tests completed', 'normal');
+                
+            } catch (error) {
+                appendLog('paid-mode-results', 'Error running tests: ' + error.message, 'error');
+            }
+        });
+        
+        // Function to test payment persistence
+        document.getElementById('test-persistence').addEventListener('click', async () => {
+            const resultElement = document.getElementById('persistence-results');
+            resultElement.innerHTML = 'Running payment persistence tests...\n';
+            
+            try {
+                // Get current token state
+                const originalToken = localStorage.getItem('payment_token');
+                const originalExpiration = localStorage.getItem('payment_expires_at');
+                const originalCustomerId = localStorage.getItem('customer_id');
+                
+                appendLog('persistence-results', 'Original token: ' + (originalToken || 'Not set'), 'normal');
+                appendLog('persistence-results', 'Original expiration: ' + 
+                    (originalExpiration ? new Date(parseInt(originalExpiration)).toLocaleString() : 'Not set'), 'normal');
+                
+                // Test with a mock token
+                const testToken = 'test_token_' + Date.now();
+                const testExpiration = Date.now() + (24 * 60 * 60 * 1000); // 24 hours from now
+                const testCustomerId = 'cus_' + Date.now();
+                
+                appendLog('persistence-results', 'Setting test token...', 'normal');
+                localStorage.setItem('payment_token', testToken);
+                localStorage.setItem('payment_expires_at', testExpiration.toString());
+                localStorage.setItem('customer_id', testCustomerId);
+                
+                appendLog('persistence-results', 'Test token set: ' + testToken, 'success');
+                appendLog('persistence-results', 'Test expiration set: ' + new Date(testExpiration).toLocaleString(), 'success');
+                
+                // Verify token was stored
+                const storedToken = localStorage.getItem('payment_token');
+                const storedExpiration = localStorage.getItem('payment_expires_at');
+                const storedCustomerId = localStorage.getItem('customer_id');
+                
+                const tokenMatches = storedToken === testToken;
+                const expirationMatches = storedExpiration === testExpiration.toString();
+                const customerIdMatches = storedCustomerId === testCustomerId;
+                
+                appendLog('persistence-results', 'Token matches: ' + (tokenMatches ? '✓' : '✗'), tokenMatches ? 'success' : 'error');
+                appendLog('persistence-results', 'Expiration matches: ' + (expirationMatches ? '✓' : '✗'), expirationMatches ? 'success' : 'error');
+                appendLog('persistence-results', 'Customer ID matches: ' + (customerIdMatches ? '✓' : '✗'), customerIdMatches ? 'success' : 'error');
+                
+                if (tokenMatches && expirationMatches && customerIdMatches) {
+                    appendLog('persistence-results', '✓ Payment token persistence works correctly', 'success');
+                } else {
+                    appendLog('persistence-results', '✗ Payment token persistence issue detected', 'error');
+                }
+                
+                // Restore original state
+                if (originalToken) {
+                    appendLog('persistence-results', 'Restoring original token data...', 'normal');
+                    localStorage.setItem('payment_token', originalToken);
+                    
+                    if (originalExpiration) {
+                        localStorage.setItem('payment_expires_at', originalExpiration);
+                    }
+                    
+                    if (originalCustomerId) {
+                        localStorage.setItem('customer_id', originalCustomerId);
+                    }
+                    
+                    appendLog('persistence-results', '✓ Original token data restored', 'success');
+                } else {
+                    appendLog('persistence-results', 'Removing test token data...', 'normal');
+                    localStorage.removeItem('payment_token');
+                    localStorage.removeItem('payment_expires_at');
+                    localStorage.removeItem('customer_id');
+                    appendLog('persistence-results', '✓ Token data removed', 'success');
+                }
+                
+                updateTokenStatus();
+                appendLog('persistence-results', 'Payment persistence tests completed', 'normal');
+                appendLog('persistence-results', 'NOTE: Refresh the main application page to see changes', 'warning');
+                
+            } catch (error) {
+                appendLog('persistence-results', 'Error running tests: ' + error.message, 'error');
+            }
+        });
+        
+        // Function to test data sources
+        document.getElementById('test-data-sources').addEventListener('click', async () => {
+            const resultElement = document.getElementById('data-source-results');
+            resultElement.innerHTML = 'Running data source tests...\n';
+            
+            try {
+                // Check for mock data
+                appendLog('data-source-results', 'Testing mock interest rates...', 'normal');
+                try {
+                    // Use a dynamic import to get the mock rates
+                    const mockRatesModule = await import('../BC COIA calculator/mockRates.js');
+                    const mockRates = mockRatesModule.default;
+                    const lastUpdated = mockRatesModule.lastUpdated;
+                    
+                    if (mockRates) {
+                        appendLog('data-source-results', '✓ Mock rates loaded successfully', 'success');
+                        appendLog('data-source-results', 'Last updated: ' + (lastUpdated ? lastUpdated.toLocaleDateString() : 'unknown'), 'normal');
+                        
+                        // Check if BC rates exist
+                        if (mockRates.BC && mockRates.BC.length) {
+                            appendLog('data-source-results', `✓ Found ${mockRates.BC.length} BC interest rate periods`, 'success');
+                        } else {
+                            appendLog('data-source-results', '✗ No BC interest rates found in mock data', 'error');
+                        }
+                    } else {
+                        appendLog('data-source-results', '✗ Failed to load mock rates', 'error');
+                    }
+                } catch (error) {
+                    appendLog('data-source-results', 'Error loading mock rates: ' + error.message, 'error');
+                }
+                
+                // Check for Firebase rates
+                appendLog('data-source-results', 'Testing Firebase interest rates...', 'normal');
+                try {
+                    // Try to load the Firebase rates
+                    const { fetchRatesFromFirebase } = await import('../BC COIA calculator/firebaseRates.js');
+                    
+                    try {
+                        appendLog('data-source-results', 'Fetching rates from Firebase...', 'normal');
+                        const firebaseRates = await fetchRatesFromFirebase();
+                        
+                        if (firebaseRates && firebaseRates.rates) {
+                            appendLog('data-source-results', '✓ Firebase rates loaded successfully', 'success');
+                            appendLog('data-source-results', 'Last updated: ' + 
+                                (firebaseRates.lastUpdated ? firebaseRates.lastUpdated.toLocaleDateString() : 'unknown'), 'normal');
+                            
+                            // Check if BC rates exist
+                            if (firebaseRates.rates.BC && firebaseRates.rates.BC.length) {
+                                appendLog('data-source-results', `✓ Found ${firebaseRates.rates.BC.length} BC interest rate periods in Firebase`, 'success');
+                            } else {
+                                appendLog('data-source-results', '✗ No BC interest rates found in Firebase data', 'error');
+                            }
+                        } else {
+                            appendLog('data-source-results', '✗ Failed to load Firebase rates', 'error');
+                        }
+                    } catch (fetchError) {
+                        appendLog('data-source-results', '✗ Error fetching from Firebase: ' + fetchError.message, 'error');
+                    }
+                } catch (importError) {
+                    appendLog('data-source-results', 'Error importing Firebase module: ' + importError.message, 'error');
+                }
+                
+                appendLog('data-source-results', 'Data source tests completed', 'normal');
+                
+            } catch (error) {
+                appendLog('data-source-results', 'Error running tests: ' + error.message, 'error');
+            }
+        });
+    </script>
+</body>
+</html>
