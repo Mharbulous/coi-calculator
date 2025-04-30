@@ -114,7 +114,7 @@ describe('calculateInterestPeriods', () => {
     });
 
     // --- Calculation within a single rate period ---
-    it('should calculate prejudgment interest correctly within a single rate period (non-leap)', () => {
+    it('should Show prejudgment interest correctly within a single rate period (non-leap)', () => {
         // Create a mock state object
         const mockState = {
             inputs: { jurisdiction: 'BC' },

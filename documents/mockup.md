@@ -14,7 +14,7 @@
 
 ## Prejudgment Interest
 
-\[ \] Calculate prejudgment interest
+\[ \] Show prejudgment interest
 
 | Date | Description | Rate | Principal | Interest |
 | --- | --- | --- | --- | --- |
@@ -73,7 +73,7 @@ $4.36
 
 ## Postjudgment Interest
 
-\[ \] Calculate prejudgment interest
+\[ \] Show prejudgment interest
 
 | Period Ending | Description | Rate | Principal | Interest |
 | --- | --- | --- | --- | --- |

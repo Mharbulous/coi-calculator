@@ -476,7 +476,7 @@ function recalculate() {
     // Store the special damages total in the store
     useStore.getState().setResult('specialDamagesTotal', specialDamagesTotal);
 
-    // 3. Calculate Prejudgment Interest
+    // 3. Show prejudgment interest
     const prejudgmentResult = calculatePrejudgmentInterest(inputs, specialDamagesTotal, interestRatesData);
     
     // Update Zustand store with prejudgment results

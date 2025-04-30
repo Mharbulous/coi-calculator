@@ -2,7 +2,7 @@
 
 ## Current Issue
 
-When toggling the "Calculate prejudgment interest" checkbox, several console errors appear:
+When toggling the "Show prejudgment interest" checkbox, several console errors appear:
 
 ```
 flatpickr:2  Uncaught TypeError: Cannot set properties of undefined (setting 'maxDate')

@@ -13,7 +13,7 @@ flowchart TD
     
     CollectSpecialDamages --> PrejudgmentCheck{Show Prejudgment?}
     PrejudgmentCheck -->|No| SkipPrejudgment[Skip Prejudgment Calculation]
-    PrejudgmentCheck -->|Yes| CalculatePrejudgment[Calculate Prejudgment Interest]
+    PrejudgmentCheck -->|Yes| CalculatePrejudgment[Show prejudgment interest]
     
     SkipPrejudgment --> CalculateJudgmentTotal[Calculate Judgment Total]
     CalculatePrejudgment --> CalculateJudgmentTotal
