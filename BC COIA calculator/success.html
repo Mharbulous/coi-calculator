@@ -79,17 +79,39 @@
         document.addEventListener('DOMContentLoaded', async () => {
             try {
                 // Import the payment verification module
-                const { setPaymentVerified } = await import('./paymentVerification.js');
+                const { verifyPayment, setPaymentVerified } = await import('./paymentVerification.js');
                 
-                // Set payment as verified in localStorage
-                // This will be replaced with proper verification in Task 47
-                setPaymentVerified();
+                // Get the session_id from URL query parameters
+                const urlParams = new URLSearchParams(window.location.search);
+                const sessionId = urlParams.get('session_id');
                 
-                // Show success message
-                document.getElementById('payment-status').innerHTML = `
-                    <p>Your payment has been verified successfully!</p>
-                    <p>You now have access to accurate interest rates.</p>
-                `;
+                if (sessionId) {
+                    // Use the serverless function to verify the payment
+                    const result = await verifyPayment(sessionId);
+                    
+                    if (result.success) {
+                        // Show success message
+                        document.getElementById('payment-status').innerHTML = `
+                            <p>Your payment has been verified successfully!</p>
+                            <p>You now have access to accurate interest rates.</p>
+                        `;
+                    } else {
+                        // Show error message
+                        document.getElementById('payment-status').innerHTML = `
+                            <p>Payment verification failed: ${result.message}</p>
+                            <p>Please try again or contact support.</p>
+                        `;
+                    }
+                } else {
+                    // Fallback for testing or if no session_id is provided
+                    console.warn('No session_id found in URL. Using test verification.');
+                    setPaymentVerified();
+                    
+                    document.getElementById('payment-status').innerHTML = `
+                        <p>Your payment has been verified successfully! (TEST MODE)</p>
+                        <p>You now have access to accurate interest rates.</p>
+                    `;
+                }
                 
                 // Redirect back to the calculator after a short delay
                 setTimeout(() => {

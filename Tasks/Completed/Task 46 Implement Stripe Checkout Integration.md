@@ -1,40 +1,48 @@
 # Task 46: Implement Stripe Checkout Integration
 
 ## Objective
+
 Integrate Stripe Checkout to process one-time payments when users click the "Get Accurate Results" button.
 
 ## Estimated Time
+
 2-3 hours
 
 ## Prerequisites
-- Stripe account set up
-- Knowledge of Stripe Checkout API
-- "Get Accurate Results" button implemented from Task 44
+
+*   Stripe account set up
+*   Knowledge of Stripe Checkout API
+*   "Get Accurate Results" button implemented from Task 44
 
 ## Tasks
 
-### 1. Set Up Stripe Account and Product
-- Create a Stripe account if not already done
-- Create a product in Stripe Dashboard for the calculator ($24.99)
-- Note the price ID for use in the integration
+### 1\. Set Up Stripe Account and Product
 
-### 2. Add Stripe.js Library
-- Add the Stripe.js library to the application
-- Configure the public key for the integration
+*   Create a Stripe account if not already done
+*   Create a product in Stripe Dashboard for the calculator ($24.99)
+*   Note the price ID for use in the integration
 
-### 3. Implement Checkout Redirect
-- Create a function to handle the "Get Accurate Results" button click
-- Implement a redirect to Stripe Checkout with the appropriate parameters
-- Configure success and cancel URLs
+### 2\. Add Stripe.js Library
 
-### 4. Create Success and Cancel Pages
-- Create a simple success page to handle Stripe redirects after payment
-- Create a cancel page for users who abandon the payment process
-- Implement URL parameter handling to capture session_id from Stripe
+*   Add the Stripe.js library to the application
+*   Configure the public key for the integration
+
+### 3\. Implement Checkout Redirect
+
+*   Create a function to handle the "Get Accurate Results" button click
+*   Implement a redirect to Stripe Checkout with the appropriate parameters
+*   Configure success and cancel URLs
+
+### 4\. Create Success and Cancel Pages
+
+*   Create a simple success page to handle Stripe redirects after payment
+*   Create a cancel page for users who abandon the payment process
+*   Implement URL parameter handling to capture session\_id from Stripe
 
 ## Implementation Details
 
 ### Adding Stripe.js Library
+
 ```html
 <!-- Add to index.html -->
 <script src="https://js.stripe.com/v3/"></script>
@@ -45,6 +53,7 @@ Integrate Stripe Checkout to process one-time payments when users click the "Get
 ```
 
 ### JavaScript for Checkout Redirect
+
 ```javascript
 // Stripe integration module (stripeIntegration.js)
 
@@ -97,6 +106,7 @@ export async function redirectToCheckout() {
 ```
 
 ### Connecting Button to Stripe
+
 ```javascript
 // Update the button click handler in demo UI setup
 import { redirectToCheckout } from './stripeIntegration.js';
@@ -109,6 +119,7 @@ document.getElementById('get-accurate-results').addEventListener('click', async 
 ```
 
 ### Success Page Handler
+
 ```javascript
 // Add to success.js
 document.addEventListener('DOMContentLoaded', async () => {
@@ -149,16 +160,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 ```
 
 ## Acceptance Criteria
-- Stripe integration is properly set up with the correct product and price
-- Clicking the "Get Accurate Results" button redirects to Stripe Checkout
-- Stripe Checkout displays the correct product and price ($24.99)
-- After successful payment, the user is redirected to the success page
-- The success page correctly captures the session_id from Stripe
-- The application is prepared to handle the next step (payment verification)
+
+*   Stripe integration is properly set up with the correct product and price
+*   Clicking the "Get Accurate Results" button redirects to Stripe Checkout
+*   Stripe Checkout displays the correct product and price ($24.99)
+*   After successful payment, the user is redirected to the success page
+*   The success page correctly captures the session\_id from Stripe
+*   The application is prepared to handle the next step (payment verification)
 
 ## Notes
-- Use Stripe's test mode during development
-- Keep your Stripe API keys secure and never commit them to the repository
-- For development, consider using a lower test price (e.g., $0.50) to avoid unnecessary charges
-- The actual payment verification will be implemented in Task 47
-- Consider adding a loading indicator when redirecting to Stripe Checkout
+
+*   Use Stripe's test mode during development
+*   Keep your Stripe API keys secure and never commit them to the repository
+*   For development, consider using a lower test price (e.g., $0.50) to avoid unnecessary charges
+*   The actual payment verification will be implemented in Task 47
+*   Consider adding a loading indicator when redirecting to Stripe Checkout

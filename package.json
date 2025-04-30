@@ -1,0 +1,19 @@
+{
+  "name": "coi-calculator",
+  "version": "1.0.0",
+  "description": "Court Order Interest Calculator",
+  "type": "module",
+  "scripts": {
+    "migrate": "cd BC\\ COIA\\ calculator && node migrateRatesToFirebase.js",
+    "test:firebase": "cd BC\\ COIA\\ calculator && node testFirebaseIntegration.js",
+    "test": "cd BC\\ COIA\\ calculator && echo \"Error: no test specified\" && exit 1",
+    "dev": "netlify dev"
+  },
+  "dependencies": {
+    "firebase": "^10.7.0",
+    "stripe": "^14.10.0"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.10.0"
+  }
+}
