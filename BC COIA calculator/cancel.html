@@ -76,14 +76,25 @@
         
         document.addEventListener('DOMContentLoaded', () => {
             // Add event listener for retry button
-            document.getElementById('retry-payment').addEventListener('click', async (e) => {
+            document.getElementById('retry-payment').addEventListener('click', (e) => {
                 e.preventDefault();
-                try {
-                    await redirectToCheckout();
-                } catch (error) {
-                    console.error('Error restarting checkout:', error);
-                    alert('There was an error processing your payment. Please try again later.');
-                }
+                
+                // Prevent multiple clicks
+                const button = e.target;
+                button.disabled = true;
+                button.textContent = 'Redirecting...';
+                
+                // Simple timeout to show the button state change before redirect
+                setTimeout(() => {
+                    // Redirect to Stripe checkout using the payment link
+                    redirectToCheckout()
+                        .catch(error => {
+                            console.error('Error restarting checkout:', error);
+                            alert('There was an error processing your payment. Please try again later.');
+                            button.disabled = false;
+                            button.textContent = 'Try Again';
+                        });
+                }, 300);
             });
         });
     </script>

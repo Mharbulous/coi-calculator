@@ -1,11 +1,14 @@
 // Stripe Integration Module
 // This module handles Stripe checkout integration
 
-// Stripe publishable key
-const STRIPE_PUBLISHABLE_KEY = 'pk_test_51RBUeBRahO4v2IFYFasBHY08RtJFzYPcEwojPepn8NytrNUVqKkGuwaRKhCBmegsskQLNliZ7DStGDRjUzWiV4Ak00HAMXHyWS';
+// Stripe publishable key (live)
+const STRIPE_PUBLISHABLE_KEY = 'pk_live_51RBUdxDKPUV593QMcEYvUeQujcCjUhOhqQITsM3FrPvFnM6FAxKW8ZV8fWD1xMkj0Oh8JKtL4R7BMNGZCjbFPgY800Ex0bXWRv';
 
-// Price ID for the COI Calculator product
-const PRODUCT_PRICE_ID = 'price_1RC3fJRahO4v2IFY9yNoptZg';
+// Price ID for the COI Calculator product (live)
+const PRODUCT_PRICE_ID = 'price_1RJedEDKPUV593QMByW73wjW';
+
+// Stripe direct payment link
+const PAYMENT_LINK = 'https://buy.stripe.com/5kAbJY80XbR0azKbII';
 
 // Stripe instance
 let stripe;
@@ -35,36 +38,15 @@ export function initStripe() {
  * @returns {Promise<void>}
  */
 export async function redirectToCheckout() {
-  if (!stripe) {
-    if (!initStripe()) {
-      console.error('Failed to initialize Stripe');
-      alert('Payment processing is currently unavailable. Please try again later.');
-      return;
-    }
-  }
-  
   try {
     // Show loading indicator
     showLoadingIndicator();
     
-    // Get the current domain for success and cancel URLs
-    const domain = window.location.origin;
-    const path = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
-    const baseUrl = domain + path;
+    // Use the direct payment link created in the Stripe dashboard
+    window.location.href = PAYMENT_LINK;
     
-    // Create a Checkout Session
-    const { error } = await stripe.redirectToCheckout({
-      lineItems: [{ price: PRODUCT_PRICE_ID, quantity: 1 }],
-      mode: 'payment',
-      successUrl: `${baseUrl}success.html?session_id={CHECKOUT_SESSION_ID}`,
-      cancelUrl: `${baseUrl}cancel.html`,
-    });
-    
-    if (error) {
-      console.error('Error during checkout:', error.message);
-      alert(`Payment Error: ${error.message}`);
-      hideLoadingIndicator();
-    }
+    // Since we're redirecting, the loading indicator will be hidden
+    // when the user navigates back from Stripe
   } catch (error) {
     console.error('Error:', error);
     alert('An error occurred while processing your payment. Please try again later.');
