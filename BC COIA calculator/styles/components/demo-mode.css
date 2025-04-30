@@ -9,15 +9,26 @@
   font-weight: bold;
   width: 100%;
   position: fixed;
-  top: 0;
+  top: -100px; /* Start hidden above the viewport */
   left: 0;
   z-index: 1000;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: top 0.5s ease-in-out;
+}
+
+.demo-banner.show {
+  top: 0; /* Final position when shown */
+}
+
+/* Target the text span specifically */
+.demo-banner span {
+  font-size: 2rem; /* Increased font size by 2x from default */
 }
 
 /* Add padding to the body to account for the fixed banner */
 body.demo-mode {
-  padding-top: 40px; /* Adjust based on banner height */
+  padding-top: 60px; /* Start with padding to maintain spacing */
+  transition: padding-top 0.5s ease-in-out; /* Match the banner transition timing */
 }
 
 /* Watermark */
@@ -60,6 +71,7 @@ body.demo-mode {
   font-weight: bold;
   margin-left: 15px;
   transition: background-color 0.3s;
+  font-size: 2rem; /* Increased font size by 2x from default */
 }
 
 .payment-button:hover {

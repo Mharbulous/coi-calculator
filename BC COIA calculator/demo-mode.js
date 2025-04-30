@@ -29,14 +29,25 @@ function initializeDemoMode() {
 function addDemoBanner() {
   const bannerHTML = `
     <div id="demo-mode-banner" class="demo-banner">
-      <span>DEMO MODE - Please purchase access to accurate court order interest rates</span>
-      <button id="get-accurate-results" class="payment-button">Purchase Calculation - $24.99</button>
+      <span>DEMO MODE - Please purchase for accurate interest rates</span>
+      <button id="get-accurate-results" class="payment-button">Buy Now - $24.99</button>
     </div>
   `;
   document.body.insertAdjacentHTML('afterbegin', bannerHTML);
   
   // Add click handler for the payment button
   document.getElementById('get-accurate-results').addEventListener('click', handlePaymentClick);
+  
+  // Show the banner with a drop-down animation after 5 seconds
+  setTimeout(() => {
+    const banner = document.getElementById('demo-mode-banner');
+    if (banner) {
+      banner.classList.add('show');
+      // No need to add banner-visible class or dispatch event here.
+      // The ResizeObserver in pageBreaksCore should detect the layout change
+      // caused by the banner's 'top' property changing.
+    }
+  }, 5000); // 5000 milliseconds = 5 seconds
 }
 
 /**
@@ -207,5 +218,10 @@ function hideModal() {
 // Initialize demo mode when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
   // Small delay to ensure all other DOM setup is complete
-  setTimeout(initializeDemoMode, 100);
+  setTimeout(() => {
+    initializeDemoMode();
+    // Rely on the ResizeObserver in pageBreaksCore.js (setup elsewhere)
+    // to handle the initial pagination calculation.
+    // No explicit 'content-changed' dispatch needed here.
+  }, 100); // Initial delay after DOMContentLoaded
 });

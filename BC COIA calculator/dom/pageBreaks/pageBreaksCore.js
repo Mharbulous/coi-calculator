@@ -120,63 +120,6 @@ export function updatePagination() {
             const pageCardTop = getElementAbsoluteTop(card);
             workspaceTop[index] = pageCardTop + inkLayerMargin;
             workspaceBottom[index] = pageCardTop + inkLayerMargin + workspaceHeightPerPage;
-            
-            // Add visual indicators for page boundaries (for debugging)
-            const topIndicator = document.createElement('div');
-            topIndicator.classList.add('screen-only', 'debug-indicator', 'debug-top');
-            topIndicator.style.position = 'absolute';
-            topIndicator.style.left = '0';
-            topIndicator.style.right = '0';
-            topIndicator.style.top = `${workspaceTop[index]}px`;
-            topIndicator.style.height = '2px';
-            topIndicator.style.backgroundColor = 'rgba(0, 255, 0, 0.5)';
-            topIndicator.style.zIndex = '1000';
-            topIndicator.style.pointerEvents = 'none';
-            
-            const topLabel = document.createElement('div');
-            topLabel.textContent = `Page ${index + 1} Top`;
-            topLabel.style.position = 'absolute';
-            topLabel.style.left = '5px';
-            topLabel.style.top = '0';
-            topLabel.style.fontSize = '10px';
-            topLabel.style.fontWeight = 'bold';
-            topLabel.style.color = 'green';
-            topLabel.style.backgroundColor = 'rgba(255, 255, 255, 0.7)';
-            topLabel.style.padding = '2px';
-            topLabel.style.borderRadius = '2px';
-            topLabel.style.pointerEvents = 'none';
-            topLabel.classList.add('screen-only', 'debug-label');
-            topIndicator.appendChild(topLabel);
-            
-            document.body.appendChild(topIndicator);
-            
-            const bottomIndicator = document.createElement('div');
-            bottomIndicator.classList.add('screen-only', 'debug-indicator', 'debug-bottom');
-            bottomIndicator.style.position = 'absolute';
-            bottomIndicator.style.left = '0';
-            bottomIndicator.style.right = '0';
-            bottomIndicator.style.top = `${workspaceBottom[index]}px`;
-            bottomIndicator.style.height = '2px';
-            bottomIndicator.style.backgroundColor = 'rgba(255, 0, 0, 0.5)';
-            bottomIndicator.style.zIndex = '1000';
-            bottomIndicator.style.pointerEvents = 'none';
-            
-            const bottomLabel = document.createElement('div');
-            bottomLabel.textContent = `Page ${index + 1} Bottom`;
-            bottomLabel.style.position = 'absolute';
-            bottomLabel.style.left = '5px';
-            bottomLabel.style.top = '0';
-            bottomLabel.style.fontSize = '10px';
-            bottomLabel.style.fontWeight = 'bold';
-            bottomLabel.style.color = 'red';
-            bottomLabel.style.backgroundColor = 'rgba(255, 255, 255, 0.7)';
-            bottomLabel.style.padding = '2px';
-            bottomLabel.style.borderRadius = '2px';
-            bottomLabel.style.pointerEvents = 'none';
-            bottomLabel.classList.add('screen-only', 'debug-label');
-            bottomIndicator.appendChild(bottomLabel);
-            
-            document.body.appendChild(bottomIndicator);
         });
 
         // --- Process Elements using .breakable class ---
