@@ -1,41 +1,48 @@
 # Task 44: Implement Demo Mode Banner and UI Elements
 
 ## Objective
+
 Create the visual elements needed for the demo mode in the COI Calculator, including a banner and the "Get Accurate Results" payment button.
 
 ## Estimated Time
+
 1-2 hours
 
 ## Prerequisites
-- Understanding of the current UI structure
-- Basic knowledge of HTML/CSS
+
+*   Understanding of the current UI structure
+*   Basic knowledge of HTML/CSS
 
 ## Tasks
 
-### 1. Create Demo Mode Banner
-- Add a prominent banner at the top of the application with text "DEMO MODE - Using approximate interest rates"
-- Style the banner to stand out (e.g., yellow background with black text)
-- Ensure the banner is responsive and displays correctly on all screen sizes
+### 1\. Create Demo Mode Banner
 
-### 2. Add "Demo Mode" Watermark
-- Create a subtle watermark that displays "Demonstration Only" across calculation results
-- Ensure the watermark is visible but doesn't interfere with reading the results
-- Make sure the watermark appears on printed versions as well
+*   Add a modal pop-up that is triggered after the user changes the Judgment Date, or the General Damages & Debt $ amount, with a message:  "The interest rates used in this demonstratoin version of this app for for demonstation purposes only.  Accurate court order interest rates are only in the paid version."  Followed by buttons "Dismiss", and "Purchase"
+*   Ensure the banner is responsive and displays correctly on all screen sizes
 
-### 3. Create Payment Button
-- Add a prominent "Get Accurate Results - $24.99" button
-- Position the button in a highly visible location (e.g., below the banner, above results)
-- Style the button to draw attention (contrasting color, appropriate size)
-- Add hover effects for better user experience
+### 2\. Add "Demo Mode" Watermark
 
-### 4. Add Explanatory Text
-- Create a short explanation about the demo mode and the benefits of purchasing
-- Add a tooltip to the payment button explaining what the user gets for $24.99
-- Ensure all text is clear and persuasive
+*   Create a subtle watermark that displays "Demonstration" across calculation results.  Only one watermark per page.  
+*   Ensure the watermark is visible but doesn't interfere with reading the results
+*   Make sure the watermark appears on printed versions as well
+
+### 3\. Create Payment Button
+
+*   Add a prominent "Purchase Calculation- $24.99" button
+*   Position the button in a highly visible location (e.g., below the banner, above results)
+*   Style the button to draw attention (contrasting color, appropriate size)
+*   Add hover effects for better user experience
+
+### 4\. Add Explanatory Text
+
+*   Create a short explanation about the demo mode and the benefits of purchasing
+*   Add a tooltip to the payment button explaining what the user gets for $24.99
+*   Ensure all text is clear and persuasive
 
 ## Implementation Details
 
 ### HTML for Banner
+
 ```html
 <div id="demo-mode-banner" class="demo-banner">
   <span>DEMO MODE - Using approximate interest rates</span>
@@ -44,6 +51,7 @@ Create the visual elements needed for the demo mode in the COI Calculator, inclu
 ```
 
 ### CSS for Demo Elements
+
 ```css
 .demo-banner {
   background-color: #ffeb3b;
@@ -88,6 +96,7 @@ Create the visual elements needed for the demo mode in the COI Calculator, inclu
 ```
 
 ### JavaScript for Demo UI Elements
+
 ```javascript
 function setupDemoUI() {
   // Add demo banner to DOM
@@ -121,13 +130,15 @@ document.addEventListener('DOMContentLoaded', setupDemoUI);
 ```
 
 ## Acceptance Criteria
-- Demo mode banner is clearly visible at the top of the application
-- "Demonstration Only" watermark appears on all calculation results
-- Payment button is visible and styled appropriately
-- All UI elements are responsive and work on different screen sizes
-- Watermark appears in printed versions of the results
+
+*   Demo mode banner is clearly visible at the top of the application
+*   "Demonstration Only" watermark appears on all calculation results
+*   Payment button is visible and styled appropriately
+*   All UI elements are responsive and work on different screen sizes
+*   Watermark appears in printed versions of the results
 
 ## Notes
-- Consider using a CSS framework like Bootstrap for consistent styling if already in use
-- Ensure the banner doesn't interfere with existing UI elements
-- The final implementation of the payment button click handler will be done in a later task
+
+*   Consider using a CSS framework like Bootstrap for consistent styling if already in use
+*   Ensure the banner doesn't interfere with existing UI elements
+*   The final implementation of the payment button click handler will be done in a later task
