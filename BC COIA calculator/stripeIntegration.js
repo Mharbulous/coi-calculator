@@ -1,17 +1,18 @@
 // Stripe Integration Module
 // This module handles Stripe checkout integration
 
-// Stripe publishable key (live)
-const STRIPE_PUBLISHABLE_KEY = 'pk_live_51RBUdxDKPUV593QMcEYvUeQujcCjUhOhqQITsM3FrPvFnM6FAxKW8ZV8fWD1xMkj0Oh8JKtL4R7BMNGZCjbFPgY800Ex0bXWRv';
+// Stripe publishable key (test)
+const STRIPE_PUBLISHABLE_KEY = 'pk_test_51RBUeBRahO4v2IFYFasBHY08RtJFzYPcEwojPepn8NytrNUVqKkGuwaRKhCBmegsskQLNliZ7DStGDRjUzWiV4Ak00HAMXHyWS';
 
-// Price ID for the COI Calculator product (live)
+// Price ID for the COI Calculator product (test)
 const PRODUCT_PRICE_ID = 'price_1RJedEDKPUV593QMByW73wjW';
 
-// Stripe direct payment link
-const PAYMENT_LINK = 'https://buy.stripe.com/5kAbJY80XbR0azKbII';
+// Stripe direct payment link (test)
+const PAYMENT_LINK = 'https://buy.stripe.com/test_3cs3f7eXE7VGa0E8ww';
 
-// Stripe instance
+// Stripe instance and Buy Button ID
 let stripe;
+const BUY_BUTTON_ID = 'buy_btn_1RJg6URahO4v2IFYFasBHY08RtJFzYPcEwojPepn8NytrNUVqKkGuwaRKhCBmegsskQLNliZ7DStGDRjUzWiV4Ak00HAMXHyWS';
 
 /**
  * Initialize Stripe with the publishable key
@@ -34,7 +35,8 @@ export function initStripe() {
 }
 
 /**
- * Redirect to Stripe Checkout
+ * Initiate Stripe Checkout with Buy Button
+ * This approach uses Stripe's Buy Button while keeping our custom UI
  * @returns {Promise<void>}
  */
 export async function redirectToCheckout() {
@@ -42,11 +44,46 @@ export async function redirectToCheckout() {
     // Show loading indicator
     showLoadingIndicator();
     
-    // Use the direct payment link created in the Stripe dashboard
-    window.location.href = PAYMENT_LINK;
+    // Create a hidden Stripe Buy Button element that we'll trigger programmatically
+    const buyButtonContainer = document.createElement('div');
+    buyButtonContainer.style.position = 'absolute';
+    buyButtonContainer.style.visibility = 'hidden';
+    buyButtonContainer.innerHTML = `
+      <stripe-buy-button
+        buy-button-id="${BUY_BUTTON_ID}"
+        publishable-key="${STRIPE_PUBLISHABLE_KEY}"
+      >
+      </stripe-buy-button>
+    `;
+    document.body.appendChild(buyButtonContainer);
     
-    // Since we're redirecting, the loading indicator will be hidden
-    // when the user navigates back from Stripe
+    // Wait for the component to be ready
+    setTimeout(() => {
+      try {
+        // Find the button inside the Stripe component and click it
+        const stripeBuyButton = document.querySelector('stripe-buy-button');
+        if (stripeBuyButton && stripeBuyButton.shadowRoot) {
+          const actualButton = stripeBuyButton.shadowRoot.querySelector('button');
+          if (actualButton) {
+            actualButton.click();
+            console.log('Stripe Buy Button clicked');
+          } else {
+            console.error('Could not find button in Stripe Buy Button shadow DOM');
+            // Fall back to direct link if we can't find the button
+            window.location.href = PAYMENT_LINK;
+          }
+        } else {
+          console.error('Could not find Stripe Buy Button or it has no shadow root');
+          // Fall back to direct link if the component isn't ready
+          window.location.href = PAYMENT_LINK;
+        }
+      } catch (innerError) {
+        console.error('Error clicking Stripe Buy Button:', innerError);
+        // Fall back to direct link
+        window.location.href = PAYMENT_LINK;
+      }
+    }, 1000); // Wait for the component to initialize
+    
   } catch (error) {
     console.error('Error:', error);
     alert('An error occurred while processing your payment. Please try again later.');
