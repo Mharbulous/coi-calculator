@@ -1,5 +1,6 @@
 // Demo Mode Implementation
 import { hasVerifiedPayment, setPaymentVerified, clearPaymentVerification, getPaymentExpirationDate } from './paymentVerification.js';
+import { redirectToCheckout } from './stripeIntegration.js';
 
 /**
  * Initialize the demo mode features
@@ -115,15 +116,13 @@ function addWatermarks() {
  * Handle the payment button click
  */
 function handlePaymentClick() {
-  // For now, simulate a successful payment for testing purposes
-  // This will be replaced with actual Stripe payment processing in Task 46
-  if (confirm("This will simulate a successful payment and provide access to the real interest rates. Do you want to continue?")) {
-    // Set payment as verified in localStorage
-    setPaymentVerified();
-  } else {
-    // If canceled, just show the modal
-    showDemoModal();
-  }
+  // Use Stripe checkout to process the payment
+  redirectToCheckout()
+    .catch(error => {
+      console.error('Checkout error:', error);
+      // If Stripe checkout fails, show the demo modal as fallback
+      showDemoModal();
+    });
 }
 
 /**

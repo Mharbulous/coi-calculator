@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Cancelled - Court Order Interest Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .cancel-container {
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            padding: 30px;
+            margin-top: 40px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .cancel-icon {
+            font-size: 64px;
+            color: #dc3545;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #dc3545;
+            margin-bottom: 20px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        .button:hover {
+            background-color: #0069d9;
+        }
+        .retry-button {
+            display: inline-block;
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin-top: 20px;
+            margin-left: 10px;
+        }
+        .retry-button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="cancel-container">
+        <div class="cancel-icon">×</div>
+        <h1>Payment Cancelled</h1>
+        <p>Your payment was cancelled and you have not been charged.</p>
+        <p>You can continue using the calculator in demo mode with approximate interest rates.</p>
+        <div>
+            <a href="index.html" class="button">Return to Calculator</a>
+            <a href="#" id="retry-payment" class="retry-button">Try Again</a>
+        </div>
+    </div>
+
+    <script type="module">
+        import { redirectToCheckout } from './stripeIntegration.js';
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            // Add event listener for retry button
+            document.getElementById('retry-payment').addEventListener('click', async (e) => {
+                e.preventDefault();
+                try {
+                    await redirectToCheckout();
+                } catch (error) {
+                    console.error('Error restarting checkout:', error);
+                    alert('There was an error processing your payment. Please try again later.');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
