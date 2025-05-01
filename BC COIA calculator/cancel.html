@@ -66,15 +66,21 @@
         <p>Your payment was cancelled and you have not been charged.</p>
         <p>You can continue using the calculator in demo mode with approximate interest rates.</p>
         <div>
-            <a href="index.html" class="button">Return to Calculator</a>
+            <a href="#" id="return-button" class="button">Return to Calculator</a>
             <a href="#" id="retry-payment" class="retry-button">Try Again</a>
         </div>
     </div>
 
     <script type="module">
-        import { redirectToCheckout } from './stripeIntegration.js';
+        import { redirectToStripeCheckout } from './stripeLoader.js';
         
         document.addEventListener('DOMContentLoaded', () => {
+            // Set up the return button to go to the correct URL based on mode
+            const returnButton = document.getElementById('return-button');
+            const isTestMode = window.location.pathname.includes('/test');
+            
+            returnButton.href = isTestMode ? '/test' : '/';
+            
             // Add event listener for retry button
             document.getElementById('retry-payment').addEventListener('click', (e) => {
                 e.preventDefault();
@@ -87,7 +93,7 @@
                 // Simple timeout to show the button state change before redirect
                 setTimeout(() => {
                     // Redirect to Stripe checkout using the payment link
-                    redirectToCheckout()
+                    redirectToStripeCheckout()
                         .catch(error => {
                             console.error('Error restarting checkout:', error);
                             alert('There was an error processing your payment. Please try again later.');

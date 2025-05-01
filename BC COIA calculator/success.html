@@ -72,11 +72,17 @@
             <div class="spinner"></div>
         </div>
         <p class="redirect-info">You will be automatically redirected to the calculator in a few seconds.</p>
-        <a href="index.html" class="button">Return to Calculator</a>
+        <a href="#" id="return-button" class="button">Return to Calculator</a>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
+            // Set up the return button to go to the correct URL based on mode
+            const returnButton = document.getElementById('return-button');
+            const isTestMode = window.location.pathname.includes('/test');
+            
+            returnButton.href = isTestMode ? '/test' : '/';
+            
             try {
                 // Import the payment verification module
                 const { verifyPayment, setPaymentVerified } = await import('./paymentVerification.js');
@@ -115,7 +121,17 @@
                 
                 // Redirect back to the calculator after a short delay
                 setTimeout(() => {
-                    window.location.href = 'index.html';
+                    // Check if we're in test mode by looking at the current URL
+                    const isTestMode = window.location.pathname.includes('/test');
+                    
+                    // Redirect to the appropriate URL based on mode
+                    if (isTestMode) {
+                        // If we're in test mode, redirect to the test path
+                        window.location.href = '/test';
+                    } else {
+                        // Otherwise, redirect to the main page
+                        window.location.href = '/';
+                    }
                 }, 3000);
             } catch (error) {
                 console.error('Error verifying payment:', error);
