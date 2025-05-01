@@ -8,7 +8,12 @@ const STRIPE_PUBLISHABLE_KEY = 'pk_test_51RBUeBRahO4v2IFYFasBHY08RtJFzYPcEwojPep
 const PRODUCT_PRICE_ID = 'price_1RC3fJRahO4v2IFY9yNoptZg';
 
 // Stripe direct payment link (test)
+// Updated to use the payment link configured with success and cancel URLs
 const PAYMENT_LINK = 'https://buy.stripe.com/test_3cs3f7eXE7VGa0E8ww';
+
+// URLs for success and cancel pages - using relative paths to avoid SSL certificate issues
+const SUCCESS_URL = `/test/success.html?session_id={CHECKOUT_SESSION_ID}`;
+const CANCEL_URL = `/test/cancel.html`;
 
 // Stripe instance and Buy Button ID
 let stripe;
@@ -80,8 +85,8 @@ function detectAdBlocker() {
 }
 
 /**
- * Initiate Stripe Checkout with Buy Button
- * This approach uses Stripe's Buy Button while keeping our custom UI
+ * Initiate Stripe Checkout with proper redirect URLs
+ * This approach uses Stripe's Checkout API for a more controlled flow
  * @returns {Promise<void>}
  */
 export async function redirectToCheckout() {
@@ -90,55 +95,74 @@ export async function redirectToCheckout() {
     showLoadingIndicator();
     
     // If ad blocker detected or Stripe isn't initialized properly,
-    // skip the component approach and use direct link immediately
+    // use the direct payment link that's configured in the Stripe dashboard
     if (adBlockerDetected || typeof Stripe === 'undefined' || !stripe) {
+      console.log('Using direct payment link due to ad blocker or Stripe initialization issue');
       setTimeout(() => {
         window.location.href = PAYMENT_LINK;
       }, 500);
       return;
     }
     
-    // Create a hidden Stripe Buy Button element that we'll trigger programmatically
-    const buyButtonContainer = document.createElement('div');
-    buyButtonContainer.style.position = 'absolute';
-    buyButtonContainer.style.visibility = 'hidden';
-    buyButtonContainer.innerHTML = `
-      <stripe-buy-button
-        buy-button-id="${BUY_BUTTON_ID}"
-        publishable-key="${STRIPE_PUBLISHABLE_KEY}"
-      >
-      </stripe-buy-button>
-    `;
-    document.body.appendChild(buyButtonContainer);
-    
-    // Set a timeout to ensure we don't wait forever
-    const redirectTimeout = setTimeout(() => {
-      window.location.href = PAYMENT_LINK;
-    }, 3000); // Fail-safe timeout
-    
-    // Wait for the component to be ready
-    setTimeout(() => {
-      try {
-        // Find the button inside the Stripe component and click it
-        const stripeBuyButton = document.querySelector('stripe-buy-button');
-        if (stripeBuyButton && stripeBuyButton.shadowRoot) {
-          const actualButton = stripeBuyButton.shadowRoot.querySelector('button');
-          if (actualButton) {
-            clearTimeout(redirectTimeout); // Clear the fail-safe
-            actualButton.click();
+    try {
+      // Try to create a checkout session directly
+      const { error } = await stripe.redirectToCheckout({
+        lineItems: [{ price: PRODUCT_PRICE_ID, quantity: 1 }],
+        mode: 'payment',
+        successUrl: SUCCESS_URL,
+        cancelUrl: CANCEL_URL,
+      });
+      
+      if (error) {
+        console.error('Stripe checkout error:', error);
+        // Fallback to direct payment link
+        window.location.href = PAYMENT_LINK;
+      }
+    } catch (checkoutError) {
+      console.error('Error creating checkout session:', checkoutError);
+      
+      // Fallback to Buy Button approach
+      const buyButtonContainer = document.createElement('div');
+      buyButtonContainer.style.position = 'absolute';
+      buyButtonContainer.style.visibility = 'hidden';
+      buyButtonContainer.innerHTML = `
+        <stripe-buy-button
+          buy-button-id="${BUY_BUTTON_ID}"
+          publishable-key="${STRIPE_PUBLISHABLE_KEY}"
+        >
+        </stripe-buy-button>
+      `;
+      document.body.appendChild(buyButtonContainer);
+      
+      // Set a timeout to ensure we don't wait forever
+      const redirectTimeout = setTimeout(() => {
+        window.location.href = PAYMENT_LINK;
+      }, 3000); // Fail-safe timeout
+      
+      // Wait for the component to be ready
+      setTimeout(() => {
+        try {
+          // Find the button inside the Stripe component and click it
+          const stripeBuyButton = document.querySelector('stripe-buy-button');
+          if (stripeBuyButton && stripeBuyButton.shadowRoot) {
+            const actualButton = stripeBuyButton.shadowRoot.querySelector('button');
+            if (actualButton) {
+              clearTimeout(redirectTimeout); // Clear the fail-safe
+              actualButton.click();
+            } else {
+              window.location.href = PAYMENT_LINK;
+            }
           } else {
             window.location.href = PAYMENT_LINK;
           }
-        } else {
+        } catch (innerError) {
+          // Suppress error details to avoid console noise
           window.location.href = PAYMENT_LINK;
         }
-      } catch (innerError) {
-        // Suppress error details to avoid console noise
-        window.location.href = PAYMENT_LINK;
-      }
-    }, 1000); // Wait for the component to initialize
-    
+      }, 1000); // Wait for the component to initialize
+    }
   } catch (error) {
+    console.error('General error in redirectToCheckout:', error);
     // Suppress specific error details to avoid console noise
     window.location.href = PAYMENT_LINK;
     hideLoadingIndicator();

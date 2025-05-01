@@ -39,10 +39,22 @@ export async function verifyPayment(sessionId) {
     // Use the full production URL for the API endpoint
     const apiUrl = `${PRODUCTION_DOMAIN}/api/verify-payment?session_id=${encodeURIComponent(sessionId)}`;
     
+    console.log('Verifying payment with API URL:', apiUrl);
+    
     const response = await fetch(apiUrl);
     
     if (!response.ok) {
-      throw new Error(`Server error: ${response.status}`);
+      const errorText = await response.text();
+      console.error('Server error response:', errorText);
+      throw new Error(`Server error: ${response.status} - ${response.statusText}`);
+    }
+    
+    // Check content type to ensure we're getting JSON
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      const text = await response.text();
+      console.error('Received non-JSON response:', text);
+      throw new Error(`Expected JSON response but got ${contentType || 'unknown'} content type`);
     }
     
     const data = await response.json();
