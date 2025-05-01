@@ -1,18 +1,18 @@
-// Stripe Integration Module
+// Stripe Integration Module - PRODUCTION VERSION
 // This module handles Stripe checkout integration
 
-// Stripe publishable key (test)
-const STRIPE_PUBLISHABLE_KEY = 'pk_test_51RBUeBRahO4v2IFYFasBHY08RtJFzYPcEwojPepn8NytrNUVqKkGuwaRKhCBmegsskQLNliZ7DStGDRjUzWiV4Ak00HAMXHyWS';
+// Stripe publishable key (production)
+const STRIPE_PUBLISHABLE_KEY = 'pk_live_51RBUdxDKPUV593QMcEYvUeQujcCjUhOhqQITsM3FrPvFnM6FAxKW8ZV8fWD1xMkj0Oh8JKtL4R7BMNGZCjbFPgY800Ex0bXWRv';
 
-// Price ID for the COI Calculator product (test)
+// Price ID for the COI Calculator product (production)
 const PRODUCT_PRICE_ID = 'price_1RJedEDKPUV593QMByW73wjW';
 
-// Stripe direct payment link (test)
-const PAYMENT_LINK = 'https://buy.stripe.com/test_3cs3f7eXE7VGa0E8ww';
+// Stripe direct payment link (production)
+const PAYMENT_LINK = 'https://buy.stripe.com/5kAbJY80XbR0azKbII';
 
 // Stripe instance and Buy Button ID
 let stripe;
-const BUY_BUTTON_ID = 'buy_btn_1RJg6URahO4v2IFYFasBHY08RtJFzYPcEwojPepn8NytrNUVqKkGuwaRKhCBmegsskQLNliZ7DStGDRjUzWiV4Ak00HAMXHyWS';
+const BUY_BUTTON_ID = 'buy_btn_1RJlH5DKPUV593QM78WuqO7S';
 
 // Flag to detect if an ad blocker is present
 let adBlockerDetected = false;
@@ -28,7 +28,6 @@ export function initStripe() {
       detectAdBlocker();
       
       stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
-      console.log('Stripe initialized');
       return true;
     } catch (error) {
       console.error('Error initializing Stripe:', error);
@@ -52,7 +51,6 @@ function detectAdBlocker() {
   // Set up error handler - if this fails, likely due to ad blocker
   testImg.onerror = () => {
     adBlockerDetected = true;
-    console.warn('Ad blocker detected - some Stripe features may be limited');
   };
   
   // If image loads, no blocker present
@@ -94,7 +92,6 @@ export async function redirectToCheckout() {
     // If ad blocker detected or Stripe isn't initialized properly,
     // skip the component approach and use direct link immediately
     if (adBlockerDetected || typeof Stripe === 'undefined' || !stripe) {
-      console.log('Using direct payment link due to ad blocker or Stripe initialization issue');
       setTimeout(() => {
         window.location.href = PAYMENT_LINK;
       }, 500);
@@ -116,7 +113,6 @@ export async function redirectToCheckout() {
     
     // Set a timeout to ensure we don't wait forever
     const redirectTimeout = setTimeout(() => {
-      console.log('Stripe component timeout - using direct link');
       window.location.href = PAYMENT_LINK;
     }, 3000); // Fail-safe timeout
     
@@ -130,25 +126,20 @@ export async function redirectToCheckout() {
           if (actualButton) {
             clearTimeout(redirectTimeout); // Clear the fail-safe
             actualButton.click();
-            console.log('Stripe Buy Button clicked');
           } else {
-            console.log('Could not find button in Stripe Buy Button shadow DOM - using direct link');
             window.location.href = PAYMENT_LINK;
           }
         } else {
-          console.log('Could not find Stripe Buy Button or it has no shadow root - using direct link');
           window.location.href = PAYMENT_LINK;
         }
       } catch (innerError) {
         // Suppress error details to avoid console noise
-        console.log('Error with Stripe Buy Button - using direct link instead');
         window.location.href = PAYMENT_LINK;
       }
     }, 1000); // Wait for the component to initialize
     
   } catch (error) {
     // Suppress specific error details to avoid console noise
-    console.log('Falling back to direct payment link');
     window.location.href = PAYMENT_LINK;
     hideLoadingIndicator();
   }

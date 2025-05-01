@@ -1,6 +1,9 @@
 // Payment Verification Module
 // This module handles payment verification checking and localStorage persistence
 
+// Define production domain for API endpoints
+const PRODUCTION_DOMAIN = 'https://www.courtorderinterestcalculator.com';
+
 /**
  * Check if user has a verified payment
  * @returns {boolean} Whether the user has a verified payment
@@ -27,7 +30,10 @@ export async function verifyPayment(sessionId) {
   
   try {
     // Call our serverless function to verify the payment
-    const response = await fetch(`/api/verify-payment?session_id=${encodeURIComponent(sessionId)}`);
+    // Use the full production URL for the API endpoint
+    const apiUrl = `${PRODUCTION_DOMAIN}/api/verify-payment?session_id=${encodeURIComponent(sessionId)}`;
+    
+    const response = await fetch(apiUrl);
     
     if (!response.ok) {
       throw new Error(`Server error: ${response.status}`);
