@@ -94,6 +94,13 @@
         .no-token {
             color: #dc3545;
         }
+        .note {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 5px 5px 0;
+        }
     </style>
 </head>
 <body>
@@ -104,6 +111,12 @@
         Tests run directly in this page without needing to use the browser console.
     </p>
     
+    <div class="note">
+        <strong>Important:</strong> UI element tests (for demo mode banner, watermarks, etc.) must be performed in the 
+        main application window. This test runner only verifies localStorage tokens and data sources.
+        <p>To test UI elements, please open the main application and use the browser console to run the test scripts directly.</p>
+    </div>
+    
     <div class="token-control">
         <div class="token-status" id="token-status">Checking payment status...</div>
         <div class="button-container">
@@ -113,26 +126,6 @@
         <p>
             <small>Current token information will appear here. Setting a test token enables testing paid mode features.</small>
         </p>
-    </div>
-    
-    <div class="test-section">
-        <div class="test-title">Demo Mode Tests</div>
-        <div class="test-description">Verify demo mode features (banner, watermarks, mock data)</div>
-        <div class="button-container">
-            <button id="test-demo-mode" class="test-button">Test Demo Mode</button>
-            <button id="clear-demo-results" class="clear-button">Clear Results</button>
-        </div>
-        <div class="results" id="demo-mode-results">Results will appear here...</div>
-    </div>
-    
-    <div class="test-section">
-        <div class="test-title">Paid Mode Tests</div>
-        <div class="test-description">Verify paid mode features (remove banner, use real data)</div>
-        <div class="button-container">
-            <button id="test-paid-mode" class="test-button">Test Paid Mode</button>
-            <button id="clear-paid-results" class="clear-button">Clear Results</button>
-        </div>
-        <div class="results" id="paid-mode-results">Results will appear here...</div>
     </div>
     
     <div class="test-section">
@@ -180,8 +173,6 @@
         }
         
         // Set up the clear buttons
-        document.getElementById('clear-demo-results').addEventListener('click', () => clearResults('demo-mode-results'));
-        document.getElementById('clear-paid-results').addEventListener('click', () => clearResults('paid-mode-results'));
         document.getElementById('clear-persistence-results').addEventListener('click', () => clearResults('persistence-results'));
         document.getElementById('clear-data-results').addEventListener('click', () => clearResults('data-source-results'));
         
@@ -239,134 +230,6 @@
         
         // Initialize status
         updateTokenStatus();
-        
-        // Function to test demo mode
-        document.getElementById('test-demo-mode').addEventListener('click', async () => {
-            const resultElement = document.getElementById('demo-mode-results');
-            resultElement.innerHTML = 'Running demo mode tests...\n';
-            
-            try {
-                // Check for demo mode banner
-                const demoBanner = document.getElementById('demo-mode-banner');
-                appendLog('demo-mode-results', 'Checking demo banner...', 'normal');
-                
-                if (demoBanner) {
-                    appendLog('demo-mode-results', '✓ Demo banner exists', 'success');
-                    const computedStyle = window.getComputedStyle(demoBanner);
-                    appendLog('demo-mode-results', 'Banner visibility: ' + computedStyle.display, 'normal');
-                } else {
-                    appendLog('demo-mode-results', '✗ Demo banner not found', 'error');
-                }
-                
-                // Check for watermarks
-                const watermarks = document.querySelectorAll('.demo-watermark');
-                appendLog('demo-mode-results', 'Checking watermarks...', 'normal');
-                
-                if (watermarks.length > 0) {
-                    appendLog('demo-mode-results', `✓ Found ${watermarks.length} watermarks`, 'success');
-                } else {
-                    appendLog('demo-mode-results', '✗ No watermarks found', 'error');
-                }
-                
-                // Check body class for demo mode
-                appendLog('demo-mode-results', 'Checking body class...', 'normal');
-                
-                if (document.body.classList.contains('demo-mode')) {
-                    appendLog('demo-mode-results', '✓ Body has demo-mode class', 'success');
-                } else {
-                    appendLog('demo-mode-results', '✗ Body does not have demo-mode class', 'error');
-                }
-                
-                // Check that payment button exists
-                const paymentButton = document.getElementById('get-accurate-results');
-                appendLog('demo-mode-results', 'Checking payment button...', 'normal');
-                
-                if (paymentButton) {
-                    appendLog('demo-mode-results', '✓ Payment button exists', 'success');
-                } else {
-                    appendLog('demo-mode-results', '✗ Payment button not found', 'error');
-                }
-                
-                appendLog('demo-mode-results', 'Demo mode tests completed', 'normal');
-                
-            } catch (error) {
-                appendLog('demo-mode-results', 'Error running tests: ' + error.message, 'error');
-            }
-        });
-        
-        // Function to test paid mode
-        document.getElementById('test-paid-mode').addEventListener('click', async () => {
-            const resultElement = document.getElementById('paid-mode-results');
-            resultElement.innerHTML = 'Running paid mode tests...\n';
-            
-            try {
-                // Check that demo banner is NOT present
-                const demoBanner = document.getElementById('demo-mode-banner');
-                appendLog('paid-mode-results', 'Checking demo banner...', 'normal');
-                
-                if (!demoBanner) {
-                    appendLog('paid-mode-results', '✓ Demo banner correctly not present', 'success');
-                } else {
-                    appendLog('paid-mode-results', '✗ Demo banner should not be visible in paid mode', 'error');
-                }
-                
-                // Check that watermarks are NOT present
-                const watermarks = document.querySelectorAll('.demo-watermark');
-                appendLog('paid-mode-results', 'Checking watermarks...', 'normal');
-                
-                if (watermarks.length === 0) {
-                    appendLog('paid-mode-results', '✓ No watermarks as expected', 'success');
-                } else {
-                    appendLog('paid-mode-results', `✗ Found ${watermarks.length} watermarks when there should be none`, 'error');
-                }
-                
-                // Check body class does NOT have demo-mode
-                appendLog('paid-mode-results', 'Checking body class...', 'normal');
-                
-                if (!document.body.classList.contains('demo-mode')) {
-                    appendLog('paid-mode-results', '✓ Body correctly does not have demo-mode class', 'success');
-                } else {
-                    appendLog('paid-mode-results', '✗ Body should not have demo-mode class in paid mode', 'error');
-                }
-                
-                // Check for paid mode indicator
-                const paidIndicator = document.getElementById('paid-mode-indicator');
-                appendLog('paid-mode-results', 'Checking paid mode indicator...', 'normal');
-                
-                if (paidIndicator) {
-                    appendLog('paid-mode-results', '✓ Paid mode indicator exists', 'success');
-                } else {
-                    appendLog('paid-mode-results', '✗ Paid mode indicator not found', 'error');
-                }
-                
-                // Check localStorage for payment token
-                appendLog('paid-mode-results', 'Checking localStorage payment tokens...', 'normal');
-                
-                const hasToken = !!localStorage.getItem('payment_token');
-                const expiresAt = localStorage.getItem('payment_expires_at');
-                
-                if (hasToken) {
-                    appendLog('paid-mode-results', '✓ Payment token exists', 'success');
-                    
-                    if (expiresAt) {
-                        appendLog('paid-mode-results', '✓ Expiration date exists', 'success');
-                        const isValid = parseInt(expiresAt) > Date.now();
-                        appendLog('paid-mode-results', isValid ? 
-                            '✓ Token is valid until ' + new Date(parseInt(expiresAt)).toLocaleString() : 
-                            '✗ Token is expired', isValid ? 'success' : 'error');
-                    } else {
-                        appendLog('paid-mode-results', '✗ No expiration date found', 'error');
-                    }
-                } else {
-                    appendLog('paid-mode-results', '✗ No payment token found', 'error');
-                }
-                
-                appendLog('paid-mode-results', 'Paid mode tests completed', 'normal');
-                
-            } catch (error) {
-                appendLog('paid-mode-results', 'Error running tests: ' + error.message, 'error');
-            }
-        });
         
         // Function to test payment persistence
         document.getElementById('test-persistence').addEventListener('click', async () => {
