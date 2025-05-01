@@ -4,14 +4,9 @@
     "ignore": [
       "firebase.json",
       "**/.*",
-      "**/node_modules/**",
-      "functions/**"
+      "**/node_modules/**"
     ],
     "rewrites": [
-      {
-        "source": "/api/verify-ip",
-        "function": "verifyIp"
-      },
       {
         "source": "/test",
         "destination": "/index.html"
@@ -27,17 +22,23 @@
     ],
     "headers": [
       {
-        "source": "/api/**",
+        "source": "**/*.js",
         "headers": [
           {
             "key": "Cache-Control",
-            "value": "no-store, max-age=0"
+            "value": "max-age=3600"
+          }
+        ]
+      },
+      {
+        "source": "**/*.css",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=3600"
           }
         ]
       }
     ]
-  },
-  "functions": {
-    "source": "functions"
   }
 }
