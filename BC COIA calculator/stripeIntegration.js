@@ -14,6 +14,9 @@ const PAYMENT_LINK = 'https://buy.stripe.com/test_3cs3f7eXE7VGa0E8ww';
 let stripe;
 const BUY_BUTTON_ID = 'buy_btn_1RJg6URahO4v2IFYFasBHY08RtJFzYPcEwojPepn8NytrNUVqKkGuwaRKhCBmegsskQLNliZ7DStGDRjUzWiV4Ak00HAMXHyWS';
 
+// Flag to detect if an ad blocker is present
+let adBlockerDetected = false;
+
 /**
  * Initialize Stripe with the publishable key
  * @returns {boolean} Whether Stripe was successfully initialized
@@ -21,6 +24,9 @@ const BUY_BUTTON_ID = 'buy_btn_1RJg6URahO4v2IFYFasBHY08RtJFzYPcEwojPepn8NytrNUVq
 export function initStripe() {
   if (typeof Stripe !== 'undefined') {
     try {
+      // Detect ad blockers by setting up a test request
+      detectAdBlocker();
+      
       stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
       console.log('Stripe initialized');
       return true;
@@ -35,6 +41,47 @@ export function initStripe() {
 }
 
 /**
+ * Detect if an ad blocker is active by attempting a test request
+ * This helps us provide fallbacks when Stripe's analytics are blocked
+ */
+function detectAdBlocker() {
+  // Create a test image request to a common ad tracking domain
+  const testImg = document.createElement('img');
+  testImg.style.display = 'none';
+  
+  // Set up error handler - if this fails, likely due to ad blocker
+  testImg.onerror = () => {
+    adBlockerDetected = true;
+    console.warn('Ad blocker detected - some Stripe features may be limited');
+  };
+  
+  // If image loads, no blocker present
+  testImg.onload = () => {
+    adBlockerDetected = false;
+    testImg.remove();
+  };
+  
+  // Attempt to load a dummy image from a commonly blocked domain
+  testImg.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js';
+  document.body.appendChild(testImg);
+  
+  // Also check for Fetch API blocks with a common analytics domain
+  // We wrap in try-catch to prevent unhandled promise rejections
+  try {
+    fetch('https://www.google-analytics.com/analytics.js', { 
+      mode: 'no-cors',
+      cache: 'no-cache'
+    }).catch(() => {
+      // If fetch fails, likely due to ad blocker
+      adBlockerDetected = true;
+    });
+  } catch (e) {
+    // Suppress errors
+    adBlockerDetected = true;
+  }
+}
+
+/**
  * Initiate Stripe Checkout with Buy Button
  * This approach uses Stripe's Buy Button while keeping our custom UI
  * @returns {Promise<void>}
@@ -43,6 +90,16 @@ export async function redirectToCheckout() {
   try {
     // Show loading indicator
     showLoadingIndicator();
+    
+    // If ad blocker detected or Stripe isn't initialized properly,
+    // skip the component approach and use direct link immediately
+    if (adBlockerDetected || typeof Stripe === 'undefined' || !stripe) {
+      console.log('Using direct payment link due to ad blocker or Stripe initialization issue');
+      setTimeout(() => {
+        window.location.href = PAYMENT_LINK;
+      }, 500);
+      return;
+    }
     
     // Create a hidden Stripe Buy Button element that we'll trigger programmatically
     const buyButtonContainer = document.createElement('div');
@@ -57,6 +114,12 @@ export async function redirectToCheckout() {
     `;
     document.body.appendChild(buyButtonContainer);
     
+    // Set a timeout to ensure we don't wait forever
+    const redirectTimeout = setTimeout(() => {
+      console.log('Stripe component timeout - using direct link');
+      window.location.href = PAYMENT_LINK;
+    }, 3000); // Fail-safe timeout
+    
     // Wait for the component to be ready
     setTimeout(() => {
       try {
@@ -65,28 +128,28 @@ export async function redirectToCheckout() {
         if (stripeBuyButton && stripeBuyButton.shadowRoot) {
           const actualButton = stripeBuyButton.shadowRoot.querySelector('button');
           if (actualButton) {
+            clearTimeout(redirectTimeout); // Clear the fail-safe
             actualButton.click();
             console.log('Stripe Buy Button clicked');
           } else {
-            console.error('Could not find button in Stripe Buy Button shadow DOM');
-            // Fall back to direct link if we can't find the button
+            console.log('Could not find button in Stripe Buy Button shadow DOM - using direct link');
             window.location.href = PAYMENT_LINK;
           }
         } else {
-          console.error('Could not find Stripe Buy Button or it has no shadow root');
-          // Fall back to direct link if the component isn't ready
+          console.log('Could not find Stripe Buy Button or it has no shadow root - using direct link');
           window.location.href = PAYMENT_LINK;
         }
       } catch (innerError) {
-        console.error('Error clicking Stripe Buy Button:', innerError);
-        // Fall back to direct link
+        // Suppress error details to avoid console noise
+        console.log('Error with Stripe Buy Button - using direct link instead');
         window.location.href = PAYMENT_LINK;
       }
     }, 1000); // Wait for the component to initialize
     
   } catch (error) {
-    console.error('Error:', error);
-    alert('An error occurred while processing your payment. Please try again later.');
+    // Suppress specific error details to avoid console noise
+    console.log('Falling back to direct payment link');
+    window.location.href = PAYMENT_LINK;
     hideLoadingIndicator();
   }
 }
@@ -162,5 +225,28 @@ function hideLoadingIndicator() {
   }
 }
 
+/**
+ * Handle unhandled promise rejections that might come from Stripe
+ * This prevents console errors from appearing when ad blockers intercept requests
+ */
+window.addEventListener('unhandledrejection', event => {
+  if (event.reason && 
+      (event.reason.message && event.reason.message.includes('Failed to fetch') ||
+       event.reason.toString().includes('Failed to fetch') || 
+       event.reason.toString().includes('ERR_BLOCKED_BY_CLIENT'))) {
+    
+    // This is likely a blocked request from Stripe - prevent it from showing in console
+    event.preventDefault();
+    
+    // If this is happening, make sure our ad blocker flag is set
+    adBlockerDetected = true;
+  }
+});
+
 // Initialize Stripe when the script loads
 document.addEventListener('DOMContentLoaded', initStripe);
+
+// Expose a function to check if an ad blocker is detected
+export function isAdBlockerDetected() {
+  return adBlockerDetected;
+}

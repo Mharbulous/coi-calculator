@@ -17,6 +17,12 @@
       }
     }
     </script>
+    <!-- Logger utility to suppress console noise -->
+    <script type="module">
+      import { setupLogFiltering } from './util.logger.js';
+      // Set up log filtering early to catch third-party noise
+      setupLogFiltering();
+    </script>
     <!-- Flatpickr JS -->
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 </head>
@@ -272,6 +278,9 @@
     
     <!-- Load demo mode functionality -->
     <script src="demo-mode.js" type="module"></script>
+    
+    <!-- Ad blocker detection handler -->
+    <script src="ad-blocker-handler.js" type="module"></script>
     
     <!-- Test script for ResizeObserver-based pagination -->
     <script src="dom/pageBreaks/test-observer.js"></script>
