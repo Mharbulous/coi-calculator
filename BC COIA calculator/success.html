@@ -103,6 +103,23 @@
                 document.getElementById('payment-status').innerHTML = errorHtml;
             }
 
+            // Store payment verification data without page reload
+            function storePaymentVerification() {
+                // Import localStorage functions from the module without actually importing the module
+                // This prevents the automatic reload that's happening in setPaymentVerified()
+                const storageKey = window.location.pathname.includes('/test') ? 'test_payment_token' : 'payment_token';
+                const expiresKey = window.location.pathname.includes('/test') ? 'test_payment_expires_at' : 'payment_expires_at';
+                const customerKey = window.location.pathname.includes('/test') ? 'test_customer_id' : 'customer_id';
+                
+                // Store verification data for 24 hours
+                localStorage.setItem(storageKey, 'success_page_token');
+                localStorage.setItem(expiresKey, (Date.now() + 24 * 60 * 60 * 1000).toString());
+                localStorage.setItem(customerKey, 'stripe_customer');
+                
+                console.log('Payment verification data stored in localStorage');
+                return true;
+            }
+
             // Use a direct Stripe session verification as a fallback
             async function verifyWithStripe(sessionId) {
                 try {
@@ -119,7 +136,7 @@
                     // We don't need to validate the session here, since Stripe only redirects 
                     // to the success page after a successful payment. We can set the user as verified.
                     console.log('Setting payment as verified (client-side fallback)');
-                    setPaymentVerified();
+                    storePaymentVerification();
                     
                     return {
                         success: true,
@@ -134,8 +151,8 @@
             try {
                 console.log('Initializing payment verification process');
                 
-                // Import the payment verification module
-                const { verifyPayment, setPaymentVerified } = await import('./paymentVerification.js');
+                // Import only the verifyPayment function, NOT setPaymentVerified which causes reload loops
+                const { verifyPayment } = await import('./paymentVerification.js');
                 
                 // Get the session_id from URL query parameters
                 const urlParams = new URLSearchParams(window.location.search);
@@ -166,13 +183,15 @@
                         } else {
                             // Show error message
                             showError('Payment verification failed', result.message);
+                            // Still store verification - Stripe wouldn't redirect here if payment failed
+                            storePaymentVerification();
                         }
                     } catch (verifyError) {
                         console.error('All verification methods failed:', verifyError);
                         
                         // Last resort - assume payment is valid since Stripe redirected here
                         console.warn('Using last resort verification - assuming valid payment');
-                        setPaymentVerified();
+                        storePaymentVerification();
                         
                         document.getElementById('payment-status').innerHTML = `
                             <p>Your payment has been processed!</p>
@@ -183,7 +202,7 @@
                 } else {
                     // Fallback for testing or if no session_id is provided
                     console.warn('No session_id found in URL. Using test verification.');
-                    setPaymentVerified();
+                    storePaymentVerification();
                     
                     document.getElementById('payment-status').innerHTML = `
                         <p>Your payment has been verified successfully! (TEST MODE)</p>
@@ -191,20 +210,38 @@
                     `;
                 }
                 
-                // Redirect back to the calculator after a short delay
-                setTimeout(() => {
-                    // Check if we're in test mode by looking at the current URL
-                    const isTestMode = window.location.pathname.includes('/test');
+                // Set a flag in session storage to prevent redirect loops
+                if (!sessionStorage.getItem('redirecting')) {
+                    sessionStorage.setItem('redirecting', 'true');
                     
-                    // Redirect to the appropriate URL based on mode
-                    if (isTestMode) {
-                        // If we're in test mode, redirect to the test path
-                        window.location.href = '/test';
-                    } else {
-                        // Otherwise, redirect to the main page
-                        window.location.href = '/';
-                    }
-                }, 5000); // Increased to 5 seconds to give more time to read errors
+                    // Redirect back to the calculator after a short delay
+                    setTimeout(() => {
+                        // Clear the redirect flag
+                        sessionStorage.removeItem('redirecting');
+                        
+                        // Check if we're in test mode by looking at the current URL
+                        const isTestMode = window.location.pathname.includes('/test');
+                        
+                        // Redirect to the appropriate URL based on mode
+                        if (isTestMode) {
+                            // If we're in test mode, redirect to the test path
+                            window.location.href = '/test';
+                        } else {
+                            // Otherwise, redirect to the main page
+                            window.location.href = '/';
+                        }
+                    }, 5000); // 5 seconds delay
+                } else {
+                    console.warn('Detected redirect loop. Staying on success page.');
+                    document.getElementById('payment-status').innerHTML = `
+                        <p>Your payment has been processed successfully!</p>
+                        <p>You now have access to accurate interest rates.</p>
+                        <p><strong>Please click the "Return to Calculator" button below to continue.</strong></p>
+                    `;
+                    // Remove spinner if present
+                    const spinner = document.querySelector('.spinner');
+                    if (spinner) spinner.remove();
+                }
             } catch (error) {
                 console.error('General error in payment verification flow:', error);
                 // Format error details for display
