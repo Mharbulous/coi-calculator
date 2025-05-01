@@ -75,7 +75,7 @@ function addPaidModeIndicator() {
 }
 
 /**
- * Add "Demonstration" watermarks
+ * Add "Demonstration" watermark
  */
 function addWatermarks() {
   // Remove any existing watermarks first
@@ -87,6 +87,7 @@ function addWatermarks() {
     // Create the main watermark
     const watermark = document.createElement('div');
     watermark.classList.add('demo-watermark');
+    watermark.id = 'main-demo-watermark'; // Add ID for specific styling
     watermark.textContent = 'DEMONSTRATION';
     
     // Append to the title container
@@ -95,21 +96,8 @@ function addWatermarks() {
     console.warn('Title container not found for watermark placement.');
   }
   
-  // Also add watermarks to each page card for printing
-  const pageCards = document.querySelectorAll('.page-card');
-  pageCards.forEach(card => {
-    // Ensure the card has position relative
-    if (getComputedStyle(card).position === 'static') {
-      card.style.position = 'relative';
-    }
-    
-    const watermark = document.createElement('div');
-    watermark.classList.add('demo-watermark');
-    watermark.textContent = 'DEMONSTRATION';
-    
-    // Append at the end to ensure it's on top
-    card.appendChild(watermark);
-  });
+  // No longer adding watermarks to each page card
+  // This reduces visual confusion and prevents the "jumping" effect
 }
 
 /**
@@ -216,11 +204,11 @@ function hideModal() {
 
 // Initialize demo mode when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-  // Small delay to ensure all other DOM setup is complete
+  // Increased delay to ensure all other DOM setup and layout calculations are complete
   setTimeout(() => {
     initializeDemoMode();
     // Rely on the ResizeObserver in pageBreaksCore.js (setup elsewhere)
     // to handle the initial pagination calculation.
     // No explicit 'content-changed' dispatch needed here.
-  }, 100); // Initial delay after DOMContentLoaded
+  }, 300); // Increased delay after DOMContentLoaded for better layout stability
 });

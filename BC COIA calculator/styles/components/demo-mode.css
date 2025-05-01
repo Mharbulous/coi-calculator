@@ -35,28 +35,45 @@ body.demo-mode {
 /* Positioned relative to #title-container in JS */
 .demo-watermark {
   position: absolute;
-  top: 100px;   /* Pixels below the top of #title-container */
-  left: 200px;  /* Pixels to the right of the left edge of #title-container */
-  transform: rotate(-30deg);
+  top: 50%;      /* Center vertically */
+  left: 50%;     /* Center horizontally */
+  transform: translate(-50%, -50%) rotate(-30deg); /* Center and rotate */
   transform-origin: center center;
-  font-size: 2.4rem; /* Reduced size by 20% */
-  opacity: 0.2;    /* Reduced opacity by 20% */
+  font-size: 2.4rem;
+  opacity: 0.2;
   color: #ff0000;
   pointer-events: none;
   white-space: nowrap;
-  z-index: 9999; /* Increased z-index to ensure it's above other content */
+  z-index: 9999;
   font-family: Arial, sans-serif;
   font-weight: bold;
   letter-spacing: 2px;
   text-transform: uppercase;
 }
 
+/* Specific styling for main watermark to ensure consistent positioning */
+#main-demo-watermark {
+  /* The main watermark is positioned relative to the title container */
+  /* These settings ensure it stays centered regardless of page layout changes */
+  width: auto;
+  height: auto;
+}
+
 /* Make sure watermark appears in print */
 @media print {
   .demo-watermark {
-    opacity: 0.2;
+    opacity: 0.3; /* Slightly increased opacity for better visibility in print */
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+    color-adjust: exact;
+  }
+  
+  /* Since we removed page card watermarks, ensure main watermark prints on each page */
+  #main-demo-watermark {
+    position: fixed; /* Fixed position during printing */
+    top: 50%;
+    left: 50%;
+    /* Other properties inherited from .demo-watermark */
   }
 }
 
