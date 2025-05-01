@@ -1,0 +1,47 @@
+/* Test Mode Indicator Styles */
+
+.test-mode-indicator {
+  background-color: #ffeb3b; /* Yellow background */
+  color: #000;
+  text-align: center;
+  padding: 8px;
+  font-weight: bold;
+  font-size: 14px;
+  border-bottom: 2px solid #f57c00; /* Orange border */
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10000;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Add padding to body when test mode indicator is present */
+body.has-test-mode-indicator {
+  padding-top: 38px; /* Adjust based on the height of the indicator */
+}
+
+/* Adjust position of demo banner when test mode indicator is present */
+body.has-test-mode-indicator .demo-banner {
+  top: 38px; /* Match the height of the test mode indicator */
+}
+
+/* Adjust position of paid mode indicator when test mode indicator is present */
+body.has-test-mode-indicator .paid-mode-indicator {
+  top: 38px; /* Match the height of the test mode indicator */
+}
+
+/* Add a small badge to the title to indicate test mode */
+body.has-test-mode-indicator #title-container::after {
+  content: "TEST";
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: #ffeb3b;
+  color: #000;
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: bold;
+  border: 1px solid #f57c00;
+}

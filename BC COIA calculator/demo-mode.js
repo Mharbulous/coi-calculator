@@ -1,6 +1,6 @@
 // Demo Mode Implementation
 import { hasVerifiedPayment, setPaymentVerified, clearPaymentVerification, getPaymentExpirationDate } from './paymentVerification.js';
-import { redirectToCheckout } from './stripeIntegration.js';
+import { redirectToStripeCheckout } from './stripeLoader.js';
 
 /**
  * Initialize the demo mode features
@@ -105,7 +105,7 @@ function addWatermarks() {
  */
 function handlePaymentClick() {
   // Use Stripe checkout to process the payment
-  redirectToCheckout()
+  redirectToStripeCheckout()
     .catch(error => {
       console.error('Checkout error:', error);
       // If Stripe checkout fails, show the demo modal as fallback

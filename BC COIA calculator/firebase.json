@@ -4,13 +4,40 @@
     "ignore": [
       "firebase.json",
       "**/.*",
-      "**/node_modules/**"
+      "**/node_modules/**",
+      "functions/**"
     ],
     "rewrites": [
+      {
+        "source": "/api/verify-ip",
+        "function": "verifyIp"
+      },
+      {
+        "source": "/test",
+        "destination": "/index.html"
+      },
+      {
+        "source": "/test/**",
+        "destination": "/index.html"
+      },
       {
         "source": "**",
         "destination": "/index.html"
       }
+    ],
+    "headers": [
+      {
+        "source": "/api/**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-store, max-age=0"
+          }
+        ]
+      }
     ]
+  },
+  "functions": {
+    "source": "functions"
   }
 }

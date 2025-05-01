@@ -1,6 +1,8 @@
 // Payment Verification Module
 // This module handles payment verification checking and localStorage persistence
 
+import { isTestMode } from './mode-manager.js';
+
 // Define production domain for API endpoints
 const PRODUCTION_DOMAIN = 'https://www.courtorderinterestcalculator.com';
 
@@ -9,8 +11,12 @@ const PRODUCTION_DOMAIN = 'https://www.courtorderinterestcalculator.com';
  * @returns {boolean} Whether the user has a verified payment
  */
 export function hasVerifiedPayment() {
-  const token = localStorage.getItem('payment_token');
-  const expiresAt = localStorage.getItem('payment_expires_at');
+  // Use different storage keys based on mode
+  const storageKey = isTestMode() ? 'test_payment_token' : 'payment_token';
+  const expiresKey = isTestMode() ? 'test_payment_expires_at' : 'payment_expires_at';
+  
+  const token = localStorage.getItem(storageKey);
+  const expiresAt = localStorage.getItem(expiresKey);
   
   // Check if payment token exists and is not expired
   const isValid = token && expiresAt && (parseInt(expiresAt) > Date.now());
@@ -42,10 +48,15 @@ export async function verifyPayment(sessionId) {
     const data = await response.json();
     
     if (data.verified) {
+      // Use different storage keys based on mode
+      const storageKey = isTestMode() ? 'test_payment_token' : 'payment_token';
+      const expiresKey = isTestMode() ? 'test_payment_expires_at' : 'payment_expires_at';
+      const customerKey = isTestMode() ? 'test_customer_id' : 'customer_id';
+      
       // Store the verification data in localStorage
-      localStorage.setItem('payment_token', data.token);
-      localStorage.setItem('payment_expires_at', data.expiresAt);
-      localStorage.setItem('customer_id', data.customerId || '');
+      localStorage.setItem(storageKey, data.token);
+      localStorage.setItem(expiresKey, data.expiresAt);
+      localStorage.setItem(customerKey, data.customerId || '');
       
       return {
         success: true,
@@ -69,8 +80,12 @@ export async function verifyPayment(sessionId) {
  * @deprecated Use verifyPayment() instead
  */
 export function setPaymentVerified() {
-  localStorage.setItem('payment_token', 'dev_token');
-  localStorage.setItem('payment_expires_at', (Date.now() + 24 * 60 * 60 * 1000).toString());
+  // Use different storage keys based on mode
+  const storageKey = isTestMode() ? 'test_payment_token' : 'payment_token';
+  const expiresKey = isTestMode() ? 'test_payment_expires_at' : 'payment_expires_at';
+  
+  localStorage.setItem(storageKey, 'dev_token');
+  localStorage.setItem(expiresKey, (Date.now() + 24 * 60 * 60 * 1000).toString());
   
   // Refresh the page to load real rates
   window.location.reload();
@@ -80,9 +95,14 @@ export function setPaymentVerified() {
  * Clear payment verification
  */
 export function clearPaymentVerification() {
-  localStorage.removeItem('payment_token');
-  localStorage.removeItem('payment_expires_at');
-  localStorage.removeItem('customer_id');
+  // Use different storage keys based on mode
+  const storageKey = isTestMode() ? 'test_payment_token' : 'payment_token';
+  const expiresKey = isTestMode() ? 'test_payment_expires_at' : 'payment_expires_at';
+  const customerKey = isTestMode() ? 'test_customer_id' : 'customer_id';
+  
+  localStorage.removeItem(storageKey);
+  localStorage.removeItem(expiresKey);
+  localStorage.removeItem(customerKey);
   
   // Refresh the page to load mock rates
   window.location.reload();
@@ -93,7 +113,9 @@ export function clearPaymentVerification() {
  * @returns {Date|null} The expiration date or null if no payment
  */
 export function getPaymentExpirationDate() {
-  const expiresAt = localStorage.getItem('payment_expires_at');
+  // Use different storage key based on mode
+  const expiresKey = isTestMode() ? 'test_payment_expires_at' : 'payment_expires_at';
+  const expiresAt = localStorage.getItem(expiresKey);
   
   if (!expiresAt) return null;
   
