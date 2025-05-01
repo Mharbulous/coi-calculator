@@ -57,6 +57,7 @@ body.demo-mode {
   /* These settings ensure it stays centered regardless of page layout changes */
   width: auto;
   height: auto;
+  margin-top: 100px; /* Move the watermark down by 100px */
 }
 
 /* Make sure watermark appears in print */
@@ -73,6 +74,7 @@ body.demo-mode {
     position: fixed; /* Fixed position during printing */
     top: 50%;
     left: 50%;
+    margin-top: 100px; /* Keep watermark 100px lower in print mode too */
     /* Other properties inherited from .demo-watermark */
   }
 }
