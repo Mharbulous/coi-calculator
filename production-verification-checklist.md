@@ -8,7 +8,7 @@ This checklist provides a comprehensive set of steps to verify the Court Order I
 ### Environment Variables
 - [ ] Confirm `STRIPE_PUBLISHABLE_KEY` is correctly set (starts with pk_live_)
 - [ ] Confirm `STRIPE_SECRET_KEY` is correctly set (starts with sk_live_)
-- [ ] Confirm `STRIPE_WEBHOOK_SECRET` is correctly set (starts with whsec_)
+- [ ] Confirm `STRIPE_WEBHOOK_SECRET` is correctly set (whsec_3KFGGruau5fsW2RYum5NCjVh4ZwR18fC)
 
 ### Basic Functionality
 - [ ] Load the production site in a private/incognito browser window

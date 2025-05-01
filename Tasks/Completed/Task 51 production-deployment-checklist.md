@@ -54,7 +54,7 @@ The implementation confirmed that all necessary production configurations are in
 
 - Production Stripe API keys are never committed to the repository
 - All sensitive credentials are stored in Netlify environment variables
-- Webhook signing secret provides additional security for payment verification
+- Webhook signing secret (whsec_3KFGGruau5fsW2RYum5NCjVh4ZwR18fC) provides additional security for payment verification
 
 ## Next Steps
 

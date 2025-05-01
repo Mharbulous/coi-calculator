@@ -25,9 +25,9 @@ echo "Backup created at: $BACKUP_DIR"
 
 # Step 2: Verify environment variables are set in Netlify
 echo -e "\n${GREEN}Step 2: Please verify you've set the following environment variables in Netlify:${NC}"
-echo -e "${YELLOW}- STRIPE_PUBLISHABLE_KEY${NC} (starts with pk_live_)"
-echo -e "${YELLOW}- STRIPE_SECRET_KEY${NC} (starts with sk_live_)"
-echo -e "${YELLOW}- STRIPE_WEBHOOK_SECRET${NC} (starts with whsec_)"
+echo -e "${YELLOW}- STRIPE_PUBLISHABLE_KEY${NC} (starts with pk_live_) - already set in stripeIntegration.js"
+echo -e "${YELLOW}- STRIPE_SECRET_KEY${NC} (starts with sk_live_) - need to set this in Netlify"
+echo -e "${YELLOW}- STRIPE_WEBHOOK_SECRET${NC} (whsec_3KFGGruau5fsW2RYum5NCjVh4ZwR18fC) - already obtained"
 
 read -p "Have you set these environment variables in Netlify? (y/n): " env_vars_set
 
