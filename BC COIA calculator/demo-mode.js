@@ -66,6 +66,7 @@ function handlePrintClick() {
 function addDemoBanner() {
   const bannerHTML = `
     <div id="demo-mode-banner" class="demo-banner">
+      <div class="close-icon" id="close-demo-banner">✕</div>
       <span>DEMO MODE - Please purchase access to true interest rates</span>
       <button id="get-accurate-results" class="payment-button">Buy Now - $24.99</button>
     </div>
@@ -75,8 +76,9 @@ function addDemoBanner() {
     // Try to add to console layer first
     const banner = addToConsoleLayer(bannerHTML, { position: 'fixed', top: '-100px' });
     
-    // Add click handler for the payment button
+    // Add click handlers for the payment button and close icon
     banner.querySelector('#get-accurate-results').addEventListener('click', handlePaymentClick);
+    banner.querySelector('#close-demo-banner').addEventListener('click', handleCloseBanner);
     
     // Show the banner with a drop-down animation after 5 seconds
     setTimeout(() => {
@@ -93,8 +95,9 @@ function addDemoBanner() {
     // Fallback to original implementation if console layer is not available
     document.body.insertAdjacentHTML('afterbegin', bannerHTML);
     
-    // Add click handler for the payment button
+    // Add click handlers for the payment button and close icon
     document.getElementById('get-accurate-results').addEventListener('click', handlePaymentClick);
+    document.getElementById('close-demo-banner').addEventListener('click', handleCloseBanner);
     
     // Show the banner with a drop-down animation after 5 seconds
     setTimeout(() => {
@@ -284,6 +287,24 @@ function hideModal() {
   const modal = document.getElementById('demo-modal');
   if (modal) {
     modal.style.display = 'none';
+  }
+}
+
+/**
+ * Handle the close banner button click
+ */
+function handleCloseBanner() {
+  const banner = document.getElementById('demo-mode-banner');
+  if (banner) {
+    // Slide the banner up
+    banner.style.top = '-100px';
+    
+    // Remove the 'show' class
+    banner.classList.remove('show');
+    
+    // Don't adjust body padding - keep it consistent
+    // This line was causing the issue by setting inline styles
+    // document.body.style.paddingTop = '0';
   }
 }
 
