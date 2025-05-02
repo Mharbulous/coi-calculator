@@ -87,7 +87,7 @@ export function showModal(title, message, buttonText = "OK", onClose = null) {
 export function showSpecialDamagesDeletionModal() {
     return showModal(
         "Delete Special Damages Row?",
-        "Set value to $0.00 or delete description before deleting row.",
+        "Delete description and change value to $0.00 before deleting row.",
         "OK"
     );
 }
