@@ -14,7 +14,7 @@
 
     --font-family: Arial, sans-serif;
     --base-font-size: 10pt; /* Same size for both online and print */
-    --title-font-size: 11pt; /* Title font size */
+    --title-font-size: 13pt; /* Title font size */
     --print-font-size: 10pt; /* Same as base-font-size for consistency */
 
     --paper-width: 9.27in;
