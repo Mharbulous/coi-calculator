@@ -272,6 +272,20 @@
         break-before: page !important;
     }
     
+    /* Prevent unwanted page break before the postjudgment section title */
+    #postjudgmentTitle {
+        page-break-before: auto !important;
+        -webkit-page-break-before: auto !important;
+        break-before: auto !important;
+    }
+    
+    /* Also ensure no page break on the following table container */
+    div[data-display="postjudgmentSection"] {
+        page-break-before: auto !important;
+        -webkit-page-break-before: auto !important;
+        break-before: auto !important;
+    }
+    
     /* Hide spacers but keep actual breaks */
     .page-break-spacer {
         display: none !important;

@@ -144,7 +144,8 @@ export function insertBlankSpace(referenceElement, height) {
     blankSpace.appendChild(marker);
     
     // Mark the following element for a print break
-    if (referenceElement) {
+    // Skip the postjudgment header which should not have a page break
+    if (referenceElement && referenceElement.id !== 'postjudgmentTitle') {
         referenceElement.style.pageBreakBefore = 'always';
         referenceElement.style.webkitPageBreakBefore = 'always'; // For older WebKit browsers
         referenceElement.style.breakBefore = 'page'; // Modern syntax
