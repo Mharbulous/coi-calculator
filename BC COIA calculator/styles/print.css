@@ -1,8 +1,18 @@
 /* --- PRINT STYLES --- */
 @media print {
+  /* First page settings */
+  @page :first {
+    size: letter;
+    margin: 0; /* No margins for first page */
+  }
+  
+  /* All other pages */
   @page {
     size: letter;
-    margin: 0; /* No margins at page level */
+    margin-top: 0.75in; /* Add top margin to subsequent pages */
+    margin-left: 0;
+    margin-right: 0;
+    margin-bottom: 0;
   }
 
   body {
@@ -18,7 +28,7 @@
     
     .ink-layer {
         margin: 0 !important; 
-        padding: var(--paper-padding) var(--paper-padding) 0 var(--paper-padding) !important; /* Remove bottom padding to match online view */
+        padding: var(--paper-padding) var(--paper-padding) 0 var(--paper-padding) !important;
         width: var(--paper-width) !important;
         min-height: 10.9in !important; /* Slightly less than 11 to avoid issues */ 
         height: auto !important; 
@@ -28,7 +38,6 @@
         page-break-after: auto !important; 
         position: static !important; 
         overflow: visible !important;
-        /* Standard letter size for print, online view uses expanded height */
     }
     
     input[type="date"], input[type="text"], select {
@@ -254,7 +263,21 @@
         visibility: hidden !important;
     }
 
-    /* Hide elements specifically for screen display */
+    /* Support both legacy and modern page break properties */
+    [style*="page-break-before: always"],
+    [style*="webkitPageBreakBefore: always"],
+    [style*="breakBefore: page"] {
+        page-break-before: always !important;
+        -webkit-page-break-before: always !important;
+        break-before: page !important;
+    }
+    
+    /* Hide spacers but keep actual breaks */
+    .page-break-spacer {
+        display: none !important;
+    }
+
+    /* Hide elements specifically for screen display (like debug markers inside spacers) */
     .screen-only {
         display: none !important;
     }

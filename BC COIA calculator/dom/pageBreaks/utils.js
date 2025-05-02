@@ -45,7 +45,8 @@ export function getElementAbsoluteTop(element) {
 export function insertBlankRow(referenceRow, height) {
     if (!referenceRow || height <= 0) return;
     const blankRow = document.createElement('tr');
-    blankRow.classList.add(SCREEN_ONLY_CLASS, 'page-break-spacer'); // Add spacer class
+    // Keep the spacer class, remove screen-only from the row itself
+    blankRow.classList.add('page-break-spacer'); 
     const cell = document.createElement('td');
     // Attempt to find the number of columns from the table header or the reference row
     let colspan = 5; // Default colspan
@@ -66,7 +67,7 @@ export function insertBlankRow(referenceRow, height) {
     cell.style.padding = '0';
     cell.style.border = 'none';
 
-    // Add a visible marker for debugging
+    // Add a visible marker for debugging (only visible online)
     cell.style.position = 'relative';
     const marker = document.createElement('div');
     marker.textContent = `Row Break (${height}px)`;
@@ -82,6 +83,13 @@ export function insertBlankRow(referenceRow, height) {
     marker.style.pointerEvents = 'none';
     marker.classList.add(SCREEN_ONLY_CLASS);
     cell.appendChild(marker);
+    
+    // Mark the following row for a print break
+    if (referenceRow) {
+        referenceRow.style.pageBreakBefore = 'always';
+        referenceRow.style.webkitPageBreakBefore = 'always'; // For older WebKit browsers
+        referenceRow.style.breakBefore = 'page'; // Modern syntax
+    }
 
     blankRow.appendChild(cell);
     referenceRow.parentNode.insertBefore(blankRow, referenceRow);
@@ -114,10 +122,11 @@ export function insertHeaderRow(referenceRow, originalHeaderRow) {
 export function insertBlankSpace(referenceElement, height) {
     if (!referenceElement || height <= 0) return;
     const blankSpace = document.createElement('div');
-    blankSpace.classList.add(SCREEN_ONLY_CLASS, 'page-break-spacer'); // Add spacer class
+    // Keep the spacer class, remove screen-only from the div itself
+    blankSpace.classList.add('page-break-spacer'); 
     blankSpace.style.height = `${height}px`;
 
-    // Add a visible marker for debugging
+    // Add a visible marker for debugging (only visible online)
     blankSpace.style.position = 'relative';
     const marker = document.createElement('div');
     marker.textContent = `Page Break (${height}px)`;
@@ -133,6 +142,13 @@ export function insertBlankSpace(referenceElement, height) {
     marker.style.pointerEvents = 'none';
     marker.classList.add(SCREEN_ONLY_CLASS);
     blankSpace.appendChild(marker);
+    
+    // Mark the following element for a print break
+    if (referenceElement) {
+        referenceElement.style.pageBreakBefore = 'always';
+        referenceElement.style.webkitPageBreakBefore = 'always'; // For older WebKit browsers
+        referenceElement.style.breakBefore = 'page'; // Modern syntax
+    }
 
     referenceElement.parentNode.insertBefore(blankSpace, referenceElement);
     return blankSpace;
