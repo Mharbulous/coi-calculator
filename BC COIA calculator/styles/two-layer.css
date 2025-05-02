@@ -41,7 +41,7 @@
     right: var(--paper-padding);
     bottom: var(--paper-padding);
     left: var(--paper-padding);
-    border: 2px dashed #ffbf00; /* Amber color, dashed line */
+    border: 2px dashed white; /* Changed from amber to white to make invisible while preserving for debugging */
     pointer-events: none; /* Allow clicking through */
     z-index: 5; /* Above the paper but below the content */
     box-sizing: border-box;
