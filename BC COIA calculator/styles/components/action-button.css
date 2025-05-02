@@ -11,30 +11,21 @@
     cursor: pointer;
     border: none;
     transition: background-color 0.3s ease;
-    min-width: 140px; /* Ensure enough space for the longer text */
+    width: var(--value-width-right); /* Match width of Registry fields (1.5in) */
     text-align: center;
     white-space: nowrap; /* Prevent text from wrapping */
 }
 
-/* Demo mode styling - Buy Now button */
-.demo-mode .action-button.buy-now {
+/* Common styling for both buttons - green with white text */
+.action-button.buy-now,
+.action-button.print {
     background-color: #4CAF50; /* Green */
     color: white;
 }
 
-.demo-mode .action-button.buy-now:hover {
-    background-color: #45a049; /* Darker green on hover */
-}
-
-/* Paid mode styling - Print button */
-.action-button.print {
-    background-color: #f5f5f5;
-    color: #333;
-    border: 1px solid #ddd;
-}
-
+.action-button.buy-now:hover,
 .action-button.print:hover {
-    background-color: #e7e7e7;
+    background-color: #45a049; /* Darker green on hover */
 }
 
 /* Print-specific styles */
