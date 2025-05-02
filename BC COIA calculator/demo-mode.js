@@ -67,7 +67,7 @@ function addDemoBanner() {
   const bannerHTML = `
     <div id="demo-mode-banner" class="demo-banner">
       <div class="close-icon" id="close-demo-banner">✕</div>
-      <span>Caution:  Demo mode uses mock interest rates</span>
+      <span>Demo uses mock interest rates</span>
       <button id="get-accurate-results" class="payment-button">Buy Now - $24.99</button>
     </div>
   `;
