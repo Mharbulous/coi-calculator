@@ -11,9 +11,9 @@ const PRODUCT_PRICE_ID = 'price_1RC3fJRahO4v2IFY9yNoptZg';
 // Updated to use the payment link configured with success and cancel URLs
 const PAYMENT_LINK = 'https://buy.stripe.com/test_3cs3f7eXE7VGa0E8ww';
 
-// URLs for success and cancel pages - using relative paths to avoid SSL certificate issues
-const SUCCESS_URL = `/test/success.html?session_id={CHECKOUT_SESSION_ID}`;
-const CANCEL_URL = `/test/cancel.html`;
+// URLs for success and cancel pages - using absolute URLs for the test site
+const SUCCESS_URL = `https://www.courtorderinterestcalculator.com/test/success.html?session_id={CHECKOUT_SESSION_ID}`;
+const CANCEL_URL = `https://www.courtorderinterestcalculator.com/test/cancel.html`;
 
 // Stripe instance and Buy Button ID
 let stripe;

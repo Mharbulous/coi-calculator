@@ -5,19 +5,19 @@
 const STRIPE_PUBLISHABLE_KEY = 'pk_live_51RBUdxDKPUV593QMcEYvUeQujcCjUhOhqQITsM3FrPvFnM6FAxKW8ZV8fWD1xMkj0Oh8JKtL4R7BMNGZCjbFPgY800Ex0bXWRv';
 
 // Price ID for the COI Calculator product (production)
-const PRODUCT_PRICE_ID = 'price_1RJedEDKPUV593QMByW73wjW';
+const PRODUCT_PRICE_ID = 'price_1RKPbCDKPUV593QMrT9k934E';
 
 // Stripe direct payment link (production)
 // Updated to use the payment link configured with success and cancel URLs
-const PAYMENT_LINK = 'https://buy.stripe.com/5kAbJY80XbR0azKbII';
+const PAYMENT_LINK = 'https://buy.stripe.com/9AQ3ds6WT5sCfU43ce';
 
-// URLs for success and cancel pages - using relative paths to avoid SSL certificate issues
-const SUCCESS_URL = `/success.html?session_id={CHECKOUT_SESSION_ID}`;
-const CANCEL_URL = `/cancel.html`;
+// URLs for success and cancel pages - using absolute URLs for the production site
+const SUCCESS_URL = `https://www.courtorderinterestcalculator.com/success.html?session_id={CHECKOUT_SESSION_ID}`;
+const CANCEL_URL = `https://www.courtorderinterestcalculator.com/cancel.html`;
 
 // Stripe instance and Buy Button ID
 let stripe;
-const BUY_BUTTON_ID = 'buy_btn_1RJlH5DKPUV593QM78WuqO7S';
+const BUY_BUTTON_ID = 'buy_btn_1RKPmrDKPUV593QMzWyymlFD';
 
 // Flag to detect if an ad blocker is present
 let adBlockerDetected = false;
