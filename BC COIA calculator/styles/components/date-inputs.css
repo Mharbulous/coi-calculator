@@ -17,6 +17,8 @@
     outline: 1px solid var(--focus-outline-color);
 }
 
+/* Remove previous hover padding adjustment - no longer needed with outline approach */
+
 .custom-date-input::placeholder {
     color: #999;
     opacity: 0.7;

@@ -120,6 +120,8 @@
     opacity: 0.7;
 }
 
+/* Remove previous hover padding adjustment - no longer needed with outline approach */
+
 /* Ensure the button is hidden in print mode */
 @media print {
     .add-special-damages-btn,

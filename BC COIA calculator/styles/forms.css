@@ -161,3 +161,41 @@
     font-size: 12px;
     color: white;
 }
+
+/* Hover effect for all editable fields */
+input[type="text"]:hover,
+input[type="number"]:hover,
+select:hover,
+.custom-date-input:hover,
+.special-damages-date:hover,
+.special-damages-description:hover,
+.special-damages-amount:hover,
+[data-input]:hover:not([type="checkbox"]) {
+    outline: 1px solid #3a7bc8;
+    box-sizing: border-box;
+}
+
+/* Remove the default outline focus style to avoid double outlines */
+input:focus,
+select:focus,
+.custom-date-input:focus,
+.special-damages-date:focus,
+.special-damages-description:focus,
+.special-damages-amount:focus,
+[data-input]:focus:not([type="checkbox"]) {
+    outline: 1px solid var(--focus-outline-color);
+    border: none;
+}
+
+/* Print styles - disable hover effects when printing */
+@media print {
+    input:hover,
+    select:hover,
+    .custom-date-input:hover,
+    .special-damages-date:hover,
+    .special-damages-description:hover,
+    .special-damages-amount:hover,
+    [data-input]:hover:not([type="checkbox"]) {
+        outline: none;
+    }
+}
