@@ -212,13 +212,8 @@ export function addTestModeIndicator(force = false) {
   }
   
   // Add class to body for CSS targeting
+  // This class is sufficient to display the small "TEST" tag on the Print button
   document.body.classList.add('has-test-mode-indicator');
   
-  // Create and add the test mode indicator
-  const testModeIndicator = document.createElement('div');
-  testModeIndicator.id = 'test-mode-indicator';
-  testModeIndicator.className = 'test-mode-indicator';
-  testModeIndicator.textContent = force ? 'FORCED TEST MODE' : getEnvironmentLabel();
-  
-  document.body.insertBefore(testModeIndicator, document.body.firstChild);
+  // The large banner has been removed, leaving only the small "TEST" tag on the Print button
 }
