@@ -1,9 +1,11 @@
 // Payment Verification Module
 // This module handles payment verification checking and localStorage persistence
+// It communicates with Netlify Functions (not Firebase Functions) for payment verification
 
 import { isTestMode } from './mode-manager.js';
 
 // Define production domain for API endpoints
+// Note: API endpoints are handled by Netlify Functions, while the site is hosted on Firebase
 const PRODUCTION_DOMAIN = 'https://www.courtorderinterestcalculator.com';
 
 /**

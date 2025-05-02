@@ -1,4 +1,6 @@
 {
+  "//": "Firebase Hosting Configuration - PRIMARY HOSTING PLATFORM",
+  "//notes": "This project uses Firebase for hosting the application. Serverless functions are handled by Netlify, not Firebase Functions.",
   "hosting": {
     "public": ".",
     "ignore": [

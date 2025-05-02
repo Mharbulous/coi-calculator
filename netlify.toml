@@ -1,11 +1,17 @@
+# Netlify Configuration - SERVERLESS FUNCTIONS ONLY
+# Note: This project uses a hybrid deployment approach where:
+# - Firebase handles application hosting
+# - Netlify is used exclusively for serverless functions (payment processing)
+
 [build]
-  functions = "functions"
+  functions = "functions"  # Directory containing Netlify serverless functions
 
 [dev]
   functions = "functions"
-  publish = "BC COIA calculator"
+  publish = "BC COIA calculator"  # Only used for local development
   port = 8888
 
+# API redirects for serverless functions
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"

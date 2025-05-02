@@ -1,3 +1,9 @@
+// Netlify Serverless Function for Payment Verification
+// This is a Netlify Function, not a Firebase Function.
+// Part of the hybrid deployment architecture where:
+// - Firebase handles application hosting
+// - Netlify provides serverless functions for payment processing
+
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const crypto = require('crypto');
 

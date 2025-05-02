@@ -1,3 +1,8 @@
+// Firebase Cloud Function for IP Verification
+// Note: While this is structured as a Firebase Function, in production
+// we primarily use the Netlify Function equivalent (functions/verify-ip.js)
+// due to limitations in Firebase's free tier.
+
 const functions = require('firebase-functions');
 const cors = require('cors')({ origin: true });
 

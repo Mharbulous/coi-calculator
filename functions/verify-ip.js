@@ -1,4 +1,8 @@
-// IP verification function for test mode access control
+// Netlify Serverless Function for IP Verification
+// This is a Netlify Function, not a Firebase Function.
+// Part of the hybrid deployment architecture where:
+// - Firebase handles application hosting
+// - Netlify provides serverless functions for API endpoints
 exports.handler = async function(event, context) {
   // Get client IP from headers
   const clientIP = event.headers['client-ip'] || 

@@ -1,6 +1,14 @@
 #!/bin/bash
 # Production Deployment Script for Court Order Interest Calculator
 # This script automates the deployment process for the production environment
+# 
+# DEPLOYMENT ARCHITECTURE NOTE:
+# This script handles the Netlify Functions deployment only.
+# The actual application hosting is done via Firebase Hosting.
+# We use a hybrid approach where:
+#  - Firebase hosts the application frontend
+#  - Netlify provides serverless functions for payment processing
+# See firebase.json for the hosting configuration.
 
 # Set text colors
 GREEN='\033[0;32m'
