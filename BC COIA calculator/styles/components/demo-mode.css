@@ -80,19 +80,15 @@ body.demo-mode {
     /* Other properties inherited from .demo-watermark */
   }
   
-  /* Create repeating watermarks for each page */
-  @page {
-    @top-center {
-      content: "DEMONSTRATION";
-      font-size: 2.4rem;
-      opacity: 0.2;
-      color: #ff0000;
-      font-family: Arial, sans-serif;
-      font-weight: bold;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      transform: rotate(-30deg);
-    }
+  /* Preserve position type but make sure the watermark appears on each page */
+  #main-demo-watermark {
+    position: absolute; /* Same as online version */
+    top: 50%;
+    left: 50%;
+    margin-top: 100px;
+    page-break-inside: avoid;
+    page-break-after: always;
+    /* Other properties inherited from .demo-watermark */
   }
 }
 
