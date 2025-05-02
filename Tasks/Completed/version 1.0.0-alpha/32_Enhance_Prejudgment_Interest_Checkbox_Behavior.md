@@ -2,7 +2,7 @@
 
 ## Current Behavior
 
-Currently, when the "Show prejudgment interest" checkbox is turned off:
+Currently, when the "Calculate prejudgment interest" checkbox is turned off:
 - The prejudgment interest calculation table is hidden
 - The summary table still shows the prejudgment interest date field, help icon, and "from" text
 - The prejudgment interest amount shows $0.00 and is not editable
@@ -15,7 +15,7 @@ The desired behavior has been divided into three subtasks:
 
 ### 1. Hide Prejudgment Interest Date When Checkbox is Unchecked
 
-When the "Show prejudgment interest" checkbox is unchecked:
+When the "Calculate prejudgment interest" checkbox is unchecked:
 - The prejudgment interest date field in the summary table should be hidden
 - The help icon and "from" text next to the date field should also be hidden
 - The state should still maintain the prejudgment start date value for when the checkbox is checked again
@@ -24,7 +24,7 @@ See [Task 32.1](./32.1_Hide_Prejudgment_Interest_Date.md) for detailed implement
 
 ### 2. Make Prejudgment Interest Amount Editable When Checkbox is Unchecked
 
-When the "Show prejudgment interest" checkbox is unchecked:
+When the "Calculate prejudgment interest" checkbox is unchecked:
 - The prejudgment interest amount should become an editable currency field
 - When switching from checked to unchecked, the editable field should initialize with the same value that had previously been calculated
 - When switching from unchecked to checked, the value should go back to being non-editable and calculated based on the dates and amounts entered
@@ -33,7 +33,7 @@ See [Task 32.2](./32.2_Make_Prejudgment_Interest_Amount_Editable.md) for detaile
 
 ### 3. Preserve Calculation State When Toggling Checkbox
 
-When toggling the "Show prejudgment interest" checkbox:
+When toggling the "Calculate prejudgment interest" checkbox:
 - The calculation state (including special damages entries) should be preserved
 - Switching between checked and unchecked should not erase the calculation table state
 - When the user unchecks then checks the checkbox, all details including special damages should remain
