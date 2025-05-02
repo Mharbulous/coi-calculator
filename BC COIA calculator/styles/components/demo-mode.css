@@ -44,7 +44,7 @@ body.demo-mode {
   color: #ff0000;
   pointer-events: none;
   white-space: nowrap;
-  z-index: 9999;
+  z-index: 1; /* Lowered to be behind console layer elements like tooltips */
   font-family: Arial, sans-serif;
   font-weight: bold;
   letter-spacing: 2px;
