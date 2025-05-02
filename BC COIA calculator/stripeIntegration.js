@@ -111,6 +111,7 @@ export async function redirectToCheckout() {
         mode: 'payment',
         successUrl: SUCCESS_URL,
         cancelUrl: CANCEL_URL,
+        allowPromotionCodes: true, // Enable coupon/promotion code field
       });
       
       if (error) {
