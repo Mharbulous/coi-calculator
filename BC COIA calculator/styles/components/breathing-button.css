@@ -1,0 +1,189 @@
+/* Breathing Button Effect Styles */
+
+/* Animation for shadow effect only */
+@keyframes breathe-shadow {
+  0% {
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+  }
+  50% {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+  }
+  100% {
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+  }
+}
+
+/* Exceptionally subtle animation for the background pseudo-element */
+@keyframes subtle-scale {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.01);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Apply breathing effect to Buy Now button without transforming the text */
+.action-button.buy-now {
+  /* Do NOT override position: absolute from action-button.css */
+  /* position is kept as absolute with top: 0, right: 0 from original styles */
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+  animation: breathe-shadow 6s ease-in-out infinite;
+  overflow: hidden; /* Ensure the pseudo-element doesn't leak outside */
+  border: 1px solid transparent;
+  box-sizing: border-box;
+  /* Ensure text remains crisp with GPU acceleration */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Store original background color */
+  background-color: #4CAF50; /* Green */
+}
+
+/* Breathing background effect - using a different strategy to avoid conflicts */
+.action-button.buy-now::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #4CAF50; /* Match the button's color */
+  border-radius: 3px;
+  z-index: -1; /* Behind everything */
+  transform-origin: center;
+  animation: subtle-scale 6s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Ensure text stays above animations and remains crisp */
+.action-button.buy-now {
+  /* Do NOT override position property here */
+  z-index: 2; /* Keep text on top */
+  /* Additional text rendering improvements */
+  text-shadow: 0 0 0 transparent; /* Prevent text blur */
+  transform: translateZ(0); /* Force GPU rendering for text without affecting position */
+  backface-visibility: hidden; /* Prevent text rendering issues */
+  perspective: 1000px; /* 3D space for text */
+}
+
+/* Pause animations on hover for better UX */
+.action-button.buy-now:hover {
+  animation-play-state: paused;
+}
+
+.action-button.buy-now:hover::before,
+.action-button.buy-now:hover::after {
+  animation-play-state: paused;
+}
+
+/* Random shimmer effect with CSS-only tricks */
+
+/* Main shimmer animation - modified for shorter testing intervals */
+@keyframes shimmer {
+  0%, 80% {
+    background-position: -200% 0;
+    opacity: 0;
+  }
+  85% {
+    background-position: -150% 0;
+    opacity: 0.9;
+  }
+  90% {
+    background-position: 0 0;
+    opacity: 1;
+  }
+  95% {
+    background-position: 150% 0;
+    opacity: 0.9; 
+  }
+  100% {
+    background-position: 200% 0;
+    opacity: 0;
+  }
+}
+
+/* First shimmer overlay - shortened for testing */
+.action-button.buy-now::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.1) 45%,
+    rgba(255, 255, 255, 0.3) 50%,
+    rgba(255, 255, 255, 0.1) 55%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 200% 100%;
+  border-radius: 3px;
+  z-index: 5; /* Above the background */
+  pointer-events: none; /* Allow click-through */
+  animation: shimmer 7s linear infinite; /* 5-10 second range for testing */
+  opacity: 0.8;
+}
+
+/* Second shimmer layer - shortened for testing */
+.action-button.buy-now span.shimmer-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 12;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.05) 45%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0.05) 55%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 200% 100%;
+  border-radius: 3px;
+  pointer-events: none;
+  /* Different duration for variety */
+  animation: shimmer 5s linear infinite;
+  /* Small delay for offset effects */
+  animation-delay: 2s;
+}
+
+/* Turn off animation for devices that prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .action-button.buy-now,
+  .action-button.buy-now::before,
+  .action-button.buy-now::after,
+  .action-button.buy-now.shimmer-active::before {
+    animation: none;
+  }
+}
+
+/* Print styles - ensure animations don't appear in print */
+@media print {
+  .action-button.buy-now {
+    animation: none;
+    box-shadow: none;
+  }
+  
+  .action-button.buy-now::before,
+  .action-button.buy-now::after {
+    display: none;
+  }
+}

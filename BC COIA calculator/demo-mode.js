@@ -67,7 +67,7 @@ function addDemoBanner() {
   const bannerHTML = `
     <div id="demo-mode-banner" class="demo-banner">
       <div class="close-icon" id="close-demo-banner">✕</div>
-      <span>DEMO MODE - Please purchase access to true interest rates</span>
+      <span>Caution:  Demo mode uses mock interest rates</span>
       <button id="get-accurate-results" class="payment-button">Buy Now - $24.99</button>
     </div>
   `;
@@ -80,15 +80,8 @@ function addDemoBanner() {
     banner.querySelector('#get-accurate-results').addEventListener('click', handlePaymentClick);
     banner.querySelector('#close-demo-banner').addEventListener('click', handleCloseBanner);
     
-    // Show the banner with a drop-down animation after 5 seconds
-    setTimeout(() => {
-      if (banner) {
-        banner.style.top = '0'; // Move it into view
-        banner.classList.add('show');
-        // No need to add banner-visible class or dispatch event here.
-        // The ResizeObserver in pageBreaksCore should detect the layout change
-      }
-    }, 5000); // 5000 milliseconds = 5 seconds
+    // Show the banner on first scroll instead of timer
+    setupBannerScrollTrigger(banner);
   } catch (error) {
     console.error('Failed to add demo banner to console layer:', error);
     
@@ -99,13 +92,8 @@ function addDemoBanner() {
     document.getElementById('get-accurate-results').addEventListener('click', handlePaymentClick);
     document.getElementById('close-demo-banner').addEventListener('click', handleCloseBanner);
     
-    // Show the banner with a drop-down animation after 5 seconds
-    setTimeout(() => {
-      const banner = document.getElementById('demo-mode-banner');
-      if (banner) {
-        banner.classList.add('show');
-      }
-    }, 5000); // 5000 milliseconds = 5 seconds
+    // Show the banner on first scroll (fallback implementation)
+    setupBannerScrollTrigger(document.getElementById('demo-mode-banner'));
   }
 }
 
@@ -306,6 +294,29 @@ function handleCloseBanner() {
     // This line was causing the issue by setting inline styles
     // document.body.style.paddingTop = '0';
   }
+}
+
+/**
+ * Setup scroll event listener to show banner on first scroll
+ * @param {HTMLElement} banner - The banner element to show
+ */
+function setupBannerScrollTrigger(banner) {
+  if (!banner) return;
+  
+  // Function to handle scroll event
+  const handleScroll = () => {
+    // Show the banner
+    if (banner) {
+      banner.style.top = '0'; // Move it into view
+      banner.classList.add('show');
+    }
+    
+    // Remove the scroll event listener after first trigger
+    window.removeEventListener('scroll', handleScroll);
+  };
+  
+  // Add scroll event listener
+  window.addEventListener('scroll', handleScroll);
 }
 
 // Initialize demo mode when DOM is loaded
