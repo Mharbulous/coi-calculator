@@ -31,7 +31,7 @@ function initializeDemoMode() {
 function addDemoBanner() {
   const bannerHTML = `
     <div id="demo-mode-banner" class="demo-banner">
-      <span>DEMO MODE - Please purchase for accurate interest rates</span>
+      <span>DEMO MODE - Please purchase access to true interest rates</span>
       <button id="get-accurate-results" class="payment-button">Buy Now - $24.99</button>
     </div>
   `;
