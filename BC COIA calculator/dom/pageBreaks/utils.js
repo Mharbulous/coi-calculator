@@ -169,9 +169,9 @@ export function insertPageBreakBeforeElement(element, requiredSpacerHeight) {
 
 
 /**
- * Removes all elements with the screen-only class.
+ * Removes temporary elements created by the pagination logic (spacers and repeated headers).
  */
-export function clearScreenOnlyElements() {
-    // Include spacers and repeated headers in removal
-    document.querySelectorAll(`.${SCREEN_ONLY_CLASS}`).forEach(el => el.remove());
+export function clearPaginationHelpers() { // Renamed for clarity
+    // Target specific classes used for pagination helpers
+    document.querySelectorAll('.page-break-spacer, .repeated-header').forEach(el => el.remove());
 }

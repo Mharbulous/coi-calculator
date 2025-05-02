@@ -4,7 +4,7 @@
 
 import elements from '../elements.js';
 import {
-    clearScreenOnlyElements,
+    clearPaginationHelpers, // Updated import
     getElementTopPadding,
     getElementOuterHeight,
     getElementAbsoluteTop,
@@ -32,7 +32,7 @@ export function updatePagination() {
     
     try {
         // Core pagination implementation
-        clearScreenOnlyElements(); // Clear previous breaks and spacers
+        clearPaginationHelpers(); // Use updated function to clear only pagination helpers
 
         // Get DOM elements
         const inkLayer = document.querySelector('.ink-layer');

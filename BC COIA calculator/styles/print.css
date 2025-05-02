@@ -1,4 +1,4 @@
-h/* --- PRINT STYLES --- */
+/* --- PRINT STYLES --- */
 @media print {
   @page {
     size: letter;
@@ -153,6 +153,17 @@ h/* --- PRINT STYLES --- */
     /* Hide help icons in print mode */
     .help-icon {
         display: none !important;
+        visibility: hidden !important; /* Add visibility hidden for extra assurance */
+        color: transparent !important; /* Make text transparent */
+        font-size: 0 !important; /* Reduce font size to 0 */
+    }
+    
+    /* Hide help icon text content directly */
+    .help-icon:before,
+    .help-icon:after,
+    .help-icon * {
+        display: none !important;
+        visibility: hidden !important;
     }
     
     /* Special damages print styles */
