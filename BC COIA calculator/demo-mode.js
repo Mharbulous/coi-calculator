@@ -2,6 +2,7 @@
 import { hasVerifiedPayment, setPaymentVerified, clearPaymentVerification, getPaymentExpirationDate } from './paymentVerification.js';
 import { redirectToStripeCheckout } from './stripeLoader.js';
 import { addToConsoleLayer } from './dom/console.js';
+import { isTestMode } from './mode-manager.js';
 
 /**
  * Initialize the demo mode features
@@ -105,10 +106,15 @@ function addPaidModeIndicator() {
   const expirationDate = getPaymentExpirationDate();
   const formattedExpiration = expirationDate ? expirationDate.toLocaleString() : 'Unknown';
   
+  // Only include the reset button if in test mode
+  const resetButton = isTestMode() 
+    ? `<button id="reset-to-demo" class="demo-button">Reset to Demo Mode</button>` 
+    : '';
+  
   const indicatorHTML = `
     <div id="paid-mode-indicator" class="paid-mode-indicator">
       <span>✓ Using verified court order interest rates (expires: ${formattedExpiration})</span>
-      <button id="reset-to-demo" class="demo-button">Reset to Demo Mode</button>
+      ${resetButton}
     </div>
   `;
   
@@ -119,8 +125,11 @@ function addPaidModeIndicator() {
     // Add fallback class for browsers that don't support :has()
     document.body.classList.add('paid-mode-body-padding');
     
-    // Add click handler for the reset button (for testing)
-    indicator.querySelector('#reset-to-demo').addEventListener('click', handleResetToDemoClick);
+    // Add click handler for the reset button (for testing) if it exists
+    const resetButton = indicator.querySelector('#reset-to-demo');
+    if (resetButton) {
+      resetButton.addEventListener('click', handleResetToDemoClick);
+    }
   } catch (error) {
     console.error('Failed to add paid mode indicator to console layer:', error);
     
@@ -130,8 +139,11 @@ function addPaidModeIndicator() {
     // Add fallback class for browsers that don't support :has()
     document.body.classList.add('paid-mode-body-padding');
     
-    // Add click handler for the reset button (for testing)
-    document.getElementById('reset-to-demo').addEventListener('click', handleResetToDemoClick);
+    // Add click handler for the reset button (for testing) if it exists
+    const resetButton = document.getElementById('reset-to-demo');
+    if (resetButton) {
+      resetButton.addEventListener('click', handleResetToDemoClick);
+    }
   }
 }
 
