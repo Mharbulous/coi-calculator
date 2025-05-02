@@ -74,8 +74,8 @@ export function insertBlankRow(referenceRow, height) {
     marker.style.position = 'absolute';
     marker.style.top = '0';
     marker.style.left = '0';
-    marker.style.backgroundColor = 'rgba(0, 0, 255, 0.2)';
-    marker.style.color = 'blue';
+    marker.style.backgroundColor = 'rgba(255, 255, 255, 1)';
+    marker.style.color = 'white';
     marker.style.padding = '2px';
     marker.style.fontSize = '10px';
     marker.style.fontWeight = 'bold';
