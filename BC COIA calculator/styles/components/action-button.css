@@ -1,0 +1,45 @@
+/* Action Button Styles */
+
+/* Base button styling */
+.action-button {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+    transition: background-color 0.3s ease;
+    min-width: 140px; /* Ensure enough space for the longer text */
+    text-align: center;
+    white-space: nowrap; /* Prevent text from wrapping */
+}
+
+/* Demo mode styling - Buy Now button */
+.demo-mode .action-button.buy-now {
+    background-color: #4CAF50; /* Green */
+    color: white;
+}
+
+.demo-mode .action-button.buy-now:hover {
+    background-color: #45a049; /* Darker green on hover */
+}
+
+/* Paid mode styling - Print button */
+.action-button.print {
+    background-color: #f5f5f5;
+    color: #333;
+    border: 1px solid #ddd;
+}
+
+.action-button.print:hover {
+    background-color: #e7e7e7;
+}
+
+/* Print-specific styles */
+@media print {
+    .action-button {
+        display: none; /* Hide button when printing */
+    }
+}

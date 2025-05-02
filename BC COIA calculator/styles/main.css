@@ -15,6 +15,7 @@
 @import url('components/demo-mode.css'); /* Demo mode styles */
 @import url('components/test-mode.css'); /* Test mode styles */
 @import url('components/ad-blocker-warning.css'); /* Ad blocker warning styles */
+@import url('components/action-button.css'); /* Action button styles */
 @import url('page-breaks.css'); /* Import page break styles */
 @import url('two-layer.css'); /* Import two-layer skeuomorphic paper styles */
 @import url('console-layer.css'); /* Import console layer styles */

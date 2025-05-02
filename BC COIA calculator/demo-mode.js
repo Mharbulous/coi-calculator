@@ -23,6 +23,41 @@ function initializeDemoMode() {
     // Show a small indicator that real rates are being used
     addPaidModeIndicator();
   }
+  
+  // Initialize the action button for both demo and paid modes
+  initializeActionButton();
+}
+
+/**
+ * Initialize the action button in the top-right corner
+ * Shows "Buy Now" button in demo mode and "Print" button in paid mode
+ */
+function initializeActionButton() {
+  const isPaid = hasVerifiedPayment();
+  const actionButton = document.getElementById('action-button');
+  
+  if (!actionButton) return;
+  
+  if (isPaid) {
+    // Paid version - Print button
+    actionButton.textContent = 'Print';
+    actionButton.classList.add('print');
+    actionButton.classList.remove('buy-now');
+    actionButton.addEventListener('click', handlePrintClick);
+  } else {
+    // Demo version - Buy Now button with price
+    actionButton.textContent = 'Buy Now - $24.99';
+    actionButton.classList.add('buy-now');
+    actionButton.classList.remove('print');
+    actionButton.addEventListener('click', handlePaymentClick);
+  }
+}
+
+/**
+ * Handle the print button click in paid mode
+ */
+function handlePrintClick() {
+  window.print();
 }
 
 /**
