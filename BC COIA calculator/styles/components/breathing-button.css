@@ -40,6 +40,8 @@
   -moz-osx-font-smoothing: grayscale;
   /* Store original background color */
   background-color: #4CAF50; /* Green */
+  /* Add transition for the 3D transform hover effect */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 /* Breathing background effect - using a different strategy to avoid conflicts */
@@ -78,11 +80,14 @@
   transform: translateZ(0); /* Force GPU rendering for text without affecting position */
   backface-visibility: hidden; /* Prevent text rendering issues */
   perspective: 1000px; /* 3D space for text */
+  will-change: transform; /* Hint to browser for hardware acceleration */
 }
 
 /* Pause animations on hover for better UX */
 .action-button.buy-now:hover {
   animation-play-state: paused;
+  transform: translateY(-2px) translateZ(0); /* Combine transforms for compatibility */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
 }
 
 .action-button.buy-now:hover::before,
