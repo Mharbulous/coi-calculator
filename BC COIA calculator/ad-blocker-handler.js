@@ -5,6 +5,7 @@
  */
 
 import { isAdBlockerDetected } from './stripeIntegration.js';
+import { addToConsoleLayer } from './dom/console.js';
 
 /**
  * Create and show ad blocker warning notification
@@ -15,28 +16,24 @@ function showAdBlockerWarning() {
     return;
   }
   
-  // Create warning element
-  const warningElement = document.createElement('div');
-  warningElement.id = 'ad-blocker-warning';
-  warningElement.className = 'ad-blocker-warning';
-  
-  // Add content
-  warningElement.innerHTML = `
-    <span class="ad-blocker-warning-close" id="close-ad-blocker-warning">&times;</span>
-    <div class="ad-blocker-warning-content">
-      <strong>Ad Blocker Detected</strong>
-      <p>We noticed you're using an ad blocker, which may interfere with our payment processor. 
-      If you experience issues when making a purchase, please temporarily disable your ad blocker for this site or use the direct payment link.</p>
+  // Warning HTML content
+  const warningHTML = `
+    <div id="ad-blocker-warning" class="ad-blocker-warning">
+      <span class="ad-blocker-warning-close" id="close-ad-blocker-warning">&times;</span>
+      <div class="ad-blocker-warning-content">
+        <strong>Ad Blocker Detected</strong>
+        <p>We noticed you're using an ad blocker, which may interfere with our payment processor. 
+        If you experience issues when making a purchase, please temporarily disable your ad blocker for this site or use the direct payment link.</p>
+      </div>
     </div>
   `;
   
-  // Add it to the page - insert after the title container
-  const titleContainer = document.getElementById('title-container');
-  if (titleContainer && titleContainer.parentNode) {
-    titleContainer.parentNode.insertBefore(warningElement, titleContainer.nextSibling);
+  try {
+    // Try to add to console layer first
+    const warningElement = addToConsoleLayer(warningHTML);
     
     // Add close button handler
-    document.getElementById('close-ad-blocker-warning').addEventListener('click', () => {
+    warningElement.querySelector('#close-ad-blocker-warning').addEventListener('click', () => {
       warningElement.classList.remove('active');
       
       // Remember that user dismissed the warning
@@ -48,7 +45,9 @@ function showAdBlockerWarning() {
       
       // Remove after animation
       setTimeout(() => {
-        warningElement.remove();
+        if (warningElement.parentNode) {
+          warningElement.parentNode.removeChild(warningElement);
+        }
       }, 500);
     });
     
@@ -56,6 +55,52 @@ function showAdBlockerWarning() {
     setTimeout(() => {
       warningElement.classList.add('active');
     }, 1000);
+  } catch (error) {
+    console.error('Failed to add ad blocker warning to console layer:', error);
+    
+    // Fallback to original implementation
+    // Create warning element
+    const warningElement = document.createElement('div');
+    warningElement.id = 'ad-blocker-warning';
+    warningElement.className = 'ad-blocker-warning';
+    
+    // Add content
+    warningElement.innerHTML = `
+      <span class="ad-blocker-warning-close" id="close-ad-blocker-warning">&times;</span>
+      <div class="ad-blocker-warning-content">
+        <strong>Ad Blocker Detected</strong>
+        <p>We noticed you're using an ad blocker, which may interfere with our payment processor. 
+        If you experience issues when making a purchase, please temporarily disable your ad blocker for this site or use the direct payment link.</p>
+      </div>
+    `;
+    
+    // Add it to the page - insert after the title container
+    const titleContainer = document.getElementById('title-container');
+    if (titleContainer && titleContainer.parentNode) {
+      titleContainer.parentNode.insertBefore(warningElement, titleContainer.nextSibling);
+      
+      // Add close button handler
+      document.getElementById('close-ad-blocker-warning').addEventListener('click', () => {
+        warningElement.classList.remove('active');
+        
+        // Remember that user dismissed the warning
+        try {
+          localStorage.setItem('ad_blocker_warning_dismissed', 'true');
+        } catch (e) {
+          // Ignore errors with localStorage
+        }
+        
+        // Remove after animation
+        setTimeout(() => {
+          warningElement.remove();
+        }, 500);
+      });
+      
+      // Show with animation after a short delay
+      setTimeout(() => {
+        warningElement.classList.add('active');
+      }, 1000);
+    }
   }
 }
 

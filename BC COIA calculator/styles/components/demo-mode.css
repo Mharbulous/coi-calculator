@@ -173,11 +173,17 @@ body.demo-mode {
   position: fixed;
   top: 0;
   left: 0;
-  z-index: 1000;
+  z-index: 10; /* Lower z-index since it's now in the console layer which already has z-index: 3 */
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+/* When in the console layer, these styles override the above */
+.console-layer .paid-mode-indicator {
+  position: absolute; /* Position relative to console layer */
+  width: 100%;
 }
 
 /* Add padding to account for the paid mode indicator */

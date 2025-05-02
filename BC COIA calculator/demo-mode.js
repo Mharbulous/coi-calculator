@@ -1,6 +1,7 @@
 // Demo Mode Implementation
 import { hasVerifiedPayment, setPaymentVerified, clearPaymentVerification, getPaymentExpirationDate } from './paymentVerification.js';
 import { redirectToStripeCheckout } from './stripeLoader.js';
+import { addToConsoleLayer } from './dom/console.js';
 
 /**
  * Initialize the demo mode features
@@ -34,21 +35,40 @@ function addDemoBanner() {
       <button id="get-accurate-results" class="payment-button">Buy Now - $24.99</button>
     </div>
   `;
-  document.body.insertAdjacentHTML('afterbegin', bannerHTML);
   
-  // Add click handler for the payment button
-  document.getElementById('get-accurate-results').addEventListener('click', handlePaymentClick);
-  
-  // Show the banner with a drop-down animation after 5 seconds
-  setTimeout(() => {
-    const banner = document.getElementById('demo-mode-banner');
-    if (banner) {
-      banner.classList.add('show');
-      // No need to add banner-visible class or dispatch event here.
-      // The ResizeObserver in pageBreaksCore should detect the layout change
-      // caused by the banner's 'top' property changing.
-    }
-  }, 5000); // 5000 milliseconds = 5 seconds
+  try {
+    // Try to add to console layer first
+    const banner = addToConsoleLayer(bannerHTML, { position: 'fixed', top: '-100px' });
+    
+    // Add click handler for the payment button
+    banner.querySelector('#get-accurate-results').addEventListener('click', handlePaymentClick);
+    
+    // Show the banner with a drop-down animation after 5 seconds
+    setTimeout(() => {
+      if (banner) {
+        banner.style.top = '0'; // Move it into view
+        banner.classList.add('show');
+        // No need to add banner-visible class or dispatch event here.
+        // The ResizeObserver in pageBreaksCore should detect the layout change
+      }
+    }, 5000); // 5000 milliseconds = 5 seconds
+  } catch (error) {
+    console.error('Failed to add demo banner to console layer:', error);
+    
+    // Fallback to original implementation if console layer is not available
+    document.body.insertAdjacentHTML('afterbegin', bannerHTML);
+    
+    // Add click handler for the payment button
+    document.getElementById('get-accurate-results').addEventListener('click', handlePaymentClick);
+    
+    // Show the banner with a drop-down animation after 5 seconds
+    setTimeout(() => {
+      const banner = document.getElementById('demo-mode-banner');
+      if (banner) {
+        banner.classList.add('show');
+      }
+    }, 5000); // 5000 milliseconds = 5 seconds
+  }
 }
 
 /**
@@ -65,13 +85,28 @@ function addPaidModeIndicator() {
       <button id="reset-to-demo" class="demo-button">Reset to Demo Mode</button>
     </div>
   `;
-  document.body.insertAdjacentHTML('afterbegin', indicatorHTML);
   
-  // Add fallback class for browsers that don't support :has()
-  document.body.classList.add('paid-mode-body-padding');
-  
-  // Add click handler for the reset button (for testing)
-  document.getElementById('reset-to-demo').addEventListener('click', handleResetToDemoClick);
+  try {
+    // Try to add to console layer first
+    const indicator = addToConsoleLayer(indicatorHTML, { position: 'fixed', top: 0 });
+    
+    // Add fallback class for browsers that don't support :has()
+    document.body.classList.add('paid-mode-body-padding');
+    
+    // Add click handler for the reset button (for testing)
+    indicator.querySelector('#reset-to-demo').addEventListener('click', handleResetToDemoClick);
+  } catch (error) {
+    console.error('Failed to add paid mode indicator to console layer:', error);
+    
+    // Fallback to original implementation if console layer is not available
+    document.body.insertAdjacentHTML('afterbegin', indicatorHTML);
+    
+    // Add fallback class for browsers that don't support :has()
+    document.body.classList.add('paid-mode-body-padding');
+    
+    // Add click handler for the reset button (for testing)
+    document.getElementById('reset-to-demo').addEventListener('click', handleResetToDemoClick);
+  }
 }
 
 /**
@@ -175,11 +210,26 @@ function createDemoModal() {
     </div>
   `;
   
-  document.body.insertAdjacentHTML('beforeend', modalHTML);
-  
-  // Add event listeners for modal buttons
-  document.getElementById('demo-modal-dismiss').addEventListener('click', hideModal);
-  document.getElementById('demo-modal-purchase').addEventListener('click', handlePaymentClick);
+  try {
+    // Try to add to console layer first
+    const modal = addToConsoleLayer(modalHTML);
+    
+    // Style display: none initially
+    modal.style.display = 'none';
+    
+    // Add event listeners for modal buttons
+    modal.querySelector('#demo-modal-dismiss').addEventListener('click', hideModal);
+    modal.querySelector('#demo-modal-purchase').addEventListener('click', handlePaymentClick);
+  } catch (error) {
+    console.error('Failed to add demo modal to console layer:', error);
+    
+    // Fallback to original implementation
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // Add event listeners for modal buttons
+    document.getElementById('demo-modal-dismiss').addEventListener('click', hideModal);
+    document.getElementById('demo-modal-purchase').addEventListener('click', handlePaymentClick);
+  }
 }
 
 /**

@@ -1,0 +1,19 @@
+/* Console Layer (Top) - For UI elements that should appear above content */
+.console-layer {
+    position: relative;
+    z-index: 3; /* Above both paper (z-index: 1) and ink (z-index: 2) layers */
+    width: 100%;
+    pointer-events: none; /* Allow clicks to pass through to layers below by default */
+}
+
+/* Individual console elements need pointer-events: auto to be interactive */
+.console-layer > * {
+    pointer-events: auto;
+}
+
+/* Print styles */
+@media print {
+    .console-layer {
+        display: none; /* Hide console layer when printing */
+    }
+}
