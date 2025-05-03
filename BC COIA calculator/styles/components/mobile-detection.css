@@ -124,3 +124,30 @@
         padding: 0.75rem;
     }
 }
+
+/* Hide mobile detection message when printing and restore all other content */
+@media print {
+    .mobile-detection-message {
+        display: none !important;
+    }
+    
+    /* Ensure all other content is visible in print mode regardless of screen width */
+    body > *:not(.mobile-detection-message):not(script):not(noscript) {
+        display: block !important;
+    }
+    
+    /* Hide any script tags or code blocks that might be visible */
+    script, noscript, 
+    pre[class*="language-"], code[class*="language-"],
+    .script-content {
+        display: none !important;
+        visibility: hidden !important;
+        position: absolute !important;
+        left: -9999px !important;
+        top: -9999px !important;
+        max-height: 0 !important;
+        max-width: 0 !important;
+        opacity: 0 !important;
+        overflow: hidden !important;
+    }
+}

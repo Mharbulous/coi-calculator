@@ -22,4 +22,5 @@
 @import url('page-breaks.css'); /* Import page break styles */
 @import url('two-layer.css'); /* Import two-layer skeuomorphic paper styles */
 @import url('console-layer.css'); /* Import console layer styles */
+@import url('components/print-code-suppression.css'); /* Import print code suppression styles */
 @import url('print.css');
