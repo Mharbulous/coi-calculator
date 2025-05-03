@@ -192,9 +192,9 @@ function initializeCalculator() {
     
     // Define default special damages based on screenshot
     const defaultSpecialDamages = [
-        { date: '2024-04-30', description: 'test 3', amount: 333 },
-        { date: '2024-07-01', description: 'test 1', amount: 11 },
-        { date: '2024-07-02', description: 'test 2', amount: 222 }
+        { date: '2024-04-30', description: 'Physiotherapy treatment - 1 hour', amount: 320 },
+        { date: '2024-07-01', description: 'Prescription medication - Oxycodone', amount: 38.50 },
+        { date: '2024-07-02', description: 'Counselling therapy - 1 hour', amount: 218.75 }
     ];
     
     // Calculate the total of special damages
