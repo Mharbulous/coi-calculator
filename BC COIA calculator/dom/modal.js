@@ -91,3 +91,16 @@ export function showSpecialDamagesDeletionModal() {
         "OK"
     );
 }
+
+/**
+ * Show a confirmation dialog for clearing all calculator values
+ * @param {Function} onConfirm - Callback function to execute if user confirms the action
+ */
+export function showClearConfirmationModal(onConfirm) {
+    return showModal(
+        "Clear Calculator?",
+        "This will erase all special damage rows, reset all dates to blank, and set all dollar amounts to blank. This action cannot be undone.",
+        "Clear All",
+        onConfirm
+    );
+}

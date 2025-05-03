@@ -88,7 +88,7 @@ body.demo-mode {
   /* These settings ensure it stays centered regardless of page layout changes */
   width: auto;
   height: auto;
-  margin-top: 100px; /* Move the watermark down by 100px */
+  margin-top: 140px; /* Move the watermark down by 140px (original 100px + 40px added space) */
 }
 
 /* Make sure watermark appears in print */

@@ -14,6 +14,7 @@ import useStore from './store.js';
 import { updatePagination, setupPaginationListeners } from './dom/pageBreaks.js'; // Import pagination functions
 import { showFirebaseError } from './error-handling.js'; // Import error handling function
 import { stateHasBeenRestored } from './app-initializer.js'; // Import flag to check if state was restored
+import { setupClearButton } from './dom/clear-calculator.js'; // Import clear button setup
 
 /**
  * Updates the prejudgment table with the calculated results.
@@ -245,6 +246,9 @@ function initializeCalculator() {
 
     // Initialize pagination listeners
     setupPaginationListeners();
+    
+    // Setup the Clear button
+    setupClearButton();
     
     recalculate(); 
     document.dispatchEvent(new CustomEvent('content-changed')); // Perform initial pagination update

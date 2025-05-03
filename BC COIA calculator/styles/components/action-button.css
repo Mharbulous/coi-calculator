@@ -49,6 +49,26 @@ div.console-layer > button#action-button.action-button.buy-now {
     background-color: #45a049; /* Darker green on hover */
 }
 
+/* Clear button - soft red with white text */
+.action-button.clear,
+#clear-button {
+    background-color: #e74c3c; /* Soft red */
+    color: white;
+}
+
+.action-button.clear:hover,
+#clear-button:hover {
+    background-color: #c0392b; /* Darker soft red on hover */
+}
+
+/* Position the clear button below print button */
+#clear-button {
+    position: absolute;
+    top: 40px; /* Position below print button with spacing */
+    right: 0;
+    width: var(--value-width-right);
+}
+
 /* Print-specific styles */
 @media print {
     .action-button,
