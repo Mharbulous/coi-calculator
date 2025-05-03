@@ -170,7 +170,7 @@ function initializeCalculator() {
         
         // Set default dates as per requirements
         const defaultJudgmentDate = date185DaysBefore; // Judgment date = 185 days before today
-        const defaultPrejudgmentStartDate = normalizeDate(new Date('2017-04-14')); // Prejudgment interest date = 2017-04-14 (for testing)
+        const defaultPrejudgmentStartDate = normalizeDate(new Date('2018-04-14')); // Prejudgment interest date = 2018-04-14 (for testing)
         const defaultPostjudgmentEndDate = today; // Postjudgment interest date = today
 
         const defaultAmount = 0;
@@ -201,8 +201,8 @@ function initializeCalculator() {
         
         // Define default special damages based on screenshot
         const defaultSpecialDamages = [
-            { date: '2024-04-30', description: 'Physiotherapy treatment - 1 hour', amount: 320 },
-            { date: '2024-07-01', description: 'Prescription medication - Oxycodone', amount: 38.50 },
+            { date: '2018-04-30', description: 'Physiotherapy treatment - 1 hour', amount: 320 },
+            { date: '2019-07-01', description: 'Prescription medication - Oxycodone', amount: 38.50 },
             { date: '2024-07-02', description: 'Counselling therapy - 1 hour', amount: 218.75 }
         ];
         
