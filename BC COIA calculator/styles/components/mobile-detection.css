@@ -1,0 +1,109 @@
+/* Mobile Detection Styles */
+
+/* Mobile message container - hidden by default */
+.mobile-detection-message {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #f8f9fa;
+    z-index: 9999;
+    padding: 1.5rem;
+    box-sizing: border-box;
+    text-align: center;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-family: Arial, sans-serif;
+    overflow-y: auto;
+}
+
+/* Main title */
+.mobile-detection-message h2 {
+    margin: 0.5rem 0 1rem;
+    color: #2c3e50;
+    font-size: 1.5rem;
+}
+
+/* Icon at top */
+.mobile-detection-message .mobile-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Regular paragraphs */
+.mobile-detection-message p {
+    margin: 0.75rem 0;
+    color: #444;
+    max-width: 300px;
+    line-height: 1.4;
+}
+
+/* "What can I do?" section */
+.mobile-detection-message .alternative-info {
+    margin: 1.5rem 0;
+    background-color: #ffffff;
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 320px;
+}
+
+.mobile-detection-message .alternative-info h3 {
+    margin: 0 0 0.75rem;
+    color: #2c3e50;
+    font-size: 1.1rem;
+}
+
+.mobile-detection-message .alternative-info ul {
+    text-align: left;
+    padding-left: 1.5rem;
+    margin: 0.5rem 0;
+}
+
+.mobile-detection-message .alternative-info li {
+    margin: 0.5rem 0;
+    color: #333;
+    line-height: 1.4;
+}
+
+/* Note at bottom */
+.mobile-detection-message .note {
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 1.5rem;
+}
+
+/* Only display message when screen width is below 800px */
+@media (max-width: 799px) {
+    .mobile-detection-message {
+        display: flex;
+    }
+    
+    /* Hide all other content */
+    body > *:not(.mobile-detection-message) {
+        display: none !important;
+    }
+}
+
+/* Small phones - adjust font sizes */
+@media (max-width: 360px) {
+    .mobile-detection-message {
+        padding: 1rem;
+    }
+    
+    .mobile-detection-message h2 {
+        font-size: 1.3rem;
+    }
+    
+    .mobile-detection-message p {
+        font-size: 0.9rem;
+    }
+    
+    .mobile-detection-message .alternative-info {
+        padding: 0.75rem;
+    }
+}
