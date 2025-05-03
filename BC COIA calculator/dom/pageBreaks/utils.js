@@ -126,22 +126,8 @@ export function insertBlankSpace(referenceElement, height) {
     blankSpace.classList.add('page-break-spacer'); 
     blankSpace.style.height = `${height}px`;
 
-    // Add a visible marker for debugging (only visible online)
+    // Page break spacer (debug visual removed)
     blankSpace.style.position = 'relative';
-    const marker = document.createElement('div');
-    marker.textContent = `Page Break (${height}px)`;
-    marker.style.position = 'absolute';
-    marker.style.top = '0';
-    marker.style.left = '0';
-    marker.style.backgroundColor = 'rgba(255, 0, 0, 0.2)';
-    marker.style.color = 'red';
-    marker.style.padding = '2px';
-    marker.style.fontSize = '10px';
-    marker.style.fontWeight = 'bold';
-    marker.style.zIndex = '1000';
-    marker.style.pointerEvents = 'none';
-    marker.classList.add(SCREEN_ONLY_CLASS);
-    blankSpace.appendChild(marker);
     
     // Mark the following element for a print break
     // Skip the postjudgment header which should not have a page break
