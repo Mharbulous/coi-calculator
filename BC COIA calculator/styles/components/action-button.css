@@ -16,6 +16,17 @@
     white-space: nowrap; /* Prevent text from wrapping */
 }
 
+/* Specific positioning for Buy Now button when in console layer - Increased Specificity */
+div.console-layer > button#action-button.action-button.buy-now {
+    position: absolute; /* Re-declare for specificity */
+    top: 90px; /* Moved down to align with other text elements */
+    left: 50%; /* Center horizontally */
+    transform: translateX(-50%); /* Ensure perfect centering */
+    right: auto; /* Override default right positioning */
+    z-index: 100; /* Ensure it's above other console elements */
+    pointer-events: auto; /* Make sure it's clickable */
+}
+
 /* Common styling for both buttons - green with white text */
 .action-button.buy-now,
 .action-button.print {

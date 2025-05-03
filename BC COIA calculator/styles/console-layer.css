@@ -1,8 +1,11 @@
 /* Console Layer (Top) - For UI elements that should appear above content */
 .console-layer {
-    position: relative;
-    z-index: 3; /* Above both paper (z-index: 1) and ink (z-index: 2) layers */
+    position: absolute; /* Changed to absolute for overlay */
+    top: 0;
+    left: 0;
     width: 100%;
+    height: 100%; /* Ensure it covers the parent */
+    z-index: 3; /* Above both paper (z-index: 1) and ink (z-index: 2) layers */
     pointer-events: none; /* Allow clicks to pass through to layers below by default */
 }
 
