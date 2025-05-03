@@ -31,7 +31,7 @@ function initializeDemoMode() {
 
 /**
  * Initialize the action button
- * Shows "Buy Now" button in demo mode and "Print" button in paid mode
+ * Shows Print button in both modes, plus "Buy Now" button in demo mode
  */
 function initializeActionButton() {
   const isPaid = hasVerifiedPayment();
@@ -42,22 +42,23 @@ function initializeActionButton() {
     existingButton.remove();
   }
   
-  if (isPaid) {
-    // Paid version - Add Print button back to title container
-    const printButton = document.createElement('button');
-    printButton.id = 'action-button';
-    printButton.textContent = 'Print';
-    printButton.classList.add('action-button', 'print');
-    printButton.addEventListener('click', handlePrintClick);
-    
-    const titleContainer = document.getElementById('title-container');
-    if (titleContainer) {
-      titleContainer.appendChild(printButton);
-    }
-  } else {
+  // Add Print button for both paid and demo versions
+  const printButton = document.createElement('button');
+  printButton.id = 'print-button'; // Changed ID to avoid conflicts
+  printButton.textContent = 'Print';
+  printButton.classList.add('action-button', 'print');
+  printButton.addEventListener('click', handlePrintClick);
+  
+  const titleContainer = document.getElementById('title-container');
+  if (titleContainer) {
+    titleContainer.appendChild(printButton);
+  }
+  
+  // If demo mode, also add the Buy Now button to console layer
+  if (!isPaid) {
     // Demo version - Buy Now button with price in console layer
     const buyNowButton = document.createElement('button');
-    buyNowButton.id = 'action-button';
+    buyNowButton.id = 'action-button'; // Keep original ID for existing CSS
     buyNowButton.textContent = 'Buy Now - $24.99';
     buyNowButton.classList.add('action-button', 'buy-now');
     buyNowButton.addEventListener('click', handlePaymentClick);
@@ -67,13 +68,8 @@ function initializeActionButton() {
     shimmerOverlay.classList.add('shimmer-overlay');
     buyNowButton.appendChild(shimmerOverlay);
     
-    // Get the title container position to center the button above it
-    const titleContainer = document.getElementById('title-container');
-    if (titleContainer) {
-      // Add button to the console layer
-      // Positioning is now handled purely by centered-action-button.css
-      addToConsoleLayer(buyNowButton); 
-    }
+    // Add button to the console layer
+    addToConsoleLayer(buyNowButton);
   }
 }
 

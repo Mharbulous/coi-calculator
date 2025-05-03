@@ -16,6 +16,14 @@
     white-space: nowrap; /* Prevent text from wrapping */
 }
 
+/* Ensure the print button has the same styling as action buttons */
+#print-button {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: var(--value-width-right);
+}
+
 /* Specific positioning for Buy Now button when in console layer - Increased Specificity */
 div.console-layer > button#action-button.action-button.buy-now {
     position: absolute; /* Re-declare for specificity */
@@ -29,19 +37,22 @@ div.console-layer > button#action-button.action-button.buy-now {
 
 /* Common styling for both buttons - green with white text */
 .action-button.buy-now,
-.action-button.print {
+.action-button.print,
+#print-button {
     background-color: #4CAF50; /* Green */
     color: white;
 }
 
 .action-button.buy-now:hover,
-.action-button.print:hover {
+.action-button.print:hover,
+#print-button:hover {
     background-color: #45a049; /* Darker green on hover */
 }
 
 /* Print-specific styles */
 @media print {
-    .action-button {
-        display: none; /* Hide button when printing */
+    .action-button,
+    #print-button {
+        display: none; /* Hide buttons when printing */
     }
 }
