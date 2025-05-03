@@ -13,6 +13,7 @@ import { formatDateForInput, normalizeDate } from './utils.date.js';
 import useStore from './store.js';
 import { updatePagination, setupPaginationListeners } from './dom/pageBreaks.js'; // Import pagination functions
 import { showFirebaseError } from './error-handling.js'; // Import error handling function
+import { stateHasBeenRestored } from './app-initializer.js'; // Import flag to check if state was restored
 
 /**
  * Updates the prejudgment table with the calculated results.
@@ -144,78 +145,95 @@ function initializeCalculator() {
          return; // Stop initialization
      }
 
-    setDefaultInputValues();
+    // Setup event listeners regardless of state restoration
     setupEventListeners();
+    
+    // Always ensure visibility matches checkboxes
     togglePrejudgmentVisibility(true, null);
     togglePostjudgmentVisibility(true, null);
     togglePerDiemVisibility(true, null);
-    // Page break indicators removed
 
-    // --- Perform initial population of summary table to create dynamic inputs ---
-    const today = normalizeDate(new Date()); // Today's date
-    
-    // Calculate dates for defaults
-    const millisecondsPerDay = 24 * 60 * 60 * 1000;
-    const date185DaysBefore = normalizeDate(new Date(today.getTime() - 185 * millisecondsPerDay)); // 185 days before today
-    const dateOneYearAgo = normalizeDate(new Date(today.getTime() - 365 * millisecondsPerDay)); // One year ago
-    
-    // Set default dates as per requirements
-    const defaultJudgmentDate = date185DaysBefore; // Judgment date = 185 days before today
-    const defaultPrejudgmentStartDate = normalizeDate(new Date('2017-04-14')); // Prejudgment interest date = 2017-04-14 (for testing)
-    const defaultPostjudgmentEndDate = today; // Postjudgment interest date = today
+    // Check if state has already been restored from payment flow
+    if (!stateHasBeenRestored) {
+        console.log('No restored state detected, initializing with defaults');
+        
+        // Set default values for inputs since state was not restored
+        setDefaultInputValues();
+        
+        // --- Perform initial population with default values ---
+        const today = normalizeDate(new Date()); // Today's date
+        
+        // Calculate dates for defaults
+        const millisecondsPerDay = 24 * 60 * 60 * 1000;
+        const date185DaysBefore = normalizeDate(new Date(today.getTime() - 185 * millisecondsPerDay)); // 185 days before today
+        const dateOneYearAgo = normalizeDate(new Date(today.getTime() - 365 * millisecondsPerDay)); // One year ago
+        
+        // Set default dates as per requirements
+        const defaultJudgmentDate = date185DaysBefore; // Judgment date = 185 days before today
+        const defaultPrejudgmentStartDate = normalizeDate(new Date('2017-04-14')); // Prejudgment interest date = 2017-04-14 (for testing)
+        const defaultPostjudgmentEndDate = today; // Postjudgment interest date = today
 
-    const defaultAmount = 0;
-    const pecuniaryDefaultAmount = 10000;
-    
-    // Set default value for judgment date input
-    if (elements.judgmentDateInput) {
-        elements.judgmentDateInput.value = formatDateForInput(defaultJudgmentDate);
+        const defaultAmount = 0;
+        const pecuniaryDefaultAmount = 10000;
+        
+        // Set default value for judgment date input
+        if (elements.judgmentDateInput) {
+            elements.judgmentDateInput.value = formatDateForInput(defaultJudgmentDate);
+        }
+        
+        // Initialize default values
+        const defaultInputs = {
+            prejudgmentStartDate: defaultPrejudgmentStartDate,
+            postjudgmentEndDate: defaultPostjudgmentEndDate,
+            dateOfJudgment: defaultJudgmentDate,
+            nonPecuniaryJudgmentDate: defaultJudgmentDate,
+            costsAwardedDate: defaultJudgmentDate,
+            judgmentAwarded: pecuniaryDefaultAmount,
+            nonPecuniaryAwarded: defaultAmount,
+            costsAwarded: defaultAmount,
+            jurisdiction: 'BC',
+            showPrejudgment: true,
+            showPostjudgment: true,
+            showPerDiem: true,
+            isValid: true,
+            validationMessage: ''
+        };
+        
+        // Define default special damages based on screenshot
+        const defaultSpecialDamages = [
+            { date: '2024-04-30', description: 'Physiotherapy treatment - 1 hour', amount: 320 },
+            { date: '2024-07-01', description: 'Prescription medication - Oxycodone', amount: 38.50 },
+            { date: '2024-07-02', description: 'Counselling therapy - 1 hour', amount: 218.75 }
+        ];
+        
+        // Calculate the total of special damages
+        const defaultSpecialDamagesTotal = defaultSpecialDamages.reduce((sum, damage) => sum + damage.amount, 0);
+        
+        const defaultResults = {
+            specialDamages: defaultSpecialDamages,
+            specialDamagesTotal: defaultSpecialDamagesTotal,
+            prejudgmentResult: { details: [], total: 0, principal: 0, finalPeriodDamageInterestDetails: [] },
+            postjudgmentResult: { details: [], total: 0 },
+            judgmentTotal: 0,
+            totalOwing: 0,
+            perDiem: 0,
+            finalCalculationDate: defaultPostjudgmentEndDate
+        };
+        
+        // Initialize Zustand store with default values
+        useStore.getState().initializeStore({
+            inputs: defaultInputs,
+            results: defaultResults
+        });
+    } else {
+        console.log('Using restored state from payment flow, skipping default initialization');
+        
+        // If we have a judgment date in the restored state, update the input field
+        const currentState = useStore.getState();
+        if (currentState.inputs.dateOfJudgment && elements.judgmentDateInput) {
+            elements.judgmentDateInput.value = formatDateForInput(currentState.inputs.dateOfJudgment);
+        }
     }
-    
-    // Initialize default values
-    const defaultInputs = {
-        prejudgmentStartDate: defaultPrejudgmentStartDate,
-        postjudgmentEndDate: defaultPostjudgmentEndDate,
-        dateOfJudgment: defaultJudgmentDate,
-        nonPecuniaryJudgmentDate: defaultJudgmentDate,
-        costsAwardedDate: defaultJudgmentDate,
-        judgmentAwarded: pecuniaryDefaultAmount,
-        nonPecuniaryAwarded: defaultAmount,
-        costsAwarded: defaultAmount,
-        jurisdiction: 'BC',
-        showPrejudgment: true,
-        showPostjudgment: true,
-        showPerDiem: true,
-        isValid: true,
-        validationMessage: ''
-    };
-    
-    // Define default special damages based on screenshot
-    const defaultSpecialDamages = [
-        { date: '2024-04-30', description: 'Physiotherapy treatment - 1 hour', amount: 320 },
-        { date: '2024-07-01', description: 'Prescription medication - Oxycodone', amount: 38.50 },
-        { date: '2024-07-02', description: 'Counselling therapy - 1 hour', amount: 218.75 }
-    ];
-    
-    // Calculate the total of special damages
-    const defaultSpecialDamagesTotal = defaultSpecialDamages.reduce((sum, damage) => sum + damage.amount, 0);
-    
-    const defaultResults = {
-        specialDamages: defaultSpecialDamages,
-        specialDamagesTotal: defaultSpecialDamagesTotal,
-        prejudgmentResult: { details: [], total: 0, principal: 0, finalPeriodDamageInterestDetails: [] },
-        postjudgmentResult: { details: [], total: 0 },
-        judgmentTotal: 0,
-        totalOwing: 0,
-        perDiem: 0,
-        finalCalculationDate: defaultPostjudgmentEndDate
-    };
-    
-    // Initialize Zustand store with default values
-    useStore.getState().initializeStore({
-        inputs: defaultInputs,
-        results: defaultResults
-    });
     
     // Update summary table using the Zustand store
     // Pass recalculate and event dispatch as the callback

@@ -1,0 +1,233 @@
+fire<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>State Persistence Test - Court Order Interest Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-container {
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            padding: 30px;
+            margin-top: 40px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #007bff;
+            margin-bottom: 20px;
+        }
+        .button-container {
+            margin: 20px 0;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0069d9;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow: auto;
+            max-height: 400px;
+        }
+        .log-container {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #f8f8f8;
+        }
+        .steps {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #fffaf0;
+            border-radius: 5px;
+            border-left: 4px solid #ffa500;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>State Persistence Test</h1>
+        
+        <div class="steps">
+            <h3>Testing Instructions</h3>
+            <ol>
+                <li>First, enter some data in the main calculator (open in another tab)</li>
+                <li>Return to this test page and click "Save State"</li>
+                <li>Verify in the console that state was saved successfully</li>
+                <li>Click "Simulate Payment" to simulate payment verification</li>
+                <li>After page reload, click "Restore State" to manually restore the state</li>
+                <li>Return to calculator tab and verify the data was restored</li>
+            </ol>
+        </div>
+        
+        <div class="button-container">
+            <button id="save-state">Save State</button>
+            <button id="restore-state">Restore State</button>
+            <button id="simulate-payment">Simulate Payment</button>
+            <button id="clear-payment">Clear Payment (Return to Demo)</button>
+            <button id="view-localStorage">View LocalStorage</button>
+        </div>
+        
+        <div class="log-container">
+            <h3>Status Log:</h3>
+            <div id="status-log">Click a button to perform an action...</div>
+        </div>
+        
+        <div id="localStorage-content" style="display:none;">
+            <h3>LocalStorage Content:</h3>
+            <pre id="localStorage-display"></pre>
+        </div>
+    </div>
+
+    <script type="module">
+        import { testStatePersistence, testStateRestore } from '../BC COIA calculator/test-state-persistence.js';
+        import { hasVerifiedPayment, setPaymentVerified, clearPaymentVerification } from '../BC COIA calculator/paymentVerification.js';
+        
+        // Elements
+        const saveBtn = document.getElementById('save-state');
+        const restoreBtn = document.getElementById('restore-state');
+        const simulateBtn = document.getElementById('simulate-payment');
+        const clearBtn = document.getElementById('clear-payment');
+        const viewLSBtn = document.getElementById('view-localStorage');
+        const statusLog = document.getElementById('status-log');
+        const lsContent = document.getElementById('localStorage-content');
+        const lsDisplay = document.getElementById('localStorage-display');
+        
+        // Function to update status log
+        function updateLog(message) {
+            statusLog.innerHTML += `<div>${new Date().toLocaleTimeString()}: ${message}</div>`;
+        }
+        
+        // Display formatted localStorage content
+        function displayLocalStorage() {
+            let content = '';
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                let value = localStorage.getItem(key);
+                
+                // Try to parse and format JSON
+                try {
+                    const parsed = JSON.parse(value);
+                    value = JSON.stringify(parsed, null, 2);
+                } catch (e) {
+                    // Keep as string if not valid JSON
+                }
+                
+                content += `<strong>${key}</strong>:\n${value}\n\n`;
+            }
+            
+            lsDisplay.textContent = content || 'LocalStorage is empty';
+            lsContent.style.display = content ? 'block' : 'none';
+        }
+        
+        // Save State button
+        saveBtn.addEventListener('click', async () => {
+            updateLog('Saving application state...');
+            try {
+                // Import store module
+                const useStore = (await import('../BC COIA calculator/store.js')).default;
+                
+                // Save state
+                const success = useStore.getState().saveStateToLocalStorage();
+                
+                updateLog(success ? 
+                    'State saved successfully!' : 
+                    'Failed to save state.');
+                
+                // Display localStorage for verification
+                displayLocalStorage();
+            } catch (error) {
+                updateLog(`Error: ${error.message}`);
+                console.error(error);
+            }
+        });
+        
+        // Restore State button
+        restoreBtn.addEventListener('click', () => {
+            updateLog('Restoring application state...');
+            try {
+                testStateRestore();
+                updateLog('Restore function called. Check console for details.');
+            } catch (error) {
+                updateLog(`Error: ${error.message}`);
+                console.error(error);
+            }
+        });
+        
+        // Simulate Payment button
+        simulateBtn.addEventListener('click', () => {
+            updateLog('Simulating payment verification...');
+            
+            if (hasVerifiedPayment()) {
+                updateLog('Already in PAID mode. No need to simulate payment.');
+                return;
+            }
+            
+            try {
+                // No reload for testing purposes
+                setPaymentVerified();
+                updateLog('Payment verified. Page will reload.');
+            } catch (error) {
+                updateLog(`Error: ${error.message}`);
+                console.error(error);
+            }
+        });
+        
+        // Clear Payment button
+        clearBtn.addEventListener('click', () => {
+            updateLog('Clearing payment verification...');
+            
+            if (!hasVerifiedPayment()) {
+                updateLog('Already in DEMO mode. No need to clear payment.');
+                return;
+            }
+            
+            try {
+                clearPaymentVerification();
+                updateLog('Payment verification cleared. Page will reload.');
+            } catch (error) {
+                updateLog(`Error: ${error.message}`);
+                console.error(error);
+            }
+        });
+        
+        // View LocalStorage button
+        viewLSBtn.addEventListener('click', () => {
+            displayLocalStorage();
+            lsContent.style.display = lsContent.style.display === 'none' ? 'block' : 'none';
+            viewLSBtn.textContent = lsContent.style.display === 'none' ? 
+                'View LocalStorage' : 'Hide LocalStorage';
+        });
+        
+        // On page load
+        document.addEventListener('DOMContentLoaded', () => {
+            updateLog(`Current Mode: ${hasVerifiedPayment() ? 'PAID' : 'DEMO'}`);
+            
+            // Check for URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('from_payment') === 'true') {
+                updateLog('Detected return from payment flow!');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -176,7 +176,23 @@ function addWatermarks() {
 /**
  * Handle the payment button click
  */
-function handlePaymentClick() {
+async function handlePaymentClick() {
+  // Save current application state before redirecting
+  try {
+    const useStore = window.useStore || (await import('./store.js')).default;
+    const saveState = useStore.getState().saveStateToLocalStorage;
+    
+    if (saveState) {
+      console.log('Saving application state before payment redirect');
+      saveState();
+    } else {
+      console.warn('saveStateToLocalStorage function not found in store');
+    }
+  } catch (error) {
+    console.error('Error saving application state before payment:', error);
+    // Continue with payment process even if state saving fails
+  }
+  
   // Use Stripe checkout to process the payment
   redirectToStripeCheckout()
     .catch(error => {

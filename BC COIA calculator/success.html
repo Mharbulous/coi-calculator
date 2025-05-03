@@ -211,26 +211,28 @@
                 }
                 
                 // Set a flag in session storage to prevent redirect loops
-                if (!sessionStorage.getItem('redirecting')) {
-                    sessionStorage.setItem('redirecting', 'true');
-                    
-                    // Redirect back to the calculator after a short delay
-                    setTimeout(() => {
-                        // Clear the redirect flag
-                        sessionStorage.removeItem('redirecting');
+                    if (!sessionStorage.getItem('redirecting')) {
+                        sessionStorage.setItem('redirecting', 'true');
+                        // Set a flag in sessionStorage to indicate returning from payment
+                        sessionStorage.setItem('from_payment', 'true');
                         
-                        // Check if we're in test mode by looking at the current URL
-                        const isTestMode = window.location.pathname.includes('/test');
-                        
-                        // Redirect to the appropriate URL based on mode
-                        if (isTestMode) {
-                            // If we're in test mode, redirect to the test path
-                            window.location.href = '/test';
-                        } else {
-                            // Otherwise, redirect to the main page
-                            window.location.href = '/';
-                        }
-                    }, 5000); // 5 seconds delay
+                        // Redirect back to the calculator after a short delay
+                        setTimeout(() => {
+                            // Clear the redirect flag
+                            sessionStorage.removeItem('redirecting');
+                            
+                            // Check if we're in test mode by looking at the current URL
+                            const isTestMode = window.location.pathname.includes('/test');
+                            
+                            // Redirect to the appropriate URL based on mode
+                            if (isTestMode) {
+                                // If we're in test mode, redirect to the test path
+                                window.location.href = '/test?from_payment=true';
+                            } else {
+                                // Otherwise, redirect to the main page
+                                window.location.href = '/?from_payment=true';
+                            }
+                        }, 5000); // 5 seconds delay
                 } else {
                     console.warn('Detected redirect loop. Staying on success page.');
                     document.getElementById('payment-status').innerHTML = `

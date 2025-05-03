@@ -3,6 +3,8 @@
 
 import { initializeModeManager, isTestMode, setTestMode, addTestModeIndicator } from './mode-manager.js';
 import { initializeStripe } from './stripeLoader.js';
+import { hasVerifiedPayment } from './paymentVerification.js';
+import useStore from './store.js';
 
 // For development/testing, you can force test mode by setting this to true
 // This bypasses the IP check and URL path check
@@ -12,6 +14,9 @@ const FORCE_TEST_MODE = false;
  * Initialize the application
  * @returns {Promise<void>}
  */
+// A flag to indicate state has been restored
+export let stateHasBeenRestored = false;
+
 export async function initializeApp() {
   try {
     console.log('Initializing application...');
@@ -19,13 +24,45 @@ export async function initializeApp() {
     // Check for URL parameters that might be used for testing
     const urlParams = new URLSearchParams(window.location.search);
     const debugMode = urlParams.get('debug') === 'true';
+    const fromPayment = urlParams.get('from_payment') === 'true' || 
+                        sessionStorage.getItem('from_payment') === 'true';
     
     if (debugMode) {
       console.log('Debug mode enabled via URL parameter');
     }
     
+    // Clear the from_payment flag after reading it
+    if (fromPayment) {
+      sessionStorage.removeItem('from_payment');
+      console.log('Detected return from payment flow');
+    }
+    
     // First, initialize the mode manager to detect test vs. live mode
     await initializeModeManager();
+    
+    // If returning from payment and the payment is verified, try to restore saved state
+    if (hasVerifiedPayment()) {
+      try {
+        // Check if we have saved state in localStorage
+        const stateRestored = useStore.getState().restoreStateFromLocalStorage(false); // Don't fall back to defaults
+        if (stateRestored) {
+          console.log('Successfully restored application state after payment');
+          stateHasBeenRestored = true; // Set the flag to true
+          
+          // Add a custom event that calculator.ui.js can listen for
+          setTimeout(() => {
+            document.dispatchEvent(new CustomEvent('state-restored-from-payment', {
+              detail: { success: true }
+            }));
+            console.log('Dispatched state-restored-from-payment event');
+          }, 0);
+        } else {
+          console.log('No saved state found to restore after payment');
+        }
+      } catch (error) {
+        console.error('Error restoring application state:', error);
+      }
+    }
     
     // If in test mode or forced test mode, add visual indicator
     if (isTestMode() || FORCE_TEST_MODE) {
