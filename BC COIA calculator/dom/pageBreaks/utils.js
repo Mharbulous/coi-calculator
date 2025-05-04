@@ -67,7 +67,9 @@ export function insertBlankRow(referenceRow, height) {
     cell.style.padding = '0';
     cell.style.border = 'none';
 
-    // Add a visible marker for debugging (only visible online)
+    // Debug visualization is disabled in production
+    // Uncomment for debugging row breaks during development
+    /*
     cell.style.position = 'relative';
     const marker = document.createElement('div');
     marker.textContent = `Row Break (${height}px)`;
@@ -83,6 +85,7 @@ export function insertBlankRow(referenceRow, height) {
     marker.style.pointerEvents = 'none';
     marker.classList.add(SCREEN_ONLY_CLASS);
     cell.appendChild(marker);
+    */
     
     // Mark the following row for a print break
     if (referenceRow) {
@@ -126,7 +129,9 @@ export function insertBlankSpace(referenceElement, height) {
     blankSpace.classList.add('page-break-spacer'); 
     blankSpace.style.height = `${height}px`;
 
-    // Add a visible marker for debugging (only visible online)
+    // Debug visualization is disabled in production
+    // Uncomment for debugging page breaks during development
+    /*
     blankSpace.style.position = 'relative';
     const marker = document.createElement('div');
     marker.textContent = `Page Break (${height}px)`;
@@ -142,6 +147,7 @@ export function insertBlankSpace(referenceElement, height) {
     marker.style.pointerEvents = 'none';
     marker.classList.add(SCREEN_ONLY_CLASS);
     blankSpace.appendChild(marker);
+    */
     
     // Mark the following element for a print break
     // Skip the postjudgment header which should not have a page break
