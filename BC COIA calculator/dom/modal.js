@@ -215,8 +215,7 @@ export function showClearConfirmationModal() {
                     <li>All dollar amounts will be cleared</li>
                     <li>Special damage descriptions will be cleared</li>
                     <li>Special damage rows will be removed</li>
-                </ul>
-                <p><strong>Note:</strong> The Jurisdiction dropdown, Registry, and File No. fields will NOT be changed.</p>
+                </ul>                
             </div>
         `;
         
