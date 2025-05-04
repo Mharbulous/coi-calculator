@@ -13,14 +13,14 @@
 @import url('components/modal.css');
 @import url('components/error-handling.css');
 @import url('components/demo-mode.css'); /* Demo mode styles */
+@import url('components/print-warning.css'); /* Print warning for demo mode */
 @import url('components/test-mode.css'); /* Test mode styles */
 @import url('components/ad-blocker-warning.css'); /* Ad blocker warning styles */
 @import url('components/action-button.css'); /* Action button styles */
 @import url('components/breathing-button.css'); /* Breathing button effect styles */
 @import url('components/mobile-detection.css'); /* Mobile detection styles */
-/* Styles for centered button are now in action-button.css */
+@import url('components/print-error-suppression.css'); /* Print error suppression */
 @import url('page-breaks.css'); /* Import page break styles */
 @import url('two-layer.css'); /* Import two-layer skeuomorphic paper styles */
 @import url('console-layer.css'); /* Import console layer styles */
-@import url('components/print-code-suppression.css'); /* Import print code suppression styles */
 @import url('print.css');

@@ -1,6 +1,6 @@
 /* Console Layer (Top) - For UI elements that should appear above content */
 .console-layer {
-    position: absolute; /* Changed to absolute for overlay */
+    position: absolute; /* Changed from relative to absolute for overlay */
     top: 0;
     left: 0;
     width: 100%;

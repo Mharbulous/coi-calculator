@@ -4,24 +4,25 @@
 .delete-icon {
     color: #cc0000;
     cursor: pointer;
-    font-size: 0.9em;
     opacity: 0.6;
     transition: opacity 0.2s, transform 0.2s;
     display: inline-flex;
     justify-content: center;
     align-items: center;
     margin-left: 6px;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    border: 1px solid #cc0000;
     vertical-align: middle;
+}
+
+.delete-icon ion-icon {
+    font-size: 18px; /* Size of the trash icon */
+    width: 18px;
+    height: 18px;
 }
 
 .delete-icon:hover {
     opacity: 1;
     transform: scale(1.15);
-    background-color: #ffeeee;
+    color: #ff0000;
 }
 
 /* For two-line special damages rows, position the delete icon */

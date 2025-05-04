@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="styles/main.css">
     <!-- Flatpickr CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <!-- Print Warning Styles -->
+    <link rel="stylesheet" href="styles/components/print-warning.css">
     <script type="importmap">
     {
       "imports": {
@@ -25,6 +27,9 @@
     </script>
     <!-- Flatpickr JS -->
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <!-- Ionicons -->
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
 </head>
 <body>
 <!-- Mobile Detection Message -->
@@ -43,6 +48,7 @@
         </ul>
     </div>    
 </div>
+
 <div class="two-layer-container">
         <!-- Paper Layer (Bottom) -->
         <div class="paper-layer">
@@ -113,7 +119,7 @@
                 <span class="shimmer-overlay"></span>
             </button>
             <button id="print-button" class="action-button print" style="position: absolute; top: 0; right: 0;">Print</button>
-            <button id="clear-button" class="action-button clear" style="position: absolute; top: 40px; right: 0; background-color: #e74c3c; color: white;">Clear</button>
+            <button id="clear-button" class="action-button clear" style="position: absolute; top: 40px; right: 0;">Clear</button>
         </div>
 
         <!-- Restructured Summary Table -->
@@ -138,6 +144,16 @@
                  </tr>
              </tfoot>
         </table>
+
+        <!-- Print Warning - Only visible in print from browser -->
+        <div id="print-warning" class="print-only">
+          <div class="print-warning-content">
+            <h2>DEMONSTRATION MODE WARNING</h2>
+            <p>This printout contains <strong>mock interest rates</strong> that differ from actual court order interest rates by ±0.25-1.5%.</p>
+            <p>To obtain accurate calculations, click the <span class="btn-image buy-now">Buy Now - $24.99</span> button in the app.</p>
+            <p>To print a copy of this spreadsheet without this warning use the <span class="btn-image print">Print</span> button in the app.</p>
+          </div>
+        </div>
 
         <!-- Wrapped Prejudgment Section -->
         <div>
@@ -314,9 +330,6 @@
     
     <!-- Application initializer for test/live mode -->
     <script src="app-initializer.js" type="module"></script>
-    
-    <!-- Load the Clear button functionality -->
-    <script src="clear-button-listener.js" type="module"></script>
     </div> <!-- Close two-layer-container -->
 </body>
 </html>

@@ -94,8 +94,8 @@
     margin-top: 1.5rem;
 }
 
-/* Only display message when screen width is below 800px */
-@media (max-width: 799px) {
+/* Only display message when screen width is below 800px - explicitly not in print */
+@media screen and (max-width: 799px) {
     .mobile-detection-message {
         display: flex;
     }
@@ -125,29 +125,31 @@
     }
 }
 
-/* Hide mobile detection message when printing and restore all other content */
+/* Hide mobile detection message when printing */
 @media print {
     .mobile-detection-message {
         display: none !important;
+        visibility: hidden !important;
+        position: absolute !important;
+        width: 0 !important;
+        height: 0 !important;
+        overflow: hidden !important;
+        z-index: -9999 !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
     }
     
-    /* Ensure all other content is visible in print mode regardless of screen width */
-    body > *:not(.mobile-detection-message):not(script):not(noscript) {
+    /* Explicitly unset any display: none that might have been applied to other elements */
+    body > *:not(.mobile-detection-message) {
         display: block !important;
     }
     
-    /* Hide any script tags or code blocks that might be visible */
-    script, noscript, 
-    pre[class*="language-"], code[class*="language-"],
-    .script-content {
-        display: none !important;
-        visibility: hidden !important;
-        position: absolute !important;
-        left: -9999px !important;
-        top: -9999px !important;
-        max-height: 0 !important;
-        max-width: 0 !important;
-        opacity: 0 !important;
-        overflow: hidden !important;
+    /* Ensure the two-layer-container and its children are visible */
+    .two-layer-container,
+    .paper-layer,
+    .ink-layer {
+        display: block !important;
+        visibility: visible !important;
+        overflow: visible !important;
     }
 }

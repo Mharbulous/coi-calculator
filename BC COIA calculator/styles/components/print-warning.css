@@ -1,0 +1,91 @@
+/* Print Warning Styles */
+
+/* Screen styles - hidden on screen */
+#print-warning {
+  display: none;
+}
+
+/* Print styles - visible in print, unless hidden for app-triggered prints */
+@media print {
+  #print-warning {
+    display: block !important;
+    position: absolute !important;
+    z-index: 1000 !important;
+    top: 450px !important; /* Position to overlap prejudgment table */
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 90% !important;
+    margin: 0 !important;
+    padding: 15px !important;
+    border: 3px solid #ff0000 !important;
+    background-color: rgba(255, 255, 255, 0.9) !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2) !important;
+  }
+  
+  /* This class overrides the display:block !important when we need to hide it completely */
+  #print-warning.hide-for-print {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+  }
+  
+  #print-warning h2 {
+    margin-top: 0;
+    text-align: center;
+    color: #ff0000 !important;
+    font-size: 1.4em !important;
+    text-shadow: 1px 1px 0 white !important;
+    letter-spacing: 0.5px !important;
+    font-weight: bold !important;
+  }
+
+  #print-warning p {
+    margin: 8px 0;
+    font-weight: bold !important;
+    text-shadow: 0.5px 0.5px 0 white !important;
+    font-size: 1.1em !important;
+  }
+
+  .print-warning-content {
+    text-align: center;
+    background-color: #fff3cd !important;
+    padding: 8px;
+    border-radius: 4px;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.15) inset !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    border: 1px solid #e0d0a0 !important;
+  }
+  
+  /* Button image styles for the warning message */
+  .btn-image {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    border: 1px solid #ccc;
+    font-size: 0.9em;
+    margin: 0 3px;
+    white-space: nowrap;
+    line-height: 1.2;
+  }
+  
+  .btn-image.buy-now {
+    background-color: #4CAF50;
+    color: white;
+    border-color: #388E3C;
+  }
+  
+  .btn-image.print {
+    background-color: #4a90e2;
+    color: white;
+    border-color: #3a7bc8;
+  }
+}

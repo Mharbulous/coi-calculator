@@ -88,7 +88,7 @@ body.demo-mode {
   /* These settings ensure it stays centered regardless of page layout changes */
   width: auto;
   height: auto;
-  margin-top: 140px; /* Move the watermark down by 140px (original 100px + 40px added space) */
+  margin-top: 140px; /* Original 100px + 40px additional spacing */
 }
 
 /* Make sure watermark appears in print */
@@ -105,7 +105,7 @@ body.demo-mode {
     position: absolute; /* Same as online version */
     top: 50%;
     left: 50%;
-    margin-top: 100px;
+    margin-top: 140px; /* Updated from 100px to 140px to match screen version */
     page-break-inside: avoid;
     page-break-after: always;
     /* Other properties inherited from .demo-watermark */
@@ -116,7 +116,7 @@ body.demo-mode {
     position: absolute; /* Same as online version */
     top: 50%;
     left: 50%;
-    margin-top: 100px;
+    margin-top: 140px; /* Updated from 100px to 140px to match screen version */
     page-break-inside: avoid;
     page-break-after: always;
     /* Other properties inherited from .demo-watermark */
@@ -173,11 +173,26 @@ body.demo-mode {
 }
 
 .demo-modal-dismiss {
-  background-color: #f1f1f1;
+  background-color: #FFC107; /* Amber color */
   border: none;
   padding: 8px 16px;
   border-radius: 4px;
   cursor: pointer;
+  color: #000; /* Ensure text is visible on amber background */
+}
+
+.demo-modal-print {
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.demo-modal-print:hover {
+  background-color: #3a7bc8;
 }
 
 .demo-modal-purchase {
@@ -191,11 +206,12 @@ body.demo-mode {
 
 /* Demo Modal Notice Section */
 .demo-modal-notice {
-  background-color: #f9f9f9;
+  background-color: #FFF9C4; /* Light yellow background */
   border-radius: 4px;
   padding: 10px;
   margin: 15px 0;
   text-align: left;
+  border: 1px solid #FFECB3; /* Slight border for definition */
 }
 
 .demo-modal-notice ul {

@@ -10,6 +10,26 @@ The Court Order Interest Calculator is designed specifically for desktop compute
 2.  **Set Correct Expectations**: Inform users that the application requires a desktop device with printing capabilities.
 3.  **Provide Next Steps**: Give mobile users clear guidance on how to properly access the application.
 
+## Layer Architecture Considerations
+
+It's crucial to understand the application's multi-layer architecture when implementing the mobile detection overlay:
+
+**Two-Layer System**: The application uses a two-layer architecture:
+
+*   **Ink Layer**: Contains all interactive elements, forms, and content that will be printed
+*   **Paper Layer**: Provides the visual background and page structure
+
+**Print Behavior**: Only the `ink-layer` is designed to be printed; other elements are hidden during printing
+
+**Mobile Overlay Requirements**:
+
+*   Must be positioned outside the ink-layer to ensure it never appears in printed output
+*   Should be implemented at the highest z-index level to sit above all other content
+*   Must have appropriate print media query rules to ensure it's excluded from print output
+*   DOM positioning should respect the existing layer structure
+
+The mobile detection overlay must be implemented with this layering system in mind to ensure it functions correctly in all scenarios but does not appear anywhere in the printed version of the application.
+
 ## Implementation Steps
 
 ### Step 1: Create CSS File for Mobile Detection
@@ -166,7 +186,7 @@ Add this line after the other component imports, before the page-breaks.css impo
 
 ### Step 3: Add HTML for Mobile Detection Message
 
-Add the following HTML to `BC COIA calculator/index.html` right after the opening `<body>` tag:
+Add the following HTML to `BC COIA calculator/index.html` right after the opening `<body>` tag and before any layer containers:
 
 ```html
 <!-- Mobile Detection Message -->
@@ -208,17 +228,17 @@ The mobile message uses a clean, organized layout with:
 
 ## Print Preview Compatibility
 
-To ensure the mobile detection overlay doesn't appear in print preview (which would interfere with the printing functionality), the CSS includes a print media query:
+The application uses a sophisticated multi-layer printing system where only the ink-layer content is rendered in the printed output. To ensure the mobile detection overlay doesn't appear in print preview or printed output:
 
-```css
-@media print {
-    .mobile-detection-message {
-        display: none !important;
-    }
-}
-```
+**Layer Separation**: The mobile detection message must be positioned outside the `ink-layer` in the DOM structure
 
-This ensures that even if print preview is triggered on a small screen, the overlay won't appear in the printed output.
+**Print Media Handling**: The CSS includes a specific print media query:
+
+**DOM Positioning**: By placing the overlay immediately after the opening `<body>` tag, we ensure it's not within any container that might be printed
+
+**Z-index Handling**: The high z-index (9999) ensures the overlay appears above all content in the browser, but the print media query ensures it's completely removed during printing
+
+This approach maintains the integrity of the application's two-layer printing system, where only the `ink-layer` content appears in the final printed document, regardless of screen size or device type.
 
 ## Testing Procedures
 
@@ -244,6 +264,13 @@ After implementation, test the mobile detection overlay as follows:
 *   Trigger print preview (Ctrl+P or Cmd+P)
 *   Verify the overlay does NOT appear in print preview
 *   Verify the calculator content prints correctly
+*   Specifically confirm that even when viewing on a small device, the print output never shows the mobile message
+
+**Layer System Compatibility Test**:
+
+*   Verify the mobile detection overlay works harmoniously with the existing layer system
+*   Confirm that when printing from a small screen device (if possible), only the ink-layer content is printed
+*   Test that browser resizing correctly toggles the overlay without affecting the layer printing behavior
 
 **Resize Test**:
 
@@ -259,6 +286,7 @@ After implementation, test the mobile detection overlay as follows:
 3.  **Maintainability**: Clean separation of concerns with dedicated CSS file
 4.  **User-Friendly**: Provides clear guidance to users rather than a frustrating experience
 5.  **Print Compatible**: Doesn't interfere with the primary purpose of generating printable documents
+6.  **Layer-System Aware**: Respects the application's two-layer architecture where only the ink-layer is printed
 
 ## Next Steps After Implementation
 
@@ -274,3 +302,12 @@ After implementing the mobile detection overlay, consider:
 *   Regular calculator interface displays correctly on desktop screens
 *   Print preview and printing functionality work without showing the overlay
 *   All messaging is clear, friendly, and actionable
+*   The overlay respects the application's layer system, ensuring it never appears in printed output
+
+```css
+@media print {
+    .mobile-detection-message {
+        display: none !important;
+    }
+}
+```

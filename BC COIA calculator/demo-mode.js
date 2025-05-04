@@ -31,7 +31,7 @@ function initializeDemoMode() {
 
 /**
  * Initialize the action button
- * Shows Print button in both modes, plus "Buy Now" button in demo mode
+ * Shows "Buy Now" button in demo mode (centered above title) and "Print" button in paid mode (top-right corner)
  */
 function initializeActionButton() {
   const isPaid = hasVerifiedPayment();
@@ -42,23 +42,22 @@ function initializeActionButton() {
     existingButton.remove();
   }
   
-  // Add Print button for both paid and demo versions
-  const printButton = document.createElement('button');
-  printButton.id = 'print-button'; // Changed ID to avoid conflicts
-  printButton.textContent = 'Print';
-  printButton.classList.add('action-button', 'print');
-  printButton.addEventListener('click', handlePrintClick);
-  
-  const titleContainer = document.getElementById('title-container');
-  if (titleContainer) {
-    titleContainer.appendChild(printButton);
-  }
-  
-  // If demo mode, also add the Buy Now button to console layer
-  if (!isPaid) {
+  if (isPaid) {
+    // Paid version - Add Print button back to title container
+    const printButton = document.createElement('button');
+    printButton.id = 'action-button';
+    printButton.textContent = 'Print';
+    printButton.classList.add('action-button', 'print');
+    printButton.addEventListener('click', handlePrintClick);
+    
+    const titleContainer = document.getElementById('title-container');
+    if (titleContainer) {
+      titleContainer.appendChild(printButton);
+    }
+  } else {
     // Demo version - Buy Now button with price in console layer
     const buyNowButton = document.createElement('button');
-    buyNowButton.id = 'action-button'; // Keep original ID for existing CSS
+    buyNowButton.id = 'action-button';
     buyNowButton.textContent = 'Buy Now - $24.99';
     buyNowButton.classList.add('action-button', 'buy-now');
     buyNowButton.addEventListener('click', handlePaymentClick);
@@ -70,14 +69,28 @@ function initializeActionButton() {
     
     // Add button to the console layer
     addToConsoleLayer(buyNowButton);
+    
+    // Find the print button in the interface and add event listener
+    const printButton = document.getElementById('print-button');
+    if (printButton) {
+      printButton.addEventListener('click', handlePrintClick);
+    }
   }
 }
 
 /**
- * Handle the print button click in paid mode
+ * Handle the print button click
  */
 function handlePrintClick() {
-  window.print();
+  const isPaid = hasVerifiedPayment();
+  
+  if (isPaid) {
+    // In paid mode, just print normally
+    window.print();
+  } else {
+    // In demo mode, show the modal first
+    showDemoModal();
+  }
 }
 
 /**
@@ -87,7 +100,7 @@ function addDemoBanner() {
   const bannerHTML = `
     <div id="demo-mode-banner" class="demo-banner">
       <div class="close-icon" id="close-demo-banner">✕</div>
-      <span>CAUTION:  This free demo uses mock interest rates</span>
+      <span>CAUTION:  Demo uses mock interest rates</span>
       <button id="get-accurate-results" class="payment-button">Buy Now - $24.99</button>
     </div>
   `;
@@ -195,23 +208,7 @@ function addWatermarks() {
 /**
  * Handle the payment button click
  */
-async function handlePaymentClick() {
-  // Save current application state before redirecting
-  try {
-    const useStore = window.useStore || (await import('./store.js')).default;
-    const saveState = useStore.getState().saveStateToLocalStorage;
-    
-    if (saveState) {
-      console.log('Saving application state before payment redirect');
-      saveState();
-    } else {
-      console.warn('saveStateToLocalStorage function not found in store');
-    }
-  } catch (error) {
-    console.error('Error saving application state before payment:', error);
-    // Continue with payment process even if state saving fails
-  }
-  
+function handlePaymentClick() {
   // Use Stripe checkout to process the payment
   redirectToStripeCheckout()
     .catch(error => {
@@ -235,17 +232,14 @@ function handleResetToDemoClick() {
  * Set up event listeners related to demo mode
  */
 function setupDemoModeListeners() {
-  // Show modal after user changes judgment date or debt amount
-  const judgmentDateInput = document.querySelector('[data-input="judgmentDate"]');
+  // Show modal after user changes debt amount only
   const debtAmountInput = document.querySelector('input[data-input="amountValue"]');
-  
-  if (judgmentDateInput) {
-    judgmentDateInput.addEventListener('change', triggerDemoModalAfterDelay);
-  }
   
   if (debtAmountInput) {
     debtAmountInput.addEventListener('change', triggerDemoModalAfterDelay);
   }
+  
+  // No longer triggering from judgmentDateInput
 }
 
 /**
@@ -265,19 +259,20 @@ function createDemoModal() {
   const modalHTML = `
     <div id="demo-modal" class="demo-modal">
       <div class="demo-modal-content">
-        <h2>Demonstration Mode</h2>
-        <p>The interest rates used in this demonstration version of this app are for demonstration purposes only. Accurate court order interest rates are only in the paid version.</p>
+        <h2>You are in Demo Mode!</h2>
+        
         <div class="demo-modal-notice">
-          <p>The demo version uses slightly modified interest rates:</p>
+          <p>The demonstration version of this app uses mock interest rates:</p>
           <ul>
-            <li>Mock rates differ from real rates by ±0.25-1.5%</li>
+            <li>Mock rates differ from true rates by ±0.25-1.5%</li>
             <li>Calculations are fully functional but use these approximate rates</li>
             <li>Purchase to use the accurate court-ordered interest rates</li>
           </ul>
         </div>
         <div class="demo-modal-buttons">
           <button id="demo-modal-dismiss" class="demo-modal-dismiss">Dismiss</button>
-          <button id="demo-modal-purchase" class="demo-modal-purchase">Purchase - $24.99</button>
+          <button id="demo-modal-print" class="demo-modal-print">Test Print</button>
+          <button id="demo-modal-purchase" class="demo-modal-purchase">Buy Now - $24.99</button>
         </div>
       </div>
     </div>
@@ -292,6 +287,22 @@ function createDemoModal() {
     
     // Add event listeners for modal buttons
     modal.querySelector('#demo-modal-dismiss').addEventListener('click', hideModal);
+    modal.querySelector('#demo-modal-print').addEventListener('click', () => {
+      // Hide the modal
+      hideModal();
+      
+      // Hide the print warning by adding a class that overrides the print styles
+      const printWarning = document.getElementById('print-warning');
+      if (printWarning) printWarning.classList.add('hide-for-print');
+      
+      // Print the document with a slight delay to ensure class is applied
+      setTimeout(() => window.print(), 100);
+      
+      // After a reasonable delay, restore the print warning's default behavior
+      setTimeout(() => {
+        if (printWarning) printWarning.classList.remove('hide-for-print');
+      }, 1500); // 1.5 seconds should be plenty of time
+    });
     modal.querySelector('#demo-modal-purchase').addEventListener('click', handlePaymentClick);
   } catch (error) {
     console.error('Failed to add demo modal to console layer:', error);
@@ -301,6 +312,22 @@ function createDemoModal() {
     
     // Add event listeners for modal buttons
     document.getElementById('demo-modal-dismiss').addEventListener('click', hideModal);
+    document.getElementById('demo-modal-print').addEventListener('click', () => {
+      // Hide the modal
+      hideModal();
+      
+      // Hide the print warning by adding a class that overrides the print styles
+      const printWarning = document.getElementById('print-warning');
+      if (printWarning) printWarning.classList.add('hide-for-print');
+      
+      // Print the document with a slight delay to ensure class is applied
+      setTimeout(() => window.print(), 100);
+      
+      // After a reasonable delay, restore the print warning's default behavior
+      setTimeout(() => {
+        if (printWarning) printWarning.classList.remove('hide-for-print');
+      }, 1500); // 1.5 seconds should be plenty of time
+    });
     document.getElementById('demo-modal-purchase').addEventListener('click', handlePaymentClick);
   }
 }
