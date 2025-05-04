@@ -30,27 +30,45 @@ function initializeDemoMode() {
 }
 
 /**
- * Initialize the action button in the top-right corner
- * Shows "Buy Now" button in demo mode and "Print" button in paid mode
+ * Initialize the action button
+ * Shows "Buy Now" button in demo mode (centered above title) and "Print" button in paid mode (top-right corner)
  */
 function initializeActionButton() {
   const isPaid = hasVerifiedPayment();
-  const actionButton = document.getElementById('action-button');
   
-  if (!actionButton) return;
+  // First, find the existing button in the title container and remove it
+  const existingButton = document.getElementById('action-button');
+  if (existingButton) {
+    existingButton.remove();
+  }
   
   if (isPaid) {
-    // Paid version - Print button
-    actionButton.textContent = 'Print';
-    actionButton.classList.add('print');
-    actionButton.classList.remove('buy-now');
-    actionButton.addEventListener('click', handlePrintClick);
+    // Paid version - Add Print button back to title container
+    const printButton = document.createElement('button');
+    printButton.id = 'action-button';
+    printButton.textContent = 'Print';
+    printButton.classList.add('action-button', 'print');
+    printButton.addEventListener('click', handlePrintClick);
+    
+    const titleContainer = document.getElementById('title-container');
+    if (titleContainer) {
+      titleContainer.appendChild(printButton);
+    }
   } else {
-    // Demo version - Buy Now button with price
-    actionButton.textContent = 'Buy Now - $24.99';
-    actionButton.classList.add('buy-now');
-    actionButton.classList.remove('print');
-    actionButton.addEventListener('click', handlePaymentClick);
+    // Demo version - Buy Now button with price in console layer
+    const buyNowButton = document.createElement('button');
+    buyNowButton.id = 'action-button';
+    buyNowButton.textContent = 'Buy Now - $24.99';
+    buyNowButton.classList.add('action-button', 'buy-now');
+    buyNowButton.addEventListener('click', handlePaymentClick);
+    
+    // Create a span element for the shimmer overlay
+    const shimmerOverlay = document.createElement('span');
+    shimmerOverlay.classList.add('shimmer-overlay');
+    buyNowButton.appendChild(shimmerOverlay);
+    
+    // Add button to the console layer
+    addToConsoleLayer(buyNowButton);
   }
 }
 
