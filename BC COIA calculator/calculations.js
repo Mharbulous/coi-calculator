@@ -262,9 +262,13 @@ function calculateSegmentInterest(segment, principal, rate, year) {
     
     const interestAmount = (principal * (rate / 100) * daysInSegment) / days_in_year;
     
+    // Calculate the last included day (end date - 1 day)
+    const lastIncludedDay = new Date(segment.end);
+    lastIncludedDay.setUTCDate(lastIncludedDay.getUTCDate() - 1);
+    
     const details = {
         start: formatDateForDisplay(segment.start),
-        description: `${daysInSegment} days`,
+        description: `${daysInSegment} days (ending ${formatDateForDisplay(lastIncludedDay)})`,
         rate: rate,
         principal: principal,
         interest: interestAmount,
@@ -401,7 +405,8 @@ function calculateFinalPeriodDamageInterest(damages, endDate, interestType, juri
                     damageDate: damageDate, // Store Date object
                     start: formatDateForDisplay(damageDate),
                     endDate: formatDateForDisplay(endDate), // Store end date for display
-                    description: `${damage.description} (${daysInFinalPeriodForDamage} days)`, // Include damage description
+                    // Calculate the last included day (end date - 1 day)
+                    description: `${damage.description} (${daysInFinalPeriodForDamage} days ending ${formatDateForDisplay(new Date(endDate.getTime() - 86400000))})`, // Include damage description and end date
                     rate: finalPeriodRate,
                     principal: damage.amount, // Original damage amount
                     interest: interestForDamage,

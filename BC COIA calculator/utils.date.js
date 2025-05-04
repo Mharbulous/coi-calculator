@@ -108,6 +108,19 @@ export function dateOnOrAfter(date1, date2) {
 }
 
 /**
+ * Subtracts one day from a given date
+ * @param {Date} date - The date to subtract one day from
+ * @returns {Date} A new Date object representing the day before the input date
+ */
+export function subtractOneDay(date) {
+    if (!date || isNaN(date.getTime())) return date;
+    
+    const newDate = new Date(date);
+    newDate.setUTCDate(newDate.getUTCDate() - 1);
+    return newDate;
+}
+
+/**
  * Validates that a string is in the YYYY-MM-DD format.
  * @param {string} dateString - The date string to validate.
  * @returns {boolean} True if the string is in YYYY-MM-DD format, false otherwise.
