@@ -1,0 +1,45 @@
+/* Print Warning Styles */
+
+/* Screen styles - hidden on screen */
+#print-warning {
+  display: none;
+}
+
+/* Print styles - visible in print, unless hidden for app-triggered prints */
+@media print {
+  #print-warning {
+    display: block !important;
+    margin: 20px 0;
+    padding: 15px;
+    border: 3px solid #ff0000;
+    background-color: white !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+  
+  /* This class overrides the display:block !important when we need to hide it completely */
+  #print-warning.hide-for-print {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+  }
+  
+  #print-warning h2 {
+    margin-top: 0;
+    text-align: center;
+    color: #ff0000 !important;
+  }
+
+  #print-warning p {
+    margin: 8px 0;
+  }
+
+  .print-warning-content {
+    text-align: center;
+  }
+}

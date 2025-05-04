@@ -1,120 +1,147 @@
-# Task 55: Modal Warning for Demo Mode Printing
+# Task 55: Modal Warning for Demo Mode Printing (Revised Plan)
 
 ## Overview
 
-Implement a robust solution to ensure users of the demo version always see a warning about mock interest rates when printing, regardless of whether they use the app's Print button or browser print controls.
+Implement a robust solution to ensure users of the demo version always see a warning about mock interest rates when printing through the browser, but don't see duplicate warnings when using the app's Print button.
 
 ## Problem Statement
 
-Currently, the demo modal is only shown when users click the app's Print button, but users can bypass this warning by using browser print functions (Ctrl+P, right-click menu, etc.). We need a solution that ensures the warning is always visible, either:
-- On screen when using the app's Print button
-- On the printed page when printing directly through the browser
+Currently, the demo modal is only shown when users click the app's Print button, but users can bypass this warning by using browser print functions (Ctrl+P, right-click menu, etc.). We need a solution that ensures:
 
-## Approach
+1.  The warning is visible when printing directly through the browser
+2.  The warning doesn't appear twice (on-screen and in printout) when using the app's Print button
 
-Rather than trying to intercept browser print commands (which can be unreliable across browsers), we will use a different approach:
+## Improved Approach
 
-1. Make the demo modal "print-only" by default (hidden on screen, visible in print)
-2. When the user clicks the Print button, temporarily make the modal "screen-only" instead
-3. When any button in the modal is clicked, restore it to "print-only" mode
+After testing several strategies, we've found the most effective approach is to use a static print-only warning element positioned between summary and calculation tables. This will be coupled with direct DOM manipulation to temporarily hide it during app-initiated prints:
 
-This ensures users will always see the warning - either on screen before printing, or in their printout if they bypass the app's Print button.
+1.  Create a print-only warning div with default CSS to show in print but hide on screen
+2.  Place it in the correct position in the document flow
+3.  When using the app's Print button, temporarily hide the element with inline styles
+
+This approach is simpler than our previous attempts and avoids complex state tracking.
 
 ## Implementation Details
 
-### 1. Create Print-Only CSS Class
+### 1\. Create Print-Only Warning Element
 
-Create a new `.print-only` CSS class that complements the existing `.screen-only` class:
-- Elements with this class will be hidden on screen but visible when printing
-- This class will be used to control the visibility of the demo modal
+Add a dedicated print warning div between the summary table and prejudgment interest section:
 
-### 2. Modify Demo Modal Creation
+```html
+<!-- After summary table -->
+<div id="print-warning" class="print-only">
+  <div class="print-warning-content">
+    <h2>DEMONSTRATION MODE - MOCK INTEREST RATES</h2>
+    <p>This printout contains <strong>mock interest rates</strong> that differ from actual court order interest rates by ±0.25-1.5%.</p>
+    <p>To obtain accurate calculations, purchase the full version at <strong>$24.99</strong>.</p>
+  </div>
+</div>
+<!-- Before prejudgment section -->
+```
 
-Update the `createDemoModal()` function to:
-- Add the print-only class to the demo modal by default
-- Position the modal appropriately for printing (top of the page)
-- Ensure the modal's content is formatted well for print output
-- Keep the existing structure with the three buttons: Dismiss, Test Print, and Buy Now
+### 2\. Create CSS for Print Warning
 
-### 3. Update Print Button Handler
+Add styling for the warning element:
 
-Modify the `handlePrintClick()` function in demo mode to:
-- Remove the print-only class from the modal
-- Add a screen-only class to the modal
-- Show the modal on screen
-- Prevent immediate printing
+```css
+/* Screen styles - hidden on screen */
+#print-warning {
+  display: none;
+}
 
-### 4. Update Modal Button Handlers
+/* Print styles - visible in print */
+@media print {
+  #print-warning {
+    display: block !important;
+    margin: 20px 0;
+    padding: 15px;
+    border: 3px solid #ff0000;
+    background-color: white !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+  
+  #print-warning h2 {
+    margin-top: 0;
+    text-align: center;
+  }
+}
+```
 
-Update all button event handlers in the modal:
-- For the "Dismiss" button: hide the modal and restore print-only class
-- For the "Test Print" button: hide the modal, restore print-only class, then trigger print
-- For the "Buy Now" button: hide the modal, restore print-only class, then redirect to payment
+### 3\. Update Modal Print Button Handler
 
-### 5. Consider Print Styling
+Modify the "Test Print" button handler in the demo modal:
 
-Ensure the modal is properly styled for printing:
-- Use appropriate colors and contrast for print output
-- Ensure the text is readable when printed in black and white
-- Position the modal at the top of the first printed page
-- Make sure the modal size is appropriate for print output
+```javascript
+modalElement.querySelector('#demo-modal-print').addEventListener('click', () => {
+  // Hide the modal
+  restoreModalToPrintOnly();
+  
+  // Hide the print warning temporarily with inline style
+  const printWarning = document.getElementById('print-warning');
+  if (printWarning) printWarning.style.display = 'none';
+  
+  // Print the document
+  setTimeout(() => window.print(), 50);
+  
+  // After a reasonable delay, restore the print warning's default behavior
+  setTimeout(() => {
+    if (printWarning) printWarning.style.display = '';
+  }, 1000); // 1 second should be plenty of time
+});
+```
 
-## Potential Challenges
+### 4\. Initialization in Demo Mode
 
-1. **Browser Compatibility**:
-   - CSS media queries for print behave differently across browsers
-   - Test in Chrome, Firefox, Edge, and Safari at minimum
+Add the print warning to the page in the `initializeDemoMode` function if not in paid mode.
 
-2. **Timing Issues**:
-   - When toggling between screen-only and print-only, there might be timing issues
-   - May need to use setTimeout to ensure DOM updates before printing
+## Lessons Learned from First Implementation Attempt
 
-3. **Modal Positioning**:
-   - The modal will need different positioning for screen vs. print
-   - In print, it should appear at the top of the first page
-   - On screen, it should be centered
+**DOM Position Matters for Print**: Elements won't overlay in print like they do on screen. Print essentially flattens the document into a sequential flow.
 
-4. **Print Preview**:
-   - Some browsers do not fully show all print styles in print preview
-   - Test actual printing, not just the preview
+**Layer-based Approach Issues**: Our first implementation using separate "modal-layer" didn't position the warning correctly because:
 
-5. **Layout Shifting**:
-   - Adding a print-only element might shift the layout of printed pages
-   - Need to design the print layout to accommodate the modal
+*   Browser print rendering treats positioned elements differently than screen rendering
+*   Print makes elements sequential regardless of z-index and position
+
+**Avoid Complexity**: Simpler approaches are more reliable across browsers:
+
+*   Direct DOM insertion/manipulation
+*   CSS print media queries
+*   Minimal reliance on state tracking
+
+**Browser Print Differences**: Browsers have different print implementations:
+
+*   Some fully apply print styles in preview, others don't
+*   Some strip out script-dependent functionality
+*   Positioning behavior varies significantly
 
 ## Testing Requirements
 
-1. Test clicking the Print button to ensure the modal appears on screen
-2. Test each button in the modal for correct behavior:
-   - Dismiss: Modal hides, no printing occurs
-   - Test Print: Modal hides, printing starts
-   - Buy Now: Modal hides, redirects to payment
+Test clicking the Print button to ensure:
 
-3. Test browser-initiated printing (Ctrl+P, right-click print):
-   - Verify the modal appears in print preview
-   - Verify the modal appears in the actual printout
-   - Check that the modal does not affect the layout of the rest of the content
+*   The modal appears on screen
+*   After clicking "Test Print", the printout does NOT contain a warning
 
-4. Test in multiple browsers to ensure consistent behavior
+Test browser-initiated printing (Ctrl+P, right-click print):
+
+*   Verify the warning appears in print preview
+*   Verify the warning appears in the actual printout
+*   Check that the warning is positioned correctly between tables
+
+Test across browsers:
+
+*   Chrome
+*   Firefox
+*   Edge
+*   Safari (if available)
 
 ## Success Criteria
 
-- Users in demo mode always see the warning, either on screen or in their printout
-- The warning clearly states that mock interest rates are being used
-- Users have the option to test print, dismiss, or purchase the full version
-- The solution works across major browsers
-- The printed output looks professional and readable
-- Paid version allows printing normally without showing the modal
-
-## Implementation Notes
-
-- This approach is more reliable than trying to intercept browser print commands
-- It works with any method of printing (browser menu, keyboard shortcuts, context menu)
-- It doesn't rely on JavaScript event handling, which can vary between browsers
-- The approach is minimally invasive to the existing codebase
-
-## Future Improvements
-
-- Consider adding a "Don't show again" option for the screen modal
-- Add analytics to track how many users encounter the print warning
-- Consider different warning designs for screen vs. print contexts
+*   Browser-initiated prints (Ctrl+P/right-click) show the warning
+*   App-initiated prints (Print button → Test Print) don't show warning in output
+*   Warning clearly indicates mock interest rates are being used
+*   Warning is positioned correctly between tables
+*   Solution works across major browsers
+*   Implementation is simple and robust

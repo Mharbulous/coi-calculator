@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="styles/main.css">
     <!-- Flatpickr CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <!-- Print Warning Styles -->
+    <link rel="stylesheet" href="styles/components/print-warning.css">
     <script type="importmap">
     {
       "imports": {
@@ -122,6 +124,16 @@
                  </tr>
              </tfoot>
         </table>
+
+        <!-- Print Warning - Only visible in print from browser -->
+        <div id="print-warning" class="print-only">
+          <div class="print-warning-content">
+            <h2>DEMONSTRATION MODE WARNING</h2>
+            <p>This printout contains <strong>mock interest rates</strong> that differ from actual court order interest rates by ±0.25-1.5%.</p>
+            <p>To obtain accurate calculations, click the Buy Now button.</p>
+            <p>To print a copy of this spreadsheet without this warning message use the green Print button in the web app.</p>
+          </div>
+        </div>
 
         <!-- Wrapped Prejudgment Section -->
         <div>

@@ -288,8 +288,20 @@ function createDemoModal() {
     // Add event listeners for modal buttons
     modal.querySelector('#demo-modal-dismiss').addEventListener('click', hideModal);
     modal.querySelector('#demo-modal-print').addEventListener('click', () => {
+      // Hide the modal
       hideModal();
-      window.print();
+      
+      // Hide the print warning by adding a class that overrides the print styles
+      const printWarning = document.getElementById('print-warning');
+      if (printWarning) printWarning.classList.add('hide-for-print');
+      
+      // Print the document with a slight delay to ensure class is applied
+      setTimeout(() => window.print(), 100);
+      
+      // After a reasonable delay, restore the print warning's default behavior
+      setTimeout(() => {
+        if (printWarning) printWarning.classList.remove('hide-for-print');
+      }, 1500); // 1.5 seconds should be plenty of time
     });
     modal.querySelector('#demo-modal-purchase').addEventListener('click', handlePaymentClick);
   } catch (error) {
@@ -301,8 +313,20 @@ function createDemoModal() {
     // Add event listeners for modal buttons
     document.getElementById('demo-modal-dismiss').addEventListener('click', hideModal);
     document.getElementById('demo-modal-print').addEventListener('click', () => {
+      // Hide the modal
       hideModal();
-      window.print();
+      
+      // Hide the print warning by adding a class that overrides the print styles
+      const printWarning = document.getElementById('print-warning');
+      if (printWarning) printWarning.classList.add('hide-for-print');
+      
+      // Print the document with a slight delay to ensure class is applied
+      setTimeout(() => window.print(), 100);
+      
+      // After a reasonable delay, restore the print warning's default behavior
+      setTimeout(() => {
+        if (printWarning) printWarning.classList.remove('hide-for-print');
+      }, 1500); // 1.5 seconds should be plenty of time
     });
     document.getElementById('demo-modal-purchase').addEventListener('click', handlePaymentClick);
   }
