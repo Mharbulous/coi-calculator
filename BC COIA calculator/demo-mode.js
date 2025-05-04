@@ -69,14 +69,28 @@ function initializeActionButton() {
     
     // Add button to the console layer
     addToConsoleLayer(buyNowButton);
+    
+    // Find the print button in the interface and add event listener
+    const printButton = document.getElementById('print-button');
+    if (printButton) {
+      printButton.addEventListener('click', handlePrintClick);
+    }
   }
 }
 
 /**
- * Handle the print button click in paid mode
+ * Handle the print button click
  */
 function handlePrintClick() {
-  window.print();
+  const isPaid = hasVerifiedPayment();
+  
+  if (isPaid) {
+    // In paid mode, just print normally
+    window.print();
+  } else {
+    // In demo mode, show the modal first
+    showDemoModal();
+  }
 }
 
 /**
@@ -218,17 +232,14 @@ function handleResetToDemoClick() {
  * Set up event listeners related to demo mode
  */
 function setupDemoModeListeners() {
-  // Show modal after user changes judgment date or debt amount
-  const judgmentDateInput = document.querySelector('[data-input="judgmentDate"]');
+  // Show modal after user changes debt amount only
   const debtAmountInput = document.querySelector('input[data-input="amountValue"]');
-  
-  if (judgmentDateInput) {
-    judgmentDateInput.addEventListener('change', triggerDemoModalAfterDelay);
-  }
   
   if (debtAmountInput) {
     debtAmountInput.addEventListener('change', triggerDemoModalAfterDelay);
   }
+  
+  // No longer triggering from judgmentDateInput
 }
 
 /**
@@ -260,7 +271,8 @@ function createDemoModal() {
         </div>
         <div class="demo-modal-buttons">
           <button id="demo-modal-dismiss" class="demo-modal-dismiss">Dismiss</button>
-          <button id="demo-modal-purchase" class="demo-modal-purchase">Purchase - $24.99</button>
+          <button id="demo-modal-print" class="demo-modal-print">Test Print</button>
+          <button id="demo-modal-purchase" class="demo-modal-purchase">Buy Now</button>
         </div>
       </div>
     </div>
@@ -275,6 +287,10 @@ function createDemoModal() {
     
     // Add event listeners for modal buttons
     modal.querySelector('#demo-modal-dismiss').addEventListener('click', hideModal);
+    modal.querySelector('#demo-modal-print').addEventListener('click', () => {
+      hideModal();
+      window.print();
+    });
     modal.querySelector('#demo-modal-purchase').addEventListener('click', handlePaymentClick);
   } catch (error) {
     console.error('Failed to add demo modal to console layer:', error);
@@ -284,6 +300,10 @@ function createDemoModal() {
     
     // Add event listeners for modal buttons
     document.getElementById('demo-modal-dismiss').addEventListener('click', hideModal);
+    document.getElementById('demo-modal-print').addEventListener('click', () => {
+      hideModal();
+      window.print();
+    });
     document.getElementById('demo-modal-purchase').addEventListener('click', handlePaymentClick);
   }
 }

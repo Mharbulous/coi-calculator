@@ -180,6 +180,20 @@ body.demo-mode {
   cursor: pointer;
 }
 
+.demo-modal-print {
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.demo-modal-print:hover {
+  background-color: #3a7bc8;
+}
+
 .demo-modal-purchase {
   background-color: #4CAF50;
   color: white;
