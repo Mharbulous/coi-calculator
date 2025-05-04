@@ -103,7 +103,14 @@ function handleTrashIconClick(event) {
 function createDeleteIcon() {
     const deleteIcon = document.createElement('span');
     deleteIcon.className = 'delete-icon';
-    deleteIcon.innerHTML = '×';  // Using × character for the X
+    
+    // Create the trash icon using ion-icon
+    const trashIcon = document.createElement('ion-icon');
+    trashIcon.setAttribute('name', 'trash-outline');
+    
+    // Append the trash icon to the delete icon span
+    deleteIcon.appendChild(trashIcon);
+    
     deleteIcon.title = 'Delete special damages';
     deleteIcon.addEventListener('click', handleTrashIconClick);
     
