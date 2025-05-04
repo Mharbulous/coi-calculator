@@ -27,7 +27,7 @@
     pointer-events: auto; /* Make sure it's clickable */
 }
 
-/* Common styling for both buttons - green with white text */
+/* Common styling for buy-now and print buttons - green with white text */
 .action-button.buy-now,
 .action-button.print {
     background-color: #4CAF50; /* Green */
@@ -37,6 +37,26 @@
 .action-button.buy-now:hover,
 .action-button.print:hover {
     background-color: #45a049; /* Darker green on hover */
+}
+
+/* Clear button - soft red with white text */
+.action-button.clear,
+#clear-button {
+    background-color: #e74c3c; /* Soft red */
+    color: white;
+}
+
+.action-button.clear:hover,
+#clear-button:hover {
+    background-color: #c0392b; /* Darker soft red on hover */
+}
+
+/* Position the clear button below print button */
+#clear-button {
+    position: absolute;
+    top: 40px; /* Position below print button with spacing */
+    right: 0;
+    width: var(--value-width-right);
 }
 
 /* Print-specific styles */
