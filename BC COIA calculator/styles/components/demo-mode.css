@@ -105,7 +105,7 @@ body.demo-mode {
     position: absolute; /* Same as online version */
     top: 50%;
     left: 50%;
-    margin-top: 100px;
+    margin-top: 140px; /* Updated from 100px to 140px to match screen version */
     page-break-inside: avoid;
     page-break-after: always;
     /* Other properties inherited from .demo-watermark */
@@ -116,7 +116,7 @@ body.demo-mode {
     position: absolute; /* Same as online version */
     top: 50%;
     left: 50%;
-    margin-top: 100px;
+    margin-top: 140px; /* Updated from 100px to 140px to match screen version */
     page-break-inside: avoid;
     page-break-after: always;
     /* Other properties inherited from .demo-watermark */
