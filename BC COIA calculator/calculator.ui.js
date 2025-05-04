@@ -9,6 +9,7 @@ import {
     setDefaultInputValues,
     setupCurrencyInputListeners
 } from './domUtils.js';
+import { initializeClearButton } from './dom/clearButton.js';
 import { formatDateForInput, normalizeDate } from './utils.date.js';
 import useStore from './store.js';
 import { updatePagination, setupPaginationListeners } from './dom/pageBreaks.js'; // Import pagination functions
@@ -227,6 +228,9 @@ function initializeCalculator() {
 
     // Initialize pagination listeners
     setupPaginationListeners();
+    
+    // Initialize the Clear button functionality
+    initializeClearButton();
     
     recalculate(); 
     document.dispatchEvent(new CustomEvent('content-changed')); // Perform initial pagination update

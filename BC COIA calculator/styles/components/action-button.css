@@ -52,7 +52,7 @@
     transform: scale(0.98);
 }
 
-/* Clear button - soft red with white text */
+/* Clear button - soft red with white text (active state) */
 .action-button.clear,
 #clear-button {
     background-color: #e74c3c; /* Soft red */
@@ -62,6 +62,19 @@
 .action-button.clear:hover,
 #clear-button:hover {
     background-color: #c0392b; /* Darker soft red on hover */
+}
+
+/* Clear button - disabled state (gray with black text) */
+.action-button.clear.disabled,
+#clear-button.disabled {
+    background-color: #cccccc; /* Gray */
+    color: #333333; /* Dark gray, almost black */
+    cursor: default; /* Change cursor to indicate non-clickable */
+}
+
+.action-button.clear.disabled:hover,
+#clear-button.disabled:hover {
+    background-color: #cccccc; /* Stay the same color on hover */
 }
 
 /* Position the clear button below print button */

@@ -131,6 +131,13 @@ export function getInputValues() {
 export function validateInputValues(inputs) {
     let isValid = true;
     let validationMessage = "";
+    
+    // Ensure date synchronization for validation purposes when judgment date is available
+    if (inputs.dateOfJudgment && (!inputs.nonPecuniaryJudgmentDate || !inputs.costsAwardedDate)) {
+        // If judgment date exists but the others don't, synchronize them
+        inputs.nonPecuniaryJudgmentDate = inputs.dateOfJudgment;
+        inputs.costsAwardedDate = inputs.dateOfJudgment;
+    }
 
     // Check all required dates exist, but only check prejudgmentStartDate if showPrejudgment is true
     // and only check postjudgmentEndDate if showPostjudgment is true
