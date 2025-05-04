@@ -240,21 +240,6 @@
         visibility: hidden !important;
     }
     
-    /* Hide all scripts, code, and potentially visible script content in print mode */
-    script, noscript, 
-    body:after, html:after,
-    body:before, html:before {
-        display: none !important;
-        visibility: hidden !important;
-        height: 0 !important;
-        width: 0 !important;
-        overflow: hidden !important;
-        position: absolute !important;
-        content: "" !important;
-        left: -9999px !important;
-        opacity: 0 !important;
-    }
-    
     /* Special damages print styles */
     .add-special-damages-btn {
         display: none !important;

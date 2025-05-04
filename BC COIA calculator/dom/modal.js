@@ -87,20 +87,7 @@ export function showModal(title, message, buttonText = "OK", onClose = null) {
 export function showSpecialDamagesDeletionModal() {
     return showModal(
         "Delete Special Damages Row?",
-        "Delete description and set amount to $0.00 before deleting row.",
+        "Delete description and change value to $0.00 before deleting row.",
         "OK"
-    );
-}
-
-/**
- * Show a confirmation dialog for clearing all calculator values
- * @param {Function} onConfirm - Callback function to execute if user confirms the action
- */
-export function showClearConfirmationModal(onConfirm) {
-    return showModal(
-        "Clear Calculator?",
-        "This will erase all special damage rows, reset all dates to blank, and set all dollar amounts to blank. This action cannot be undone.",
-        "Clear All",
-        onConfirm
     );
 }
