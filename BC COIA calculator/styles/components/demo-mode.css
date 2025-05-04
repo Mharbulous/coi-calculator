@@ -16,17 +16,33 @@
   transition: transform 0.5s ease-in-out;
   display: flex;
   align-items: center;
-  justify-content: center;
-  position: relative; /* For proper positioning of the close icon */
   box-sizing: border-box; /* Include padding in width calculation */
+}
+
+/* Banner sections */
+.banner-left-section {
+  width: 20%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.banner-center-section {
+  width: 60%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.banner-right-section {
+  width: 20%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
 }
 
 /* Close icon */
 .close-icon {
-  position: absolute;
-  left: 10px;
-  top: 50%;
-  transform: translateY(-50%);
   width: 24px;
   height: 24px;
   border-radius: 50%;
@@ -38,7 +54,6 @@
   font-size: 16px;
   cursor: pointer;
   transition: background-color 0.3s;
-  z-index: 10; /* Ensure it's above other elements */
 }
 
 .close-icon:hover {
@@ -50,10 +65,8 @@
 }
 
 /* Target the text span specifically */
-.demo-banner span {
+.demo-banner .banner-center-section span {
   font-size: 2rem; /* Increased font size by 2x from default */
-  margin: 0 auto; /* Center the text */
-  padding: 0 30px; /* Add padding to prevent overlap with close icon */
   text-align: center;
 }
 
@@ -132,8 +145,6 @@ body.demo-mode {
   border-radius: 4px;
   cursor: pointer;
   font-weight: bold;
-  margin-left: 15px;
-  margin-right: 20px; /* Add right margin to prevent touching the edge */
   transition: background-color 0.3s;
   font-size: 2rem; /* Increased font size by 2x from default */
 }

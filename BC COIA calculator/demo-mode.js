@@ -99,9 +99,15 @@ function handlePrintClick() {
 function addDemoBanner() {
   const bannerHTML = `
     <div id="demo-mode-banner" class="demo-banner">
-      <div class="close-icon" id="close-demo-banner">✕</div>
-      <span>CAUTION:  Demo uses mock interest rates</span>
-      <button id="get-accurate-results" class="payment-button">Buy Now - $24.99</button>
+      <div class="banner-left-section">
+        <div class="close-icon" id="close-demo-banner">✕</div>
+      </div>
+      <div class="banner-center-section">
+        <span>CAUTION:  Demo uses mock interest rates</span>
+      </div>
+      <div class="banner-right-section">
+        <button id="get-accurate-results" class="payment-button">Buy Now - $24.99</button>
+      </div>
     </div>
   `;
   
