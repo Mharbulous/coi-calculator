@@ -1,5 +1,10 @@
 /* --- PRINT STYLES --- */
 @media print {
+  /* Title container margin fix for print mode */
+  #title-container {
+    margin-bottom: 60px !important; /* Match screen version, using !important to override any conflicts */
+  }
+  
   /* First page settings */
   @page :first {
     size: letter;
