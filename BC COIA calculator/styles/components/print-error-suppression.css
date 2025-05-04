@@ -1,0 +1,86 @@
+/* Print error suppression styles */
+
+/* This file specifically targets and hides error messages, scripts, 
+   and other content that should not appear in print output */
+
+@media print {
+    /* Hide all script output and error messages */
+    script, 
+    noscript, 
+    iframe,
+    pre,
+    code,
+    canvas {
+        display: none !important;
+        visibility: hidden !important;
+        position: absolute !important;
+        width: 0 !important;
+        height: 0 !important;
+        overflow: hidden !important;
+        z-index: -9999 !important;
+        opacity: 0 !important;
+    }
+    
+    /* Don't force page breaks between the interest tables */
+    #prejudgmentTable, 
+    div[data-display="prejudgmentSection"],
+    .section-title {
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+    }
+    
+    /* Ensure no page break before postjudgment table */
+    #postjudgmentTitle,
+    div[data-display="postjudgmentSection"],
+    #postjudgmentTable {
+        page-break-before: auto !important;
+        break-before: auto !important;
+    }
+    
+    /* Hide any non-table elements after the last table */
+    .interest-table:last-of-type ~ *:not(.interest-table):not(.summary-table) {
+        display: none !important;
+        visibility: hidden !important;
+        position: absolute !important;
+        height: 0 !important;
+        width: 0 !important;
+    }
+    
+    /* Ensure that WebSocket error messages and similar don't appear */
+    [class*="error"],
+    [id*="error"],
+    [class*="console"],
+    [id*="console"],
+    [class*="debug"],
+    [id*="debug"] {
+        display: none !important;
+        visibility: hidden !important;
+    }
+    
+    /* Hide any images that appear after the tables */
+    .interest-table:last-of-type ~ img,
+    #postjudgmentTable ~ img,
+    .interest-table:last-of-type ~ * img,
+    #postjudgmentTable ~ * img {
+        display: none !important;
+        visibility: hidden !important;
+        width: 0 !important;
+        height: 0 !important;
+        position: absolute !important;
+        opacity: 0 !important;
+    }
+    
+    /* Force clear ending after the last interest table */
+    .interest-table:last-of-type {
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+    }
+    
+    /* Use a pseudo-element to create a clean ending */
+    #postjudgmentTable:after {
+        content: '';
+        display: block;
+        height: 0;
+        clear: both;
+    }
+}

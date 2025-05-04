@@ -1,5 +1,33 @@
 /* --- PRINT STYLES --- */
 @media print {
+  /* Override any mobile detection styles that might affect print output */
+  .mobile-detection-message {
+    display: none !important;
+    visibility: hidden !important;
+    position: absolute !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    z-index: -9999 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+  
+  /* Force display for all top-level elements other than mobile detection */
+  body > *:not(.mobile-detection-message) {
+    display: block !important;
+  }
+  
+  /* Ensure the two-layer system is properly visible in print */
+  .two-layer-container {
+    display: block !important;
+    visibility: visible !important;
+    position: static !important;
+    width: auto !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  
   /* Title container margin fix for print mode */
   #title-container {
     margin-bottom: 60px !important; /* Match screen version, using !important to override any conflicts */
@@ -331,5 +359,43 @@
     /* Hide elements specifically for screen display (like debug markers inside spacers) */
     .screen-only {
         display: none !important;
+    }
+    
+    /* Hide all images in print mode except those within tables */
+    body img:not(.interest-table img):not(.summary-table img) {
+        display: none !important;
+        visibility: hidden !important;
+        width: 0 !important;
+        height: 0 !important;
+        position: absolute !important;
+        opacity: 0 !important;
+    }
+    
+    /* Hide any script output, error messages, or code that might be rendered */
+    script, 
+    noscript,
+    pre,
+    code,
+    iframe:not([data-print-include]) {
+        display: none !important;
+        visibility: hidden !important;
+        position: absolute !important;
+        height: 0 !important;
+        width: 0 !important;
+        overflow: hidden !important;
+        opacity: 0 !important;
+    }
+    
+    /* Hide any text content after the tables - this is where error messages appear */
+    .interest-table ~ *:not(.section-title):not(.interest-table):not(h1):not(h2):not(h3):not(h4):not(h5):not(h6),
+    .interest-table + * + *:not(.section-title):not(.interest-table):not(h1):not(h2):not(h3):not(h4):not(h5):not(h6),
+    #postjudgmentTable ~ *:not(.section-title):not(.interest-table):not(h1):not(h2):not(h3):not(h4):not(h5):not(h6) {
+        display: none !important;
+        visibility: hidden !important;
+        position: absolute !important;
+        height: 0 !important;
+        width: 0 !important;
+        overflow: hidden !important;
+        opacity: 0 !important;
     }
 }
