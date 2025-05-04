@@ -41,5 +41,33 @@
 
   .print-warning-content {
     text-align: center;
+    background-color: #fff3cd;
+    padding: 8px;
+    border-radius: 4px;
+  }
+  
+  /* Button image styles for the warning message */
+  .btn-image {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    border: 1px solid #ccc;
+    font-size: 0.9em;
+    margin: 0 3px;
+    white-space: nowrap;
+    line-height: 1.2;
+  }
+  
+  .btn-image.buy-now {
+    background-color: #4CAF50;
+    color: white;
+    border-color: #388E3C;
+  }
+  
+  .btn-image.print {
+    background-color: #4a90e2;
+    color: white;
+    border-color: #3a7bc8;
   }
 }

@@ -27,16 +27,29 @@
     pointer-events: auto; /* Make sure it's clickable */
 }
 
-/* Common styling for buy-now and print buttons - green with white text */
-.action-button.buy-now,
-.action-button.print {
+/* Buy now button - green with white text */
+.action-button.buy-now {
     background-color: #4CAF50; /* Green */
     color: white;
 }
 
-.action-button.buy-now:hover,
-.action-button.print:hover {
+.action-button.buy-now:hover {
     background-color: #45a049; /* Darker green on hover */
+}
+
+/* Print button - blue with white text (matches add special damages button) */
+.action-button.print {
+    background-color: #4a90e2; /* Blue */
+    color: white;
+}
+
+.action-button.print:hover {
+    background-color: #3a7bc8; /* Darker blue on hover */
+}
+
+.action-button.print:active {
+    background-color: #2a6cb8; /* Even darker blue when active */
+    transform: scale(0.98);
 }
 
 /* Clear button - soft red with white text */
