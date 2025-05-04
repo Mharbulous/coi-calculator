@@ -51,8 +51,8 @@
 }
 
 .modal-btn {
-    background-color: #007bff;
-    border: none;
+    border: none !important;
+    outline: none !important;
     border-radius: 4px;
     color: white;
     cursor: pointer;
@@ -60,10 +60,49 @@
     font-weight: 500;
     padding: 8px 16px;
     transition: background-color 0.2s;
+    margin-left: 8px;
+    background-color: #007bff;
+    box-shadow: none !important;
 }
 
 .modal-btn:hover {
     background-color: #0069d9;
+}
+
+.modal-btn:focus {
+    outline: none;
+    box-shadow: none !important;
+}
+
+/* Delete button styling (red) */
+.modal-btn-delete {
+    background-color: #dc3545;
+}
+
+.modal-btn-delete:hover {
+    background-color: #c82333;
+}
+
+/* Cancel button styling (lighter gray) */
+.modal-btn-cancel {
+    background-color: #8d959d;
+}
+
+.modal-btn-cancel:hover {
+    background-color: #767e85;
+}
+
+/* Special damage details styling */
+.special-damage-details {
+    margin-top: 12px;
+    padding: 8px 12px;
+    background-color: #e0f2f7; /* Same as --input-background-color */
+    border-radius: 4px;
+    border-left: 3px solid #007bff;
+}
+
+.special-damage-details div {
+    margin-bottom: 4px;
 }
 
 /* Ensure the modal is hidden in print mode */

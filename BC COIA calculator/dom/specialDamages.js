@@ -2,15 +2,8 @@ import { formatDateLong, parseDateInput, formatDateForInput, formatDateForDispla
 import { formatCurrencyForDisplay, formatCurrencyForInput, formatCurrencyForInputWithCommas, parseCurrency } from '../utils.currency.js';
 import { setupCustomDateInputListeners, setupCurrencyInputListeners } from './setup.js';
 import { initializeSpecialDamagesDatePicker, destroySpecialDamagesDatePicker } from './datepickers.js'; // Import destroy function
-import { showSpecialDamagesDeletionModal } from './modal.js';
+import { showSpecialDamagesConfirmationModal } from './modal.js';
 import useStore from '../store.js';
-
-/**
- * Shows a warning message when trying to delete a special damage with description or non-zero amount
- */
-function showDeletionWarning() {
-    showSpecialDamagesDeletionModal();
-}
 
 /**
  * Finds the index of a special damage in the state store based on DOM row
@@ -50,29 +43,28 @@ function findSpecialDamageIndex(row) {
  * Handles trash icon click to delete a special damages row
  * @param {Event} event - The click event
  */
-function handleTrashIconClick(event) {
+async function handleTrashIconClick(event) {
     const trashIcon = event.currentTarget;
     const row = trashIcon.closest('.special-damages-row');
     
     if (!row) return;
     
-    // Get the description and amount inputs
+    // Get all the relevant inputs
+    const dateInput = row.querySelector('.special-damages-date');
     const descInput = row.querySelector('.special-damages-description');
     const amountInput = row.querySelector('.special-damages-amount');
     
-    if (!descInput || !amountInput) return;
+    if (!dateInput || !descInput || !amountInput) return;
     
     // Check if description is empty and amount is zero
     const isDescEmpty = descInput.value.trim() === '';
     const amountValue = parseCurrency(amountInput.value);
     const isAmountZero = amountValue === 0;
     
-    if (isDescEmpty && isAmountZero) {
+    // Function to perform the actual deletion
+    const deleteRow = () => {
         // Find the index of this special damage in the store
         const index = findSpecialDamageIndex(row);
-        
-        // Get the date input element BEFORE removing the row
-        const dateInput = row.querySelector('.special-damages-date');
         
         // Destroy the associated Flatpickr instance
         if (dateInput) {
@@ -90,9 +82,28 @@ function handleTrashIconClick(event) {
         // Trigger recalculation after removing the row
         const event = new CustomEvent('special-damages-updated');
         document.dispatchEvent(event);
+    };
+    
+    if (isDescEmpty && isAmountZero) {
+        // If description is empty and amount is zero, delete immediately
+        deleteRow();
     } else {
-        // Show warning message
-        showDeletionWarning();
+        // Otherwise, show confirmation dialog with details
+        const formattedDate = dateInput.value;
+        const description = descInput.value;
+        const formattedAmount = formatCurrencyForDisplay(amountValue);
+        
+        // Show confirmation dialog and wait for user response
+        const confirmed = await showSpecialDamagesConfirmationModal(
+            formattedDate, 
+            description, 
+            formattedAmount
+        );
+        
+        // If user confirmed deletion, delete the row
+        if (confirmed) {
+            deleteRow();
+        }
     }
 }
 
