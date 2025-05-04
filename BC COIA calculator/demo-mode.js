@@ -259,12 +259,12 @@ function createDemoModal() {
   const modalHTML = `
     <div id="demo-modal" class="demo-modal">
       <div class="demo-modal-content">
-        <h2>Demonstration Mode</h2>
-        <p>The interest rates used in this demonstration version of this app are for demonstration purposes only. Accurate court order interest rates are only in the paid version.</p>
+        <h2>You are in Demo Mode!</h2>
+        
         <div class="demo-modal-notice">
-          <p>The demo version uses slightly modified interest rates:</p>
+          <p>The demonstration version of this app uses mock interest rates:</p>
           <ul>
-            <li>Mock rates differ from real rates by ±0.25-1.5%</li>
+            <li>Mock rates differ from true rates by ±0.25-1.5%</li>
             <li>Calculations are fully functional but use these approximate rates</li>
             <li>Purchase to use the accurate court-ordered interest rates</li>
           </ul>
@@ -272,7 +272,7 @@ function createDemoModal() {
         <div class="demo-modal-buttons">
           <button id="demo-modal-dismiss" class="demo-modal-dismiss">Dismiss</button>
           <button id="demo-modal-print" class="demo-modal-print">Test Print</button>
-          <button id="demo-modal-purchase" class="demo-modal-purchase">Buy Now</button>
+          <button id="demo-modal-purchase" class="demo-modal-purchase">Buy Now - $24.99</button>
         </div>
       </div>
     </div>

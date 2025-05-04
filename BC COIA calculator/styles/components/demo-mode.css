@@ -173,11 +173,12 @@ body.demo-mode {
 }
 
 .demo-modal-dismiss {
-  background-color: #f1f1f1;
+  background-color: #FFC107; /* Amber color */
   border: none;
   padding: 8px 16px;
   border-radius: 4px;
   cursor: pointer;
+  color: #000; /* Ensure text is visible on amber background */
 }
 
 .demo-modal-print {
@@ -205,11 +206,12 @@ body.demo-mode {
 
 /* Demo Modal Notice Section */
 .demo-modal-notice {
-  background-color: #f9f9f9;
+  background-color: #FFF9C4; /* Light yellow background */
   border-radius: 4px;
   padding: 10px;
   margin: 15px 0;
   text-align: left;
+  border: 1px solid #FFECB3; /* Slight border for definition */
 }
 
 .demo-modal-notice ul {
