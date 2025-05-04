@@ -6,7 +6,7 @@
 import useStore from '../store.js';
 import { showClearConfirmationModal } from './modal.js';
 import { destroySpecialDamagesDatePicker } from './datepickers.js';
-import { parseDateInput } from '../utils.date.js';
+import { parseDateInput, formatDateForInput } from '../utils.date.js';
 
 // Reference to the clear button element
 let clearButton;
@@ -122,10 +122,35 @@ function clearSpecialDamageRows() {
 }
 
 /**
- * Clears all editable input fields (those with light blue background)
+ * Sets editable input fields to default values rather than clearing them
  * Does NOT clear jurisdiction, registry, or file no. fields
  */
 function clearEditableInputFields() {
+    // Calculate default dates
+    const today = new Date();
+    
+    // Judgment Date: six months ago
+    const sixMonthsAgo = new Date(today);
+    sixMonthsAgo.setMonth(today.getMonth() - 6);
+    const judgmentDateStr = formatDateForInput(sixMonthsAgo);
+    
+    // Prejudgment Interest Date: exactly 2 years ago
+    const twoYearsAgo = new Date(today);
+    twoYearsAgo.setFullYear(today.getFullYear() - 2);
+    const prejudgmentDateStr = formatDateForInput(twoYearsAgo);
+    
+    // Postjudgment Interest Date: today
+    const postjudgmentDateStr = formatDateForInput(today);
+    
+    // Update the store with these dates
+    useStore.getState().setInputs({
+        dateOfJudgment: sixMonthsAgo,
+        nonPecuniaryJudgmentDate: sixMonthsAgo,
+        costsAwardedDate: sixMonthsAgo,
+        prejudgmentStartDate: twoYearsAgo,
+        postjudgmentEndDate: today
+    });
+    
     // Get all input fields with the custom-date-input class (date fields)
     const dateInputs = document.querySelectorAll('.custom-date-input');
     dateInputs.forEach(input => {
@@ -135,10 +160,32 @@ function clearEditableInputFields() {
             input.closest('[data-input="fileNo"]')) {
             return;
         }
-        input.value = '';
+        
+        // Set appropriate default date based on the input's purpose
+        if (input.matches('[data-input="judgmentDate"]')) {
+            input.value = judgmentDateStr;
+        } else if (input.matches('[data-input="dateValue"]')) {
+            // Check the containing row to determine the input type
+            const rowLabel = input.closest('tr')?.querySelector('[data-display="itemText"]')?.textContent;
+            
+            if (rowLabel) {
+                if (rowLabel.includes('Prejudgment')) {
+                    input.value = prejudgmentDateStr;
+                } else if (rowLabel.includes('Postjudgment')) {
+                    input.value = postjudgmentDateStr;
+                } else {
+                    // For other date fields, use judgment date
+                    input.value = judgmentDateStr;
+                }
+            } else {
+                input.value = '';
+            }
+        } else {
+            input.value = '';
+        }
     });
     
-    // Get all dollar amount inputs
+    // Get all dollar amount inputs and set them to empty
     const amountInputs = document.querySelectorAll('input[data-input="amountValue"], input[data-input="prejudgmentAmountValue"]');
     amountInputs.forEach(input => {
         input.value = '';
@@ -192,10 +239,26 @@ export function updateClearButtonState() {
 }
 
 /**
- * Detects if any editable fields contain data
- * @returns {boolean} - True if any editable fields contain data, false otherwise
+ * Detects if any editable fields contain non-default data
+ * @returns {boolean} - True if any editable fields contain non-default data, false otherwise
  */
 function detectFormData() {
+    // Calculate the default dates that would be set after clearing
+    const today = new Date();
+    
+    // Judgment Date: six months ago
+    const sixMonthsAgo = new Date(today);
+    sixMonthsAgo.setMonth(today.getMonth() - 6);
+    const defaultJudgmentDate = formatDateForInput(sixMonthsAgo);
+    
+    // Prejudgment Interest Date: exactly 2 years ago
+    const twoYearsAgo = new Date(today);
+    twoYearsAgo.setFullYear(today.getFullYear() - 2);
+    const defaultPrejudgmentDate = formatDateForInput(twoYearsAgo);
+    
+    // Postjudgment Interest Date: today
+    const defaultPostjudgmentDate = formatDateForInput(today);
+    
     // Check the store for non-zero monetary values
     const state = useStore.getState();
     const { judgmentAwarded, nonPecuniaryAwarded, costsAwarded } = state.inputs;
@@ -211,13 +274,60 @@ function detectFormData() {
         return true;
     }
     
-    // Check if any date inputs have values
+    // Flag to track if we found any non-default date values
+    let hasNonDefaultDateValues = false;
+    
+    // Get judgment date value
+    const judgmentDateInput = document.querySelector('[data-input="judgmentDate"]');
+    const judgmentDateValue = judgmentDateInput ? judgmentDateInput.value : '';
+    
+    // Find prejudgment date input value
+    let prejudgmentDateInput = null;
+    let prejudgmentDateValue = '';
+    
+    // Find postjudgment date input value
+    let postjudgmentDateInput = null;
+    let postjudgmentDateValue = '';
+    
+    // Safely find prejudgment and postjudgment date inputs
+    const tableRows = document.querySelectorAll('tr');
+    tableRows.forEach(row => {
+        const labelElement = row.querySelector('[data-display="itemText"]');
+        if (labelElement) {
+            const label = labelElement.textContent || '';
+            const dateInput = row.querySelector('[data-input="dateValue"]');
+            
+            if (dateInput) {
+                if (label.includes('Prejudgment')) {
+                    prejudgmentDateInput = dateInput;
+                    prejudgmentDateValue = dateInput.value || '';
+                } else if (label.includes('Postjudgment')) {
+                    postjudgmentDateInput = dateInput;
+                    postjudgmentDateValue = dateInput.value || '';
+                }
+            }
+        }
+    });
+    
+    // Check if all date inputs match default values
+    const hasDefaultJudgmentDate = judgmentDateValue === defaultJudgmentDate || !judgmentDateValue;
+    const hasDefaultPrejudgmentDate = prejudgmentDateValue === defaultPrejudgmentDate || !prejudgmentDateValue;
+    const hasDefaultPostjudgmentDate = postjudgmentDateValue === defaultPostjudgmentDate || !postjudgmentDateValue;
+    
+    if (!hasDefaultJudgmentDate || !hasDefaultPrejudgmentDate || !hasDefaultPostjudgmentDate) {
+        hasNonDefaultDateValues = true;
+    }
+    
+    // Check if any other date inputs have values
     const dateInputs = document.querySelectorAll('.custom-date-input');
     for (const input of dateInputs) {
-        // Skip non-editable fields
+        // Skip non-editable fields and the main judgment/prejudgment/postjudgment dates we already checked
         if (input.closest('[data-input="jurisdictionSelect"]') ||
             input.closest('[data-input="registry"]') ||
-            input.closest('[data-input="fileNo"]')) {
+            input.closest('[data-input="fileNo"]') ||
+            input === judgmentDateInput ||
+            input === prejudgmentDateInput ||
+            input === postjudgmentDateInput) {
             continue;
         }
         
@@ -235,8 +345,8 @@ function detectFormData() {
         }
     }
     
-    // No data found
-    return false;
+    // Return true if we found any non-default date values
+    return hasNonDefaultDateValues;
 }
 
 /**

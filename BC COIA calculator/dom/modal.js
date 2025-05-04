@@ -193,7 +193,7 @@ export function showClearConfirmationModal() {
         header.className = 'modal-header';
         
         const headerTitle = document.createElement('h3');
-        headerTitle.textContent = "Clear All Data?";
+        headerTitle.textContent = "Reset Calculator?";
         header.appendChild(headerTitle);
         
         // Create the modal body with explanation of what will be cleared
@@ -201,16 +201,22 @@ export function showClearConfirmationModal() {
         body.className = 'modal-body';
         
         body.innerHTML = `
-            <p>Are you sure you want to clear all editable fields?</p>
+            <p>Are you sure you want to reset the calculator?</p>
             <div class="clear-details">
-                <p>The following data will be cleared:</p>
+                <p>The following changes will be made:</p>
                 <ul>
-                    <li>All dates</li>
-                    <li>Special damage descriptions</li>
-                    <li>Dollar amounts</li>
-                    <li>Special damage rows</li>
+                    <li>Date fields will be set to default values:
+                        <ul>
+                            <li>Judgment Date: 6 months ago</li>
+                            <li>Prejudgment Interest Date: 2 years ago</li>
+                            <li>Postjudgment Interest Date: today</li>
+                        </ul>
+                    </li>
+                    <li>All dollar amounts will be cleared</li>
+                    <li>Special damage descriptions will be cleared</li>
+                    <li>Special damage rows will be removed</li>
                 </ul>
-                <p><strong>Note:</strong> The Jurisdiction dropdown, Registry, and File No. fields will NOT be cleared.</p>
+                <p><strong>Note:</strong> The Jurisdiction dropdown, Registry, and File No. fields will NOT be changed.</p>
             </div>
         `;
         
