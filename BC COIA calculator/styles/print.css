@@ -76,11 +76,12 @@
         justify-content: flex-end !important;
     }
     
-    /* Stack right-field elements vertically for print */
+    /* Maintain horizontal layout for right-field elements in print */
     .editable-fields-section {
         display: flex !important;
         flex-direction: column !important;
         align-items: flex-end !important;
+        margin-bottom: 20px !important; /* Add bottom spacing for the section */
     }
     
     [data-display="accrualDateRow"], [data-display="postjudgmentSection"] {
@@ -162,6 +163,37 @@
     
     .summary-table .total-row td { 
         font-weight: bold !important; 
+    }
+    
+    /* Refined form field spacing from the screen version */
+    .right-field {
+        display: flex !important;
+        justify-content: flex-end !important;
+        align-items: center !important;
+        margin-bottom: 6px !important; /* Adjusted spacing between fields */
+    }
+    
+    /* Ensure field margins match screen version */
+    .right-field .label {
+        margin-right: calc(var(--spacing-unit) * 2) !important; /* 8px - match screen version */
+        min-width: 60px !important; /* Ensure enough space for labels */
+    }
+    
+    /* Maintain spacing in the field row */
+    .field-row {
+        margin-bottom: 6px !important; /* Adjusted bottom margin */
+    }
+    
+    /* Ensure right-info-block field-pair spacing is preserved */
+    .right-info-block .field-pair {
+        margin-bottom: calc(var(--spacing-unit) * 0.75) !important; /* Match original 3pt */
+        min-height: 24px !important; /* Adjusted min height */
+        line-height: var(--base-line-height) !important; /* Preserve line height */
+    }
+    
+    /* Specific fix for registry field spacing */
+    .right-info-block .registry-row {
+        margin-bottom: calc(var(--spacing-unit) * 0.75) !important; /* Match original 3pt */
     }
     
     /* Hide help icons in print mode */
