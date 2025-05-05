@@ -293,231 +293,263 @@ export function showSpecialDamagesDeletionModal() {
  */
 export function promptForPaymentDetails(prejudgmentDate, postjudgmentDate) {
     return new Promise((resolve) => {
-        console.log('Payment modal called with dates:', prejudgmentDate, postjudgmentDate);
-        
-        // Create the modal overlay
-        const overlay = document.createElement('div');
-        overlay.className = 'payment-modal-overlay';
-        
-        // Create the modal container
-        const modal = document.createElement('div');
-        modal.className = 'payment-modal';
-        
-        // Create the modal header
-        const header = document.createElement('div');
-        header.className = 'payment-modal-header';
-        
-        const headerTitle = document.createElement('h3');
-        headerTitle.textContent = "Record Payment";
-        header.appendChild(headerTitle);
-        
-        // Create the modal body with form
-        const body = document.createElement('div');
-        body.className = 'payment-modal-body';
-        
-        // Amount of Payment form group
-        const amountGroup = document.createElement('div');
-        amountGroup.className = 'form-group';
-        
-        const amountLabel = document.createElement('label');
-        amountLabel.textContent = "Amount of Payment";
-        amountLabel.htmlFor = "payment-amount-input";
-        
-        const amountInput = document.createElement('input');
-        amountInput.type = "text";
-        amountInput.id = "payment-amount-input";
-        amountInput.placeholder = "Enter payment amount";
-        
-        const amountValidation = document.createElement('div');
-        amountValidation.className = 'validation-message';
-        
-        amountGroup.appendChild(amountLabel);
-        amountGroup.appendChild(amountInput);
-        amountGroup.appendChild(amountValidation);
-        
-        // Date of Payment form group
-        const dateGroup = document.createElement('div');
-        dateGroup.className = 'form-group';
-        
-        const dateLabel = document.createElement('label');
-        dateLabel.textContent = "Date of Payment";
-        dateLabel.htmlFor = "payment-date-input";
-        
-        const dateInput = document.createElement('input');
-        dateInput.type = "text";
-        dateInput.id = "payment-date-input";
-        dateInput.placeholder = "Select a date";
-        
-        const dateValidation = document.createElement('div');
-        dateValidation.className = 'validation-message';
-        
-        dateGroup.appendChild(dateLabel);
-        dateGroup.appendChild(dateInput);
-        dateGroup.appendChild(dateValidation);
-        
-        // Add form groups to the body
-        body.appendChild(amountGroup);
-        body.appendChild(dateGroup);
-        
-        // Create the modal footer
-        const footer = document.createElement('div');
-        footer.className = 'payment-modal-footer';
-        
-        // Cancel button
-        const cancelButton = document.createElement('button');
-        cancelButton.className = 'payment-modal-btn payment-modal-btn-cancel';
-        cancelButton.textContent = "Cancel";
-        
-        // Confirm button
-        const confirmButton = document.createElement('button');
-        confirmButton.className = 'payment-modal-btn payment-modal-btn-confirm';
-        confirmButton.textContent = "Confirm";
-        
-        // Define a validation function
-        const validateForm = () => {
-            const date = datePickerInstance?.selectedDates?.[0];
-            const amountValue = amountInput.value.trim();
+        // Import necessary utilities for currency formatting and form handling
+        Promise.all([
+            import('../utils.currency.js'),
+            import('./setup.js')
+        ]).then(([currencyUtils, setupUtils]) => {
+            const { formatCurrencyForInputWithCommas, parseCurrency } = currencyUtils;
+            const { setupCurrencyInputListeners } = setupUtils;
+            console.log('Payment modal called with dates:', prejudgmentDate, postjudgmentDate);
             
-            // Parse the amount value, removing any currency symbols and commas
-            const parsedAmount = parseFloat(amountValue.replace(/[$,]/g, ''));
+            // Create the modal overlay
+            const overlay = document.createElement('div');
+            overlay.className = 'payment-modal-overlay';
             
-            // Validate date
-            const isDateValid = date instanceof Date && !isNaN(date);
+            // Create the modal container
+            const modal = document.createElement('div');
+            modal.className = 'payment-modal';
             
-            // Validate amount
-            const isAmountValid = !isNaN(parsedAmount) && parsedAmount > 0;
+            // Create the modal header
+            const header = document.createElement('div');
+            header.className = 'payment-modal-header';
             
-            // Update validation messages
-            if (!isDateValid) {
-                dateValidation.textContent = "Please select a payment date";
-            } else {
-                dateValidation.textContent = "";
-            }
+            const headerTitle = document.createElement('h3');
+            headerTitle.textContent = "Record Payment";
+            header.appendChild(headerTitle);
             
-            if (amountValue === '') {
-                amountValidation.textContent = "Please enter a payment amount";
-            } else if (isNaN(parsedAmount)) {
-                amountValidation.textContent = "Please enter a valid amount";
-            } else if (parsedAmount <= 0) {
-                amountValidation.textContent = "Amount must be greater than $0.00";
-            } else {
-                amountValidation.textContent = "";
-            }
+            // Create the modal body with form
+            const body = document.createElement('div');
+            body.className = 'payment-modal-body';
             
-            // Determine overall form validity
-            const isFormValid = isDateValid && isAmountValid;
+            // Amount of Payment form group
+            const amountGroup = document.createElement('div');
+            amountGroup.className = 'form-group';
             
-            // Update confirm button state
-            confirmButton.disabled = !isFormValid;
+            const amountLabel = document.createElement('label');
+            amountLabel.textContent = "Amount of Payment";
+            amountLabel.htmlFor = "payment-amount-input";
             
-            return isFormValid;
-        };
-        
-        // Initialize Flatpickr on the date input
-        const minDate = prejudgmentDate instanceof Date && !isNaN(prejudgmentDate) 
-            ? prejudgmentDate 
-            : "1993-01-01"; // Fallback date if prejudgmentDate is invalid
+            const amountInput = document.createElement('input');
+            amountInput.type = "text";
+            amountInput.id = "payment-amount-input";
+            amountInput.placeholder = "Enter payment amount";
             
-        // Create a wrapper div for the Flatpickr to be attached to
-        // This helps with proper positioning
-        const flatpickrContainer = document.createElement('div');
-        flatpickrContainer.className = 'flatpickr-container';
-        flatpickrContainer.style.position = 'fixed';
-        flatpickrContainer.style.zIndex = '99999';
-        flatpickrContainer.style.top = '0';
-        flatpickrContainer.style.left = '0';
-        flatpickrContainer.style.width = '100%';
-        flatpickrContainer.style.height = '0';
-        document.body.appendChild(flatpickrContainer);
-        
-        // Initialize Flatpickr with the container as the appendTo target
-        const datePickerInstance = flatpickr(dateInput, {
-            dateFormat: "Y-m-d",
-            allowInput: true,
-            disableMobile: true,
-            minDate: minDate,
-            maxDate: "today",
-            defaultDate: "today",
-            onChange: function(selectedDates, dateStr) {
-                console.log("Selected date:", dateStr);
-                // Validate form when date changes
-                validateForm();
-            },
-            appendTo: flatpickrContainer,
-            position: "below",
-            static: false, // Don't use static positioning
-            onOpen: function(selectedDates, dateStr, instance) {
-                // Position the calendar below the input
-                const inputRect = dateInput.getBoundingClientRect();
-                const calendar = instance.calendarContainer;
+            const amountValidation = document.createElement('div');
+            amountValidation.className = 'validation-message';
+            
+            amountGroup.appendChild(amountLabel);
+            amountGroup.appendChild(amountInput);
+            amountGroup.appendChild(amountValidation);
+            
+            // Date of Payment form group
+            const dateGroup = document.createElement('div');
+            dateGroup.className = 'form-group';
+            
+            const dateLabel = document.createElement('label');
+            dateLabel.textContent = "Date of Payment";
+            dateLabel.htmlFor = "payment-date-input";
+            
+            const dateInput = document.createElement('input');
+            dateInput.type = "text";
+            dateInput.id = "payment-date-input";
+            dateInput.placeholder = "Select a date";
+            
+            const dateValidation = document.createElement('div');
+            dateValidation.className = 'validation-message';
+            
+            dateGroup.appendChild(dateLabel);
+            dateGroup.appendChild(dateInput);
+            dateGroup.appendChild(dateValidation);
+            
+            // Add form groups to the body
+            body.appendChild(amountGroup);
+            body.appendChild(dateGroup);
+            
+            // Create the modal footer
+            const footer = document.createElement('div');
+            footer.className = 'payment-modal-footer';
+            
+            // Cancel button
+            const cancelButton = document.createElement('button');
+            cancelButton.className = 'payment-modal-btn payment-modal-btn-cancel';
+            cancelButton.textContent = "Cancel";
+            
+            // Confirm button
+            const confirmButton = document.createElement('button');
+            confirmButton.className = 'payment-modal-btn payment-modal-btn-confirm';
+            confirmButton.textContent = "Confirm";
+            
+            // Create a wrapper div for the Flatpickr to be attached to
+            // This helps with proper positioning
+            const flatpickrContainer = document.createElement('div');
+            flatpickrContainer.className = 'flatpickr-container';
+            flatpickrContainer.style.position = 'fixed';
+            flatpickrContainer.style.zIndex = '99999';
+            flatpickrContainer.style.top = '0';
+            flatpickrContainer.style.left = '0';
+            flatpickrContainer.style.width = '100%';
+            flatpickrContainer.style.height = '0';
+            document.body.appendChild(flatpickrContainer);
+            
+            // Initialize Flatpickr with container as the appendTo target
+            const minDate = prejudgmentDate instanceof Date && !isNaN(prejudgmentDate) 
+                ? prejudgmentDate 
+                : "1993-01-01"; // Fallback date if prejudgmentDate is invalid
                 
-                // Position calendar below the input field
-                calendar.style.position = 'fixed';
-                calendar.style.top = (inputRect.bottom + 2) + 'px';
-                calendar.style.left = inputRect.left + 'px';
-                calendar.style.zIndex = '99999';
-            }
-        });
-        
-        // Function to close the modal
-        const closeModal = (paymentDetails = null) => {
-            // Clean up Flatpickr instance to prevent memory leaks
-            if (datePickerInstance) {
-                datePickerInstance.destroy();
-            }
+            let datePickerInstance;
+                
+            // Helper function to close the modal
+            const closeModal = (result = null) => {
+                // Clean up Flatpickr instance to prevent memory leaks
+                if (datePickerInstance) {
+                    datePickerInstance.destroy();
+                }
+                
+                // Remove the Flatpickr container from the DOM
+                if (flatpickrContainer && flatpickrContainer.parentNode) {
+                    document.body.removeChild(flatpickrContainer);
+                }
+                
+                // Remove the Escape key event listener from document
+                document.removeEventListener('keydown', escapeKeyHandler);
+                
+                // Remove the modal overlay from the document
+                document.body.removeChild(overlay);
+                
+                // Resolve the promise with the result
+                resolve(result);
+            };
             
-            // Remove the Flatpickr container from the DOM
-            if (flatpickrContainer && flatpickrContainer.parentNode) {
-                document.body.removeChild(flatpickrContainer);
-            }
+            // Define a validation function
+            const validateForm = () => {
+                const date = datePickerInstance?.selectedDates?.[0];
+                const amountValue = amountInput.value.trim();
+                
+                // Parse the amount value, removing any currency symbols and commas
+                const parsedAmount = parseCurrency(amountValue);
+                
+                // Validate date
+                const isDateValid = date instanceof Date && !isNaN(date);
+                
+                // Validate amount
+                const isAmountValid = !isNaN(parsedAmount) && parsedAmount > 0;
+                
+                // Update validation messages
+                if (!isDateValid) {
+                    dateValidation.textContent = "Please select a payment date";
+                } else {
+                    dateValidation.textContent = "";
+                }
+                
+                if (amountValue === '') {
+                    amountValidation.textContent = "Please enter a payment amount";
+                } else if (isNaN(parsedAmount)) {
+                    amountValidation.textContent = "Please enter a valid amount";
+                } else if (parsedAmount <= 0) {
+                    amountValidation.textContent = "Amount must be greater than $0.00";
+                } else {
+                    amountValidation.textContent = "";
+                }
+                
+                // Determine overall form validity
+                const isFormValid = isDateValid && isAmountValid;
+                
+                // Update confirm button state
+                confirmButton.disabled = !isFormValid;
+                
+                return {
+                    isValid: isFormValid,
+                    parsedAmount,
+                    date
+                };
+            };
             
-            document.body.removeChild(overlay);
-            resolve(paymentDetails);
-        };
-        
-        // Add click events to the buttons
-        cancelButton.addEventListener('click', () => closeModal());
-        confirmButton.addEventListener('click', () => {
-            // In the future, this will collect and validate form data
-            // For now, just close the modal
-            closeModal({
-                date: dateInput.value,
-                amount: amountInput.value
+            // Initialize Flatpickr on the date input
+            datePickerInstance = flatpickr(dateInput, {
+                dateFormat: "Y-m-d",
+                allowInput: true,
+                disableMobile: true,
+                minDate: minDate,
+                maxDate: "today",
+                defaultDate: "today",
+                onChange: function(selectedDates, dateStr) {
+                    console.log("Selected date:", dateStr);
+                    // Validate form when date changes
+                    validateForm();
+                },
+                appendTo: flatpickrContainer,
+                position: "below",
+                static: false, // Don't use static positioning
+                onOpen: function(selectedDates, dateStr, instance) {
+                    // Position the calendar below the input
+                    const inputRect = dateInput.getBoundingClientRect();
+                    const calendar = instance.calendarContainer;
+                    
+                    // Position calendar below the input field
+                    calendar.style.position = 'fixed';
+                    calendar.style.top = (inputRect.bottom + 2) + 'px';
+                    calendar.style.left = inputRect.left + 'px';
+                    calendar.style.zIndex = '99999';
+                }
             });
-        });
-        
-        // Allow clicking outside the modal or pressing ESC to close it (as cancel)
-        overlay.addEventListener('click', (event) => {
-            if (event.target === overlay) {
-                closeModal();
+            
+            // Event handler for Escape key
+            function escapeKeyHandler(event) {
+                if (event.key === 'Escape') {
+                    closeModal(null);
+                }
             }
+            
+            // Add click events to the buttons
+            cancelButton.addEventListener('click', () => closeModal(null));
+            
+            confirmButton.addEventListener('click', () => {
+                const validation = validateForm();
+                
+                if (validation.isValid) {
+                    closeModal({
+                        date: validation.date,
+                        amount: validation.parsedAmount
+                    });
+                }
+            });
+            
+            // Allow clicking outside the modal to close it (as cancel)
+            overlay.addEventListener('click', (event) => {
+                if (event.target === overlay) {
+                    closeModal(null);
+                }
+            });
+            
+            // Add Escape key handler
+            document.addEventListener('keydown', escapeKeyHandler);
+            
+            // Set up currency formatting for the amount input field using the standard app function
+            setupCurrencyInputListeners(amountInput, validateForm);
+            
+            // Assemble the modal
+            footer.appendChild(cancelButton);
+            footer.appendChild(confirmButton);
+            modal.appendChild(header);
+            modal.appendChild(body);
+            modal.appendChild(footer);
+            overlay.appendChild(modal);
+            
+            // Add the modal to the document
+            document.body.appendChild(overlay);
+            
+            // Run initial validation to set confirm button state and display validation messages
+            validateForm();
+            
+            // Focus the amount input for accessibility since it's now the first field
+            // Use requestAnimationFrame to ensure the layout is stable before focusing
+            requestAnimationFrame(() => {
+                amountInput.focus();
+            });
+        }).catch(error => {
+            console.error('Error loading currency utilities:', error);
+            resolve(null);
         });
-        
-        document.addEventListener('keydown', function escapeHandler(event) {
-            if (event.key === 'Escape') {
-                closeModal();
-                document.removeEventListener('keydown', escapeHandler);
-            }
-        });
-        
-        // Assemble the modal
-        footer.appendChild(cancelButton);
-        footer.appendChild(confirmButton);
-        modal.appendChild(header);
-        modal.appendChild(body);
-        modal.appendChild(footer);
-        overlay.appendChild(modal);
-        
-        // Add event listener for amount input changes
-        amountInput.addEventListener('input', validateForm);
-        
-        // Add the modal to the document
-        document.body.appendChild(overlay);
-        
-        // Run initial validation to set confirm button state and display validation messages
-        validateForm();
-        
-        // Focus the amount input for accessibility since it's now the first field
-        amountInput.focus();
     });
 }
