@@ -48,7 +48,7 @@
     margin-bottom: 0;
   }
 
-  body {
+body {
     background-color: var(--paper-background-color) !important;
     padding: 0 !important;
         margin: 0 !important;
@@ -57,6 +57,15 @@
         font-size: var(--print-font-size) !important;
         -webkit-print-color-adjust: exact !important; 
         print-color-adjust: exact !important;
+    }
+    
+    /* Global rule to prevent ANY hover effects in print */
+    * {
+        /* Reset any hover effects that might be triggered during print */
+        -webkit-transition: none !important;
+        -moz-transition: none !important;
+        -o-transition: none !important;
+        transition: none !important;
     }
     
     .ink-layer {

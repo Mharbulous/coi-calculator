@@ -1,0 +1,93 @@
+/* 
+ * screen-only-hover.css
+ * 
+ * This file ensures that hover effects only apply on screens and never in print.
+ * It includes comprehensive selectors to override any hover effects
+ * that might appear in printed output.
+ */
+
+/* Apply hover effects only in screen mode */
+@media screen {
+  /* Keep all existing hover effects as they are - they'll only apply on screen */
+}
+
+/* Disable ALL hover effects in print mode */
+@media print {
+  /* Disable hover effects for all elements */
+  *:hover {
+    outline: none !important;
+    border-color: inherit !important;
+    box-shadow: none !important;
+    background-color: inherit !important;
+    color: inherit !important;
+    text-decoration: inherit !important;
+    opacity: inherit !important;
+    border: none !important;
+  }
+
+  /* Disable any animation effects that might be triggered on hover */
+  *:hover {
+    animation: none !important;
+    animation-play-state: paused !important;
+    transition: none !important;
+  }
+
+  /* Form elements - explicitly disable hover outlines and backgrounds */
+  input:hover,
+  select:hover,
+  textarea:hover,
+  button:hover,
+  .custom-date-input:hover,
+  .special-damages-date:hover,
+  .special-damages-description:hover,
+  .special-damages-amount:hover,
+  [data-input]:hover {
+    outline: none !important;
+    border: none !important;
+    background-color: transparent !important;
+  }
+
+  /* Action buttons and other buttons */
+  .action-button:hover,
+  .payment-button:hover,
+  .demo-modal-print:hover,
+  .demo-button:hover,
+  .modal-btn:hover,
+  .modal-btn-delete:hover,
+  .modal-btn-cancel:hover,
+  #retryButton:hover,
+  #clear-button:hover,
+  .add-special-damages-btn:hover {
+    background-color: inherit !important;
+    color: inherit !important;
+  }
+
+  /* Flatpickr date picker components */
+  .flatpickr-monthDropdown-months:hover,
+  .flatpickr-day:hover,
+  .flatpickr-day.selected:hover,
+  .flatpickr-day.startRange:hover,
+  .flatpickr-day.endRange:hover,
+  .flatpickr-day.today:hover,
+  .flatpickr-months .flatpickr-prev-month:hover,
+  .flatpickr-months .flatpickr-next-month:hover {
+    background-color: inherit !important;
+    color: inherit !important;
+  }
+
+  /* Special elements */
+  .delete-icon:hover,
+  .close-icon:hover,
+  .help-icon:hover .tooltip {
+    opacity: inherit !important;
+    background-color: inherit !important;
+  }
+
+  /* Disable all breathing button animations in print */
+  .action-button.buy-now:hover,
+  .action-button.buy-now:hover::before,
+  .action-button.buy-now:hover::after {
+    animation-play-state: paused !important;
+    animation: none !important;
+  }
+}

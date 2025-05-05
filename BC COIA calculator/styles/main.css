@@ -20,6 +20,7 @@
 @import url('components/breathing-button.css'); /* Breathing button effect styles */
 @import url('components/mobile-detection.css'); /* Mobile detection styles */
 @import url('components/print-error-suppression.css'); /* Print error suppression */
+@import url('components/screen-only-hover.css'); /* Screen-only hover effects */
 @import url('page-breaks.css'); /* Import page break styles */
 @import url('two-layer.css'); /* Import two-layer skeuomorphic paper styles */
 @import url('console-layer.css'); /* Import console layer styles */
