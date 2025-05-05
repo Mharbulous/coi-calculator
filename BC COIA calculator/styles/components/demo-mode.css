@@ -113,7 +113,6 @@ body.demo-mode {
     opacity: 0.2; /* Keep same opacity as online version */
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
-    color-adjust: exact;
   }
   
   /* Preserve position type but make sure the watermark appears on each page */
