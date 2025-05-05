@@ -100,7 +100,7 @@ function addDemoBanner() {
   const bannerHTML = `
     <div id="demo-mode-banner" class="demo-banner">
       <div class="banner-left-section">
-        <div class="close-icon" id="close-demo-banner">✕</div>
+        <div class="close-icon" id="close-demo-banner"><ion-icon name="close-circle-outline"></ion-icon></div>
       </div>
       <div class="banner-center-section">
         <span>CAUTION:  Demo uses mock interest rates</span>

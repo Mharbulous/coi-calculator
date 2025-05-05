@@ -43,21 +43,24 @@
 
 /* Close icon */
 .close-icon {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background-color: #000;
-  color: #fff;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: color 0.3s;
 }
 
-.close-icon:hover {
-  background-color: #333;
+.close-icon ion-icon {
+  font-size: 39px;
+  width: 100%;
+  height: 100%;
+  color: #000;
+}
+
+.close-icon:hover ion-icon {
+  color: #333;
 }
 
 .demo-banner.show {
