@@ -1,9 +1,8 @@
 /**
  * Record Payment functionality
- * This module handles the Record Payment button click and shows the payment modal
+ * This module handles the Record Payment button click
  */
 
-import { showRecordPaymentModal } from './dom/modal.js';
 import useStore from './store.js';
 
 /**
@@ -19,22 +18,20 @@ export function initRecordPayment() {
 
 /**
  * Handle the Record Payment button click
- * Shows the payment modal with date constraints based on prejudgment and postjudgment dates
+ * This is a placeholder for the new implementation
  */
-async function handleRecordPaymentClick() {
+function handleRecordPaymentClick() {
     // Get the prejudgment and postjudgment dates from the store
     const state = useStore.getState();
     const prejudgmentDate = state.inputs.prejudgmentStartDate;
     const postjudgmentDate = state.inputs.postjudgmentEndDate;
     
-    // Show the payment modal
-    const paymentData = await showRecordPaymentModal(prejudgmentDate, postjudgmentDate);
+    // Log information for now
+    console.log('Record Payment button clicked');
+    console.log('Prejudgment date:', prejudgmentDate);
+    console.log('Postjudgment date:', postjudgmentDate);
     
-    // This is just a wireframe for now, so we're not doing anything with the payment data
-    if (paymentData) {
-        console.log('Payment recorded:', paymentData);
-        // In the future, this would update the store and recalculate interest
-    }
+    // In the future, this will open a new modal and handle payment recording
 }
 
 // Initialize when the DOM is loaded
