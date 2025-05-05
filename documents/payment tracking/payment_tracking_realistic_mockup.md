@@ -8,9 +8,8 @@ This mockup shows how payment tracking would integrate with the actual interest 
 | --- | --- | --- | --- | --- |
 | 2021-04-09 |   |   | $10,000.00 |   |
 | 2021-04-30 | 20 days | 0.50% |   | $2.74 |
-| 2021-04-30 | Payment received ($500.00) |   |   |   |
-|   | └─ Applied to interest |   |   | \-$11.23 |
-|   | └─ Applied to principal |   | \-$488.77 |   |
+| 2021-04-30 | Payment received ($500.00) |   | \-$488.77 |   |
+|   |   |   |   | \-$11.23 |
 | 2021-05-01 |   |   | $9,511.23 |   |
 | 2021-07-01 | 61 days | 0.50% |   | $7.95 |
 | 2021-07-01 |   |   | $9,511.23 |   |
@@ -19,9 +18,8 @@ This mockup shows how payment tracking would integrate with the actual interest 
 | 2022-07-01 | 181 days | 0.70% |   | $33.25 |
 | 2022-07-01 |   |   | $9,511.23 |   |
 | 2022-08-15 | 45 days | 2.05% |   | $24.12 |
-| 2022-08-15 | Payment received ($1,000.00) |   |   |   |
-|   | └─ Applied to interest |   |   | \-$95.89 |
-|   | └─ Applied to principal |   | \-$904.11 |   |
+| 2022-08-15 | Payment received ($1,000.00) |   | \-$904.11 |   |
+|   |   |   |   | \-$95.89 |
 | 2022-08-16 |   |   | $8,607.12 |   |
 | 2023-01-01 | 137 days | 2.05% |   | $66.47 |
 | 2023-01-01 |   |   | $8,607.12 |   |
@@ -41,9 +39,8 @@ This mockup shows how payment tracking would integrate with the actual interest 
 | --- | --- | --- | --- | --- |
 | 2024-10-31 |   |   | $8,607.12 |   |
 | 2024-11-20 | 20 days | 7.30% |   | $34.68 |
-| 2024-11-20 | Payment received ($500.00) |   |   |   |
-|   | └─ Applied to interest |   |   | \-$34.68 |
-|   | └─ Applied to principal |   | \-$465.32 |   |
+| 2024-11-20 | Payment received ($500.00) |   | \-$465.32 |   |
+|   |   |   |   | \-$34.68 |
 | 2024-11-21 |   |   | $8,141.80 |   |
 | 2025-01-01 | 41 days | 7.30% |   | $67.66 |
 | 2025-01-01 |   |   | $8,141.80 |   |
@@ -55,7 +52,7 @@ This mockup shows how payment tracking would integrate with the actual interest 
 **Integration with Current Table Structure:**
 
 *   Payment rows will be inserted chronologically based on payment date
-*   Each payment has a main row plus two detail rows showing allocation and remaining principal
+*   Each payment has a main row plus a detail row showing allocation to principal and interest
 *   Interest is calculated up to the payment date to ensure proper application
 
 **Interest Calculation for Payments:**
@@ -68,7 +65,7 @@ This mockup shows how payment tracking would integrate with the actual interest 
 **Visual Distinctions:**
 
 *   Payment rows are highlighted to stand out from regular interest calculations
-*   Detail rows are indented and use a lighter color scheme
+*   Detail rows use a lighter color scheme
 *   Payment amounts are shown in red to distinguish from regular calculations
 
 **Principal Updates:**
