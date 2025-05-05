@@ -373,6 +373,46 @@ export function promptForPaymentDetails(prejudgmentDate, postjudgmentDate) {
         confirmButton.className = 'payment-modal-btn payment-modal-btn-confirm';
         confirmButton.textContent = "Confirm";
         
+        // Define a validation function
+        const validateForm = () => {
+            const date = datePickerInstance?.selectedDates?.[0];
+            const amountValue = amountInput.value.trim();
+            
+            // Parse the amount value, removing any currency symbols and commas
+            const parsedAmount = parseFloat(amountValue.replace(/[$,]/g, ''));
+            
+            // Validate date
+            const isDateValid = date instanceof Date && !isNaN(date);
+            
+            // Validate amount
+            const isAmountValid = !isNaN(parsedAmount) && parsedAmount > 0;
+            
+            // Update validation messages
+            if (!isDateValid) {
+                dateValidation.textContent = "Please select a payment date";
+            } else {
+                dateValidation.textContent = "";
+            }
+            
+            if (amountValue === '') {
+                amountValidation.textContent = "Please enter a payment amount";
+            } else if (isNaN(parsedAmount)) {
+                amountValidation.textContent = "Please enter a valid amount";
+            } else if (parsedAmount <= 0) {
+                amountValidation.textContent = "Amount must be greater than $0.00";
+            } else {
+                amountValidation.textContent = "";
+            }
+            
+            // Determine overall form validity
+            const isFormValid = isDateValid && isAmountValid;
+            
+            // Update confirm button state
+            confirmButton.disabled = !isFormValid;
+            
+            return isFormValid;
+        };
+        
         // Initialize Flatpickr on the date input
         const minDate = prejudgmentDate instanceof Date && !isNaN(prejudgmentDate) 
             ? prejudgmentDate 
@@ -400,7 +440,8 @@ export function promptForPaymentDetails(prejudgmentDate, postjudgmentDate) {
             defaultDate: "today",
             onChange: function(selectedDates, dateStr) {
                 console.log("Selected date:", dateStr);
-                // Date validation will be implemented in a later task
+                // Validate form when date changes
+                validateForm();
             },
             appendTo: flatpickrContainer,
             position: "below",
@@ -467,8 +508,14 @@ export function promptForPaymentDetails(prejudgmentDate, postjudgmentDate) {
         modal.appendChild(footer);
         overlay.appendChild(modal);
         
+        // Add event listener for amount input changes
+        amountInput.addEventListener('input', validateForm);
+        
         // Add the modal to the document
         document.body.appendChild(overlay);
+        
+        // Run initial validation to set confirm button state and display validation messages
+        validateForm();
         
         // Focus the amount input for accessibility since it's now the first field
         amountInput.focus();
