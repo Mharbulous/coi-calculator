@@ -13,7 +13,7 @@
     margin-top: 0; /* Removed top margin to fix spacing */
     margin-bottom: 8px; /* Reduced from 16px to 8px */
     margin-right: 0; /* Ensure no right margin */
-    background-color: #2980b9; /* Blue color */
+    background-color: #4a90e2; /* Blue - matching print button */
     color: white;
     text-align: center;
     white-space: nowrap; /* Prevent text from wrapping */
@@ -21,11 +21,11 @@
 }
 
 #record-payment-button:hover {
-    background-color: #2471a3; /* Slightly darker blue on hover */
+    background-color: #3a7bc8; /* Darker blue on hover - matching print button */
 }
 
 #record-payment-button:active {
-    background-color: #1a5276; /* Even darker blue when active */
+    background-color: #2a6cb8; /* Even darker blue when active - matching print button */
     transform: scale(0.98);
 }
 
