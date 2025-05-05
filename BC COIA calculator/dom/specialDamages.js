@@ -181,11 +181,6 @@ export function insertSpecialDamagesRow(tableBody, currentRow, date) {
     descCell.appendChild(descInput);
     descCell.classList.add('text-left');
     
-    // Rate cell (empty)
-    const rateCell = newRow.insertCell();
-    rateCell.textContent = '';
-    rateCell.classList.add('text-center');
-    
     // Principal/Amount cell (editable)
     const principalCell = newRow.insertCell();
     const principalInput = document.createElement('input');
@@ -200,6 +195,11 @@ export function insertSpecialDamagesRow(tableBody, currentRow, date) {
     });
     principalCell.appendChild(principalInput);
     principalCell.classList.add('text-right');
+    
+    // Rate cell (empty for new special damages rows)
+    const rateCell = newRow.insertCell();
+    rateCell.textContent = '';
+    rateCell.classList.add('text-center');
     
     // Interest cell (empty) with trash icon
     const interestCell = newRow.insertCell();
@@ -313,6 +313,9 @@ export function insertSpecialDamagesRowFromData(tableBody, index, rowData, final
     // Store the calculated detail for later use
     let calculatedDetail = null;
     
+    // Initialize daysCount at the top level to make it accessible throughout the function
+    let daysCount = "";
+    
     // Find the matching calculated interest detail if applicable
     if (finalPeriodStartDate && mutableFinalPeriodDetails && mutableFinalPeriodDetails.length > 0 && rowData.date) {
         const damageDate = parseDateInput(rowData.date);
@@ -350,19 +353,19 @@ export function insertSpecialDamagesRowFromData(tableBody, index, rowData, final
                 calculatedDetail = mutableFinalPeriodDetails[detailIndex];
                 
                 // Extract just the days count from the description (e.g., "test 2 (108 days) @" -> "108 days")
-                let daysCount = "";
-                const daysMatch = calculatedDetail.description.match(/\((\d+\s*days)\)/);
+                // Reset daysCount for each detail check
+                daysCount = ""; 
+                const daysMatch = calculatedDetail.description.match(/\((\d+)\s*days\)/);
                 if (daysMatch && daysMatch[1]) {
-                    daysCount = daysMatch[1]; // This will be "108 days" from the example
+                    // Format as "XXX days" with the number extracted
+                    daysCount = `${daysMatch[1]} days`; 
+                    
+                    // Create and append the container for the days count *only if* found
+                    const daysContainer = document.createElement('div');
+                    daysContainer.className = 'special-damages-days-count'; // Use a specific class if needed for styling
+                    daysContainer.innerHTML = `<span>${daysCount}</span>`;
+                    descCell.appendChild(daysContainer); // Append to Description cell
                 }
-                
-                // Create a container for the simplified days count
-                const detailsContainer = document.createElement('div');
-                detailsContainer.className = 'interest-calculation-details days-only';
-                detailsContainer.innerHTML = `<span class="days-count">${daysCount}</span>`;
-                
-                // Add the details container to the description cell
-                descCell.appendChild(detailsContainer);
                 
                 // Add the end date to the date cell (left-aligned like other dates)
                 const endDateSpan = document.createElement('div');
@@ -376,26 +379,9 @@ export function insertSpecialDamagesRowFromData(tableBody, index, rowData, final
         }
     }
     
-    descCell.classList.add('text-left');
-
-    // Rate cell
-    const rateCell = newRow.insertCell();
-    rateCell.textContent = '';
-    rateCell.classList.add('text-center');
+    // Days count container is now created and appended inside the 'if (detailIndex > -1)' block above
     
-    // Add interest rate to the rate cell if we have calculated detail
-    if (calculatedDetail) {
-        // First add an empty space to align with the first line
-        rateCell.innerHTML = '&nbsp;';
-        
-        // Create a container with the same class for consistent styling
-        const rateContainer = document.createElement('div');
-        rateContainer.className = 'interest-calculation-details';
-        rateContainer.textContent = calculatedDetail.rate.toFixed(2) + '%';
-        
-        // Add the container to the rate cell
-        rateCell.appendChild(rateContainer);
-    }
+    descCell.classList.add('text-left');
 
     // Principal/Amount cell
     const principalCell = newRow.insertCell();
@@ -414,6 +400,28 @@ export function insertSpecialDamagesRowFromData(tableBody, index, rowData, final
     });
     principalCell.appendChild(principalInput);
     principalCell.classList.add('text-right');
+
+    // Rate cell
+    const rateCell = newRow.insertCell();
+    rateCell.classList.add('text-center');
+    
+    // Add interest rate to the rate cell if we have calculated detail
+    if (calculatedDetail) {
+        // First add an empty space to align with the first line
+        rateCell.innerHTML = '&nbsp;';
+        
+        // Create a container for the details on the second row
+        const rateDetailsContainer = document.createElement('div');
+        rateDetailsContainer.className = 'interest-calculation-details';
+        
+        // Add the rate value
+        rateDetailsContainer.textContent = calculatedDetail.rate.toFixed(2) + '%';
+        
+        // Add the container (rate value only) to the rate cell
+        rateCell.appendChild(rateDetailsContainer);
+    } else {
+        rateCell.textContent = '';
+    }
 
     // Interest cell
     const interestCell = newRow.insertCell();

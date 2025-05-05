@@ -21,20 +21,20 @@
     text-align: left;
 }
 
-/* Rate Column - shrink to fit content */
+/* Principal Column - shrink to fit content */
 #prejudgmentTable th:nth-child(3), #prejudgmentTable td:nth-child(3), 
 #postjudgmentTable th:nth-child(3), #postjudgmentTable td:nth-child(3) { 
     width: 1%; /* Shrink to fit content */
     white-space: nowrap; /* Prevent wrapping */
-    text-align: center; 
+    text-align: right; 
 }
 
-/* Principal Column - shrink to fit content */
+/* Rate Column - shrink to fit content */
 #prejudgmentTable th:nth-child(4), #prejudgmentTable td:nth-child(4), 
 #postjudgmentTable th:nth-child(4), #postjudgmentTable td:nth-child(4) { 
     width: 1%; /* Shrink to fit content */
     white-space: nowrap; /* Prevent wrapping */
-    text-align: right;
+    text-align: center;
 }
 
 /* Interest Column - shrink to fit content */
@@ -82,8 +82,24 @@
 /* Right align the simplified days count in special damages */
 .interest-calculation-details.days-only {
     text-align: right;
+    margin-top: 6px;
+    font-size: 0.9em;
+    color: #555;
 }
 
 .interest-calculation-details.days-only .days-count {
     text-align: right;
+    display: block;
+}
+
+/* Special damages days count styles */
+.special-damages-days-count {
+    text-align: right;
+    margin-top: 6px;
+    font-size: 0.9em;
+    color: #555;
+}
+
+.special-damages-days-count span {
+    display: block;
 }

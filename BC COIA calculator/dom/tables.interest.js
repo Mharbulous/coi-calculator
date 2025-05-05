@@ -131,8 +131,6 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
         
         descCell.appendChild(descriptionContainer);
         
-        row.insertCell().textContent = item.rate.toFixed(2) + '%';
-        
         // For postjudgment table, use the same principal amount for all rows (principalTotal)
         // This ensures we don't show compound interest in the display
         if (!isPrejudgmentTable && principalTotal !== null) {
@@ -141,13 +139,15 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
             row.insertCell().innerHTML = formatCurrencyForDisplay(item.principal);
         }
         
+        row.insertCell().textContent = item.rate.toFixed(2) + '%';
+        
         row.insertCell().innerHTML = formatCurrencyForDisplay(item.interest); // Interest for the period
 
         // Apply text alignment via CSS classes (adjust indices if needed)
         row.cells[0].classList.add('text-left');   // Date/Period
         row.cells[1].classList.add('text-left');   // Description
-        row.cells[2].classList.add('text-center'); // Rate
-        row.cells[3].classList.add('text-right');  // Principal
+        row.cells[2].classList.add('text-right');  // Principal
+        row.cells[3].classList.add('text-center'); // Rate
         row.cells[4].classList.add('text-right');  // Interest
     });
 
