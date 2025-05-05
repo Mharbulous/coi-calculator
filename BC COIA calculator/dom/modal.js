@@ -493,6 +493,9 @@ export function showRecordPaymentModal(prejudgmentDate, postjudgmentDate) {
         
         // Focus the amount input for accessibility instead of date input
         // This prevents the date picker from opening automatically on modal load
-        amountInput.focus();
+        // Delay focus slightly using requestAnimationFrame to allow layout stabilization
+        requestAnimationFrame(() => {
+            amountInput.focus();
+        });
     });
 }

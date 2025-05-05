@@ -2,12 +2,14 @@
 
 /* Form group styling */
 .modal-body .form-group {
+    display: flex; /* Use Flexbox */
+    flex-direction: column; /* Stack items vertically */
     margin-bottom: 16px;
 }
 
 .modal-body .form-group label {
-    display: block;
-    margin-bottom: 8px;
+    display: block; /* Keep as block for width */
+    margin-bottom: 4px; /* Reduce margin slightly for tighter spacing */
     font-weight: bold;
     color: #333;
 }
