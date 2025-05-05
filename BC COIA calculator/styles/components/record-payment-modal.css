@@ -21,7 +21,7 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     width: 450px; /* Fixed width instead of percentage */
     max-height: 90vh;
-    overflow: hidden; /* Hide overflow to prevent scrollbars */
+    overflow: visible; /* Allow overflow content to be visible outside the modal */
     display: flex;
     flex-direction: column;
 }
@@ -48,35 +48,50 @@
     overflow-y: auto; /* Allow vertical scrolling if needed */
 }
 
-/* Form groups */
+/* Form groups - using flexbox for vertical alignment */
 .payment-modal-body .form-group {
-    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: calc(var(--spacing-unit) * 4); /* 16pt spacing between form groups */
     width: 100%;
     box-sizing: border-box; /* Include padding in width calculation */
+    gap: var(--spacing-unit); /* Consistent spacing between elements */
 }
 
 .payment-modal-body .form-group label {
     display: block;
-    margin-bottom: 5px;
-    font-weight: 500;
+    font-weight: 600; /* Slightly bolder for better visibility */
+    color: var(--text-color);
     width: 100%;
+    font-size: 1rem;
 }
 
 .payment-modal-body .form-group input {
     width: 100%;
-    padding: 8px 12px;
+    padding: calc(var(--spacing-unit) * 2); /* 8pt padding */
     border: 1px solid #ccc;
     border-radius: 4px;
+    background-color: var(--input-background-color);
     box-sizing: border-box; /* Include padding and border in width */
+    font-family: var(--font-family);
+    font-size: 1rem;
+    transition: border-color 0.3s, box-shadow 0.3s;
 }
 
-/* Validation messages */
+.payment-modal-body .form-group input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+/* Validation messages - ensure consistent height to prevent layout shifts */
 .payment-modal-body .validation-message {
     color: #d9534f;
     font-size: 0.875rem;
-    margin-top: 5px;
-    min-height: 18px; /* Reserve space for validation messages */
+    min-height: 16px; /* Reserve space for validation messages */
     width: 100%;
+    font-family: var(--font-family);
+    transition: opacity 0.2s;
 }
 
 /* Modal footer */
@@ -90,13 +105,16 @@
     box-sizing: border-box; /* Include padding in width calculation */
 }
 
-/* Modal buttons */
+/* Modal buttons - enhanced styling */
 .payment-modal-btn {
-    padding: 8px 16px;
+    padding: calc(var(--spacing-unit) * 2) calc(var(--spacing-unit) * 4); /* 8pt vertical, 16pt horizontal padding */
     border-radius: 4px;
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: all 0.2s ease-in-out;
+    font-family: var(--font-family);
+    font-size: 1rem;
+    min-width: 100px; /* Ensure buttons have consistent minimum width */
 }
 
 .payment-modal-btn-cancel {
@@ -107,6 +125,11 @@
 
 .payment-modal-btn-cancel:hover {
     background-color: #e9ecef;
+    transform: translateY(-1px);
+}
+
+.payment-modal-btn-cancel:active {
+    transform: translateY(0);
 }
 
 .payment-modal-btn-confirm {
@@ -117,4 +140,18 @@
 
 .payment-modal-btn-confirm:hover {
     background-color: #0069d9;
+    transform: translateY(-1px);
+}
+
+.payment-modal-btn-confirm:active {
+    transform: translateY(0);
+}
+
+.payment-modal-btn-confirm:disabled {
+    background-color: #a6c5e6;
+    border-color: #a6c5e6;
+    color: #f2f2f2;
+    cursor: not-allowed;
+    opacity: 0.7;
+    transform: none;
 }

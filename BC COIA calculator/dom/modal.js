@@ -315,26 +315,6 @@ export function promptForPaymentDetails(prejudgmentDate, postjudgmentDate) {
         const body = document.createElement('div');
         body.className = 'payment-modal-body';
         
-        // Date of Payment form group
-        const dateGroup = document.createElement('div');
-        dateGroup.className = 'form-group';
-        
-        const dateLabel = document.createElement('label');
-        dateLabel.textContent = "Date of Payment";
-        dateLabel.htmlFor = "payment-date-input";
-        
-        const dateInput = document.createElement('input');
-        dateInput.type = "text";
-        dateInput.id = "payment-date-input";
-        dateInput.placeholder = "Select a date";
-        
-        const dateValidation = document.createElement('div');
-        dateValidation.className = 'validation-message';
-        
-        dateGroup.appendChild(dateLabel);
-        dateGroup.appendChild(dateInput);
-        dateGroup.appendChild(dateValidation);
-        
         // Amount of Payment form group
         const amountGroup = document.createElement('div');
         amountGroup.className = 'form-group';
@@ -355,9 +335,29 @@ export function promptForPaymentDetails(prejudgmentDate, postjudgmentDate) {
         amountGroup.appendChild(amountInput);
         amountGroup.appendChild(amountValidation);
         
+        // Date of Payment form group
+        const dateGroup = document.createElement('div');
+        dateGroup.className = 'form-group';
+        
+        const dateLabel = document.createElement('label');
+        dateLabel.textContent = "Date of Payment";
+        dateLabel.htmlFor = "payment-date-input";
+        
+        const dateInput = document.createElement('input');
+        dateInput.type = "text";
+        dateInput.id = "payment-date-input";
+        dateInput.placeholder = "Select a date";
+        
+        const dateValidation = document.createElement('div');
+        dateValidation.className = 'validation-message';
+        
+        dateGroup.appendChild(dateLabel);
+        dateGroup.appendChild(dateInput);
+        dateGroup.appendChild(dateValidation);
+        
         // Add form groups to the body
-        body.appendChild(dateGroup);
         body.appendChild(amountGroup);
+        body.appendChild(dateGroup);
         
         // Create the modal footer
         const footer = document.createElement('div');
@@ -373,8 +373,63 @@ export function promptForPaymentDetails(prejudgmentDate, postjudgmentDate) {
         confirmButton.className = 'payment-modal-btn payment-modal-btn-confirm';
         confirmButton.textContent = "Confirm";
         
+        // Initialize Flatpickr on the date input
+        const minDate = prejudgmentDate instanceof Date && !isNaN(prejudgmentDate) 
+            ? prejudgmentDate 
+            : "1993-01-01"; // Fallback date if prejudgmentDate is invalid
+            
+        // Create a wrapper div for the Flatpickr to be attached to
+        // This helps with proper positioning
+        const flatpickrContainer = document.createElement('div');
+        flatpickrContainer.className = 'flatpickr-container';
+        flatpickrContainer.style.position = 'fixed';
+        flatpickrContainer.style.zIndex = '99999';
+        flatpickrContainer.style.top = '0';
+        flatpickrContainer.style.left = '0';
+        flatpickrContainer.style.width = '100%';
+        flatpickrContainer.style.height = '0';
+        document.body.appendChild(flatpickrContainer);
+        
+        // Initialize Flatpickr with the container as the appendTo target
+        const datePickerInstance = flatpickr(dateInput, {
+            dateFormat: "Y-m-d",
+            allowInput: true,
+            disableMobile: true,
+            minDate: minDate,
+            maxDate: "today",
+            defaultDate: "today",
+            onChange: function(selectedDates, dateStr) {
+                console.log("Selected date:", dateStr);
+                // Date validation will be implemented in a later task
+            },
+            appendTo: flatpickrContainer,
+            position: "below",
+            static: false, // Don't use static positioning
+            onOpen: function(selectedDates, dateStr, instance) {
+                // Position the calendar below the input
+                const inputRect = dateInput.getBoundingClientRect();
+                const calendar = instance.calendarContainer;
+                
+                // Position calendar below the input field
+                calendar.style.position = 'fixed';
+                calendar.style.top = (inputRect.bottom + 2) + 'px';
+                calendar.style.left = inputRect.left + 'px';
+                calendar.style.zIndex = '99999';
+            }
+        });
+        
         // Function to close the modal
         const closeModal = (paymentDetails = null) => {
+            // Clean up Flatpickr instance to prevent memory leaks
+            if (datePickerInstance) {
+                datePickerInstance.destroy();
+            }
+            
+            // Remove the Flatpickr container from the DOM
+            if (flatpickrContainer && flatpickrContainer.parentNode) {
+                document.body.removeChild(flatpickrContainer);
+            }
+            
             document.body.removeChild(overlay);
             resolve(paymentDetails);
         };
@@ -415,7 +470,7 @@ export function promptForPaymentDetails(prejudgmentDate, postjudgmentDate) {
         // Add the modal to the document
         document.body.appendChild(overlay);
         
-        // Focus the date input for accessibility
-        dateInput.focus();
+        // Focus the amount input for accessibility since it's now the first field
+        amountInput.focus();
     });
 }
