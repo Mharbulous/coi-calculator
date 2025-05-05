@@ -268,7 +268,7 @@ function calculateSegmentInterest(segment, principal, rate, year) {
     
     const details = {
         start: formatDateForDisplay(segment.start),
-        description: `${daysInSegment} days (ending ${formatDateForDisplay(lastIncludedDay)})`,
+        description: `${daysInSegment} days`,
         rate: rate,
         principal: principal,
         interest: interestAmount,

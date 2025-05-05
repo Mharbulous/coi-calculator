@@ -73,7 +73,14 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
             row.classList.add('breakable');
         }
 
-        row.insertCell().textContent = item.start; // Expect formatted date/period start
+        // For interest calculation rows, show both start and end date with a line break
+        const dateCell = row.insertCell();
+        if (!item.isFinalPeriodDamage) {
+            dateCell.innerHTML = `${item.start}<br>${item._endDate}`;
+        } else {
+            // For special damages rows in final period, just use the start date
+            dateCell.textContent = item.start;
+        }
         
         // Description cell with potential button
         const descCell = row.insertCell();
@@ -82,9 +89,13 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
         const descriptionContainer = document.createElement('div');
         descriptionContainer.className = 'description-container';
         
-        // Add the description text
+        // Add the description text with a line break for regular interest rows
         const descriptionText = document.createElement('span');
-        descriptionText.textContent = item.description;
+        if (!item.isFinalPeriodDamage) {
+            descriptionText.innerHTML = `<br>${item.description}`;
+        } else {
+            descriptionText.textContent = item.description;
+        }
         descriptionContainer.appendChild(descriptionText);
 
         // Add the "add special damages" button only for regular period rows (not final period damage calc rows)
@@ -139,9 +150,21 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
             row.insertCell().innerHTML = formatCurrencyForDisplay(item.principal);
         }
         
-        row.insertCell().textContent = item.rate.toFixed(2) + '%';
+        // Rate cell with line break for regular interest rows
+        const rateCell = row.insertCell();
+        if (!item.isFinalPeriodDamage) {
+            rateCell.innerHTML = `<br>${item.rate.toFixed(2)}%`;
+        } else {
+            rateCell.textContent = item.rate.toFixed(2) + '%';
+        }
         
-        row.insertCell().innerHTML = formatCurrencyForDisplay(item.interest); // Interest for the period
+        // Interest cell with line break for regular interest rows
+        const interestCell = row.insertCell();
+        if (!item.isFinalPeriodDamage) {
+            interestCell.innerHTML = `<br>${formatCurrencyForDisplay(item.interest)}`;
+        } else {
+            interestCell.innerHTML = formatCurrencyForDisplay(item.interest);
+        }
 
         // Apply text alignment via CSS classes (adjust indices if needed)
         row.cells[0].classList.add('text-left');   // Date/Period
