@@ -4,6 +4,7 @@
  */
 
 import useStore from './store.js';
+import { promptForPaymentDetails } from './dom/modal.js';
 
 /**
  * Initialize the Record Payment button functionality
@@ -18,7 +19,7 @@ export function initRecordPayment() {
 
 /**
  * Handle the Record Payment button click
- * This is a placeholder for the new implementation
+ * Opens a modal to prompt for payment details
  */
 function handleRecordPaymentClick() {
     // Get the prejudgment and postjudgment dates from the store
@@ -26,12 +27,19 @@ function handleRecordPaymentClick() {
     const prejudgmentDate = state.inputs.prejudgmentStartDate;
     const postjudgmentDate = state.inputs.postjudgmentEndDate;
     
-    // Log information for now
     console.log('Record Payment button clicked');
-    console.log('Prejudgment date:', prejudgmentDate);
-    console.log('Postjudgment date:', postjudgmentDate);
     
-    // In the future, this will open a new modal and handle payment recording
+    // Show the payment details modal
+    promptForPaymentDetails(prejudgmentDate, postjudgmentDate)
+        .then(paymentDetails => {
+            if (paymentDetails) {
+                // For now, just log the payment details
+                console.log('Payment details received:', paymentDetails);
+                // In future tasks, we'll add code to process the payment
+            } else {
+                console.log('Payment recording canceled');
+            }
+        });
 }
 
 // Initialize when the DOM is loaded

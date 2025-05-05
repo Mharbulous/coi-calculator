@@ -284,3 +284,138 @@ export function showSpecialDamagesDeletionModal() {
         "OK"
     );
 }
+
+/**
+ * Creates and shows a modal dialog for recording a payment
+ * @param {Date} prejudgmentDate - The prejudgment interest start date
+ * @param {Date} postjudgmentDate - The postjudgment interest end date
+ * @returns {Promise<Object|null>} - Resolves to payment details object if confirmed, null if canceled
+ */
+export function promptForPaymentDetails(prejudgmentDate, postjudgmentDate) {
+    return new Promise((resolve) => {
+        console.log('Payment modal called with dates:', prejudgmentDate, postjudgmentDate);
+        
+        // Create the modal overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'payment-modal-overlay';
+        
+        // Create the modal container
+        const modal = document.createElement('div');
+        modal.className = 'payment-modal';
+        
+        // Create the modal header
+        const header = document.createElement('div');
+        header.className = 'payment-modal-header';
+        
+        const headerTitle = document.createElement('h3');
+        headerTitle.textContent = "Record Payment";
+        header.appendChild(headerTitle);
+        
+        // Create the modal body with form
+        const body = document.createElement('div');
+        body.className = 'payment-modal-body';
+        
+        // Date of Payment form group
+        const dateGroup = document.createElement('div');
+        dateGroup.className = 'form-group';
+        
+        const dateLabel = document.createElement('label');
+        dateLabel.textContent = "Date of Payment";
+        dateLabel.htmlFor = "payment-date-input";
+        
+        const dateInput = document.createElement('input');
+        dateInput.type = "text";
+        dateInput.id = "payment-date-input";
+        dateInput.placeholder = "Select a date";
+        
+        const dateValidation = document.createElement('div');
+        dateValidation.className = 'validation-message';
+        
+        dateGroup.appendChild(dateLabel);
+        dateGroup.appendChild(dateInput);
+        dateGroup.appendChild(dateValidation);
+        
+        // Amount of Payment form group
+        const amountGroup = document.createElement('div');
+        amountGroup.className = 'form-group';
+        
+        const amountLabel = document.createElement('label');
+        amountLabel.textContent = "Amount of Payment";
+        amountLabel.htmlFor = "payment-amount-input";
+        
+        const amountInput = document.createElement('input');
+        amountInput.type = "text";
+        amountInput.id = "payment-amount-input";
+        amountInput.placeholder = "Enter payment amount";
+        
+        const amountValidation = document.createElement('div');
+        amountValidation.className = 'validation-message';
+        
+        amountGroup.appendChild(amountLabel);
+        amountGroup.appendChild(amountInput);
+        amountGroup.appendChild(amountValidation);
+        
+        // Add form groups to the body
+        body.appendChild(dateGroup);
+        body.appendChild(amountGroup);
+        
+        // Create the modal footer
+        const footer = document.createElement('div');
+        footer.className = 'payment-modal-footer';
+        
+        // Cancel button
+        const cancelButton = document.createElement('button');
+        cancelButton.className = 'payment-modal-btn payment-modal-btn-cancel';
+        cancelButton.textContent = "Cancel";
+        
+        // Confirm button
+        const confirmButton = document.createElement('button');
+        confirmButton.className = 'payment-modal-btn payment-modal-btn-confirm';
+        confirmButton.textContent = "Confirm";
+        
+        // Function to close the modal
+        const closeModal = (paymentDetails = null) => {
+            document.body.removeChild(overlay);
+            resolve(paymentDetails);
+        };
+        
+        // Add click events to the buttons
+        cancelButton.addEventListener('click', () => closeModal());
+        confirmButton.addEventListener('click', () => {
+            // In the future, this will collect and validate form data
+            // For now, just close the modal
+            closeModal({
+                date: dateInput.value,
+                amount: amountInput.value
+            });
+        });
+        
+        // Allow clicking outside the modal or pressing ESC to close it (as cancel)
+        overlay.addEventListener('click', (event) => {
+            if (event.target === overlay) {
+                closeModal();
+            }
+        });
+        
+        document.addEventListener('keydown', function escapeHandler(event) {
+            if (event.key === 'Escape') {
+                closeModal();
+                document.removeEventListener('keydown', escapeHandler);
+            }
+        });
+        
+        // Assemble the modal
+        footer.appendChild(cancelButton);
+        footer.appendChild(confirmButton);
+        modal.appendChild(header);
+        modal.appendChild(body);
+        modal.appendChild(footer);
+        overlay.appendChild(modal);
+        
+        // Add the modal to the document
+        document.body.appendChild(overlay);
+        
+        // Focus the date input for accessibility
+        dateInput.focus();
+    });
+}
