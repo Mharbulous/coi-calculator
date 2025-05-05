@@ -193,7 +193,7 @@ export function showClearConfirmationModal() {
         header.className = 'modal-header';
         
         const headerTitle = document.createElement('h3');
-        headerTitle.textContent = "Reset Calculator?";
+        headerTitle.textContent = "Are you sure you want to reset the calculator?";
         header.appendChild(headerTitle);
         
         // Create the modal body with explanation of what will be cleared
@@ -201,9 +201,9 @@ export function showClearConfirmationModal() {
         body.className = 'modal-body';
         
         body.innerHTML = `
-            <p>Are you sure you want to reset the calculator?</p>
+            
             <div class="clear-details">
-                <p>The following changes will be made:</p>
+                <p>Clearing will result in the following changes:</p>
                 <ul>
                     <li>Date fields will be set to default values:
                         <ul>
@@ -212,9 +212,8 @@ export function showClearConfirmationModal() {
                             <li>Postjudgment Interest Date: today</li>
                         </ul>
                     </li>
-                    <li>All dollar amounts will be cleared</li>
-                    <li>Special damage descriptions will be cleared</li>
-                    <li>Special damage rows will be removed</li>
+                    <li>All dollar amounts will be cleared.</li>
+                    <li>All special damages rows will be deleted.</li>                    
                 </ul>                
             </div>
         `;
