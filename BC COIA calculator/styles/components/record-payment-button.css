@@ -1,0 +1,60 @@
+/* Record Payment Button Styles */
+
+#record-payment-button {
+    position: relative;
+    float: right;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+    transition: background-color 0.3s ease;
+    width: 150px; /* Fixed width for the button */
+    margin-top: 0; /* Removed top margin to fix spacing */
+    margin-bottom: 8px; /* Reduced from 16px to 8px */
+    margin-right: 0; /* Ensure no right margin */
+    background-color: #2980b9; /* Blue color */
+    color: white;
+    text-align: center;
+    white-space: nowrap; /* Prevent text from wrapping */
+    clear: both; /* Ensure it's positioned below the table */
+}
+
+#record-payment-button:hover {
+    background-color: #2471a3; /* Slightly darker blue on hover */
+}
+
+#record-payment-button:active {
+    background-color: #1a5276; /* Even darker blue when active */
+    transform: scale(0.98);
+}
+
+/* Print-specific styles */
+@media print {
+    #record-payment-button {
+        display: none; /* Hide button when printing */
+    }
+}
+
+/* Ensure consistent margins for section titles and tables */
+.section-title {
+    margin-bottom: 8px !important; /* Enforce consistent 8px bottom margin for all section titles */
+}
+
+/* Reset all spacing on container elements - they should only handle visibility toggling */
+div[data-display="prejudgmentSection"],
+div[data-display="postjudgmentSection"] {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Ensure consistent margins for the interest tables themselves */
+.interest-table {
+    margin-top: 0 !important; /* No additional top margin on tables */
+    margin-bottom: 16px !important; /* Consistent bottom margin for tables */
+}
+
+/* Remove margin from summary table to fix spacing */
+.summary-table {
+    margin-bottom: 0 !important;
+}
