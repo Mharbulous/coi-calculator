@@ -80,11 +80,10 @@
 }
 
 /* Right align the simplified days count in special damages */
+/* Removed font-size and color to inherit from table defaults */
 .interest-calculation-details.days-only {
     text-align: right;
-    margin-top: 6px;
-    font-size: 0.9em;
-    color: #555;
+    margin-top: 6px; 
 }
 
 .interest-calculation-details.days-only .days-count {

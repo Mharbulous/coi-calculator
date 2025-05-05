@@ -345,25 +345,30 @@ export function insertSpecialDamagesRowFromData(tableBody, index, rowData, final
                 const isFirstDayMatch = isFirstDayOfFinalPeriod && detail.isFirstDayOfSegment;
                 
                 
-                // Match if dates and principals match OR this is a first day special damage
-                return (datesMatch && principalsMatch) || isFirstDayMatch;
+                // Match if dates and principals match. Removed the isFirstDayMatch condition for simplicity.
+                return datesMatch && principalsMatch;
             });
             
             if (detailIndex > -1) {
                 calculatedDetail = mutableFinalPeriodDetails[detailIndex];
                 
-                // Extract just the days count from the description (e.g., "test 2 (108 days) @" -> "108 days")
+                // Extract just the days count from the description string like "UserDesc (XXX days ending YYYY-MM-DD)"
                 // Reset daysCount for each detail check
-                daysCount = ""; 
-                const daysMatch = calculatedDetail.description.match(/\((\d+)\s*days\)/);
+                daysCount = "";
+                // Regex to match "(XXX days)" potentially followed by " ending ..." and capture XXX
+                // Made the " ending ..." part optional: (\s*ending.*)?
+                const daysMatch = calculatedDetail.description.match(/\(\s*(\d+)\s*day(s)?(\s*ending.*)?\)/); 
+                
                 if (daysMatch && daysMatch[1]) {
-                    // Format as "XXX days" with the number extracted
-                    daysCount = `${daysMatch[1]} days`; 
+                    // Format as "XXX day" or "XXX days" based on the captured number
+                    const numDays = parseInt(daysMatch[1], 10);
+                    daysCount = `${numDays} ${numDays === 1 ? 'day' : 'days'}`; 
                     
                     // Create and append the container for the days count *only if* found
+                    // Use the original class structure for styling consistency
                     const daysContainer = document.createElement('div');
-                    daysContainer.className = 'special-damages-days-count'; // Use a specific class if needed for styling
-                    daysContainer.innerHTML = `<span>${daysCount}</span>`;
+                    daysContainer.className = 'interest-calculation-details days-only'; // Original class
+                    daysContainer.innerHTML = `<span class="days-count">${daysCount}</span>`; // Original structure
                     descCell.appendChild(daysContainer); // Append to Description cell
                 }
                 
