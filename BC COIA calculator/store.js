@@ -36,7 +36,8 @@ const store = createStore((set) => ({
             total: 0,
             principal: 0,
             finalPeriodDamageInterestDetails: []
-        }
+        },
+        payments: [] // Add payments to saved state
     },
     
     // Calculation results
@@ -56,7 +57,9 @@ const store = createStore((set) => ({
         judgmentTotal: 0,
         totalOwing: 0,
         perDiem: 0,
-        finalCalculationDate: null
+        finalCalculationDate: null,
+        // Payment tracking
+        payments: []
     },
 
     // Actions to update the state
@@ -202,6 +205,60 @@ const store = createStore((set) => ({
     }),
 
     /**
+     * Adds a payment to the payments array
+     * @param {Object} payment - Payment object containing date, amount, interestApplied, principalApplied, etc.
+     */
+    addPayment: (payment) => set((state) => {
+        const payments = [...state.results.payments, payment];
+        return {
+            results: {
+                ...state.results,
+                payments
+            }
+        };
+    }),
+
+    /**
+     * Updates a payment at the specified index
+     * @param {number} index - The index of the payment to update
+     * @param {Object} payment - The updated payment object
+     */
+    updatePayment: (index, payment) => set((state) => {
+        const payments = [...state.results.payments];
+        payments[index] = payment;
+        return {
+            results: {
+                ...state.results,
+                payments
+            }
+        };
+    }),
+
+    /**
+     * Removes a payment at the specified index
+     * @param {number} index - The index of the payment to remove
+     */
+    removePayment: (index) => set((state) => {
+        const payments = [...state.results.payments];
+        payments.splice(index, 1);
+        return {
+            results: {
+                ...state.results,
+                payments
+            }
+        };
+    }),
+
+    /**
+     * Calculates the total amount of all payments
+     * @returns {number} - The total amount of all payments
+     */
+    calculatePaymentTotal: () => {
+        const { payments } = store.getState().results;
+        return payments.reduce((sum, payment) => sum + payment.amount, 0);
+    },
+
+    /**
      * Saves the current prejudgment calculation state
      * Used when toggling the prejudgment checkbox off
      */
@@ -212,7 +269,8 @@ const store = createStore((set) => ({
                 specialDamages: [...state.results.specialDamages],
                 prejudgmentResult: {
                     ...state.results.prejudgmentResult
-                }
+                },
+                payments: [...state.results.payments] // Save payments
             }
         };
     }),
@@ -235,9 +293,32 @@ const store = createStore((set) => ({
             // Check if we have special damages to restore
             const hasSpecialDamages = state.savedPrejudgmentState.specialDamages && 
                                      state.savedPrejudgmentState.specialDamages.length > 0;
+                                     
+            // Check if we have payments to restore
+            const hasPayments = state.savedPrejudgmentState.payments &&
+                               state.savedPrejudgmentState.payments.length > 0;
             
-            // If we have special damages, restore both inputs and results
+            // Prepare result updates
+            const resultUpdates = {};
+            
+            // Add special damages to results if they exist
             if (hasSpecialDamages) {
+                resultUpdates.specialDamages = [...state.savedPrejudgmentState.specialDamages];
+                resultUpdates.specialDamagesTotal = state.savedPrejudgmentState.specialDamages.reduce(
+                    (sum, damage) => sum + damage.amount, 0
+                );
+                resultUpdates.prejudgmentResult = {
+                    ...state.savedPrejudgmentState.prejudgmentResult
+                };
+            }
+            
+            // Add payments to results if they exist
+            if (hasPayments) {
+                resultUpdates.payments = [...state.savedPrejudgmentState.payments];
+            }
+            
+            // If we have result updates, return them along with input updates
+            if (Object.keys(resultUpdates).length > 0) {
                 return {
                     inputs: {
                         ...state.inputs,
@@ -245,17 +326,11 @@ const store = createStore((set) => ({
                     },
                     results: {
                         ...state.results,
-                        specialDamages: [...state.savedPrejudgmentState.specialDamages],
-                        specialDamagesTotal: state.savedPrejudgmentState.specialDamages.reduce(
-                            (sum, damage) => sum + damage.amount, 0
-                        ),
-                        prejudgmentResult: {
-                            ...state.savedPrejudgmentState.prejudgmentResult
-                        }
+                        ...resultUpdates
                     }
                 };
             } else if (Object.keys(inputUpdates).length > 0) {
-                // If no special damages but we have saved inputs, just restore those
+                // If no result updates but we have input updates, just restore those
                 return {
                     inputs: {
                         ...state.inputs,
@@ -324,7 +399,8 @@ const store = createStore((set) => ({
                     total: 0,
                     principal: 0,
                     finalPeriodDamageInterestDetails: []
-                }
+                },
+                payments: [] // Reset saved payments
             },
             results: {
                 specialDamages: [],
@@ -342,7 +418,8 @@ const store = createStore((set) => ({
                 judgmentTotal: 0,
                 totalOwing: 0,
                 perDiem: 0,
-                finalCalculationDate: finalCalculationDate
+                finalCalculationDate: finalCalculationDate,
+                payments: [] // Reset payments array
             }
         });
     },
