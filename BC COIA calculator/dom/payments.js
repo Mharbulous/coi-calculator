@@ -12,7 +12,7 @@ import useStore from '../store.js';
  */
 function findPaymentIndex(row) {
     const dateInput = row.querySelector('.payment-date');
-    const amountInput = row.querySelector('.payment-amount');
+    const amountInput = row.querySelector('.special-damages-amount[data-type="payment-amount"]');
     
     if (!dateInput || !amountInput) return -1;
     
@@ -42,13 +42,13 @@ function findPaymentIndex(row) {
  */
 async function handleTrashIconClick(event) {
     const trashIcon = event.currentTarget;
-    const row = trashIcon.closest('.payment-row');
+    const row = trashIcon.closest('.special-damages-row');
     
     if (!row) return;
     
     // Get all the relevant inputs
     const dateInput = row.querySelector('.payment-date');
-    const amountInput = row.querySelector('.payment-amount');
+    const amountInput = row.querySelector('.special-damages-amount[data-type="payment-amount"]');
     
     if (!dateInput || !amountInput) return;
     
@@ -135,7 +135,7 @@ export function insertPaymentRow(tableBody, currentRow, date) {
     
     // Create a new row and insert it after the current row
     const newRow = tableBody.insertRow(rowIndex); // Insert at the correct index
-    newRow.className = 'payment-row highlight-new-row breakable'; // Add breakable class
+    newRow.className = 'special-damages-row highlight-new-row breakable'; // Use special-damages-row class for consistent styling
     
     // Date cell (editable, pre-populated with the date from the current row)
     const dateCell = newRow.insertCell();
@@ -175,7 +175,7 @@ export function insertPaymentRow(tableBody, currentRow, date) {
     const principalCell = newRow.insertCell();
     const principalInput = document.createElement('input');
     principalInput.type = 'text';
-    principalInput.className = 'payment-amount';
+    principalInput.className = 'special-damages-amount'; // Use special-damages-amount class for consistent styling
     principalInput.dataset.type = 'payment-amount';
     principalInput.value = '';
     setupCurrencyInputListeners(principalInput, function() {
@@ -254,7 +254,7 @@ export function insertPaymentRowFromData(tableBody, index, rowData) {
     const safeIndex = (index !== undefined && index >= 0) ? index : -1;
     
     const newRow = tableBody.insertRow(safeIndex);
-    newRow.className = 'payment-row breakable'; // Add breakable class, no highlight on re-insertion
+    newRow.className = 'special-damages-row breakable'; // Use special-damages-row class for consistent styling
 
     // Date cell
     const dateCell = newRow.insertCell();
@@ -288,7 +288,7 @@ export function insertPaymentRowFromData(tableBody, index, rowData) {
     const amountCell = newRow.insertCell();
     const amountInput = document.createElement('input');
     amountInput.type = 'text';
-    amountInput.className = 'payment-amount';
+    amountInput.className = 'special-damages-amount'; // Use special-damages-amount class for consistent styling
     amountInput.dataset.type = 'payment-amount';
     
     // Handle potentially missing or invalid amounts
