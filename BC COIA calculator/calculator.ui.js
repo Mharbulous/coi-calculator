@@ -59,6 +59,12 @@ function setupEventListeners() {
         recalculate();
         document.dispatchEvent(new CustomEvent('content-changed')); // Trigger pagination update
     });
+    
+    // Listen for the payment-updated custom event
+    document.addEventListener('payment-updated', () => {
+        recalculate();
+        document.dispatchEvent(new CustomEvent('content-changed')); // Trigger pagination update
+    });
     // Check if elements exist before adding listeners
     const requiredElements = [
         elements.jurisdictionSelect, elements.showPrejudgmentCheckbox, elements.showPostjudgmentCheckbox,
@@ -201,6 +207,11 @@ function initializeCalculator() {
     // Calculate the total of special damages
     const defaultSpecialDamagesTotal = defaultSpecialDamages.reduce((sum, damage) => sum + damage.amount, 0);
     
+    // Define default payments
+    const defaultPayments = [
+        { date: '2021-10-13', amount: 500 }
+    ];
+    
     const defaultResults = {
         specialDamages: defaultSpecialDamages,
         specialDamagesTotal: defaultSpecialDamagesTotal,
@@ -209,7 +220,8 @@ function initializeCalculator() {
         judgmentTotal: 0,
         totalOwing: 0,
         perDiem: 0,
-        finalCalculationDate: defaultPostjudgmentEndDate
+        finalCalculationDate: defaultPostjudgmentEndDate,
+        payments: defaultPayments
     };
     
     // Initialize Zustand store with default values

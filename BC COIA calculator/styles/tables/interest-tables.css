@@ -102,3 +102,24 @@
 .special-damages-days-count span {
     display: block;
 }
+
+/* Payment row styles */
+.payment-row {
+    background-color: #f5f5ff; /* Light blue background */
+    font-weight: 500; /* Slightly bold text */
+}
+
+.payment-row td {
+    border-top: 1px solid #ddd; /* Add a subtle separator line */
+    border-bottom: 1px solid #ddd;
+}
+
+/* Style for negative values in payment rows */
+.payment-row .negative-value {
+    color: #d35400; /* Orange-red for negative values */
+}
+
+/* Ensure payment description stands out */
+.payment-row .description-container {
+    font-style: italic;
+}

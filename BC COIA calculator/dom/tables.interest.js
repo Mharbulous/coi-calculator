@@ -1,7 +1,8 @@
-import { parseDateInput, formatDateForDisplay, normalizeDate } from '../utils.date.js';
+import { parseDateInput, formatDateForDisplay, normalizeDate, datesEqual } from '../utils.date.js';
 import { formatCurrencyForDisplay } from '../utils.currency.js';
 import elements from './elements.js';
 import { insertSpecialDamagesRowFromData } from './specialDamages.js';
+import { insertPaymentRowFromData } from './payments.js';
 import useStore from '../store.js';
 
 /**
@@ -73,9 +74,18 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
             row.classList.add('breakable');
         }
 
-        // For interest calculation rows, show both start and end date with a line break
+        // Add payment-row class for payment rows for styling
+        if (item.isPayment) {
+            row.classList.add('payment-row');
+        }
+
+        // Date cell - format differs based on row type
         const dateCell = row.insertCell();
-        if (!item.isFinalPeriodDamage) {
+        if (item.isPayment) {
+            // For payment rows, just show the payment date
+            dateCell.textContent = item.start;
+        } else if (!item.isFinalPeriodDamage) {
+            // For interest calculation rows, show both start and end date with a line break
             dateCell.innerHTML = `${item.start}<br>${item._endDate}`;
         } else {
             // For special damages rows in final period, just use the start date
@@ -89,9 +99,13 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
         const descriptionContainer = document.createElement('div');
         descriptionContainer.className = 'description-container';
         
-        // Add the description text with a line break for regular interest rows
+        // Add the description text with formatting based on row type
         const descriptionText = document.createElement('span');
-        if (!item.isFinalPeriodDamage) {
+        
+        if (item.isPayment) {
+            // For payment rows, just show the description
+            descriptionText.textContent = item.description;
+        } else if (!item.isFinalPeriodDamage) {
             descriptionText.innerHTML = `<br>${item.description}`;
         } else {
             descriptionText.textContent = item.description;
@@ -99,8 +113,8 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
         descriptionContainer.appendChild(descriptionText);
 
         // Add the "add special damages" button only for regular period rows (not final period damage calc rows)
-        // with interest in the prejudgment table
-        if (isPrejudgmentTable && item.interest > 0 && !item.isFinalPeriodDamage) {
+        // with interest in the prejudgment table, and not for payment rows
+        if (isPrejudgmentTable && item.interest > 0 && !item.isFinalPeriodDamage && !item.isPayment) {
             const addButton = document.createElement('button');
             addButton.textContent = 'add special damages';
             addButton.className = 'add-special-damages-btn';
@@ -142,27 +156,51 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
         
         descCell.appendChild(descriptionContainer);
         
-        // For postjudgment table, use the same principal amount for all rows (principalTotal)
-        // This ensures we don't show compound interest in the display
-        if (!isPrejudgmentTable && principalTotal !== null) {
-            row.insertCell().innerHTML = formatCurrencyForDisplay(principalTotal);
+        // Principal cell with proper handling for payments
+        const principalCell = row.insertCell();
+        
+        if (item.isPayment) {
+            // For payment rows, display the principal value directly (it's already negative)
+            principalCell.innerHTML = formatCurrencyForDisplay(item.principal);
+            // Add special class for negative values
+            if (item.principal < 0) {
+                principalCell.classList.add('negative-value');
+            }
+        } else if (!isPrejudgmentTable && principalTotal !== null) {
+            // For postjudgment table, use the same principal amount for all rows (principalTotal)
+            principalCell.innerHTML = formatCurrencyForDisplay(principalTotal);
         } else {
-            row.insertCell().innerHTML = formatCurrencyForDisplay(item.principal);
+            // For regular rows, use the principal from the calculation
+            principalCell.innerHTML = formatCurrencyForDisplay(item.principal);
         }
         
-        // Rate cell with line break for regular interest rows
+        // Rate cell with different formatting for different row types
         const rateCell = row.insertCell();
-        if (!item.isFinalPeriodDamage) {
+        if (item.isPayment) {
+            // For payment rows, leave rate blank
+            rateCell.textContent = '';
+        } else if (!item.isFinalPeriodDamage) {
+            // For regular interest rows, show rate with line break
             rateCell.innerHTML = `<br>${item.rate.toFixed(2)}%`;
         } else {
+            // For special damage rows, show just the rate
             rateCell.textContent = item.rate.toFixed(2) + '%';
         }
         
-        // Interest cell with line break for regular interest rows
+        // Interest cell with different formatting for different row types
         const interestCell = row.insertCell();
-        if (!item.isFinalPeriodDamage) {
+        if (item.isPayment) {
+            // For payment rows, display the interest value directly (it's already negative)
+            interestCell.innerHTML = formatCurrencyForDisplay(item.interest);
+            // Add special class for negative values
+            if (item.interest < 0) {
+                interestCell.classList.add('negative-value');
+            }
+        } else if (!item.isFinalPeriodDamage) {
+            // For regular interest rows, show with line break
             interestCell.innerHTML = `<br>${formatCurrencyForDisplay(item.interest)}`;
         } else {
+            // For special damage rows, show just the value
             interestCell.innerHTML = formatCurrencyForDisplay(item.interest);
         }
 
@@ -174,8 +212,24 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
         row.cells[4].classList.add('text-right');  // Interest
     });
 
+    // Re-insert existing payments
+    const existingPayments = [];
+    if (isPrejudgmentTable) {
+        // Retrieve payments from the store
+        const state = useStore.getState();
+        if (state.results.payments && state.results.payments.length > 0) {
+            // Format store values for DOM insertion
+            state.results.payments.forEach(payment => {
+                existingPayments.push({
+                    date: payment.date, // Already in YYYY-MM-DD format
+                    amount: payment.amount.toString() // Convert to string for consistent handling
+                });
+            });
+        }
+    }
+    
     // Re-insert existing special damages rows in correct sorted order
-    if (isPrejudgmentTable && existingSpecialDamagesRows.length > 0) {
+    if (isPrejudgmentTable && (existingSpecialDamagesRows.length > 0 || existingPayments.length > 0)) {
         // Get all dates from interest calculation periods for comparison
         const periodDates = details.map(item => ({
             date: parseDateInput(item.start),
@@ -193,23 +247,40 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
         // Make a mutable copy of the final period details for safe removal during iteration
         const mutableFinalPeriodDetails = [...finalPeriodDamageInterestDetails];
 
-        // Parse all special damages dates first and add to our collection for sorting
-        const allRowsToInsert = existingSpecialDamagesRows.map(rowData => {
-            const date = parseDateInput(rowData.date);
-            return {
-                date: date,
-                dateStr: rowData.date,
-                isSpecialDamage: true,
-                rowData: rowData
-            };
-        }).filter(item => item.date !== null); // Filter out invalid dates
+        // Parse all special damages and payment dates first and add to our collection for sorting
+        const allRowsToInsert = [
+            ...existingSpecialDamagesRows.map(rowData => {
+                const date = parseDateInput(rowData.date);
+                return {
+                    date: date,
+                    dateStr: rowData.date,
+                    isSpecialDamage: true,
+                    isPayment: false,
+                    rowData: rowData
+                };
+            }),
+            ...existingPayments.map(rowData => {
+                const date = parseDateInput(rowData.date);
+                return {
+                    date: date,
+                    dateStr: rowData.date,
+                    isSpecialDamage: false,
+                    isPayment: true,
+                    rowData: rowData
+                };
+            })
+        ].filter(item => item.date !== null); // Filter out invalid dates
 
-        // Sort all rows chronologically, with regular interest rows appearing above special damages rows when dates are the same
+        // Sort all rows chronologically, with proper order for same-day events following the spec:
+        // 1. Interest calculation row/segment ending on that day.
+        // 2. Special Damage entry on that day (if applicable).
+        // 3. Payment row for a payment made on that day.
+        // 4. Interest calculation row/segment starting on that day.
         allRowsToInsert.sort((a, b) => {
             // First compare by date
             const dateComparison = a.date - b.date;
             
-            // If dates are the same, sort by row type (regular interest rows above special damages rows)
+            // If dates are the same, follow the specified order
             if (dateComparison === 0) {
                 // If a is a special damage and b is not, b should come first
                 if (a.isSpecialDamage && !b.isSpecialDamage) return 1;
@@ -230,28 +301,70 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
                 const currentRow = tableBody.rows[i];
                 const currentRowDateCell = currentRow.cells[0];
                 let currentRowDate = null;
+                let currentRowEndDate = null;
+                const isPaymentRow = currentRow.classList.contains('payment-row');
                 
-                // Check if current row is a special damages row (already inserted)
-                const dateInput = currentRow.querySelector('.special-damages-date');
-                if (dateInput) {
-                    currentRowDate = parseDateInput(dateInput.value);
+                // Check if current row is a special damages or payment row (already inserted)
+                const specialDamagesDateInput = currentRow.querySelector('.special-damages-date');
+                const paymentDateInput = currentRow.querySelector('.payment-date');
+                if (specialDamagesDateInput) {
+                    currentRowDate = parseDateInput(specialDamagesDateInput.value);
+                } else if (paymentDateInput) {
+                    currentRowDate = parseDateInput(paymentDateInput.value);
                 } else {
                     // Otherwise it's a calculated row
-                    const dateStr = currentRowDateCell.textContent.trim();
-                    currentRowDate = parseDateInput(dateStr);
+                    const dateText = currentRowDateCell.textContent.trim();
+                    
+                    // Check if the content contains a line break (HTML br element)
+                    if (dateText.includes('\n')) {
+                        const dateLines = dateText.split('\n');
+                        // Parse start and end dates separately
+                        currentRowDate = parseDateInput(dateLines[0].trim());
+                        currentRowEndDate = parseDateInput(dateLines[1].trim());
+                    } else if (currentRowDateCell.innerHTML.includes('<br>')) {
+                        // Alternative approach using the HTML content if \n splitting didn't work
+                        const dateLines = currentRowDateCell.innerHTML.split('<br>');
+                        currentRowDate = parseDateInput(dateLines[0].trim());
+                        currentRowEndDate = dateLines[1] ? parseDateInput(dateLines[1].trim()) : null;
+                    } else {
+                        // Single date - for payment rows or final period damages
+                        currentRowDate = parseDateInput(dateText);
+                    }
                 }
                 
-                // Compare dates for insertion position
+                // Compare dates for insertion position following the sorting order:
+                // 1. Interest calculation row/segment ending on that day.
+                // 2. Special Damage entry on that day.
+                // 3. Payment row for a payment made on that day.
+                // 4. Interest calculation row/segment starting on that day.
                 if (currentRowDate) {
-                    // If dates are equal, check if current row is a special damages row
+                    // If dates are equal, apply the sorting rules
                     if (rowToInsert.date.getTime() === currentRowDate.getTime()) {
-                        // If current row is NOT a special damages row (i.e., it's a regular interest row),
-                        // insert the special damages row after it
-                        if (!dateInput) {
-                            insertIndex = i + 1; // Insert after the regular interest row
+                        // Special damages come after interest calculation rows ending on that day
+                        // but before payment rows and interest rows starting on that day
+                        
+                        // If current row is a payment row, insert special damages before it
+                        if (isPaymentRow) {
+                            insertIndex = i;
                             break;
                         }
-                        // If current row IS a special damages row, continue checking next rows
+                        
+                        // If current row is a special damages or payment row, continue to next row
+                        // (this will place the new row after existing ones of the same type)
+                        if (specialDamagesDateInput || paymentDateInput) {
+                            continue;
+                        }
+                        
+                        // For interest calculation rows, determine if it's ending or starting on this date
+                        if (currentRowEndDate && datesEqual(rowToInsert.date, currentRowEndDate)) {
+                            // Row is ending on this date - place special damages after it
+                            insertIndex = i + 1;
+                            break;
+                        } else {
+                            // Row is starting on this date - place special damages before it
+                            insertIndex = i;
+                            break;
+                        }
                     } 
                     // If special damages date is less than current row date, insert before it
                     else if (rowToInsert.date < currentRowDate) {
@@ -261,14 +374,22 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
                 }
             }
             
-            // Insert the special damages row at the determined position
-            insertSpecialDamagesRowFromData(
-                tableBody, 
-                insertIndex, 
-                rowToInsert.rowData, 
-                finalPeriodStartDate, 
-                mutableFinalPeriodDetails
-            );
+            // Insert the row at the determined position
+            if (rowToInsert.isSpecialDamage) {
+                insertSpecialDamagesRowFromData(
+                    tableBody, 
+                    insertIndex, 
+                    rowToInsert.rowData, 
+                    finalPeriodStartDate, 
+                    mutableFinalPeriodDetails
+                );
+            } else if (rowToInsert.isPayment) {
+                insertPaymentRowFromData(
+                    tableBody,
+                    insertIndex,
+                    rowToInsert.rowData
+                );
+            }
         }
     }
 
