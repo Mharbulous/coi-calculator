@@ -1,6 +1,6 @@
 /**
- * Test Modal Script
- * This script adds event listeners to the test modal button
+ * New Record Payment button Modal Script
+ * This script adds event listeners to the Record Payment button
  * to directly test the payment modal functionality
  */
 
@@ -9,13 +9,13 @@ import useStore from './store.js';
 import { showModal } from './dom/modal.js';
 
 // Function to initialize the test modal functionality
-function initTestModal() {
-    const testModalButton = document.getElementById('test-modal-button');
+function initRecordPaymentmodal() {
+    const recordPaymentButton = document.getElementById('test-modal-button');
     
-    if (testModalButton) {
-        console.log('Test modal button found, adding click listener');
+    if (recordPaymentButton) {
+        console.log('Record Payment button found, adding click listener');
         
-        testModalButton.addEventListener('click', () => {
+        recordPaymentButton.addEventListener('click', () => {
             console.log('Modal button clicked - opening payment modal directly');
             
             // Go directly to the payment modal without showing test modal first
@@ -42,9 +42,9 @@ function initTestModal() {
                 });
         });
     } else {
-        console.error('Test modal button not found in the DOM');
+        console.error('Record Payment button not found in the DOM');
     }
 }
 
 // Initialize when the DOM is fully loaded
-document.addEventListener('DOMContentLoaded', initTestModal);
+document.addEventListener('DOMContentLoaded', initRecordPaymentmodal);

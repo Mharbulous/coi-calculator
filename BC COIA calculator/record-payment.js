@@ -17,10 +17,10 @@ import { insertPaymentRecord } from './payment-insertion.js';
  * and processes any payments.
  */
 export function initRecordPayment() {
-    const recordPaymentButton = document.getElementById('test-modal-button');
+    const oldRecordPaymentButton = document.getElementById('test-modal-button');
     
-    if (recordPaymentButton) {
-        recordPaymentButton.addEventListener('click', handleRecordPaymentClick);
+    if (oldRecordPaymentButton) {
+        oldRecordPaymentButton.addEventListener('click', handleRecordPaymentClick);
     } else {
         console.error('Record Payment button (id: test-modal-button) not found in the DOM');
     }
