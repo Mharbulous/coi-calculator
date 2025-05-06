@@ -90,11 +90,19 @@ document.addEventListener('DOMContentLoaded', function() {
         resultDiv.style.maxHeight = '80vh';
         resultDiv.style.overflow = 'auto';
         
+        // Find the payment row for detailed breakdown
+        const paymentRow = updatedState.results.prejudgmentResult.details.find(row => row.isPayment);
+        const interestApplied = paymentRow ? paymentRow.interestApplied : 0;
+        const principalApplied = paymentRow ? paymentRow.principalApplied : 0;
+        
         // Create a summary of the changes
         resultDiv.innerHTML = `
             <h3>Payment Insertion Test Results</h3>
             <p>Original principal: $10,320.00</p>
             <p>Payment amount: $500.00</p>
+            <p><strong>Interest-First Payment Application:</strong></p>
+            <p>- Applied to interest: $${interestApplied.toFixed(2)}</p>
+            <p>- Applied to principal: $${principalApplied.toFixed(2)}</p>
             <p>New principal: $${updatedState.results.prejudgmentResult.principal.toFixed(2)}</p>
             <p>Interest before split: $41.73</p>
             <p>Total interest after payment: $${updatedState.results.prejudgmentResult.total.toFixed(2)}</p>

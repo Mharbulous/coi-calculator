@@ -103,7 +103,7 @@ export function insertPaymentRecord(state, payment, ratesData) {
     // Apply payment to interest first, then principal
     const interestApplied = Math.min(payment.amount, accumulatedInterest);
     const principalApplied = payment.amount - interestApplied;
-    console.log(`Payment application: $${interestApplied} to interest, $${principalApplied} to principal`);
+    console.log(`Payment of ${formatCurrencyForInput(payment.amount)} applied: ${formatCurrencyForInput(interestApplied)} to interest, ${formatCurrencyForInput(principalApplied)} to principal`);
     
     // Calculate new principal amount
     const originalPrincipal = splitRows[0].principal;
@@ -422,10 +422,15 @@ Split into:
 function createPaymentRow(paymentDate, amount, interestApplied, principalApplied) {
     return {
         start: formatDateForDisplay(paymentDate),
-        description: `Payment received: ${formatCurrencyForInput(amount)}`,
+        description: `Payment received: ${formatCurrencyForInput(amount)}<br>` +
+                    `Principal: ${formatCurrencyForInput(-principalApplied)}    ` +
+                    `Interest: ${formatCurrencyForInput(-interestApplied)}`,
         principal: -principalApplied,
         interest: -interestApplied,
-        isPayment: true
+        isPayment: true,
+        paymentAmount: amount,
+        interestApplied: interestApplied,
+        principalApplied: principalApplied
     };
 }
 
