@@ -18,11 +18,17 @@ Extend the current interest table rendering logic to properly display payment en
 - Maintain proper styling and formatting for payment rows
 
 ### Payment Position in Table
-- Insert payment rows at the chronologically correct position in the table
-- Handle special cases for payments on period boundaries:
-  - Payments on the last day of a period should appear after the interest row
-  - Payments on the first day of a period should appear before the interest row
-- Ensure payment rows are properly integrated with existing special damages rows
+- Insert payment rows at the chronologically correct position in the table.
+- **Sorting Order for Same-Day Events:** Define the precise sorting order for events occurring on the same date. The recommended order is:
+    1. Interest calculation row/segment ending on that day.
+    2. Special Damage entry on that day (if applicable).
+    3. Payment row for a payment made on that day.
+    4. Interest calculation row/segment starting on that day.
+    *(Verify this order against `pay_table.md` and adjust if necessary).*
+- Handle special cases for payments on period boundaries based on the defined sorting order:
+  - Payments on the last day of a period should appear after the interest row for that period.
+  - Payments on the first day of a period should appear before the interest row for that period.
+- Ensure payment rows are properly integrated with existing special damages rows according to the defined sorting order.
 
 ### Visual Differentiation
 - Apply distinct styling to payment rows to visually differentiate them from interest and special damages rows

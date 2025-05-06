@@ -36,6 +36,9 @@ Perform thorough end-to-end testing of the payment recording functionality, veri
   - Payment on the judgment date
   - Payment on interest rate change dates
   - Payment on the postjudgment end date
+- **Unit Testing:** Implement specific *unit tests* for:
+    - The `payment-processor.js` module, verifying interest allocation logic with various inputs.
+    - The period splitting function(s), testing different payment dates relative to period boundaries and handling of multiple payments.
 
 ## Implementation Steps
 1. Create a test matrix covering all test scenarios

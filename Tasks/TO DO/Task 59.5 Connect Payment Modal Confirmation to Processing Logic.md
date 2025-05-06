@@ -22,9 +22,9 @@ Complete the payment recording flow by connecting the payment modal confirmation
   - Display appropriate error messages for validation failures
 
 ### State Management
-- Ensure the store is properly updated with the new payment
-- Trigger a recalculation of all affected interest calculations
-- Update all relevant totals (prejudgment interest, postjudgment interest, total owing)
+- Ensure the store is properly updated with the new payment using the `addPayment` method.
+- **Recalculation Strategy:** Triggering a recalculation must involve re-running the *entire* interest calculation process from the beginning. This process should use the initial inputs (principal, dates, special damages) and the *complete, updated list* of payments retrieved from the store. This ensures all subsequent calculations correctly reflect the principal reduction caused by *all* payments.
+- Update all relevant totals (prejudgment interest, postjudgment interest, total owing) based on the recalculated results.
 
 ### User Feedback
 - Provide visual confirmation that a payment has been successfully recorded

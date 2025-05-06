@@ -10,6 +10,10 @@ Implement logic to split interest periods when a payment occurs within them, ens
 
 ### Period Splitting Logic
 - Create a function to split an interest period when a payment falls within it
+- **Data Representation:** When a period from `startDate` to `endDate` with `originalPrincipal` is split by a payment on `paymentDate`, it should be replaced in the calculation results array by two objects representing the segments:
+    - Segment 1: `startDate` to `paymentDate - 1 day`, using `originalPrincipal`.
+    - Segment 2: `paymentDate` to `endDate`, using `reducedPrincipal`.
+    - Each segment object should retain necessary properties (rate, days, calculated interest, etc.) and potentially a flag indicating it's a split segment.
 - Calculate interest for the first segment using the original principal
 - Calculate interest for the second segment using the reduced principal
 - Ensure all date ranges are correctly maintained
@@ -18,11 +22,11 @@ Implement logic to split interest periods when a payment occurs within them, ens
 - Payments on period boundaries (first or last day of a period):
   - For payments on the last day: Place the payment row after the completed interest period
   - For payments on the first day: Place the payment row before the interest period
-- Multiple payments within the same period need to split the period multiple times
-- Payments exactly on interest rate change dates need special handling
+- **Multiple Payments:** The splitting logic must recursively handle multiple payments within the same original interest period. If a segment is created by one split, a subsequent payment within that segment's date range should split *that segment* further.
+- **Payment on Rate Change Date:** For payments made on the *exact* date an interest rate changes: The interest for that *entire day* should be calculated using the rate effective *at the start* of the day. The payment is then applied *after* that day's interest calculation. The new rate applies from the *next* day onwards.
 
 ### Integration with Existing Calculation Logic
-- Extend the `calculations.js` module to handle period splitting
+- **Integration Point:** Evaluate whether to modify `getApplicableRatePeriods` in `calculations.js` directly or to implement splitting as a separate processing step *after* initial period generation. This separate step would take the standard periods and the payment list as input and produce the final list of segments and payments. Choose the approach that maintains clarity and modularity.
 - Ensure the existing interest rate lookup functions are used consistently
 - Maintain compatibility with the current interest calculation flow
 
