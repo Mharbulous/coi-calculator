@@ -4,15 +4,15 @@ flowchart TD
     B -->|Yes| C[Insert in prejudgment<br>interest table]
     B -->|No| D[Insert in postjudgment<br>interest table]
     
-    C --> E{Payment date falls<br>between existing<br>interest rows?}
+    C --> E{Payment date is <br>end date in existing<br>interest row?}
     D --> E
     
-    E -->|Yes| G[Split calculation row<br>at payment date]
+    E -->|Yes| H[Insert the payment record row immediately<br>below the interest row that has<br>the payment date as its end date]
     E -->|No| F[Find calculation row<br>containing payment date]
     
-    F --> G
+    F --> G[Split calculation row<br>at payment date]
     
-    G --> H[Insert payment record row<br>between split calculation rows]
+    G --> H
     
     H --> I[Apply payment to interest first<br>$23.59 to interest]
     
