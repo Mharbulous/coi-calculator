@@ -38,6 +38,7 @@ export function insertPaymentRecord(state, payment, ratesData) {
 
     // Determine which table to insert the payment into
     const targetTable = paymentDate <= judgmentDate ? 'prejudgment' : 'postjudgment';
+    console.log(`Inserting payment of ${payment.amount} on ${formatDateForDisplay(paymentDate)} into ${targetTable} table`);
     
     // Create a deep copy of the state to avoid direct mutations
     const newState = JSON.parse(JSON.stringify(state));
@@ -48,35 +49,66 @@ export function insertPaymentRecord(state, payment, ratesData) {
         : newState.results.postjudgmentResult.details;
     
     // Find the calculation row containing the payment date or determine if it falls between rows
-    const { containingRow, rowIndex, isBetweenRows } = findCalculationRowForPayment(interestTable, paymentDate);
+    const rowInfo = findCalculationRowForPayment(interestTable, paymentDate);
+    const { containingRow, rowIndex, isBetweenRows, isExactStartDate, isExactEndDate } = rowInfo;
     
     if (!containingRow) {
         console.error('Could not find a calculation row for payment date:', paymentDate);
         return state;
     }
     
-    // Split the calculation row at the payment date
-    const splitRows = splitCalculationRowAtPaymentDate(
-        containingRow, 
-        paymentDate, 
-        state.inputs.jurisdiction, 
-        ratesData, 
-        targetTable
-    );
+    // Check if we need to split the row
+    let splitRows = [];
+    let insertAtIndex = rowIndex;
     
-    // Replace the original row with the split rows
-    interestTable.splice(rowIndex, 1, ...splitRows);
+    if (isExactStartDate) {
+        console.log(`Payment date is exactly on a row start date - no need to split the row`);
+        splitRows = [containingRow];
+        // Place payment at this index
+        insertAtIndex = rowIndex;
+    } else if (isExactEndDate) {
+        console.log(`Payment date is exactly on a row end date - no need to split the row`);
+        splitRows = [containingRow];
+        // Place payment after this row
+        insertAtIndex = rowIndex + 1;
+    } else {
+        // Split the calculation row at the payment date
+        console.log(`Splitting row at payment date ${formatDateForDisplay(paymentDate)}`);
+        splitRows = splitCalculationRowAtPaymentDate(
+            containingRow, 
+            paymentDate, 
+            state.inputs.jurisdiction, 
+            ratesData, 
+            targetTable
+        );
+        
+        // Replace the original row with the split rows
+        interestTable.splice(rowIndex, 1, ...splitRows);
+        
+        // Insert payment after the first split segment
+        insertAtIndex = rowIndex + 1;
+    }
+    
+    // If we haven't replaced the original row with split rows yet, do it now
+    if (!isExactStartDate && !isExactEndDate) {
+        // Already done above
+    } else {
+        interestTable.splice(rowIndex, 1, ...splitRows);
+    }
     
     // Calculate interest up to the payment date
     const accumulatedInterest = splitRows[0].interest;
+    console.log(`Accumulated interest up to payment date: ${accumulatedInterest}`);
     
     // Apply payment to interest first, then principal
     const interestApplied = Math.min(payment.amount, accumulatedInterest);
     const principalApplied = payment.amount - interestApplied;
+    console.log(`Payment application: $${interestApplied} to interest, $${principalApplied} to principal`);
     
     // Calculate new principal amount
     const originalPrincipal = splitRows[0].principal;
     const newPrincipal = originalPrincipal - principalApplied;
+    console.log(`Principal reduced from $${originalPrincipal} to $${newPrincipal}`);
     
     // Create payment record row
     const paymentRow = createPaymentRow(
@@ -86,8 +118,8 @@ export function insertPaymentRecord(state, payment, ratesData) {
         principalApplied
     );
     
-    // Insert payment row after the first split segment
-    interestTable.splice(rowIndex + 1, 0, paymentRow);
+    // Insert payment row at the appropriate index
+    interestTable.splice(insertAtIndex, 0, paymentRow);
     
     // Update principal for all subsequent periods, including the second split segment
     updateSubsequentPeriods(interestTable, rowIndex + 2, newPrincipal);
@@ -142,12 +174,44 @@ function validatePayment(payment) {
  * 
  * @param {Array} interestTable - Interest calculation table
  * @param {Date} paymentDate - Payment date
- * @returns {Object} The containing row, its index, and whether it falls between rows
+ * @returns {Object} The containing row, its index, and whether it falls between rows,
+ *                  and additional details about the exact position
  */
 function findCalculationRowForPayment(interestTable, paymentDate) {
     const normalizedPaymentDate = normalizeDate(paymentDate);
+    const paymentDateStr = formatDateForDisplay(paymentDate);
+    console.log(`Finding calculation row for payment date: ${paymentDateStr}`);
     
-    // First, check if the payment date falls exactly on an existing row date
+    // First, check if the payment date is an exact end date of a row
+    for (let i = 0; i < interestTable.length; i++) {
+        const row = interestTable[i];
+        
+        // Skip payment rows
+        if (row.isPayment) continue;
+        
+        // Check if payment date falls on row end date
+        const rowEndDate = typeof row.end === 'string' 
+            ? normalizeDate(parseDateInput(row.end)) 
+            : normalizeDate(row.end);
+            
+        if (datesEqual(normalizedPaymentDate, rowEndDate)) {
+            const rowStartStr = formatDateForDisplay(typeof row.start === 'string' ? parseDateInput(row.start) : row.start);
+            const rowEndStr = formatDateForDisplay(rowEndDate);
+            console.log(`Found row with payment date ${paymentDateStr} as END date: Row starting ${rowStartStr}, ending ${rowEndStr}`);
+            
+            return { 
+                containingRow: row, 
+                rowIndex: i, 
+                isBetweenRows: false,
+                isExactEndDate: true,
+                isExactStartDate: false,
+                normalizedStartDate: typeof row.start === 'string' ? normalizeDate(parseDateInput(row.start)) : normalizeDate(row.start),
+                normalizedEndDate: rowEndDate
+            };
+        }
+    }
+    
+    // Check if the payment date falls exactly on a row start date
     for (let i = 0; i < interestTable.length; i++) {
         const row = interestTable[i];
         
@@ -160,7 +224,19 @@ function findCalculationRowForPayment(interestTable, paymentDate) {
             : normalizeDate(row.start);
             
         if (datesEqual(normalizedPaymentDate, rowStartDate)) {
-            return { containingRow: row, rowIndex: i, isBetweenRows: true };
+            const rowStartStr = formatDateForDisplay(rowStartDate);
+            const rowEndStr = formatDateForDisplay(typeof row.end === 'string' ? parseDateInput(row.end) : row.end);
+            console.log(`Found row with payment date ${paymentDateStr} as START date: Row starting ${rowStartStr}, ending ${rowEndStr}`);
+            
+            return { 
+                containingRow: row, 
+                rowIndex: i, 
+                isBetweenRows: false,
+                isExactStartDate: true,
+                isExactEndDate: false,
+                normalizedStartDate: rowStartDate,
+                normalizedEndDate: typeof row.end === 'string' ? normalizeDate(parseDateInput(row.end)) : normalizeDate(row.end)
+            };
         }
     }
     
@@ -180,11 +256,55 @@ function findCalculationRowForPayment(interestTable, paymentDate) {
             : normalizeDate(row.end);
             
         // Check if payment date falls within this row's period
-        if (normalizedPaymentDate >= rowStartDate && normalizedPaymentDate <= rowEndDate) {
-            return { containingRow: row, rowIndex: i, isBetweenRows: false };
+        if (normalizedPaymentDate > rowStartDate && normalizedPaymentDate < rowEndDate) {
+            const rowStartStr = formatDateForDisplay(rowStartDate);
+            const rowEndStr = formatDateForDisplay(rowEndDate);
+            console.log(`Found row CONTAINING payment date ${paymentDateStr}: Row starting ${rowStartStr}, ending ${rowEndStr}`);
+            
+            return { 
+                containingRow: row, 
+                rowIndex: i, 
+                isBetweenRows: false,
+                isExactStartDate: false,
+                isExactEndDate: false,
+                normalizedStartDate: rowStartDate,
+                normalizedEndDate: rowEndDate
+            };
         }
     }
     
+    // Check if payment falls between rows
+    for (let i = 0; i < interestTable.length - 1; i++) {
+        const currentRow = interestTable[i];
+        const nextRow = interestTable[i + 1];
+        
+        // Skip payment rows
+        if (currentRow.isPayment || nextRow.isPayment) continue;
+        
+        const currentRowEndDate = typeof currentRow.end === 'string' 
+            ? normalizeDate(parseDateInput(currentRow.end)) 
+            : normalizeDate(currentRow.end);
+            
+        const nextRowStartDate = typeof nextRow.start === 'string' 
+            ? normalizeDate(parseDateInput(nextRow.start)) 
+            : normalizeDate(nextRow.start);
+            
+        // Check if payment date falls between rows
+        if (normalizedPaymentDate > currentRowEndDate && normalizedPaymentDate < nextRowStartDate) {
+            console.log(`Payment date ${paymentDateStr} falls BETWEEN rows (not contained in any row)`);
+            return { 
+                containingRow: currentRow, 
+                rowIndex: i, 
+                isBetweenRows: true,
+                nextRow: nextRow,
+                nextRowIndex: i + 1,
+                normalizedStartDate: currentRowEndDate,
+                normalizedEndDate: nextRowStartDate
+            };
+        }
+    }
+    
+    console.error(`Could not find appropriate row for payment date: ${paymentDateStr}`);
     return { containingRow: null, rowIndex: -1, isBetweenRows: false };
 }
 
@@ -208,21 +328,33 @@ function splitCalculationRowAtPaymentDate(row, paymentDate, jurisdiction, ratesD
         ? parseDateInput(row.end) 
         : row.end;
     
+    // Normalize payment date and row dates for consistent comparison
+    const normalizedPaymentDate = normalizeDate(paymentDate);
+    const normalizedRowStartDate = normalizeDate(rowStartDate);
+    const normalizedRowEndDate = normalizeDate(rowEndDate);
+    
+    const paymentDateStr = formatDateForDisplay(paymentDate);
+    const rowStartStr = formatDateForDisplay(rowStartDate);
+    const rowEndStr = formatDateForDisplay(rowEndDate);
+    
+    console.log(`Attempting to split row at payment date ${paymentDateStr}: Row period ${rowStartStr} to ${rowEndStr}`);
+    
     // If payment is on the start date, no need to split
-    if (datesEqual(normalizeDate(paymentDate), normalizeDate(rowStartDate))) {
+    if (datesEqual(normalizedPaymentDate, normalizedRowStartDate)) {
+        console.log(`Payment date ${paymentDateStr} is exactly on row start date - no splitting needed`);
         return [row];
     }
     
     // If payment is on the end date, no need to split
-    if (datesEqual(normalizeDate(paymentDate), normalizeDate(rowEndDate))) {
+    if (datesEqual(normalizedPaymentDate, normalizedRowEndDate)) {
+        console.log(`Payment date ${paymentDateStr} is exactly on row end date - no splitting needed`);
         return [row];
     }
     
-    // First segment: from row start to day before payment
-    const dayBeforePayment = new Date(paymentDate);
-    dayBeforePayment.setUTCDate(dayBeforePayment.getUTCDate() - 1);
+    console.log(`Splitting row at payment date ${paymentDateStr}`);
     
-    const daysInFirstSegment = daysBetween(rowStartDate, dayBeforePayment);
+    // First segment: from row start to payment date (inclusive)
+    const daysInFirstSegment = daysBetween(rowStartDate, paymentDate);
     const firstSegmentYear = rowStartDate.getUTCFullYear();
     const daysInFirstYear = daysInYear(firstSegmentYear);
     
@@ -235,14 +367,14 @@ function splitCalculationRowAtPaymentDate(row, paymentDate, jurisdiction, ratesD
     
     const firstSegment = {
         start: new Date(rowStartDate),
-        end: new Date(dayBeforePayment),
+        end: new Date(paymentDate),
         rate: rate,
         principal: principal,
         interest: firstSegmentInterest,
         isFinalSegment: false,
         isSplitSegment: true,
         _days: daysInFirstSegment,
-        _endDate: formatDateForDisplay(dayBeforePayment),
+        _endDate: formatDateForDisplay(paymentDate),
         description: `${daysInFirstSegment} days`
     };
     
@@ -266,6 +398,14 @@ function splitCalculationRowAtPaymentDate(row, paymentDate, jurisdiction, ratesD
         _endDate: formatDateForDisplay(rowEndDate),
         description: `${daysInSecondSegment} days`
     };
+    
+    // Log the split details
+    console.log(`
+Original row: ${rowStartStr} to ${rowEndStr} (${row._days || 'unknown'} days)
+Split into:
+  - ${formatDateForDisplay(firstSegment.start)} to ${formatDateForDisplay(firstSegment.end)} (${firstSegment._days} days)
+  - ${formatDateForDisplay(secondSegment.start)} to ${formatDateForDisplay(secondSegment.end)} (${secondSegment._days} days)
+`);
     
     return [firstSegment, secondSegment];
 }
@@ -297,11 +437,17 @@ function createPaymentRow(paymentDate, amount, interestApplied, principalApplied
  * @param {number} newPrincipal - New principal value to apply
  */
 function updateSubsequentPeriods(interestTable, startIndex, newPrincipal) {
+    console.log(`Updating principal for all subsequent periods starting at index ${startIndex} to $${newPrincipal}`);
+    
+    let updatedRowCount = 0;
+    
     for (let i = startIndex; i < interestTable.length; i++) {
         const row = interestTable[i];
         
         // Skip payment rows
         if (row.isPayment) continue;
+        
+        const oldPrincipal = row.principal;
         
         // Update principal
         row.principal = newPrincipal;
@@ -319,8 +465,17 @@ function updateSubsequentPeriods(interestTable, startIndex, newPrincipal) {
         const year = startDate.getUTCFullYear();
         const daysInThisYear = daysInYear(year);
         
+        const oldInterest = row.interest;
         row.interest = (newPrincipal * (row.rate / 100) * days) / daysInThisYear;
+        
+        console.log(`Updated row ${i}: ${formatDateForDisplay(startDate)} to ${formatDateForDisplay(endDate)}`);
+        console.log(`  Principal: $${oldPrincipal} → $${newPrincipal}`);
+        console.log(`  Interest: $${oldInterest.toFixed(2)} → $${row.interest.toFixed(2)}`);
+        
+        updatedRowCount++;
     }
+    
+    console.log(`Updated ${updatedRowCount} rows with new principal value.`);
 }
 
 /**
