@@ -8,7 +8,7 @@
 
 import { daysBetween, daysInYear, formatDateForDisplay, parseDateInput, normalizeDate, datesEqual } from './utils.date.js';
 import { getInterestRateForDate } from './calculations.js';
-import { formatCurrency } from './utils.currency.js';
+import { formatCurrencyForInput } from './utils.currency.js';
 
 /**
  * Insert a payment record into the appropriate interest table.
@@ -422,7 +422,7 @@ Split into:
 function createPaymentRow(paymentDate, amount, interestApplied, principalApplied) {
     return {
         start: formatDateForDisplay(paymentDate),
-        description: `Payment received: ${formatCurrency(amount)}`,
+        description: `Payment received: ${formatCurrencyForInput(amount)}`,
         principal: -principalApplied,
         interest: -interestApplied,
         isPayment: true
