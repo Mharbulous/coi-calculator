@@ -1,7 +1,24 @@
-# Explanation of how to insert payment records
-
-## Before
-
-'''html  
-\<table> \<thead> \<tr> \<th>Date\</th> \<th>Description\</th> \<th>Principal\</th> \<th>Rate\</th> \<th>Interest\</th> \</tr> \</thead> \<tbody> \<tr> \<td>2020-07-01\</td> \<td>184 days (from 2020-07-01 to 2021-01-01)\</td> \<td>$10,320.00\</td> \<td>0.80%\</td> \<td>$41.73\</td> \</tr> \</tbody> \</table>  
-''''
+```mermaid
+flowchart TD
+    A[Start: New Payment Record<br>$500 on 2020-10-13] --> B{Payment date ≤<br>Judgment date?}
+    B -->|Yes| C[Insert in prejudgment<br>interest table]
+    B -->|No| D[Insert in postjudgment<br>interest table]
+    
+    C --> E{Payment date falls<br>between existing<br>interest rows?}
+    D --> E
+    
+    E -->|Yes| G[Split calculation row<br>at payment date]
+    E -->|No| F[Find calculation row<br>containing payment date]
+    
+    F --> G
+    
+    G --> H[Insert payment record row<br>between split calculation rows]
+    
+    H --> I[Apply payment to interest first<br>$23.59 to interest]
+    
+    I --> J[Apply remaining amount to principal<br>$476.41 to principal]
+    
+    J --> K[Update principal amount<br>for subsequent periods<br>$10,320.00 → $9,843.59]
+    
+    K --> L[End: Payment Record Added]
+```
