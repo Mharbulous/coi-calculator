@@ -1,5 +1,6 @@
 import { daysBetween, daysInYear, formatDateForDisplay, parseDateInput, normalizeDate, dateOnOrAfter, dateOnOrBefore, datesEqual } from './utils.date.js';
 import { calculateInterestPeriods, getInterestRateForDate } from './calculations.js';
+import { splitInterestPeriodsWithPayments } from './interestPeriodSplitter.js';
 
 /**
  * Processes a payment, applying it first to accumulated interest and then to principal.
@@ -156,14 +157,8 @@ export function recalculateWithPayments(state, payments, ratesData) {
     const { inputs, results } = state;
     const { prejudgmentStartDate, dateOfJudgment, postjudgmentEndDate } = inputs;
     const { judgmentAwarded } = inputs;
+    const endDate = postjudgmentEndDate || dateOfJudgment;
     
-    // Sort payments by date
-    const sortedPayments = [...payments].sort((a, b) => {
-        const dateA = typeof a.date === 'string' ? parseDateInput(a.date) : a.date;
-        const dateB = typeof b.date === 'string' ? parseDateInput(b.date) : b.date;
-        return dateA - dateB;
-    });
-
     // Create new results object
     const newResults = {
         ...results,
@@ -175,109 +170,78 @@ export function recalculateWithPayments(state, payments, ratesData) {
         }
     };
 
-    // Process each payment segment
-    let currentDate = new Date(prejudgmentStartDate);
-    let currentPrincipal = judgmentAwarded;
-    let accumulatedInterest = 0;
+    // Calculate the base interest periods without payments
+    const tempState = JSON.parse(JSON.stringify(state));
+    const baseInterestResult = calculateInterestPeriods(
+        tempState,
+        'prejudgment',
+        prejudgmentStartDate,
+        endDate,
+        judgmentAwarded,
+        ratesData
+    );
     
-    // Split the date range into segments defined by payment dates
-    const dateSegments = [];
+    // Sort payments by date
+    const sortedPayments = [...payments].sort((a, b) => {
+        const dateA = typeof a.date === 'string' ? parseDateInput(a.date) : a.date;
+        const dateB = typeof b.date === 'string' ? parseDateInput(b.date) : b.date;
+        return dateA - dateB;
+    });
     
-    // Add the first segment from prejudgmentStartDate to first payment or end date
-    if (sortedPayments.length > 0) {
-        const firstPaymentDate = sortedPayments[0].date;
-        dateSegments.push({
-            start: currentDate,
-            end: firstPaymentDate,
-            payment: null
-        });
-        
-        // Add segments between payments
-        for (let i = 0; i < sortedPayments.length - 1; i++) {
-            dateSegments.push({
-                start: sortedPayments[i].date,
-                end: sortedPayments[i + 1].date,
-                payment: sortedPayments[i]
-            });
+    // Ensure payments have proper Date objects before passing to the splitter
+    const processedPayments = sortedPayments.map(payment => {
+        return {
+            ...payment,
+            date: typeof payment.date === 'string' 
+                ? parseDateInput(payment.date) 
+                : payment.date instanceof Date 
+                    ? payment.date 
+                    : new Date(payment.date)
+        };
+    });
+    
+    // Apply the payments to split the interest periods
+    const splitPeriods = splitInterestPeriodsWithPayments(
+        baseInterestResult.details,
+        processedPayments,
+        state,
+        ratesData,
+        'prejudgment'
+    );
+    
+    // Calculate the total interest and principal after payments
+    let totalInterest = 0;
+    let finalPrincipal = judgmentAwarded;
+    
+    // Calculate the total interest from all periods
+    splitPeriods.forEach(period => {
+        if (!period.isPayment) {
+            // Add interest for regular and split interest periods
+            totalInterest += period.interest || 0;
+        } else {
+            // Subtract interest and principal applied by payments
+            totalInterest -= period.interest || 0; // Payment interest is negative
         }
-        
-        // Add segment from last payment to postjudgmentEndDate
+    });
+    
+    // Determine the final principal by applying payments
+    // The last payment's remaining principal is our final principal
+    if (sortedPayments.length > 0) {
         const lastPayment = sortedPayments[sortedPayments.length - 1];
-        dateSegments.push({
-            start: lastPayment.date,
-            end: postjudgmentEndDate || dateOfJudgment,
-            payment: lastPayment
-        });
-    } else {
-        // If no payments, just one segment from start to end
-        dateSegments.push({
-            start: currentDate,
-            end: postjudgmentEndDate || dateOfJudgment,
-            payment: null
-        });
+        finalPrincipal = lastPayment.remainingPrincipal;
     }
     
-    // Process each segment
-    dateSegments.forEach((segment, index) => {
-        // Calculate interest for this segment
-        const tempState = JSON.parse(JSON.stringify(state));
-        
-        const segmentResult = calculateInterestPeriods(
-            tempState,
-            'prejudgment',
-            segment.start,
-            segment.end,
-            currentPrincipal,
-            ratesData
-        );
-        
-        // Add segment results to newResults
-        if (index === 0) {
-            newResults.prejudgmentResult.details = segmentResult.details;
-            newResults.prejudgmentResult.finalPeriodDamageInterestDetails = 
-                segmentResult.finalPeriodDamageInterestDetails;
-        } else {
-            newResults.prejudgmentResult.details = 
-                newResults.prejudgmentResult.details.concat(segmentResult.details);
-            newResults.prejudgmentResult.finalPeriodDamageInterestDetails = 
-                newResults.prejudgmentResult.finalPeriodDamageInterestDetails.concat(
-                    segmentResult.finalPeriodDamageInterestDetails
-                );
-        }
-        
-        // Apply payment at the end of this segment if there is one
-        if (segment.payment) {
-            // Add payment details to the results
-            const paymentDetails = {
-                start: formatDateForDisplay(segment.payment.date),
-                description: `Payment received: ${formatCurrency(segment.payment.amount)}`,
-                principal: -segment.payment.principalApplied,
-                interest: -segment.payment.interestApplied,
-                isPayment: true
-            };
-            
-            newResults.prejudgmentResult.details.push(paymentDetails);
-            
-            // Update current principal for the next segment
-            currentPrincipal = segment.payment.remainingPrincipal;
-        } else {
-            // Update current principal based on segment result
-            currentPrincipal = segmentResult.principal;
-        }
-        
-        // Accumulate interest
-        accumulatedInterest += segmentResult.total;
-    });
+    // Update the results
+    newResults.prejudgmentResult.details = splitPeriods;
+    newResults.prejudgmentResult.total = totalInterest;
+    newResults.prejudgmentResult.principal = finalPrincipal;
     
-    // Calculate total interest after applying payments
-    let totalInterestAfterPayments = accumulatedInterest;
-    sortedPayments.forEach(payment => {
-        totalInterestAfterPayments -= payment.interestApplied;
-    });
-    
-    // Update final total and principal
-    newResults.prejudgmentResult.total = totalInterestAfterPayments;
-    newResults.prejudgmentResult.principal = currentPrincipal;
+    // Handle special damages in final period if needed
+    if (baseInterestResult.finalPeriodDamageInterestDetails && 
+        baseInterestResult.finalPeriodDamageInterestDetails.length > 0) {
+        newResults.prejudgmentResult.finalPeriodDamageInterestDetails = 
+            baseInterestResult.finalPeriodDamageInterestDetails;
+    }
     
     return newResults;
 }
