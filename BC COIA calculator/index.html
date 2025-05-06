@@ -147,9 +147,9 @@
              </tfoot>
         </table>
 
-        <!-- Record Payment Button with zero-margin container -->
-        <div style="margin: 0; padding: 0;">
-            <button id="record-payment-button">Record Payment</button>
+        <!-- Button Container with zero-margin -->
+        <div style="margin: 0; padding: 0; display: flex; justify-content: flex-end;">
+            <button id="test-modal-button" class="action-button print" style="position: static; width: auto; margin-right: 10px;">Record Payment</button>
         </div>
 
         <!-- Print Warning - Only visible in print from browser -->
@@ -338,6 +338,9 @@
     
     <!-- Record Payment functionality -->
     <script src="record-payment.js" type="module"></script>
+    
+    <!-- Test Modal functionality -->
+    <script src="test-modal.js" type="module"></script>
     </div> <!-- Close two-layer-container -->
 </body>
 </html>
