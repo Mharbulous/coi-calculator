@@ -1,0 +1,40 @@
+{
+  "//": "Firebase Hosting Configuration - PRIMARY HOSTING PLATFORM",
+  "//notes": "This project uses Firebase for hosting the application. Serverless functions are handled by Netlify, not Firebase Functions.",
+  "//default": "Default hosting configuration will deploy to the test site",
+  "hosting": {
+    "target": "test",
+    "public": "BC COIA calculator",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ],
+    "headers": [
+      {
+        "source": "**/*.js",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=3600"
+          }
+        ]
+      },
+      {
+        "source": "**/*.css",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=3600"
+          }
+        ]
+      }
+    ]
+  }
+}
