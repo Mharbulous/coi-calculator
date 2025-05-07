@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Break Effect Demo - Card Approach</title>
+    <style>
+        /* Base styles */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e0e0e0;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        /* Controls */
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            padding: 8px 16px;
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #3a80d2;
+        }
+
+        /* Container for all pages */
+        .pages-container {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px; /* Space between pages */
+        }
+
+        /* Individual page card */
+        .page-card {
+            width: 8.5in;
+            height: 11in;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 0.75in;
+            box-sizing: border-box;
+            position: relative;
+            overflow: hidden; /* Prevent content overflow */
+        }
+
+        /* Table styling for demo */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        /* Page number indicator */
+        .page-number {
+            position: absolute;
+            bottom: 0.25in;
+            right: 0.25in;
+            color: #888;
+            font-size: 0.8rem;
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                background-color: white;
+                padding: 0;
+                margin: 0;
+            }
+
+            .controls, h1 {
+                display: none;
+            }
+
+            .pages-container {
+                gap: 0;
+            }
+
+            .page-card {
+                box-shadow: none;
+                page-break-after: always;
+                margin: 0;
+                padding: 0.5in;
+                height: auto;
+                min-height: 10in;
+            }
+
+            /* Last page shouldn't force a page break */
+            .page-card:last-child {
+                page-break-after: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Page Break Effect Demo - Card Approach</h1>
+    
+    <div class="controls">
+        <button id="add-page">Add Page</button>
+    </div>
+    
+    <div class="pages-container" id="pages-container">
+        <!-- Page 1 -->
+        <div class="page-card">
+            <h2>Page 1: Introduction</h2>
+            <p>This is a demonstration of the page break effect using a card-based approach. Each page is represented as a distinct white card with fixed dimensions, creating a more accurate representation of how pages will appear when printed.</p>
+            
+            <h3>Features:</h3>
+            <ul>
+                <li>Each page is a separate card with fixed dimensions (8.5in × 11in)</li>
+                <li>Natural spacing between pages with background color</li>
+                <li>More accurate WYSIWYG representation of printed pages</li>
+                <li>Proper page breaks when printing</li>
+            </ul>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Principal</th>
+                        <th>Interest</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>2023-01-01</td>
+                        <td>Initial amount</td>
+                        <td>$1,000.00</td>
+                        <td>$0.00</td>
+                    </tr>
+                    <tr>
+                        <td>2023-02-01</td>
+                        <td>Interest accrual</td>
+                        <td>$1,000.00</td>
+                        <td>$5.00</td>
+                    </tr>
+                    <tr>
+                        <td>2023-03-01</td>
+                        <td>Interest accrual</td>
+                        <td>$1,000.00</td>
+                        <td>$5.00</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="page-number">Page 1</div>
+        </div>
+        
+        <!-- Page 2 -->
+        <div class="page-card">
+            <h2>Page 2: Technical Details</h2>
+            <p>The card-based page break approach offers several advantages over the previous overlay method:</p>
+            
+            <h3>Key Benefits:</h3>
+            <ul>
+                <li><strong>Visual Clarity:</strong> Each page is clearly defined as a separate entity</li>
+                <li><strong>Fixed Dimensions:</strong> Pages maintain consistent size matching print dimensions</li>
+                <li><strong>Natural Spacing:</strong> Background color creates intuitive page separation</li>
+                <li><strong>Print Accuracy:</strong> What you see is closer to what you'll get when printing</li>
+            </ul>
+            
+            <p>This approach creates a more intuitive representation of how pages will appear when printed, making it easier to design and format content appropriately.</p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th>Purpose</th>
+                        <th>Benefit</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Fixed dimensions</td>
+                        <td>Match print size</td>
+                        <td>Accurate representation of page space</td>
+                    </tr>
+                    <tr>
+                        <td>Card separation</td>
+                        <td>Visual distinction</td>
+                        <td>Clear indication of page boundaries</td>
+                    </tr>
+                    <tr>
+                        <td>Print styles</td>
+                        <td>Proper printing</td>
+                        <td>Seamless transition to printed format</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="page-number">Page 2</div>
+        </div>
+        
+        <!-- Page 3 -->
+        <div class="page-card">
+            <h2>Page 3: Implementation</h2>
+            <p>Implementing this card-based approach in your own project is straightforward:</p>
+            
+            <h3>Steps:</h3>
+            <ol>
+                <li>Create a container for all pages</li>
+                <li>Style each page as a fixed-dimension card</li>
+                <li>Add appropriate spacing between cards</li>
+                <li>Include print media queries to handle page breaks properly</li>
+            </ol>
+            
+            <p>The approach works well for both screen viewing and printing, providing a consistent experience across both mediums.</p>
+            
+            <h3>Code Example:</h3>
+            <pre style="background-color: #f5f5f5; padding: 15px; border-radius: 4px; overflow-x: auto;">
+/* Container for all pages */
+.pages-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px; /* Space between pages */
+}
+
+/* Individual page card */
+.page-card {
+  width: 8.5in;
+  height: 11in;
+  background-color: white;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  padding: 0.75in;
+  box-sizing: border-box;
+}
+
+/* Print styles */
+@media print {
+  .pages-container {
+    gap: 0;
+  }
+  .page-card {
+    box-shadow: none;
+    page-break-after: always;
+  }
+}</pre>
+            <div class="page-number">Page 3</div>
+        </div>
+    </div>
+
+    <script>
+        // Simple JavaScript to demonstrate adding pages
+        document.addEventListener('DOMContentLoaded', function() {
+            const pagesContainer = document.getElementById('pages-container');
+            const addPageButton = document.getElementById('add-page');
+            let pageCount = 3; // Start with 3 pages
+            
+            // Add a new page
+            addPageButton.addEventListener('click', function() {
+                pageCount++;
+                
+                // Create new page card
+                const pageCard = document.createElement('div');
+                pageCard.className = 'page-card';
+                pageCard.innerHTML = `
+                    <h2>Page ${pageCount}: Additional Content</h2>
+                    <p>This is an additional page added dynamically to demonstrate the card-based page approach.</p>
+                    <p>Each page is a separate card with fixed dimensions, creating a clear visual separation between pages.</p>
+                    <p>This approach provides a more accurate representation of how pages will appear when printed.</p>
+                    <div class="page-number">Page ${pageCount}</div>
+                `;
+                pagesContainer.appendChild(pageCard);
+            });
+        });
+    </script>
+</body>
+</html>
