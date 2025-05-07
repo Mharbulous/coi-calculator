@@ -1,0 +1,33 @@
+graph TD
+    A[App Initialization] --> B{Check if user has paid?}
+    
+    %% Paid User Flow
+    B -->|Yes: Paid User| C[Add hide-for-print class to warning]
+    C --> D[Add paid mode indicator]
+    D --> E[Setup Print button]
+    E --> F[User clicks Print]
+    F --> G[Call window.print directly]
+    
+    %% Unpaid User Flow
+    B -->|No: Demo User| H[Add demo-mode class to body]
+    H --> I[Add watermarks]
+    I --> J[Add demo banner]
+    J --> K[Setup Demo Modal]
+    K --> L[User clicks Print]
+    L --> M[Show Demo Modal]
+    M --> N{User clicks which button?}
+    N -->|Dismiss| O[Modal closes, no print]
+    N -->|Test Print| P[Temporarily add hide-for-print class]
+    P --> Q[Call window.print]
+    Q --> R[Remove hide-for-print class after delay]
+    N -->|Buy Now| S[Redirect to payment]
+    
+    %% CSS Behavior
+    T[CSS @media print rules] --> U{Element has hide-for-print class?}
+    U -->|Yes| V[Warning hidden in print]
+    U -->|No| W[Warning visible in print]
+    
+    style C fill:#99ff99
+    style P fill:#99ff99
+    style V fill:#99ff99
+    style W fill:#ffcc99

@@ -23,6 +23,10 @@ function initializeDemoMode() {
   } else {
     // Show a small indicator that real rates are being used
     addPaidModeIndicator();
+    
+    // Hide print warning permanently for paid users
+    const printWarning = document.getElementById('print-warning');
+    if (printWarning) printWarning.classList.add('hide-for-print');
   }
   
   // Initialize the action button for both demo and paid modes
@@ -85,7 +89,8 @@ function handlePrintClick() {
   const isPaid = hasVerifiedPayment();
   
   if (isPaid) {
-    // In paid mode, just print normally
+    // In paid mode, just print directly
+    // The warning already has hide-for-print class added during initialization
     window.print();
   } else {
     // In demo mode, show the modal first

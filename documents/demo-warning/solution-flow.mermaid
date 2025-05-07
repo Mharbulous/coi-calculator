@@ -1,0 +1,15 @@
+graph TD
+    A[User clicks Print button] --> B{Check if user has paid?}
+    B -->|No: Demo Mode| C[Show demo modal]
+    B -->|Yes: Paid Mode| D[Apply hide-for-print class]
+    C --> E[User clicks Test Print]
+    E --> F[Apply hide-for-print class]
+    D --> G[Call window.print()]
+    F --> G
+    G --> H[Print process completes]
+    H --> I[Remove hide-for-print class]
+    
+    %% The solution ensures both flows apply the hide-for-print class
+    
+    style D fill:#99ff99
+    style F fill:#99ff99
