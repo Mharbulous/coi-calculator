@@ -166,24 +166,40 @@ export function insertPaymentRow(tableBody, currentRow, date) {
     dateCell.appendChild(dateInput);
     dateCell.classList.add('text-left');
     
-    // Description cell (fixed text "Payment received")
+    // Description cell with payment description and editable field
     const descCell = newRow.insertCell();
-    descCell.textContent = "Payment received";
     descCell.classList.add('text-left');
     
-    // Principal/Amount cell (editable)
-    const principalCell = newRow.insertCell();
-    const principalInput = document.createElement('input');
-    principalInput.type = 'text';
-    principalInput.className = 'special-damages-amount'; // Use special-damages-amount class for consistent styling
-    principalInput.dataset.type = 'payment-amount';
-    principalInput.value = '';
-    setupCurrencyInputListeners(principalInput, function() {
+    // Create a container for the description and input field
+    const descContainer = document.createElement('div');
+    descContainer.className = 'payment-desc-container';
+    descContainer.style.display = 'flex';
+    descContainer.style.alignItems = 'center';
+    
+    // Add the "Payment received:" label
+    const descLabel = document.createElement('span');
+    descLabel.textContent = "Payment received: ";
+    descLabel.style.marginRight = '4px';
+    descContainer.appendChild(descLabel);
+    
+    // Create the amount input field inside the description cell
+    const amountInput = document.createElement('input');
+    amountInput.type = 'text';
+    amountInput.className = 'special-damages-amount'; // Use special-damages-amount class for consistent styling
+    amountInput.dataset.type = 'payment-amount';
+    amountInput.value = '';
+    amountInput.style.width = '100px';
+    setupCurrencyInputListeners(amountInput, function() {
         // When the amount changes, trigger recalculation
         const event = new CustomEvent('payment-updated');
         document.dispatchEvent(event);
     });
-    principalCell.appendChild(principalInput);
+    descContainer.appendChild(amountInput);
+    descCell.appendChild(descContainer);
+    
+    // Principal cell (will show calculated effect after processing)
+    const principalCell = newRow.insertCell();
+    principalCell.textContent = ''; // Will be filled after processing
     principalCell.classList.add('text-right');
     
     // Rate cell (empty for payment rows)
@@ -201,7 +217,7 @@ export function insertPaymentRow(tableBody, currentRow, date) {
     
     // Set focus to the amount field
     setTimeout(() => {
-        principalInput.focus();
+        amountInput.focus();
         
         // Remove highlight class after a delay
         setTimeout(() => {
@@ -279,28 +295,44 @@ export function insertPaymentRowFromData(tableBody, index, rowData) {
     dateCell.appendChild(dateInput);
     dateCell.classList.add('text-left');
 
-    // Description cell - fixed text "Payment received"
-    const descCell = newRow.insertCell();
-    descCell.textContent = "Payment received";
-    descCell.classList.add('text-left');
+    // Handle potentially missing or invalid amounts
+    const numericValue = parseCurrency(rowData.amount || 0);
 
-    // Amount cell
-    const amountCell = newRow.insertCell();
+    // Description cell with payment description and editable field
+    const descCell = newRow.insertCell();
+    descCell.classList.add('text-left');
+    
+    // Create a container for the description and input field
+    const descContainer = document.createElement('div');
+    descContainer.className = 'payment-desc-container';
+    descContainer.style.display = 'flex';
+    descContainer.style.alignItems = 'center';
+    
+    // Add the "Payment received:" label
+    const descLabel = document.createElement('span');
+    descLabel.textContent = "Payment received: ";
+    descLabel.style.marginRight = '4px';
+    descContainer.appendChild(descLabel);
+    
+    // Create the amount input field inside the description cell
     const amountInput = document.createElement('input');
     amountInput.type = 'text';
     amountInput.className = 'special-damages-amount'; // Use special-damages-amount class for consistent styling
     amountInput.dataset.type = 'payment-amount';
-    
-    // Handle potentially missing or invalid amounts
-    const numericValue = parseCurrency(rowData.amount || 0);
     amountInput.value = formatCurrencyForInputWithCommas(numericValue);
-    
+    amountInput.style.width = '100px';
     setupCurrencyInputListeners(amountInput, function() {
+        // When the amount changes, trigger recalculation
         const event = new CustomEvent('payment-updated');
         document.dispatchEvent(event);
     });
-    amountCell.appendChild(amountInput);
-    amountCell.classList.add('text-right');
+    descContainer.appendChild(amountInput);
+    descCell.appendChild(descContainer);
+    
+    // Principal cell (will show calculated effect after processing)
+    const principalCell = newRow.insertCell();
+    principalCell.textContent = ''; // Will be filled after processing
+    principalCell.classList.add('text-right');
 
     // Rate cell (empty for payments)
     const rateCell = newRow.insertCell();

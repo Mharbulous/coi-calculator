@@ -103,8 +103,9 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
         const descriptionText = document.createElement('span');
         
         if (item.isPayment) {
-            // For payment rows, just show the description
-            descriptionText.textContent = item.description;
+            // For payment rows, display "Payment received: $XXX.XX" format
+            const paymentAmount = item.paymentAmount || 0;
+            descriptionText.innerHTML = `Payment received: ${formatCurrencyForDisplay(paymentAmount)}`;
         } else if (!item.isFinalPeriodDamage) {
             descriptionText.innerHTML = `<br>${item.description}`;
         } else {
