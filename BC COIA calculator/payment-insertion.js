@@ -422,9 +422,7 @@ Split into:
 function createPaymentRow(paymentDate, amount, interestApplied, principalApplied) {
     return {
         start: formatDateForDisplay(paymentDate),
-        description: `Payment received: ${formatCurrencyForInput(amount)}<br>` +
-                    `Principal: ${formatCurrencyForInput(-principalApplied)}    ` +
-                    `Interest: ${formatCurrencyForInput(-interestApplied)}`,
+        description: `Payment received: ${formatCurrencyForInput(amount)}`,
         principal: -principalApplied,
         interest: -interestApplied,
         isPayment: true,
