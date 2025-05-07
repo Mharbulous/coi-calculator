@@ -28,6 +28,7 @@ flowchart TD
     Q --> R{Is payment on\nrate change date?}
     
     R -->|Yes| S[Apply payment after current period\nUpdate principal for next period]
+    
     R -->|No| T[Split the period at payment date\nCreating before and after segments]
     
     T --> U[Update principals for all\nsubsequent periods]

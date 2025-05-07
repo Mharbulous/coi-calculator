@@ -1,6 +1,7 @@
 ```mermaid
 flowchart TD
     A[Start: New Payment Record<br>$500 on 2020-10-13] --> B{Payment date ≤<br>Judgment date?}
+    
     B -->|Yes| C[Insert in prejudgment<br>interest table]
     B -->|No| D[Insert in postjudgment<br>interest table]
     
@@ -8,6 +9,7 @@ flowchart TD
     D --> E
     
     E -->|Yes| H[Insert the payment record row immediately<br>below the interest row that has<br>the payment date as its end date]
+    
     E -->|No| F[Find calculation row<br>containing payment date]
     
     F --> G[Split calculation row<br>at payment date]

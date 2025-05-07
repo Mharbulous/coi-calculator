@@ -142,6 +142,37 @@ describe('Payment Insertion Module', () => {
             expect(updatedState.results.payments[0].remainingPrincipal).toBeCloseTo(9843.46, 0);
         });
         
+        it('should handle payment on exact end date of a period', () => {
+            // Payment on exactly the judgment date (end of period)
+            const payment = {
+                date: new Date('2021-01-01'),
+                amount: 500
+            };
+            
+            const updatedState = insertPaymentRecord(testState, payment, testRatesData);
+            
+            // Should not split the row but insert payment after it
+            expect(updatedState.results.prejudgmentResult.details.length).toBe(2);
+            
+            // First row should be unchanged
+            const firstRow = updatedState.results.prejudgmentResult.details[0];
+            // Check start/end date - handle both Date objects and strings
+            const startDate = typeof firstRow.start === 'string' ? 
+                firstRow.start : firstRow.start.toISOString().substring(0, 10);
+            const endDate = typeof firstRow.end === 'string' ? 
+                firstRow.end : firstRow.end.toISOString().substring(0, 10);
+                
+            expect(startDate).toContain('2020-07-01');
+            expect(endDate).toContain('2021-01-01');
+            expect(firstRow.interest).toBeCloseTo(41.73, 1);
+            
+            // Payment row should be inserted after the period
+            const paymentRow = updatedState.results.prejudgmentResult.details[1];
+            expect(paymentRow.isPayment).toBe(true);
+            expect(paymentRow.interest).toBeCloseTo(-41.73, 1);
+            expect(paymentRow.principal).toBeCloseTo(-458.27, 1);
+        });
+        
         it('should handle payment larger than outstanding interest', () => {
             // This test will use the calculated interest, not the interest we set
             const payment = {
@@ -182,6 +213,9 @@ describe('Payment Insertion Module', () => {
             // Subsequent interest calculations should be based on negative principal
             const secondSplit = updatedState.results.prejudgmentResult.details[2];
             expect(secondSplit.principal).toBeCloseTo(-99.09, 0);
+            
+            // Interest on negative principal should be negative (crediting interest)
+            expect(secondSplit.interest).toBeLessThan(0);
         });
     });
     
@@ -215,10 +249,10 @@ describe('Payment Insertion Module', () => {
             const secondPayment = updatedState.results.prejudgmentResult.details[3];
             
             expect(firstPayment.isPayment).toBe(true);
-            expect(firstPayment.description).toContain('$300.00');
+            expect(firstPayment.paymentAmount).toBe(300);
             
             expect(secondPayment.isPayment).toBe(true);
-            expect(secondPayment.description).toContain('$200.00');
+            expect(secondPayment.paymentAmount).toBe(200);
             
             // Verify principal is correctly updated
             const finalPrincipal = updatedState.results.payments[1].remainingPrincipal;
@@ -242,10 +276,10 @@ describe('Payment Insertion Module', () => {
             
             // Verify they're processed in chronological order regardless of input order
             const firstPayment = updatedState.results.prejudgmentResult.details[1];
-            expect(firstPayment.description).toContain('$300.00');
+            expect(firstPayment.paymentAmount).toBe(300);
             
             const secondPayment = updatedState.results.prejudgmentResult.details[3];
-            expect(secondPayment.description).toContain('$200.00');
+            expect(secondPayment.paymentAmount).toBe(200);
         });
     });
 });
