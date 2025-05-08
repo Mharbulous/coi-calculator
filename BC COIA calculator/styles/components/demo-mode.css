@@ -186,12 +186,17 @@ body.demo-mode {
 }
 
 .demo-modal-dismiss {
-  background-color: #FFC107; /* Amber color */
+  background-color: #E0E0E0; /* Light gray */
   border: none;
   padding: 8px 16px;
   border-radius: 4px;
   cursor: pointer;
-  color: #000; /* Ensure text is visible on amber background */
+  color: #000; /* Ensure text is visible on light gray background */
+  transition: background-color 0.3s ease; /* Smooth transition for hover effect */
+}
+
+.demo-modal-dismiss:hover {
+  background-color: #BDBDBD; /* Darker gray for hover state */
 }
 
 .demo-modal-print {
