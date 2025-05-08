@@ -1,5 +1,5 @@
 // BC COIA calculator/dom/tables.interest.rowSorting.js
-import { parseDateInput, datesEqual } from '../utils.date.js';
+import { parseDateInput, datesEqual, formatDateForDisplay, normalizeDate } from '../utils.date.js';
 import useStore from '../store.js';
 import { insertSpecialDamagesRowFromData } from './specialDamages.js';
 import { insertPaymentRowFromData } from './payments.js';
@@ -225,6 +225,45 @@ export function handleRowDuplicationAfterPayment(insertedPaymentRow, tableBody, 
             !targetRowElement.classList.contains('payment-row')) {
             try {
                 const duplicatedRowElement = targetRowElement.cloneNode(true);
+                
+                // Re-attach click event listener to "add special damages" button in the cloned row
+                const addButton = duplicatedRowElement.querySelector('.add-special-damages-btn');
+                if (addButton) {
+                    // Get the date and interest from the button's data attributes
+                    const startDate = addButton.dataset.date;
+                    const interestAmount = addButton.dataset.amount;
+                    
+                    // Remove the original non-functional event listener
+                    const newButton = addButton.cloneNode(true);
+                    addButton.parentNode.replaceChild(newButton, addButton);
+                    
+                    // Add new event listener with the same functionality as in createAndAddSpecialDamagesButton
+                    newButton.addEventListener('click', async function(event) {
+                        event.preventDefault();
+                        const currentRow = this.closest('tr');
+                        if (!currentRow) {
+                            console.error("Could not find closest tr to button");
+                            return;
+                        }
+
+                        try {
+                            const { insertSpecialDamagesRow } = await import('./specialDamages.js');
+                            
+                            const currentDate = parseDateInput(startDate);
+                            if (currentDate) {
+                                const nextDate = new Date(normalizeDate(currentDate));
+                                nextDate.setUTCDate(nextDate.getUTCDate() + 1);
+                                const nextDateFormatted = formatDateForDisplay(nextDate);
+                                insertSpecialDamagesRow(tableBody, currentRow, nextDateFormatted);
+                            } else {
+                                insertSpecialDamagesRow(tableBody, currentRow, startDate);
+                            }
+                        } catch (e) {
+                            console.error("Failed to load or execute specialDamages.js module:", e);
+                        }
+                    });
+                }
+                
                 // Insert the duplicated row immediately after the payment row
                 if (tableBody.rows[actualPaymentRowIndex + 1]) {
                     tableBody.insertBefore(duplicatedRowElement, tableBody.rows[actualPaymentRowIndex + 1]);
