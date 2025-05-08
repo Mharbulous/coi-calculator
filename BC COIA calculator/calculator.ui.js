@@ -209,7 +209,8 @@ function initializeCalculator() {
     
     // Define default payments
     const defaultPayments = [
-        { date: '2021-10-13', amount: 500 }
+        { date: '2019-04-16', amount: 500 },
+        { date: '2021-11-02', amount: 2222 }
     ];
     
     const defaultResults = {
