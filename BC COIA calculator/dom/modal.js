@@ -438,7 +438,7 @@ export function promptForPaymentDetails(prejudgmentDate, postjudgmentDate, rowSt
                 const isDateValid = date instanceof Date && !isNaN(date);
                 
                 // Validate amount
-                const isAmountValid = !isNaN(parsedAmount) && parsedAmount > 0;
+                const isAmountValid = !isNaN(parsedAmount) && parsedAmount >= 0;
                 
                 // Update validation messages
                 if (!isDateValid) {
@@ -451,8 +451,8 @@ export function promptForPaymentDetails(prejudgmentDate, postjudgmentDate, rowSt
                     amountValidation.textContent = "Please enter a payment amount";
                 } else if (isNaN(parsedAmount)) {
                     amountValidation.textContent = "Please enter a valid amount";
-                } else if (parsedAmount <= 0) {
-                    amountValidation.textContent = "Amount must be greater than $0.00";
+                } else if (parsedAmount < 0) {
+                    amountValidation.textContent = "Amount cannot be negative";
                 } else {
                     amountValidation.textContent = "";
                 }
