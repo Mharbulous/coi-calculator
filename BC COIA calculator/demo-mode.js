@@ -278,7 +278,7 @@ function createDemoModal() {
         <div class="demo-modal-buttons">
           <button id="demo-modal-dismiss" class="demo-modal-dismiss">Dismiss</button>
           <button id="demo-modal-print" class="demo-modal-print">Test Print</button>
-          <button id="demo-modal-purchase" class="demo-modal-purchase">Buy Now - $24.99</button>
+          <button id="demo-modal-purchase" class="action-button buy-now">Buy Now - $24.99<span class="shimmer-overlay"></span></button>
         </div>
       </div>
     </div>
