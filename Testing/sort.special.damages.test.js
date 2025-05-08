@@ -47,7 +47,7 @@ const createMockTableBody = () => {
 // Mock function for inserting special damages rows
 const mockInsertSpecialDamagesRow = (tableBody, rowIndex, rowData) => {
   const newRow = tableBody.insertRow(rowIndex);
-  newRow.className = 'special-damages-row';
+  newRow.className = 'editable-item-row';
   newRow.dateInput.value = rowData.date;
   return newRow;
 };

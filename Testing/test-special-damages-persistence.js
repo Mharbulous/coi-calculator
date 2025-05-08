@@ -78,7 +78,7 @@ function testSpecialDamagesPersistence() {
         // Step 5: Verify DOM rendering
         console.log("\nStep 5: Verifying DOM rendering of special damages");
         const prejudgmentTable = document.getElementById('prejudgmentTableBody');
-        const specialDamagesRows = prejudgmentTable.querySelectorAll('.special-damages-row');
+        const specialDamagesRows = prejudgmentTable.querySelectorAll('.editable-item-row');
         console.log(`- Found ${specialDamagesRows.length} special damages rows in the DOM`);
         
         if (specialDamagesRows.length === restoredSpecialDamages.length) {

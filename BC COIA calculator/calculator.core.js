@@ -85,7 +85,7 @@ function collectPayments() {
     }
     
     // First check if we have any payment rows in the DOM
-    const rows = elements.prejudgmentTableBody.querySelectorAll('.special-damages-row');
+    const rows = elements.prejudgmentTableBody.querySelectorAll('.editable-item-row');
     
     // If we have rows in the DOM, collect payments from there
     if (rows.length > 0) {
@@ -116,14 +116,8 @@ function collectPayments() {
     } 
     // If no rows in DOM but we have payments in the store, preserve those defaults
     else {
-        const currentPayments = currentState.results.payments;
-        if (currentPayments && currentPayments.length > 0) {
-            return currentPayments; // Return without overwriting the store
-        }
-        // Otherwise there are no payments anywhere, return empty array
-        else {
-            return [];
-        }
+        // Always return payments from the store if DOM scraping is not fruitful or not applicable
+        return currentState.results.payments || [];
     }
 }
 
@@ -146,7 +140,7 @@ function collectSpecialDamages() {
     }
     
     // First check if we have any special damages in the DOM
-    const rows = elements.prejudgmentTableBody.querySelectorAll('.special-damages-row');
+    const rows = elements.prejudgmentTableBody.querySelectorAll('.editable-item-row');
     
     // If we have rows in the DOM, collect from there
     if (rows.length > 0) {

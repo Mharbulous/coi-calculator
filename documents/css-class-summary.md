@@ -119,7 +119,7 @@ Note: modal.css provides styling for modal dialogs with a clean, modern appearan
 *   `.trash-icon-container`: Container for positioning the delete icon
 *   `.description-container`: Flex container for special damages description and add button
 *   `.add-special-damages-btn`: Button for adding new special damages entries
-*   `.special-damages-row`: Row containing special damages information
+*   `.editable-item-row`: Row containing special damages information
     *   `.highlight-new-row`: Animation state for newly added rows
 *   `.special-damages-date`: Input field for special damages date
 *   `.special-damages-description`: Input field for special damages description

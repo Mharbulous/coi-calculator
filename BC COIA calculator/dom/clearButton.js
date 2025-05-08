@@ -106,7 +106,7 @@ function updateInterestTableFooters() {
  */
 function clearSpecialDamageRows() {
     // Find all special damage rows
-    const specialDamageRows = document.querySelectorAll('.special-damages-row');
+    const specialDamageRows = document.querySelectorAll('.editable-item-row');
     
     // Loop through each row
     specialDamageRows.forEach(row => {

@@ -1,5 +1,5 @@
 // BC COIA calculator/dom/tables.interest.rowRendering.js
-import { parseDateInput, formatDateForDisplay, normalizeDate } from '../utils.date.js';
+import { parseDateInput, formatDateForDisplay, normalizeDate, calculateMidpointDate } from '../utils.date.js';
 import { formatCurrencyForDisplay } from '../utils.currency.js';
 import elements from './elements.js'; // Needed for footer updates
 import useStore from '../store.js'; // Potentially for "add special damages" context or footer
@@ -151,46 +151,42 @@ export function createAndAddSpecialDamagesButton(descriptionContainer, item, tab
     const paymentOption = document.createElement('button');
     paymentOption.className = 'add-dropdown-item';
     paymentOption.textContent = 'Payment';
-    paymentOption.addEventListener('click', async function(event) {
+    paymentOption.addEventListener('click', function(event) {
         event.preventDefault();
         
         try {
-            const { promptForPaymentDetails } = await import('../dom/modal.js');
             const state = useStore.getState();
-            const prejudgmentDate = state.inputs.prejudgmentStartDate;
-            const postjudgmentDate = state.inputs.postjudgmentEndDate;
             
             // Get row start and end dates for the midpoint calculation
             const rowStartDate = parseDateInput(item.start);
             const rowEndDate = parseDateInput(item._endDate);
             
-            promptForPaymentDetails(prejudgmentDate, postjudgmentDate, rowStartDate, rowEndDate)
-                .then(result => {
-                    if (result) {
-                        // Format date for display
-                        const formattedDate = formatDateForDisplay(result.date);
-                        
-                        // Add payment to the store
-                        state.addPayment({
-                            date: formattedDate,
-                            amount: result.amount
-                        });
-                        
-                        console.log(`Payment record added: $${result.amount} paid ${formattedDate}`);
-                        
-                        // Trigger recalculation
-                        const event = new CustomEvent('payment-updated');
-                        document.dispatchEvent(event);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error in payment modal:', error);
+            // Calculate midpoint date between row start and end dates
+            const midpointDate = calculateMidpointDate(rowStartDate, rowEndDate);
+            
+            if (midpointDate) {
+                // Format date for display
+                const formattedDate = formatDateForDisplay(midpointDate);
+                
+                // Add payment to the store with zero amount
+                state.addPayment({
+                    date: formattedDate,
+                    amount: 0.00
                 });
+                
+                console.log(`Payment placeholder added: $0.00 on ${formattedDate}`);
+                
+                // Trigger recalculation
+                const event = new CustomEvent('payment-updated');
+                document.dispatchEvent(event);
+            } else {
+                console.error("Failed to calculate midpoint date for payment", rowStartDate, rowEndDate);
+            }
             
             // Close dropdown by blurring the button
             dropdownButton.blur();
         } catch (e) {
-            console.error("Failed to load or execute payment modal:", e);
+            console.error("Failed to add payment:", e);
         }
     });
     

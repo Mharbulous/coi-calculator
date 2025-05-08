@@ -103,8 +103,8 @@ function validatePayment(payment) {
     // Check that payment has date and amount
     if (!payment.date || !payment.amount) return false;
     
-    // Check that amount is a number greater than zero
-    if (isNaN(payment.amount) || payment.amount <= 0) return false;
+    // Check that amount is a number greater than or equal to zero
+    if (isNaN(payment.amount) || payment.amount < 0) return false;
     
     // Check that date is valid
     const paymentDate = typeof payment.date === 'string' 

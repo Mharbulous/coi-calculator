@@ -42,7 +42,7 @@ function findPaymentIndex(row) {
  */
 async function handleTrashIconClick(event) {
     const trashIcon = event.currentTarget;
-    const row = trashIcon.closest('.special-damages-row');
+    const row = trashIcon.closest('.editable-item-row');
     
     if (!row) return;
     
@@ -135,7 +135,7 @@ export function insertPaymentRow(tableBody, currentRow, date) {
     
     // Create a new row and insert it after the current row
     const newRow = tableBody.insertRow(rowIndex); // Insert at the correct index
-    newRow.className = 'special-damages-row highlight-new-row breakable'; // Use special-damages-row class for consistent styling
+    newRow.className = 'editable-item-row highlight-new-row breakable'; // Use generic editable item class
     
     // Date cell (editable, pre-populated with the date from the current row)
     const dateCell = newRow.insertCell();
@@ -270,7 +270,7 @@ export function insertPaymentRowFromData(tableBody, index, rowData) {
     const safeIndex = (index !== undefined && index >= 0) ? index : -1;
     
     const newRow = tableBody.insertRow(safeIndex);
-    newRow.className = 'special-damages-row breakable'; // Use special-damages-row class for consistent styling
+    newRow.className = 'editable-item-row breakable'; // Use generic editable item class
 
     // Date cell
     const dateCell = newRow.insertCell();

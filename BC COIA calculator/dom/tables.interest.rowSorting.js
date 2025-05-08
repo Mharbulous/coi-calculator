@@ -8,7 +8,7 @@ import { insertPaymentRowFromData } from './payments.js';
 function getExistingSpecialDamages(tableBody, isPrejudgmentTable) {
     const existingSpecialDamagesRows = [];
     if (isPrejudgmentTable) {
-        const specialRows = tableBody.querySelectorAll('.special-damages-row');
+        const specialRows = tableBody.querySelectorAll('.editable-item-row');
         specialRows.forEach(row => {
             const dateInput = row.querySelector('.special-damages-date');
             const descInput = row.querySelector('.special-damages-description');
@@ -139,7 +139,7 @@ export function findInsertionIndex(tableBody, dateToInsert, isSpecialDamage, isP
         let currentRowEndDate = null; // For interest calculation rows
 
         const isCurrentRowPayment = currentRow.classList.contains('payment-row');
-        const isCurrentRowSpecialDamage = currentRow.classList.contains('special-damages-row'); // Assuming this class is added by insertSpecialDamagesRowFromData
+        const isCurrentRowSpecialDamage = currentRow.classList.contains('editable-item-row'); // Assuming this class is added by insertSpecialDamagesRowFromData
 
         // Try to get date from special damage or payment input fields if they exist
         const sdDateInput = currentRow.querySelector('.special-damages-date');
@@ -221,7 +221,7 @@ export function handleRowDuplicationAfterPayment(insertedPaymentRow, tableBody, 
         const targetRowElement = tableBody.rows[actualPaymentRowIndex - 1];
         // Ensure target is an interest calculation row (not SD or another payment)
         if (targetRowElement && 
-            !targetRowElement.classList.contains('special-damages-row') &&
+            !targetRowElement.classList.contains('editable-item-row') &&
             !targetRowElement.classList.contains('payment-row')) {
             try {
                 const duplicatedRowElement = targetRowElement.cloneNode(true);

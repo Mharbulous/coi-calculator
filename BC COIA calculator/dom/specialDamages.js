@@ -45,7 +45,7 @@ function findSpecialDamageIndex(row) {
  */
 async function handleTrashIconClick(event) {
     const trashIcon = event.currentTarget;
-    const row = trashIcon.closest('.special-damages-row');
+    const row = trashIcon.closest('.editable-item-row');
     
     if (!row) return;
     
@@ -166,7 +166,7 @@ export function insertSpecialDamagesRow(tableBody, currentRow, date) {
         return;
     }
     
-    newRow.className = 'special-damages-row highlight-new-row breakable'; // Add breakable class
+    newRow.className = 'editable-item-row highlight-new-row breakable'; // Use generic editable item class
     
     // Date cell (editable, pre-populated with the date from the current row)
     const dateCell = newRow.insertCell();
@@ -310,7 +310,7 @@ export function insertSpecialDamagesRowFromData(tableBody, index, rowData, final
     const safeIndex = (index !== undefined && index >= 0) ? index : -1;
     
     const newRow = tableBody.insertRow(safeIndex);
-    newRow.className = 'special-damages-row breakable'; // Add breakable class, no highlight on re-insertion
+    newRow.className = 'editable-item-row breakable'; // Use generic editable item class
 
     // Date cell
     const dateCell = newRow.insertCell();
