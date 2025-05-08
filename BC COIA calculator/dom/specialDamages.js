@@ -135,11 +135,37 @@ function createDeleteIcon() {
  * @param {string} date - The date to pre-populate in the new row (YYYY-MM-DD format).
  */
 export function insertSpecialDamagesRow(tableBody, currentRow, date) {
-    // Get the index of the current row
-    const rowIndex = currentRow.rowIndex; // Use rowIndex directly for insertion after
+    if (!tableBody) {
+        console.error("tableBody is null or undefined");
+        return;
+    }
+    if (!currentRow) {
+        console.error("currentRow is null or undefined");
+        return;
+    }
+
+    let insertAtIndex = -1; // Default to append
+
+    // Find the index of currentRow within tableBody.rows
+    for (let i = 0; i < tableBody.rows.length; i++) {
+        if (tableBody.rows[i] === currentRow) {
+            insertAtIndex = i + 1; // Set index to insert *after* the current row
+            break;
+        }
+    }
+
+    // If currentRow was not found (e.g., if it's not in this tableBody),
+    // insertAtIndex will remain -1, causing insertRow to append.
+    // If currentRow is the last row, insertAtIndex will be tableBody.rows.length,
+    // which also correctly appends the new row.
+    let newRow;
+    try {
+        newRow = tableBody.insertRow(insertAtIndex);
+    } catch (e) {
+        console.error("Failed to insert row:", e);
+        return;
+    }
     
-    // Create a new row and insert it after the current row
-    const newRow = tableBody.insertRow(rowIndex); // Insert at the correct index
     newRow.className = 'special-damages-row highlight-new-row breakable'; // Add breakable class
     
     // Date cell (editable, pre-populated with the date from the current row)
@@ -219,9 +245,25 @@ export function insertSpecialDamagesRow(tableBody, currentRow, date) {
         }, 2000);
     }, 100);
     
-    // Trigger recalculation after adding the row
+    // Add a corresponding entry to the store
+    const newDamageData = {
+        date: date, // This is the pre-populated date passed to the function
+        description: '', // New rows start with an empty description
+        amount: 0 // New rows start with a zero amount
+    };
+    useStore.getState().addSpecialDamage(newDamageData);
+
+    // Set a global flag to prevent table rebuild during the add operation
+    window._isSpecialDamagesAddInProgress = true;
+
+    // Trigger recalculation after adding the row and updating the store
     const event = new CustomEvent('special-damages-updated');
     document.dispatchEvent(event);
+    
+    // Clear the global flag after a short delay
+    setTimeout(() => {
+        window._isSpecialDamagesAddInProgress = false;
+    }, 500);
 }
 
 /**

@@ -108,10 +108,14 @@ export function createAndAddSpecialDamagesButton(descriptionContainer, item, tab
     addButton.addEventListener('click', async function(event) {
         event.preventDefault();
         const currentRow = this.closest('tr');
-        if (!currentRow) return;
+        if (!currentRow) {
+            console.error("Could not find closest tr to button");
+            return;
+        }
 
         try {
             const { insertSpecialDamagesRow } = await import('./specialDamages.js');
+            
             const currentDate = parseDateInput(item.start);
             if (currentDate) {
                 const nextDate = new Date(normalizeDate(currentDate));
