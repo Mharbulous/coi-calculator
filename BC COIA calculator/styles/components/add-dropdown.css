@@ -1,0 +1,82 @@
+/* --- Add Dropdown Menu Styles --- */
+
+.add-dropdown-container {
+    position: relative;
+    display: inline-block;
+    margin-left: 10px;
+}
+
+.add-dropdown-button {
+    background-color: #4a90e2;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 0.85em;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s;
+    white-space: nowrap;
+}
+
+.add-dropdown-button:hover {
+    background-color: #3a7bc8;
+}
+
+.add-dropdown-button:active {
+    background-color: #2a6cb8;
+    transform: scale(0.98);
+}
+
+.add-dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 100;
+    background-color: white;
+    border-radius: 4px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    width: 150px;
+    max-height: 0;
+    transition: max-height 0.3s ease, opacity 0.3s ease, transform 0.3s ease;
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
+}
+
+.add-dropdown-container:focus-within .add-dropdown-menu {
+    max-height: 100px; /* Adjust based on content */
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.add-dropdown-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 8px 12px;
+    background: none;
+    border: none;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.add-dropdown-item:hover {
+    background-color: #f0f7ff;
+}
+
+.add-dropdown-item:active {
+    background-color: #e0f0ff;
+}
+
+/* Ensure the dropdown is hidden in print mode */
+@media print {
+    .add-dropdown-container,
+    .add-dropdown-button,
+    .add-dropdown-menu {
+        display: none !important;
+    }
+}

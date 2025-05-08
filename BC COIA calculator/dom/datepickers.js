@@ -18,9 +18,10 @@ let judgmentDatePicker = null;
 let prejudgmentDatePicker = null;
 let postjudgmentDatePicker = null;
 
-// Store references to special damages flatpickr instances
-// Using a Map with input element as key for each instance
+// Store references to special damages and payment flatpickr instances
+// Using Maps with input element as key for each instance
 const specialDamagesDatePickers = new Map();
+const paymentDatePickers = new Map();
 
 /**
  * Initializes the date pickers with appropriate configurations and constraints.
@@ -761,4 +762,203 @@ export function destroyAllSpecialDamagesDatePickers() {
             calendar.parentNode.removeChild(calendar);
         }
     });
+}
+
+/**
+ * Initializes a flatpickr date picker for a payment date input.
+ * Applies date constraints based on the application state.
+ * 
+ * @param {HTMLElement} inputElement - The payment date input element to initialize.
+ * @param {Function} recalculateCallback - Function to call when dates change to trigger recalculation.
+ * @returns {Object} The flatpickr instance.
+ */
+export function initializePaymentDatePicker(inputElement, recalculateCallback) {
+    // Check if this input already has a flatpickr instance
+    if (paymentDatePickers.has(inputElement)) {
+        // Return the existing instance instead of destroying and recreating it
+        return paymentDatePickers.get(inputElement);
+    }
+    
+    // Reset background color to default
+    inputElement.style.backgroundColor = NORMAL_BACKGROUND_COLOR;
+    
+    // Get constraint dates from store
+    const state = useStore.getState();
+    const judgmentDate = state.inputs.dateOfJudgment;
+    const prejudgmentDate = state.inputs.prejudgmentStartDate;
+    
+    // Calculate minimum and maximum dates for payment
+    let minDate = "1993-01-01"; // Default fallback
+    if (prejudgmentDate) {
+        // Payment can be on or after the prejudgment date
+        minDate = formatDateForDisplay(prejudgmentDate);
+    }
+    
+    // Maximum date is judgment date + 1 year (arbitrary for now)
+    let maxDate = "2025-06-30"; // Default fallback
+    if (judgmentDate) {
+        const oneYearAfterJudgment = new Date(Date.UTC(
+            judgmentDate.getUTCFullYear() + 1,
+            judgmentDate.getUTCMonth(),
+            judgmentDate.getUTCDate()
+        ));
+        maxDate = formatDateForDisplay(oneYearAfterJudgment);
+    }
+    
+    // Initialize flatpickr for the payment date input
+    const flatpickrInstance = flatpickr(inputElement, {
+        dateFormat: "Y-m-d",
+        allowInput: true,
+        clickOpens: true,
+        disableMobile: true,
+        monthSelectorType: "dropdown",
+        enableTime: false,
+        minDate: minDate,
+        maxDate: maxDate,
+        onChange: (selectedDates) => onPaymentDateChange(selectedDates, inputElement, recalculateCallback),
+        onOpen: positionCalendar
+    });
+    
+    // Store the flatpickr instance with the input element as key
+    paymentDatePickers.set(inputElement, flatpickrInstance);
+    
+    return flatpickrInstance;
+}
+
+/**
+ * Destroys a specific payment flatpickr instance.
+ * Ensures all DOM elements created by flatpickr are properly removed.
+ * 
+ * @param {HTMLElement} inputElement - The payment date input element whose flatpickr to destroy.
+ * @returns {boolean} True if the instance was found and destroyed, false otherwise.
+ */
+export function destroyPaymentDatePicker(inputElement) {
+    if (paymentDatePickers.has(inputElement)) {
+        const instance = paymentDatePickers.get(inputElement);
+        
+        // Store reference to the calendar container before destroying
+        const calendarContainer = instance.calendarContainer;
+        
+        // Call the destroy method to clean up
+        instance.destroy();
+        
+        // Manually remove the calendar container from the DOM if it still exists
+        if (calendarContainer && calendarContainer.parentNode) {
+            calendarContainer.parentNode.removeChild(calendarContainer);
+        }
+        
+        // Remove from the Map
+        paymentDatePickers.delete(inputElement);
+        
+        return true;
+    }
+    
+    return false;
+}
+
+/**
+ * Handler for when a Payment Date changes.
+ * Validates the selected date against constraints and provides visual feedback.
+ * 
+ * @param {Array} selectedDates - Array of selected dates from Flatpickr.
+ * @param {HTMLElement} inputElement - The input element associated with the picker.
+ * @param {Function} recalculateCallback - Function to call to trigger recalculation.
+ */
+function onPaymentDateChange(selectedDates, inputElement, recalculateCallback) {
+    // Get the new date from selectedDates
+    const newDate = selectedDates.length > 0 ? selectedDates[0] : null;
+    
+    // Get constraint dates from store
+    const state = useStore.getState();
+    const judgmentDate = state.inputs.dateOfJudgment;
+    const prejudgmentDate = state.inputs.prejudgmentStartDate;
+    
+    // Calculate min and max dates
+    let minDate = null;
+    if (prejudgmentDate) {
+        // Payments can be on or after the prejudgment date
+        minDate = prejudgmentDate;
+    }
+    
+    let maxDate = null;
+    if (judgmentDate) {
+        // Maximum date is judgment date + 1 year (arbitrary for now)
+        maxDate = new Date(Date.UTC(
+            judgmentDate.getUTCFullYear() + 1,
+            judgmentDate.getUTCMonth(),
+            judgmentDate.getUTCDate()
+        ));
+    }
+    
+    // Validate the selected date
+    let isValid = true;
+    
+    if (newDate) {
+        // Check if date is on or after prejudgment date
+        if (minDate && newDate < minDate) {
+            isValid = false;
+        }
+        
+        // Check if date is before or on max date
+        if (maxDate && newDate > maxDate) {
+            isValid = false;
+        }
+    }
+    
+    // Apply visual feedback and update the input
+    if (!isValid) {
+        // Invalid date - clear the picker and set error background
+        const instance = paymentDatePickers.get(inputElement);
+        if (instance) {
+            instance.clear();
+        }
+        inputElement.style.backgroundColor = ERROR_BACKGROUND_COLOR;
+    } else {
+        // Valid date - normal background
+        inputElement.style.backgroundColor = NORMAL_BACKGROUND_COLOR;
+        
+        // Directly update the input value for valid dates
+        if (newDate) {
+            // Format the date as YYYY-MM-DD
+            const year = newDate.getFullYear();
+            const month = String(newDate.getMonth() + 1).padStart(2, '0');
+            const day = String(newDate.getDate()).padStart(2, '0');
+            const formattedDate = `${year}-${month}-${day}`;
+            
+            // Update the input element's value directly
+            inputElement.value = formattedDate;
+            
+            // Dispatch a change event to ensure DOM state synchronization
+            const changeEvent = new Event('change', { bubbles: true });
+            inputElement.dispatchEvent(changeEvent);
+        }
+        
+        // Trigger recalculation
+        if (typeof recalculateCallback === 'function') {
+            recalculateCallback();
+        }
+    }
+}
+
+/**
+ * Destroys all payment flatpickr instances.
+ * Ensures all DOM elements created by flatpickr are properly removed.
+ * This can be useful when needing to reset the entire application state.
+ */
+export function destroyAllPaymentDatePickers() {
+    paymentDatePickers.forEach((instance, inputElement) => {
+        // Store reference to the calendar container before destroying
+        const calendarContainer = instance.calendarContainer;
+        
+        // Call the destroy method to clean up
+        instance.destroy();
+        
+        // Manually remove the calendar container from the DOM if it still exists
+        if (calendarContainer && calendarContainer.parentNode) {
+            calendarContainer.parentNode.removeChild(calendarContainer);
+        }
+    });
+    
+    // Clear the Map
+    paymentDatePickers.clear();
 }

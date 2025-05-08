@@ -248,6 +248,9 @@ export function splitInterestPeriodsWithPayments(originalPeriods, payments, stat
                 
                 // Add payment row
                 finalResults.push(createPaymentRow(payment));
+                // Duplicate the preceding interest period (currentPeriod) and add it after the payment
+                const duplicatedTargetRow = JSON.parse(JSON.stringify(currentPeriod));
+                finalResults.push(duplicatedTargetRow);
                 paymentIndex++;
             } else {
                 break; // This payment belongs to a later period
@@ -271,12 +274,19 @@ export function splitInterestPeriodsWithPayments(originalPeriods, payments, stat
  * @returns {Object} Payment row object for the interest table
  */
 function createPaymentRow(payment) {
+    // As per task instructions, for visual duplication, set applied amounts to 0.
+    // Calculations of actual effect are out of scope for this specific change.
+    // The 'payment' object here is expected to have 'amount', 'date'.
+    // 'principalApplied' and 'interestApplied' might not be on it if coming directly from store's default.
     return {
         start: formatDateForDisplay(payment.date),
         description: `Payment received: ${formatCurrency(payment.amount)}`,
-        principal: -payment.principalApplied,
-        interest: -payment.interestApplied,
-        isPayment: true
+        principal: 0, // Placeholder
+        interest: 0,  // Placeholder
+        isPayment: true,
+        paymentAmount: payment.amount // Store original amount for display
+        // principalApplied: 0, // Explicitly setting these if needed by other parts
+        // interestApplied: 0
     };
 }
 

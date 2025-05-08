@@ -206,15 +206,23 @@ describe('Payment Processor Tests', () => {
 
         // Assert
         expect(processedPayment).not.toBeNull();
-        expect(processedPayment.remainingPrincipal).toBe(0);
-        // Total applied should exactly match the amount owed
-        // The amount applied might not exactly match the total owed due to rounding differences
-        // We want to verify that all debt is paid (remaining principal is zero)
-        // and the total applied amount does not exceed the payment amount.
-        expect(processedPayment.remainingPrincipal).toBe(0);
-        expect(processedPayment.interestApplied + processedPayment.principalApplied).toBeLessThanOrEqual(payment.amount);
-        // Also ensure that the applied amount is greater than zero (i.e., something was owed)
-        expect(processedPayment.interestApplied + processedPayment.principalApplied).toBeGreaterThan(0);
+        
+        // After refactoring to allow negative principal, an overpayment results in negative principal
+        // instead of being capped at zero
+        expect(processedPayment.remainingPrincipal).toBeLessThan(0);
+        
+        // Expected principal should be: remainingPrincipal - (payment.amount - interestAccrued)
+        const expectedRemainingPrincipal = remainingPrincipal - (payment.amount - interestAccrued);
+        expect(processedPayment.remainingPrincipal).toBeCloseTo(expectedRemainingPrincipal, 2);
+        
+        // The payment should fully cover all interest
+        expect(processedPayment.interestApplied).toBeCloseTo(interestAccrued, 2);
+        
+        // Principal applied should be the payment amount minus interest
+        expect(processedPayment.principalApplied).toBeCloseTo(payment.amount - interestAccrued, 2);
+        
+        // Total applied should equal payment amount
+        expect(processedPayment.interestApplied + processedPayment.principalApplied).toBeCloseTo(payment.amount, 2);
     });
 
     it('should handle payment made on exact rate change date', () => {

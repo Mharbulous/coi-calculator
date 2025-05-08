@@ -419,7 +419,7 @@ const store = createStore((set) => ({
                 totalOwing: 0,
                 perDiem: 0,
                 finalCalculationDate: finalCalculationDate,
-                payments: [] // Reset payments array
+                payments: useDefaults ? [{ date: '2021-10-13', amount: 500 }] : [] // Include default payment if useDefaults is true
             }
         });
     },

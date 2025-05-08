@@ -569,8 +569,8 @@ function initializePaymentDatePicker(inputElement) {
 /**
  * Sets up the Record Payment button functionality
  */
-export function setupRecordPaymentButton() {
-  const button = elements.recordPaymentButton;
+export function setupoldRecordPaymentButton() {
+  const button = elements.oldRecordPaymentButton;
   if (!button) return;
   
   button.textContent = 'Record Payment';
@@ -618,7 +618,7 @@ export function setupDomElements() {
   // ... existing setup code
   
   // Setup the Record Payment button
-  setupRecordPaymentButton();
+  setupoldRecordPaymentButton();
   
   // Add event listener for payment-recorded events
   document.addEventListener('payment-recorded', () => {

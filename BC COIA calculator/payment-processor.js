@@ -4,6 +4,7 @@ import { splitInterestPeriodsWithPayments } from './interestPeriodSplitter.js';
 
 /**
  * Processes a payment, applying it first to accumulated interest and then to principal.
+ * Updated to allow negative principal for overpayments.
  * 
  * @param {Object} state - The application state object
  * @param {Object} payment - The payment object {date, amount}
@@ -55,15 +56,8 @@ export function processPayment(state, payment, ratesData) {
     let interestApplied = Math.min(payment.amount, interestAccrued);
     let principalApplied = payment.amount - interestApplied;
     
-    // Calculate the remaining principal after payment
+    // Calculate the remaining principal after payment - allow negative principal for overpayments
     const newRemainingPrincipal = remainingPrincipal - principalApplied;
-
-    // Handle overpayment - if payment exceeds total owing
-    if (newRemainingPrincipal < 0) {
-        // Adjust principal applied to not go below zero
-        principalApplied = remainingPrincipal;
-        interestApplied = payment.amount - principalApplied;
-    }
 
     // Determine which segment this payment falls into
     const segmentIndex = determineSegmentIndex(paymentDate, prejudgmentStartDate, ratesData, state);
@@ -75,7 +69,7 @@ export function processPayment(state, payment, ratesData) {
         amount: payment.amount,
         interestApplied,
         principalApplied,
-        remainingPrincipal: Math.max(0, newRemainingPrincipal),
+        remainingPrincipal: newRemainingPrincipal, // Allow negative principal
         segmentIndex
     };
 
@@ -143,6 +137,7 @@ export function calculateInterestToDate(state, calculationDate, priorPayments, r
 
 /**
  * Recalculates interest periods with payments applied.
+ * Updated to handle potentially negative principal values.
  * 
  * @param {Object} state - The application state
  * @param {Array} payments - Array of processed payments
@@ -220,12 +215,12 @@ export function recalculateWithPayments(state, payments, ratesData) {
             totalInterest += period.interest || 0;
         } else {
             // Subtract interest and principal applied by payments
-            totalInterest -= period.interest || 0; // Payment interest is negative
+            totalInterest -= period.interest || 0; // Payment interest is stored as negative
         }
     });
     
     // Determine the final principal by applying payments
-    // The last payment's remaining principal is our final principal
+    // Use the last payment's remaining principal, which can be negative
     if (sortedPayments.length > 0) {
         const lastPayment = sortedPayments[sortedPayments.length - 1];
         finalPrincipal = lastPayment.remainingPrincipal;

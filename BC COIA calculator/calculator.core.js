@@ -67,6 +67,67 @@ import { destroyAllSpecialDamagesDatePickers } from './dom/datepickers.js'; // I
 // Page break indicators removed
 
 /**
+ * Collects payment data from the prejudgment table and updates the Zustand store.
+ * If the prejudgment checkbox is unchecked, returns the saved payments from the store.
+ * @returns {Array<object>} Array of payment objects with date and amount.
+ */
+function collectPayments() {
+    const currentState = useStore.getState();
+    const showPrejudgment = currentState.inputs.showPrejudgment;
+    
+    // If prejudgment is hidden and we have saved payments, use those
+    if (!showPrejudgment && 
+        currentState.savedPrejudgmentState && 
+        currentState.savedPrejudgmentState.payments && 
+        currentState.savedPrejudgmentState.payments.length > 0) {
+        
+        return currentState.savedPrejudgmentState.payments;
+    }
+    
+    // First check if we have any payment rows in the DOM
+    const rows = elements.prejudgmentTableBody.querySelectorAll('.special-damages-row');
+    
+    // If we have rows in the DOM, collect payments from there
+    if (rows.length > 0) {
+        const payments = [];
+        rows.forEach(row => {
+            const dateInput = row.querySelector('.payment-date');
+            const amountInput = row.querySelector('.special-damages-amount[data-type="payment-amount"]');
+            
+            if (dateInput && amountInput) {
+                // Get the date from the input field in YYYY-MM-DD format
+                const dateValue = dateInput.value; // Date is already YYYY-MM-DD from input
+                const amount = parseCurrency(amountInput.value);
+                
+                if (dateValue && amount > 0) { // Use dateValue directly
+                    payments.push({
+                        date: dateValue, // Store as YYYY-MM-DD
+                        amount
+                    });
+                }
+            }
+        });
+        
+        // Update Zustand store with the payments from DOM
+        if (payments.length > 0) {
+            useStore.getState().setResult('payments', payments);
+        }
+        return payments;
+    } 
+    // If no rows in DOM but we have payments in the store, preserve those defaults
+    else {
+        const currentPayments = currentState.results.payments;
+        if (currentPayments && currentPayments.length > 0) {
+            return currentPayments; // Return without overwriting the store
+        }
+        // Otherwise there are no payments anywhere, return empty array
+        else {
+            return [];
+        }
+    }
+}
+
+/**
  * Collects special damages data from the prejudgment table and updates the Zustand store.
  * If the prejudgment checkbox is unchecked, returns the saved special damages from the store.
  * @returns {Array<object>} Array of special damages objects with date, description, and amount.
@@ -467,7 +528,8 @@ function recalculate() {
         return;
     }
 
-    // 2. Collect Special Damages (needed for both prejudgment calc and totals)
+    // 2. Collect Payments and Special Damages (needed for both prejudgment calc and totals)
+    const payments = collectPayments();
     const specialDamages = collectSpecialDamages();
     
     // Calculate the total special damages amount
