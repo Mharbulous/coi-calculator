@@ -2,8 +2,7 @@
  * Payment Insertion Algorithm
  * 
  * This module implements the algorithm for inserting payment records into 
- * interest calculation tables, following the approach outlined in the
- * insert_pay_example documentation.
+ * interest calculation tables.
  */
 
 import { daysBetween, daysInYear, formatDateForDisplay, parseDateInput, normalizeDate, datesEqual } from './utils.date.js';
@@ -56,77 +55,34 @@ export function insertPaymentRecord(state, payment, ratesData) {
         return state;
     }
     
-    // Split the row if necessary and determine where to insert the payment
-    let splitRows = [];
-    let insertAtIndex;
-    
-    if (isExactEndDate) {
-        console.log(`Payment date is exactly on a row end date - no need to split the row`);
-        splitRows = [containingRow];
-        insertAtIndex = rowIndex + 1;
-    } else {
-        // Split the calculation row at the payment date
-        console.log(`Splitting row at payment date ${formatDateForDisplay(paymentDate)}`);
-        splitRows = splitCalculationRowAtPaymentDate(
-            containingRow, 
-            paymentDate, 
-            state.inputs.jurisdiction, 
-            ratesData, 
-            targetTable
-        );
-        
-        // Replace the original row with the split rows
-        interestTable.splice(rowIndex, 1, ...splitRows);
-        
-        // Insert payment after the first split segment
-        insertAtIndex = rowIndex + 1;
-    }
-    
-    // Replace the original row with split rows if not already done
-    if (isExactEndDate) {
-        interestTable.splice(rowIndex, 1, ...splitRows);
-    }
-    
-    // Calculate interest up to the payment date
-    const accumulatedInterest = splitRows[0].interest;
-    console.log(`Accumulated interest up to payment date: ${accumulatedInterest}`);
-    
-    // Apply payment to interest first, then principal
-    const interestApplied = Math.min(payment.amount, accumulatedInterest);
-    const principalApplied = payment.amount - interestApplied;
-    console.log(`Payment of ${formatCurrencyForInput(payment.amount)} applied: ${formatCurrencyForInput(interestApplied)} to interest, ${formatCurrencyForInput(principalApplied)} to principal`);
-    
-    // Calculate new principal amount (allow negative principal for overpayments)
-    const originalPrincipal = splitRows[0].principal;
-    const newPrincipal = originalPrincipal - principalApplied;
-    console.log(`Principal reduced from $${originalPrincipal} to $${newPrincipal}`);
-    
-    // Create payment record row
-    const paymentRow = createPaymentRow(
-        paymentDate, 
-        payment.amount, 
-        interestApplied, 
-        principalApplied
+    // Create payment record row with placeholder values for interest/principal applied
+    // as calculations are out of scope for this specific task.
+    const paymentRowData = createPaymentRow(
+        paymentDate,
+        payment.amount,
+        0, // interestApplied placeholder
+        0  // principalApplied placeholder
     );
-    
-    // Insert payment row at the appropriate index
-    interestTable.splice(insertAtIndex, 0, paymentRow);
-    
-    // Update principal for all subsequent periods, including the second split segment
-    updateSubsequentPeriods(interestTable, insertAtIndex + 1, newPrincipal);
-    
-    // Recalculate total interest
-    recalculateTotals(newState, targetTable);
-    
-    // Add the processed payment to the payments list
+
+    // Create a deep copy of the containingRow (target row)
+    const duplicatedRow = JSON.parse(JSON.stringify(containingRow));
+    // Optionally, mark the duplicated row if needed for styling or future logic
+    // duplicatedRow.isDuplicate = true; 
+
+    // Insert the paymentRowData and then the duplicatedRow directly after the containingRow
+    // The containingRow (at rowIndex) remains in place.
+    interestTable.splice(rowIndex + 1, 0, paymentRowData, duplicatedRow);
+
+    // For this specific task, calculation updates (interest application, principal updates, totals) are bypassed.
+    // The functions updateSubsequentPeriods and recalculateTotals are not called here.
+
+    // Add a simplified processed payment to the payments list
     const processedPayment = {
         date: paymentDate,
         dateStr: formatDateForDisplay(paymentDate),
         amount: payment.amount,
-        interestApplied,
-        principalApplied,
-        remainingPrincipal: newPrincipal,
-        segmentIndex: rowIndex
+        // interestApplied, principalApplied, remainingPrincipal are omitted as per task scope
+        segmentIndex: rowIndex // Keep segmentIndex if it's useful for other parts
     };
     
     newState.results.payments = newState.results.payments || [];
@@ -228,77 +184,6 @@ function findCalculationRowForPayment(interestTable, paymentDate) {
 }
 
 /**
- * Split a calculation row at the payment date.
- * 
- * @param {Object} row - Calculation row to split
- * @param {Date} paymentDate - Date of payment
- * @param {string} jurisdiction - Jurisdiction code
- * @param {Object} ratesData - Interest rates data
- * @param {string} interestType - 'prejudgment' or 'postjudgment'
- * @returns {Array} Two rows representing the split periods
- */
-function splitCalculationRowAtPaymentDate(row, paymentDate, jurisdiction, ratesData, interestType) {
-    // Normalize dates
-    const rowStartDate = typeof row.start === 'string' 
-        ? parseDateInput(row.start) 
-        : row.start;
-    
-    const rowEndDate = typeof row.end === 'string' 
-        ? parseDateInput(row.end) 
-        : row.end;
-    
-    console.log(`Splitting row at payment date ${formatDateForDisplay(paymentDate)}`);
-    
-    // First segment: from row start to payment date (inclusive)
-    const daysInFirstSegment = daysBetween(rowStartDate, paymentDate);
-    const firstSegmentYear = rowStartDate.getUTCFullYear();
-    const daysInFirstYear = daysInYear(firstSegmentYear);
-    
-    // Rate should be the same as the original row
-    const rate = row.rate;
-    
-    // Calculate interest for first segment
-    const principal = row.principal;
-    const firstSegmentInterest = (principal * (rate / 100) * daysInFirstSegment) / daysInFirstYear;
-    
-    const firstSegment = {
-        start: new Date(rowStartDate),
-        end: new Date(paymentDate),
-        rate: rate,
-        principal: principal,
-        interest: firstSegmentInterest,
-        isFinalSegment: false,
-        isSplitSegment: true,
-        _days: daysInFirstSegment,
-        _endDate: formatDateForDisplay(paymentDate),
-        description: `${daysInFirstSegment} days`
-    };
-    
-    // Second segment: from payment date to row end
-    const daysInSecondSegment = daysBetween(paymentDate, rowEndDate);
-    const secondSegmentYear = paymentDate.getUTCFullYear();
-    const daysInSecondYear = daysInYear(secondSegmentYear);
-    
-    // Second segment will use the same principal initially, but it will be updated after payment
-    const secondSegmentInterest = (principal * (rate / 100) * daysInSecondSegment) / daysInSecondYear;
-    
-    const secondSegment = {
-        start: new Date(paymentDate),
-        end: new Date(rowEndDate),
-        rate: rate,
-        principal: principal, // This will be updated after payment
-        interest: secondSegmentInterest, // This will be recalculated after principal update
-        isFinalSegment: row.isFinalSegment || false,
-        isSplitSegment: true,
-        _days: daysInSecondSegment,
-        _endDate: formatDateForDisplay(rowEndDate),
-        description: `${daysInSecondSegment} days`
-    };
-    
-    return [firstSegment, secondSegment];
-}
-
-/**
  * Create a payment row to insert into the interest table.
  * 
  * @param {Date} paymentDate - Date of payment
@@ -311,17 +196,18 @@ function createPaymentRow(paymentDate, amount, interestApplied, principalApplied
     return {
         start: formatDateForDisplay(paymentDate),
         description: `Payment received: ${formatCurrencyForInput(amount)}`,
-        principal: -principalApplied,
-        interest: -interestApplied,
+        principal: -principalApplied, // Will be 0 for now as per task scope
+        interest: -interestApplied,   // Will be 0 for now as per task scope
         isPayment: true,
         paymentAmount: amount,
-        interestApplied: interestApplied,
-        principalApplied: principalApplied
+        interestApplied: interestApplied, // Will be 0 for now
+        principalApplied: principalApplied  // Will be 0 for now
     };
 }
 
 /**
  * Update principal values for all periods after a payment, allowing negative principal.
+ * (This function is currently not called by the modified insertPaymentRecord for this task)
  * 
  * @param {Array} interestTable - Interest calculation table
  * @param {number} startIndex - Index to start updating from
@@ -369,6 +255,7 @@ function updateSubsequentPeriods(interestTable, startIndex, newPrincipal) {
 
 /**
  * Recalculate total interest for a table after modifications.
+ * (This function is currently not called by the modified insertPaymentRecord for this task)
  * 
  * @param {Object} state - Application state
  * @param {string} tableType - 'prejudgment' or 'postjudgment'

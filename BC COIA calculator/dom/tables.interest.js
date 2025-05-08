@@ -385,11 +385,31 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
                     mutableFinalPeriodDetails
                 );
             } else if (rowToInsert.isPayment) {
-                insertPaymentRowFromData(
+                const insertedPaymentRow = insertPaymentRowFromData(
                     tableBody,
                     insertIndex,
                     rowToInsert.rowData
                 );
+
+                // --- START: Added logic for duplicating target row ---
+                if (insertedPaymentRow && insertIndex > 0) {
+                    const targetRowElement = tableBody.rows[insertIndex - 1];
+                    
+                    // Check if the preceding row is an interest calculation row 
+                    // (heuristic: doesn't have special-damages-row class, which payments/damages get)
+                    // and not the table header row (though insertIndex > 0 should prevent that)
+                    if (targetRowElement && !targetRowElement.classList.contains('special-damages-row')) {
+                        try {
+                            const duplicatedRowElement = targetRowElement.cloneNode(true);
+                            // Insert the duplicated row immediately after the payment row
+                            // The payment row is at tableBody.rows[insertIndex]
+                            tableBody.rows[insertIndex].after(duplicatedRowElement);
+                        } catch (e) {
+                            console.error("Error duplicating or inserting row:", e);
+                        }
+                    }
+                }
+                // --- END: Added logic for duplicating target row ---
             }
         }
     }
