@@ -76,7 +76,7 @@
 
 .highlight-new-row {
     background-color: #f0f7ff;
-    animation: highlight-fade 2s ease;
+    animation: highlight-fade 2s ease forwards;
 }
 
 @keyframes highlight-fade {
