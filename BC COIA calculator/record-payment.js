@@ -1,10 +1,10 @@
 /**
  * Record Payment functionality
- * This module handles the Record Payment button functionality and payment processing
- * using the algorithm from payment-insertion.js.
+ * This module provides payment processing functionality using the algorithm 
+ * from payment-insertion.js.
  * 
- * This module combines functionality that was previously split between 
- * record-payment.js and test-modal.js.
+ * Previously attached to the Record Payment button, now available for use by 
+ * the "Add... Payment" dropdown option.
  */
 
 import useStore from './store.js';
@@ -12,26 +12,11 @@ import { promptForPaymentDetails, showModal } from './dom/modal.js';
 import { insertPaymentRecord } from './payment-insertion.js';
 
 /**
- * Initialize the Record Payment button functionality.
- * Adds a click handler to the button that opens the payment modal
- * and processes any payments.
+ * Process a payment record
+ * This function handles showing the payment details modal and processing the payment.
+ * It is now called by the "Add... Payment" dropdown option rather than a dedicated button.
  */
-export function initRecordPayment() {
-    const oldRecordPaymentButton = document.getElementById('test-modal-button');
-    
-    if (oldRecordPaymentButton) {
-        oldRecordPaymentButton.addEventListener('click', handleRecordPaymentClick);
-    } else {
-        console.error('Record Payment button (id: test-modal-button) not found in the DOM');
-    }
-}
-
-/**
- * Handle the Record Payment button click.
- * This function is called when the user clicks the Record Payment button.
- * It handles showing the payment details modal and processing the payment.
- */
-function handleRecordPaymentClick() {
+export function processPaymentRecord() {
     try {
         // Get the current state and dates from the store
         const state = useStore.getState();
@@ -57,11 +42,9 @@ function handleRecordPaymentClick() {
                 console.error('Error in payment modal promise:', error);
             });
     } catch (error) {
-        console.error('Error in handleRecordPaymentClick:', error);
+        console.error('Error in processPaymentRecord:', error);
     }
 }
 
-// Initialize when the DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    initRecordPayment();
-});
+// No longer initializing as the button has been removed
+// The processPaymentRecord function is now exported for use by the dropdown menu
