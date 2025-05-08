@@ -1,4 +1,4 @@
-Please reflect on what context information about the current implementation was important to understanding and completing the work. Create a markdown file in the /Context/ folder with notes about non-obvious or important aspects and context details related to the coding task that you just completed. 
+Please reflect on what context information about the current implementation was important to understanding and completing the work. Create a markdown file in the /AI/Context/ folder with notes about non-obvious or important aspects and context details related to the coding task that you just completed. 
 
 In the markdown file:
 1. Include context information that wasn't initially obvious but was discovered during the task
