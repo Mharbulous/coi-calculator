@@ -160,7 +160,11 @@ export function createAndAddSpecialDamagesButton(descriptionContainer, item, tab
             const prejudgmentDate = state.inputs.prejudgmentStartDate;
             const postjudgmentDate = state.inputs.postjudgmentEndDate;
             
-            promptForPaymentDetails(prejudgmentDate, postjudgmentDate)
+            // Get row start and end dates for the midpoint calculation
+            const rowStartDate = parseDateInput(item.start);
+            const rowEndDate = parseDateInput(item._endDate);
+            
+            promptForPaymentDetails(prejudgmentDate, postjudgmentDate, rowStartDate, rowEndDate)
                 .then(result => {
                     if (result) {
                         // Format date for display

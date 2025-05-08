@@ -16,7 +16,7 @@ import { insertPaymentRecord } from './payment-insertion.js';
  * This function handles showing the payment details modal and processing the payment.
  * It is now called by the "Add... Payment" dropdown option rather than a dedicated button.
  */
-export function processPaymentRecord() {
+export function processPaymentRecord(rowStartDate, rowEndDate) {
     try {
         // Get the current state and dates from the store
         const state = useStore.getState();
@@ -24,8 +24,12 @@ export function processPaymentRecord() {
         const prejudgmentDate = state.inputs.prejudgmentStartDate;
         const postjudgmentDate = state.inputs.postjudgmentEndDate;
         
+        // Use row dates if provided, otherwise fall back to prejudgment/postjudgment dates
+        const startDate = rowStartDate || prejudgmentDate;
+        const endDate = rowEndDate || postjudgmentDate;
+        
         // Show the payment details modal
-        promptForPaymentDetails(prejudgmentDate, postjudgmentDate)
+        promptForPaymentDetails(prejudgmentDate, postjudgmentDate, startDate, endDate)
             .then(paymentDetails => {
                 if (paymentDetails) {
                     // Get rates data from the store

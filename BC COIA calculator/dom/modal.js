@@ -288,18 +288,23 @@ export function showSpecialDamagesDeletionModal() {
  * Creates and shows a modal dialog for recording a payment
  * @param {Date} prejudgmentDate - The prejudgment interest start date
  * @param {Date} postjudgmentDate - The postjudgment interest end date
+ * @param {Date} rowStartDate - The start date of the row containing the Add button
+ * @param {Date} rowEndDate - The end date of the row containing the Add button
  * @returns {Promise<Object|null>} - Resolves to payment details object if confirmed, null if canceled
  */
-export function promptForPaymentDetails(prejudgmentDate, postjudgmentDate) {
+export function promptForPaymentDetails(prejudgmentDate, postjudgmentDate, rowStartDate, rowEndDate) {
     return new Promise((resolve) => {
-        // Import necessary utilities for currency formatting and form handling
+        // Import necessary utilities for currency formatting, date handling, and form handling
         Promise.all([
             import('../utils.currency.js'),
-            import('./setup.js')
-        ]).then(([currencyUtils, setupUtils]) => {
+            import('./setup.js'),
+            import('../utils.date.js')
+        ]).then(([currencyUtils, setupUtils, dateUtils]) => {
             const { formatCurrencyForInputWithCommas, parseCurrency } = currencyUtils;
             const { setupCurrencyInputListeners } = setupUtils;
-            console.log('Payment modal called with dates:', prejudgmentDate, postjudgmentDate);
+            const { calculateMidpointDate, formatDateForDisplay } = dateUtils;
+            
+            console.log('Payment modal called with dates:', prejudgmentDate, postjudgmentDate, rowStartDate, rowEndDate);
             
             // Create the modal overlay
             const overlay = document.createElement('div');
@@ -333,6 +338,7 @@ export function promptForPaymentDetails(prejudgmentDate, postjudgmentDate) {
             amountInput.type = "text";
             amountInput.id = "payment-amount-input";
             amountInput.placeholder = "Enter payment amount";
+            amountInput.value = "$0.00"; // Default payment amount to $0.00
             
             const amountValidation = document.createElement('div');
             amountValidation.className = 'validation-message';
@@ -464,6 +470,16 @@ export function promptForPaymentDetails(prejudgmentDate, postjudgmentDate) {
                 };
             };
             
+            // Calculate the midpoint date between row start and end dates if available
+            let defaultDate = "today"; // Default fallback
+            if (rowStartDate && rowEndDate) {
+                const midpointDate = calculateMidpointDate(rowStartDate, rowEndDate);
+                if (midpointDate) {
+                    defaultDate = midpointDate;
+                    console.log('Using midpoint date as default:', formatDateForDisplay(midpointDate));
+                }
+            }
+            
             // Initialize Flatpickr on the date input
             datePickerInstance = flatpickr(dateInput, {
                 dateFormat: "Y-m-d",
@@ -471,7 +487,7 @@ export function promptForPaymentDetails(prejudgmentDate, postjudgmentDate) {
                 disableMobile: true,
                 minDate: minDate,
                 maxDate: "today",
-                defaultDate: "today",
+                defaultDate: defaultDate,
                 onChange: function(selectedDates, dateStr) {
                     console.log("Selected date:", dateStr);
                     // Validate form when date changes
