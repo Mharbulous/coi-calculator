@@ -24,6 +24,7 @@
 @import url('components/record-payment-button.css'); /* Record Payment button styles */
 @import url('components/record-payment-modal.css'); /* Record Payment modal styles */
 @import url('components/payment-modal-fix.css'); /* Payment modal fix with higher specificity */
+@import url('components/add-dropdown.css'); /* Add dropdown menu styles */
 @import url('page-breaks.css'); /* Import page break styles */
 @import url('two-layer.css'); /* Import two-layer skeuomorphic paper styles */
 @import url('console-layer.css'); /* Import console layer styles */

@@ -99,15 +99,29 @@ export function renderInitialInterestRows(tableBody, details, isPrejudgmentTable
 // This function is kept separate as it involves a dynamic import and event listener.
 // It's called from within renderInitialInterestRows.
 export function createAndAddSpecialDamagesButton(descriptionContainer, item, tableBody) {
-    const addButton = document.createElement('button');
-    addButton.textContent = 'add special damages';
-    addButton.className = 'add-special-damages-btn';
-    addButton.dataset.date = item.start;
-    addButton.dataset.amount = item.interest;
-
-    addButton.addEventListener('click', async function(event) {
+    // Create dropdown container
+    const dropdownContainer = document.createElement('div');
+    dropdownContainer.className = 'add-dropdown-container';
+    
+    // Create dropdown button
+    const dropdownButton = document.createElement('button');
+    dropdownButton.textContent = 'Add...';
+    dropdownButton.className = 'add-dropdown-button';
+    dropdownButton.dataset.date = item.start;
+    dropdownButton.dataset.amount = item.interest;
+    dropdownButton.setAttribute('tabindex', '0'); // Ensure focusable
+    
+    // Create dropdown menu
+    const dropdownMenu = document.createElement('div');
+    dropdownMenu.className = 'add-dropdown-menu';
+    
+    // Create special damages option
+    const specialDamagesOption = document.createElement('button');
+    specialDamagesOption.className = 'add-dropdown-item';
+    specialDamagesOption.textContent = 'Special damages';
+    specialDamagesOption.addEventListener('click', async function(event) {
         event.preventDefault();
-        const currentRow = this.closest('tr');
+        const currentRow = dropdownButton.closest('tr');
         if (!currentRow) {
             console.error("Could not find closest tr to button");
             return;
@@ -125,11 +139,65 @@ export function createAndAddSpecialDamagesButton(descriptionContainer, item, tab
             } else {
                 insertSpecialDamagesRow(tableBody, currentRow, item.start);
             }
+            
+            // Close dropdown by blurring the button
+            dropdownButton.blur();
         } catch (e) {
             console.error("Failed to load or execute specialDamages.js module:", e);
         }
     });
-    descriptionContainer.appendChild(addButton);
+    
+    // Create payment option
+    const paymentOption = document.createElement('button');
+    paymentOption.className = 'add-dropdown-item';
+    paymentOption.textContent = 'Payment';
+    paymentOption.addEventListener('click', async function(event) {
+        event.preventDefault();
+        
+        try {
+            const { promptForPaymentDetails } = await import('../dom/modal.js');
+            const state = useStore.getState();
+            const prejudgmentDate = state.inputs.prejudgmentStartDate;
+            const postjudgmentDate = state.inputs.postjudgmentEndDate;
+            
+            promptForPaymentDetails(prejudgmentDate, postjudgmentDate)
+                .then(result => {
+                    if (result) {
+                        // Format date for display
+                        const formattedDate = formatDateForDisplay(result.date);
+                        
+                        // Add payment to the store
+                        state.addPayment({
+                            date: formattedDate,
+                            amount: result.amount
+                        });
+                        
+                        console.log(`Payment record added: $${result.amount} paid ${formattedDate}`);
+                        
+                        // Trigger recalculation
+                        const event = new CustomEvent('payment-updated');
+                        document.dispatchEvent(event);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error in payment modal:', error);
+                });
+            
+            // Close dropdown by blurring the button
+            dropdownButton.blur();
+        } catch (e) {
+            console.error("Failed to load or execute payment modal:", e);
+        }
+    });
+    
+    // Assemble dropdown
+    dropdownMenu.appendChild(specialDamagesOption);
+    dropdownMenu.appendChild(paymentOption);
+    dropdownContainer.appendChild(dropdownButton);
+    dropdownContainer.appendChild(dropdownMenu);
+    
+    // Add the dropdown to the description container
+    descriptionContainer.appendChild(dropdownContainer);
 }
 
 
