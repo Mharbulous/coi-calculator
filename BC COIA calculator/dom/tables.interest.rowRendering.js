@@ -21,7 +21,7 @@ export function renderInitialInterestRows(tableBody, details, isPrejudgmentTable
         }
 
         if (item.isPayment) {
-            row.classList.add('payment-row');
+            row.classList.add('payment-row', 'editable-item-row', 'breakable');
         }
 
         // Date cell
