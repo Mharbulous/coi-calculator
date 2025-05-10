@@ -155,36 +155,63 @@ export function createAndAddSpecialDamagesButton(descriptionContainer, item, tab
         event.preventDefault();
         
         try {
-            const state = useStore.getState();
-            
-            // Get row start and end dates for the midpoint calculation
-            const rowStartDate = parseDateInput(item.start);
-            const rowEndDate = parseDateInput(item._endDate);
-            
-            // Calculate midpoint date between row start and end dates
-            const midpointDate = calculateMidpointDate(rowStartDate, rowEndDate);
-            
-            if (midpointDate) {
-                // Format date for display
-                const formattedDate = formatDateForDisplay(midpointDate);
+            // Import logger for debugging
+            import('../util.logger.js').then((logger) => {
+                logger.debug("Payment option clicked - Starting payment insertion process");
                 
-                // Add payment to the store with zero amount
-                state.addPayment({
-                    date: formattedDate,
-                    amount: 0.00
+                const state = useStore.getState();
+                
+                // Get row start and end dates for the midpoint calculation
+                const rowStartDate = parseDateInput(item.start);
+                const rowEndDate = parseDateInput(item._endDate);
+                
+                logger.debug("Row dates for payment:", { 
+                    start: item.start, 
+                    parsedStart: rowStartDate, 
+                    end: item._endDate, 
+                    parsedEnd: rowEndDate 
                 });
                 
-                console.log(`Payment placeholder added: $0.00 on ${formattedDate}`);
+                // Calculate midpoint date between row start and end dates
+                const midpointDate = calculateMidpointDate(rowStartDate, rowEndDate);
                 
-                // Trigger recalculation
-                const event = new CustomEvent('payment-updated');
-                document.dispatchEvent(event);
-            } else {
-                console.error("Failed to calculate midpoint date for payment", rowStartDate, rowEndDate);
-            }
-            
-            // Close dropdown by blurring the button
-            dropdownButton.blur();
+                if (midpointDate) {
+                    // Format date for display
+                    const formattedDate = formatDateForDisplay(midpointDate);
+                    
+                    logger.debug("Adding payment to store:", { date: formattedDate, amount: 0.00 });
+                    
+                    // Add payment to the store with zero amount
+                    state.addPayment({
+                        date: formattedDate,
+                        amount: 0.00
+                    });
+                    
+                    logger.info(`Payment placeholder added: $0.00 on ${formattedDate}`);
+                    
+                    // Get payments from state after addition to verify it was added
+                    const paymentsAfterAdd = state.results.payments;
+                    logger.debug("Payments in store after addition:", paymentsAfterAdd);
+                    
+                    // Log the DOM state before triggering event
+                    logger.debug("Current table rows before recalculation:", tableBody.rows.length);
+                    
+                    // Trigger recalculation
+                    logger.debug("Dispatching payment-updated event");
+                    const updateEvent = new CustomEvent('payment-updated');
+                    document.dispatchEvent(updateEvent);
+                } else {
+                    logger.error("Failed to calculate midpoint date for payment", { 
+                        rowStartDate, 
+                        rowEndDate 
+                    });
+                }
+                
+                // Close dropdown by blurring the button
+                dropdownButton.blur();
+            }).catch(e => {
+                console.error("Failed to import logger:", e);
+            });
         } catch (e) {
             console.error("Failed to add payment:", e);
         }

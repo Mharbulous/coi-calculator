@@ -62,8 +62,42 @@ function setupEventListeners() {
     
     // Listen for the payment-updated custom event
     document.addEventListener('payment-updated', () => {
-        recalculate();
-        document.dispatchEvent(new CustomEvent('content-changed')); // Trigger pagination update
+        // Import logger for debugging
+        import('./util.logger.js').then((logger) => {
+            logger.debug("Payment-updated event received in calculator.ui.js");
+            
+            // Log store state before recalculation
+            const storeState = useStore.getState();
+            logger.debug("Store state before recalculation:", {
+                payments: storeState.results.payments,
+                prejudgmentDetails: storeState.results.prejudgmentResult.details,
+                principalTotal: storeState.results.prejudgmentResult.principal
+            });
+            
+            recalculate();
+            
+            // Log store state after recalculation
+            const updatedState = useStore.getState();
+            logger.debug("Store state after recalculation:", {
+                payments: updatedState.results.payments,
+                prejudgmentDetails: updatedState.results.prejudgmentResult.details,
+                principalTotal: updatedState.results.prejudgmentResult.principal
+            });
+            
+            // Log DOM state after recalculation
+            logger.debug("DOM state after recalculation:", {
+                prejudgmentTableRows: elements.prejudgmentTableBody ? elements.prejudgmentTableBody.rows.length : 'Not available',
+                paymentRows: elements.prejudgmentTableBody ? 
+                    elements.prejudgmentTableBody.querySelectorAll('.payment-row').length : 'Not available'
+            });
+            
+            logger.debug("Dispatching content-changed event for pagination update");
+            document.dispatchEvent(new CustomEvent('content-changed')); // Trigger pagination update
+        }).catch(e => {
+            console.error("Failed to import logger:", e);
+            recalculate();
+            document.dispatchEvent(new CustomEvent('content-changed')); // Trigger pagination update
+        });
     });
     // Check if elements exist before adding listeners
     const requiredElements = [
