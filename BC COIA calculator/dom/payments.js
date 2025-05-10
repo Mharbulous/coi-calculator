@@ -4,6 +4,7 @@ import { setupCustomDateInputListeners, setupCurrencyInputListeners } from './se
 import { initializePaymentDatePicker, destroyPaymentDatePicker } from './datepickers.js'; // These functions will need to be created
 import { showSpecialDamagesConfirmationModal } from './modal.js'; // Reuse this modal for now
 import useStore from '../store.js';
+import { logger } from '../util.logger.js'; // Import for enhanced debugging
 
 /**
  * Finds the index of a payment in the state store based on DOM row
@@ -135,7 +136,12 @@ export function insertPaymentRow(tableBody, currentRow, date) {
     
     // Create a new row and insert it after the current row
     const newRow = tableBody.insertRow(rowIndex); // Insert at the correct index
-    newRow.className = 'editable-item-row highlight-new-row breakable'; // Use generic editable item class
+    
+    // IMPORTANT: Add the payment-row class to identify this as a payment row
+    newRow.className = 'editable-item-row payment-row highlight-new-row breakable'; // Add payment-row class
+    
+    console.log("[DEBUG] insertPaymentRow: Created new row at index:", rowIndex);
+    console.log("[DEBUG] insertPaymentRow: Set row className to:", newRow.className);
     
     // Date cell (editable, pre-populated with the date from the current row)
     const dateCell = newRow.insertCell();
@@ -263,14 +269,25 @@ function validatePaymentDate(dateStr) {
  * @returns {HTMLTableRowElement} The newly inserted row element.
  */
 export function insertPaymentRowFromData(tableBody, index, rowData) {
+    console.log("[DEBUG] insertPaymentRowFromData: Starting with tableBody:", tableBody?.id || "undefined", 
+                "index:", index, "rowData:", rowData);
+    
     // Validate inputs to prevent issues with missing data
-    if (!tableBody || !rowData) return null;
+    if (!tableBody || !rowData) {
+        console.log("[DEBUG] insertPaymentRowFromData: Missing tableBody or rowData, returning null");
+        return null;
+    }
     
     // Create a safe index value
     const safeIndex = (index !== undefined && index >= 0) ? index : -1;
+    console.log("[DEBUG] insertPaymentRowFromData: Using safeIndex:", safeIndex);
     
     const newRow = tableBody.insertRow(safeIndex);
-    newRow.className = 'editable-item-row breakable'; // Use generic editable item class
+    console.log("[DEBUG] insertPaymentRowFromData: Created new row at index:", safeIndex);
+    
+    // IMPORTANT: Add the payment-row class to identify this as a payment row
+    newRow.className = 'editable-item-row payment-row breakable'; // Add payment-row class
+    console.log("[DEBUG] insertPaymentRowFromData: Set row className to:", newRow.className);
 
     // Date cell
     const dateCell = newRow.insertCell();

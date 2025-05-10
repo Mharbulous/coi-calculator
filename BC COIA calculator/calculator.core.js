@@ -72,118 +72,58 @@ import { destroyAllSpecialDamagesDatePickers } from './dom/datepickers.js'; // I
  * @returns {Array<object>} Array of payment objects with date and amount.
  */
 function collectPayments() {
+    console.log("[DEBUG] collectPayments: Starting payment collection");
+    
     const currentState = useStore.getState();
     const showPrejudgment = currentState.inputs.showPrejudgment;
-    
+
+    console.log("[DEBUG] collectPayments: showPrejudgment =", showPrejudgment);
+    console.log("[DEBUG] collectPayments: Initial store payments (before any logic in this function):", JSON.stringify(currentState.results.payments));
+
     // If prejudgment is hidden and we have saved payments, use those
-    if (!showPrejudgment && 
-        currentState.savedPrejudgmentState && 
-        currentState.savedPrejudgmentState.payments && 
-        currentState.savedPrejudgmentState.payments.length > 0) {
+    if (!showPrejudgment &&
+        currentState.savedPrejudgmentState &&
+        currentState.savedPrejudgmentState.payments) { // Check for existence, not length, to allow empty saved array
         
+        console.log("[DEBUG] collectPayments: Using saved prejudgment state payments:", 
+                   JSON.stringify(currentState.savedPrejudgmentState.payments));
         return currentState.savedPrejudgmentState.payments;
     }
     
-    // First check if we have any payment rows in the DOM
-    const rows = elements.prejudgmentTableBody.querySelectorAll('.editable-item-row');
-    
-    // If we have rows in the DOM, collect payments from there
-    if (rows.length > 0) {
-        const payments = [];
-        rows.forEach(row => {
-            const dateInput = row.querySelector('.payment-date');
-            const amountInput = row.querySelector('.special-damages-amount[data-type="payment-amount"]');
-            
-            if (dateInput && amountInput) {
-                // Get the date from the input field in YYYY-MM-DD format
-                const dateValue = dateInput.value; // Date is already YYYY-MM-DD from input
-                const amount = parseCurrency(amountInput.value);
-                
-                if (dateValue && amount > 0) { // Use dateValue directly
-                    payments.push({
-                        date: dateValue, // Store as YYYY-MM-DD
-                        amount
-                    });
-                }
-            }
-        });
-        
-        // Update Zustand store with the payments from DOM
-        if (payments.length > 0) {
-            useStore.getState().setResult('payments', payments);
-        }
-        return payments;
-    } 
-    // If no rows in DOM but we have payments in the store, preserve those defaults
-    else {
-        // Always return payments from the store if DOM scraping is not fruitful or not applicable
-        return currentState.results.payments || [];
-    }
+    // Otherwise, always return payments directly from the store.
+    // DOM scraping and store updates based on DOM content should not happen here,
+    // as the store is the single source of truth and is updated by specific actions.
+    const storePayments = currentState.results.payments || [];
+    console.log("[DEBUG] collectPayments: Returning current store payments:", JSON.stringify(storePayments));
+    return storePayments;
 }
 
 /**
- * Collects special damages data from the prejudgment table and updates the Zustand store.
+ * Collects special damages data from the Zustand store.
  * If the prejudgment checkbox is unchecked, returns the saved special damages from the store.
  * @returns {Array<object>} Array of special damages objects with date, description, and amount.
  */
 function collectSpecialDamages() {
     const currentState = useStore.getState();
     const showPrejudgment = currentState.inputs.showPrejudgment;
-    
+
+    console.log("[DEBUG] collectSpecialDamages: showPrejudgment =", showPrejudgment);
+    console.log("[DEBUG] collectSpecialDamages: Initial store special damages (before any logic in this function):", JSON.stringify(currentState.results.specialDamages));
+
     // If prejudgment is hidden and we have saved special damages, use those
-    if (!showPrejudgment && 
-        currentState.savedPrejudgmentState && 
-        currentState.savedPrejudgmentState.specialDamages && 
-        currentState.savedPrejudgmentState.specialDamages.length > 0) {
+    if (!showPrejudgment &&
+        currentState.savedPrejudgmentState &&
+        currentState.savedPrejudgmentState.specialDamages) { // Check for existence, not length
         
+        console.log("[DEBUG] collectSpecialDamages: Using saved prejudgment state special damages:", 
+                   JSON.stringify(currentState.savedPrejudgmentState.specialDamages));
         return currentState.savedPrejudgmentState.specialDamages;
     }
     
-    // First check if we have any special damages in the DOM
-    const rows = elements.prejudgmentTableBody.querySelectorAll('.editable-item-row');
-    
-    // If we have rows in the DOM, collect from there
-    if (rows.length > 0) {
-        const specialDamages = [];
-        rows.forEach(row => {
-            const dateInput = row.querySelector('.special-damages-date');
-            const descInput = row.querySelector('.special-damages-description');
-            const amountInput = row.querySelector('.special-damages-amount');
-            
-            if (dateInput && descInput && amountInput) {
-                // Get the date from the input field in YYYY-MM-DD format
-                const dateValue = dateInput.value; // Date is already YYYY-MM-DD from input
-                
-                // No conversion needed, store directly as YYYY-MM-DD
-                
-                const description = descInput.value.trim() || descInput.placeholder;
-                const amount = parseCurrency(amountInput.value);
-                
-                if (dateValue && amount > 0) { // Use dateValue directly
-                    specialDamages.push({
-                        date: dateValue, // Store as YYYY-MM-DD
-                        description,
-                        amount
-                    });
-                }
-            }
-        });
-        
-        // Update Zustand store with the special damages from DOM
-        useStore.getState().setSpecialDamages(specialDamages);
-        return specialDamages;
-    } 
-    // If no rows in DOM but we have damages in the store, preserve those defaults
-    else {
-        const currentSpecialDamages = currentState.results.specialDamages;
-        if (currentSpecialDamages && currentSpecialDamages.length > 0) {
-            return currentSpecialDamages; // Return without overwriting the store
-        }
-        // Otherwise there are no special damages anywhere, return empty array
-        else {
-            return [];
-        }
-    }
+    // Otherwise, always return special damages directly from the store.
+    const storeSpecialDamages = currentState.results.specialDamages || [];
+    console.log("[DEBUG] collectSpecialDamages: Returning current store special damages:", JSON.stringify(storeSpecialDamages));
+    return storeSpecialDamages;
 }
 
 /**
@@ -524,6 +464,8 @@ function recalculate() {
 
     // 2. Collect Payments and Special Damages (needed for both prejudgment calc and totals)
     const payments = collectPayments();
+    console.log("[DEBUG] recalculate: After collectPayments, payments array (raw):", payments);
+    console.log("[DEBUG] recalculate: After collectPayments, payments array (JSON):", JSON.stringify(payments));
     const specialDamages = collectSpecialDamages();
     
     // Calculate the total special damages amount

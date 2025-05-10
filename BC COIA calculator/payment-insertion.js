@@ -18,170 +18,77 @@ import { formatCurrencyForInput } from './utils.currency.js';
  * @returns {Object} Updated state with payment inserted
  */
 export function insertPaymentRecord(state, payment, ratesData) {
-    // Import logger for debugging
-    return import('./util.logger.js').then(logger => {
-        try {
-            logger.debug("Starting insertPaymentRecord with payment:", payment);
-            
-            // Validate payment data
-            if (!validatePayment(payment)) {
-                logger.error('Invalid payment data:', payment);
-                return state;
-            }
+    // Validate payment data
+    if (!validatePayment(payment)) {
+        console.error('Invalid payment data:', payment);
+        return state;
+    }
 
-            // Normalize the payment date to ensure consistent format
-            const paymentDate = typeof payment.date === 'string' 
-                ? parseDateInput(payment.date) 
-                : payment.date;
+    // Normalize the payment date to ensure consistent format
+    const paymentDate = typeof payment.date === 'string' 
+        ? parseDateInput(payment.date) 
+        : payment.date;
 
-            // Get judgment date to determine which table to use
-            const { dateOfJudgment } = state.inputs;
-            const judgmentDate = typeof dateOfJudgment === 'string'
-                ? parseDateInput(dateOfJudgment)
-                : dateOfJudgment;
+    // Get judgment date to determine which table to use
+    const { dateOfJudgment } = state.inputs;
+    const judgmentDate = typeof dateOfJudgment === 'string'
+        ? parseDateInput(dateOfJudgment)
+        : dateOfJudgment;
 
-            // Determine which table to insert the payment into
-            const targetTable = paymentDate <= judgmentDate ? 'prejudgment' : 'postjudgment';
-            logger.info(`Inserting payment of ${payment.amount} on ${formatDateForDisplay(paymentDate)} into ${targetTable} table`);
-            
-            // Create a deep copy of the state to avoid direct mutations
-            const newState = JSON.parse(JSON.stringify(state));
-            
-            // Get the interest table to modify
-            const interestTable = targetTable === 'prejudgment' 
-                ? newState.results.prejudgmentResult.details
-                : newState.results.postjudgmentResult.details;
-            
-            // Log interest table before modification
-            logger.debug(`Interest table before payment insertion has ${interestTable.length} rows`);
-            logger.debug("Existing payment rows:", interestTable.filter(row => row.isPayment).length);
-            
-            // Find the calculation row containing the payment date or determine if payment date is an end date
-            const { containingRow, rowIndex, isExactEndDate } = findCalculationRowForPayment(interestTable, paymentDate);
-            
-            if (!containingRow) {
-                logger.error('Could not find a calculation row for payment date:', paymentDate);
-                return state;
-            }
-            
-            logger.debug(`Found containing row at index ${rowIndex}, isExactEndDate: ${isExactEndDate}`);
-            logger.debug("Containing row:", containingRow);
-            
-            // Create payment record row with placeholder values for interest/principal applied
-            const paymentRowData = createPaymentRow(
-                paymentDate,
-                payment.amount,
-                0, // interestApplied placeholder
-                0  // principalApplied placeholder
-            );
-            
-            logger.debug("Created payment row data:", paymentRowData);
+    // Determine which table to insert the payment into
+    const targetTable = paymentDate <= judgmentDate ? 'prejudgment' : 'postjudgment';
+    console.log(`Inserting payment of ${payment.amount} on ${formatDateForDisplay(paymentDate)} into ${targetTable} table`);
+    
+    // Create a deep copy of the state to avoid direct mutations
+    const newState = JSON.parse(JSON.stringify(state));
+    
+    // Get the interest table to modify
+    const interestTable = targetTable === 'prejudgment' 
+        ? newState.results.prejudgmentResult.details
+        : newState.results.postjudgmentResult.details;
+    
+    // Find the calculation row containing the payment date or determine if payment date is an end date
+    const { containingRow, rowIndex, isExactEndDate } = findCalculationRowForPayment(interestTable, paymentDate);
+    
+    if (!containingRow) {
+        console.error('Could not find a calculation row for payment date:', paymentDate);
+        return state;
+    }
+    
+    // Create payment record row with placeholder values for interest/principal applied
+    // as calculations are out of scope for this specific task.
+    const paymentRowData = createPaymentRow(
+        paymentDate,
+        payment.amount,
+        0, // interestApplied placeholder
+        0  // principalApplied placeholder
+    );
 
-            // Create a deep copy of the containingRow (target row)
-            const duplicatedRow = JSON.parse(JSON.stringify(containingRow));
-            // Optionally, mark the duplicated row for debugging
-            duplicatedRow._isDuplicated = true;
-            
-            logger.debug("Duplicated row created");
+    // Create a deep copy of the containingRow (target row)
+    const duplicatedRow = JSON.parse(JSON.stringify(containingRow));
+    // Optionally, mark the duplicated row if needed for styling or future logic
+    // duplicatedRow.isDuplicate = true; 
 
-            // Insert the paymentRowData and then the duplicatedRow directly after the containingRow
-            // The containingRow (at rowIndex) remains in place.
-            logger.debug(`Inserting payment row at index ${rowIndex + 1}`);
-            interestTable.splice(rowIndex + 1, 0, paymentRowData, duplicatedRow);
-            
-            // Log the table after insertion
-            logger.debug(`Interest table after payment insertion has ${interestTable.length} rows`);
-            logger.debug("Payment rows after insertion:", interestTable.filter(row => row.isPayment).length);
+    // Insert the paymentRowData and then the duplicatedRow directly after the containingRow
+    // The containingRow (at rowIndex) remains in place.
+    interestTable.splice(rowIndex + 1, 0, paymentRowData, duplicatedRow);
 
-            // Add a simplified processed payment to the payments list
-            const processedPayment = {
-                date: paymentDate,
-                dateStr: formatDateForDisplay(paymentDate),
-                amount: payment.amount,
-                segmentIndex: rowIndex
-            };
-            
-            newState.results.payments = newState.results.payments || [];
-            
-            // Check if this payment already exists to avoid duplicates
-            const paymentExists = newState.results.payments.some(p => 
-                p.dateStr === processedPayment.dateStr && 
-                Math.abs(p.amount - processedPayment.amount) < 0.001
-            );
-            
-            if (!paymentExists) {
-                logger.debug("Adding payment to state.results.payments:", processedPayment);
-                newState.results.payments.push(processedPayment);
-            } else {
-                logger.warning("Payment already exists in state, not adding a duplicate");
-            }
-            
-            logger.debug("Final payments array length:", newState.results.payments.length);
-            logger.debug("insertPaymentRecord completed successfully");
-            
-            return newState;
-        } catch (error) {
-            console.error("Error in insertPaymentRecord:", error);
-            return state;
-        }
-    }).catch(error => {
-        console.error("Failed to import logger in insertPaymentRecord:", error);
-        
-        // Fallback to non-instrumented version if logger fails
-        // Validate payment data
-        if (!validatePayment(payment)) {
-            console.error('Invalid payment data:', payment);
-            return state;
-        }
+    // For this specific task, calculation updates (interest application, principal updates, totals) are bypassed.
+    // The functions updateSubsequentPeriods and recalculateTotals are not called here.
 
-        const paymentDate = typeof payment.date === 'string' 
-            ? parseDateInput(payment.date) 
-            : payment.date;
-
-        const { dateOfJudgment } = state.inputs;
-        const judgmentDate = typeof dateOfJudgment === 'string'
-            ? parseDateInput(dateOfJudgment)
-            : dateOfJudgment;
-
-        const targetTable = paymentDate <= judgmentDate ? 'prejudgment' : 'postjudgment';
-        console.log(`Inserting payment of ${payment.amount} on ${formatDateForDisplay(paymentDate)} into ${targetTable} table`);
-        
-        const newState = JSON.parse(JSON.stringify(state));
-        
-        const interestTable = targetTable === 'prejudgment' 
-            ? newState.results.prejudgmentResult.details
-            : newState.results.postjudgmentResult.details;
-        
-        const { containingRow, rowIndex, isExactEndDate } = findCalculationRowForPayment(interestTable, paymentDate);
-        
-        if (!containingRow) {
-            console.error('Could not find a calculation row for payment date:', paymentDate);
-            return state;
-        }
-        
-        const paymentRowData = createPaymentRow(
-            paymentDate,
-            payment.amount,
-            0,
-            0
-        );
-
-        const duplicatedRow = JSON.parse(JSON.stringify(containingRow));
-        
-        interestTable.splice(rowIndex + 1, 0, paymentRowData, duplicatedRow);
-
-        const processedPayment = {
-            date: paymentDate,
-            dateStr: formatDateForDisplay(paymentDate),
-            amount: payment.amount,
-            segmentIndex: rowIndex
-        };
-        
-        newState.results.payments = newState.results.payments || [];
-        newState.results.payments.push(processedPayment);
-        
-        return newState;
-    });
+    // Add a simplified processed payment to the payments list
+    const processedPayment = {
+        date: paymentDate,
+        dateStr: formatDateForDisplay(paymentDate),
+        amount: payment.amount,
+        // interestApplied, principalApplied, remainingPrincipal are omitted as per task scope
+        segmentIndex: rowIndex // Keep segmentIndex if it's useful for other parts
+    };
+    
+    newState.results.payments = newState.results.payments || [];
+    newState.results.payments.push(processedPayment);
+    
+    return newState;
 }
 
 /**

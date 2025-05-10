@@ -5,8 +5,10 @@
 ## 1. Non-Obvious Discoveries & Key Learnings
 
 *   **Event-Driven Recalculation Impact:** A critical discovery during debugging was the interaction between direct DOM manipulation (like adding a special damages row) and the application's event-driven recalculation (`recalculate()` triggered by `special-damages-updated`). Adding a row to the DOM and immediately triggering an event that caused `updateInterestTable` to run (which clears and rebuilds the table from store data) led to the newly added DOM row being lost before it could be properly persisted or interacted with.
-*   **Store Synchronization:** Simply adding a row to the DOM is insufficient. The corresponding data must be added to the Zustand store (`useStore.getState().addSpecialDamage()`) *before* the `special-damages-updated` event is dispatched. This ensures the data exists in the central state when the table is rebuilt.
-*   **Race Condition Mitigation:** To prevent the table rebuild from interfering with the immediate DOM update (like adding a row), a temporary global flag (`window._isSpecialDamagesAddInProgress`) was introduced. This flag is checked in the `tables.interest.js` facade to skip the `coreUpdateInterestTable` call if a row addition is in progress, allowing the DOM update to complete visually before the full table rebuild occurs shortly after.
+*   **Store Synchronization (Source of Truth):** A fundamental principle is that the **Zustand store is the single source of truth.**
+    *   Simply adding a row to the DOM is insufficient. The corresponding data (e.g., for special damages or payments) must be added to the Zustand store (e.g., `useStore.getState().addSpecialDamage()`, `useStore.getState().addPayment()`) *before* any related update events (like `special-damages-updated` or `payment-updated`) are dispatched. This ensures the data exists in the central state when the table is rebuilt during the subsequent `recalculate()` cycle.
+    *   Functions that collect data for table rendering or calculation (e.g., `getExistingSpecialDamages`, `getExistingPayments` in `rowSorting.js`, or `collectPayments`/`collectSpecialDamages` in `calculator.core.js`) **must read directly from the store.** They should not scrape data from the DOM and then update the store during a recalculation cycle, as this can overwrite valid store changes that haven't yet been rendered, leading to data loss or inconsistent state.
+*   **Race Condition Mitigation (Special Damages Example):** To prevent the table rebuild from interfering with the immediate DOM update when adding a special damages row, a temporary global flag (`window._isSpecialDamagesAddInProgress`) was introduced. This flag is checked in the `tables.interest.js` facade to skip the `coreUpdateInterestTable` call if a row addition is in progress, allowing the DOM update to complete visually before the full table rebuild occurs shortly after. A similar consideration for data integrity (store first, then event) applies to payment additions.
 
 ## 2. Architectural Patterns & Relationships
 
@@ -20,8 +22,13 @@
 
 ## 3. Potential Pitfalls & Edge Cases
 
-*   **Timing Issues:** Modifying the table DOM and triggering recalculation events requires careful sequencing to avoid race conditions or losing transient DOM state (like the newly added special damages row). The flag mechanism is crucial here.
-*   **DOM vs. Store Discrepancies:** Relying solely on DOM scraping (`getExistingSpecialDamages` in `rowSorting.js`) can be brittle. The logic now prioritizes DOM data but falls back to store data if the DOM is empty, which helps during initial load or after a clear operation. Ensure data updates consistently reflect in both the store and the relevant DOM inputs.
+*   **Timing Issues & Store Integrity:**
+    *   Modifying the table DOM and triggering recalculation events requires careful sequencing. Always update the Zustand store with new data (e.g., new special damage, new payment) *before* dispatching any event that triggers `recalculate()`.
+    *   Avoid patterns where data collection functions (e.g., `collectPayments`, `collectSpecialDamages` in `calculator.core.js`) read from the DOM and then write back to the store during a `recalculate()` cycle. This can inadvertently overwrite new data that was added to the store but not yet rendered to the DOM. These collection functions should primarily be *readers* of the store state during recalculation.
+    *   The `window._isSpecialDamagesAddInProgress` flag is an example of managing timing for visual updates vs. full recalculations.
+*   **DOM vs. Store Discrepancies (Source of Truth Adherence):** The primary source of truth for table rendering data (special damages, payments, interest period details) is the Zustand store.
+    *   While `getExistingSpecialDamages` in `rowSorting.js` might have logic to read from the DOM as a fallback or for specific UI interactions, the core data for rebuilding tables during `updateInterestTable` comes from the `resultState` (derived from the store) passed into it.
+    *   Ensure that any user interactions that modify data (e.g., editing a special damage amount in a DOM input) correctly update the Zustand store, which then triggers a re-render.
 *   **Insertion Index Calculation:** Calculating the correct index to insert sorted rows (`findInsertionIndex` in `rowSorting.js`) is complex due to different row types (interest periods, special damages, payments) and specific sorting rules based on date and type precedence. Errors here can lead to incorrectly ordered tables.
 *   **Dynamic Imports:** The "add special damages" button relies on a dynamic import (`await import('./specialDamages.js')`). Failures in loading this module will break the button functionality.
 

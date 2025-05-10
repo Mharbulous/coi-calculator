@@ -1,95 +1,135 @@
-// Enhanced logger utility for debugging
-
 /**
- * Levels:
- * 0 = Off
- * 1 = Error only
- * 2 = Warning and Error
- * 3 = Info, Warning, and Error
- * 4 = Debug, Info, Warning, and Error
- * 5 = Trace, Debug, Info, Warning, and Error
+ * Utility for managing console logging and suppressing third-party noise
  */
-const logLevel = 5; // Set to highest level for debugging the payment issue
 
-const logStyles = {
-    error: 'color: red; font-weight: bold',
-    warning: 'color: orange; font-weight: bold',
-    info: 'color: blue',
-    debug: 'color: green',
-    trace: 'color: gray'
+// Debug mode flag - ENABLED for troubleshooting
+const DEBUG_MODE = true;
+
+// Original console methods we'll restore if needed
+const originalConsole = {
+  log: console.log,
+  warn: console.warn,
+  error: console.error,
+  info: console.info,
+  debug: console.debug || console.log
 };
 
+// List of patterns for logs we want to suppress
+const suppressPatterns = [
+  // Stripe-related messages
+  'r.stripe.com/b',
+  'Failed to fetch',
+  'ERR_BLOCKED_BY_CLIENT',
+  'FetchError',
+  
+  // Third-party analytics messages
+  'excerpt.js',
+  'container root created',
+  
+  // General browser messages we don't need to see
+  'moving towards a new experience',
+  'third-party cookies',
+  
+  // Add more patterns as needed
+];
+
 /**
- * Log an error message
- * @param {string} message - The message to log
- * @param {any} data - Optional data to log
+ * Filter function to determine if a log should be suppressed
+ * @param {Array} args - Arguments passed to the console method
+ * @returns {boolean} - True if the log should be suppressed
  */
-export function error(message, data = null) {
-    if (logLevel >= 1) {
-        if (data) {
-            console.error(`%c${message}`, logStyles.error, data);
-        } else {
-            console.error(`%c${message}`, logStyles.error);
-        }
-    }
+function shouldSuppressLog(args) {
+  // Convert all arguments to strings and check for our patterns
+  const logString = Array.from(args).map(arg => 
+    typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+  ).join(' ');
+  
+  return suppressPatterns.some(pattern => logString.includes(pattern));
 }
 
 /**
- * Log a warning message
- * @param {string} message - The message to log
- * @param {any} data - Optional data to log
+ * Override console methods to filter out noise from third-party scripts
  */
-export function warning(message, data = null) {
-    if (logLevel >= 2) {
-        if (data) {
-            console.warn(`%c${message}`, logStyles.warning, data);
-        } else {
-            console.warn(`%c${message}`, logStyles.warning);
-        }
+export function setupLogFiltering() {
+  // Wrap console.log
+  console.log = function(...args) {
+    if (!shouldSuppressLog(args)) {
+      originalConsole.log.apply(console, args);
     }
+  };
+  
+  // Wrap console.warn
+  console.warn = function(...args) {
+    if (!shouldSuppressLog(args)) {
+      originalConsole.warn.apply(console, args);
+    }
+  };
+  
+  // Wrap console.error - only suppress certain errors
+  console.error = function(...args) {
+    if (!shouldSuppressLog(args)) {
+      originalConsole.error.apply(console, args);
+    }
+  };
+  
+  // Wrap console.info
+  console.info = function(...args) {
+    if (!shouldSuppressLog(args)) {
+      originalConsole.info.apply(console, args);
+    }
+  };
 }
 
 /**
- * Log an info message
- * @param {string} message - The message to log
- * @param {any} data - Optional data to log
+ * Restore original console behavior
  */
-export function info(message, data = null) {
-    if (logLevel >= 3) {
-        if (data) {
-            console.log(`%c${message}`, logStyles.info, data);
-        } else {
-            console.log(`%c${message}`, logStyles.info);
-        }
-    }
+export function restoreConsole() {
+  console.log = originalConsole.log;
+  console.warn = originalConsole.warn;
+  console.error = originalConsole.error;
+  console.info = originalConsole.info;
 }
 
 /**
- * Log a debug message
- * @param {string} message - The message to log
- * @param {any} data - Optional data to log
+ * Add a new pattern to suppress
+ * @param {string} pattern - Text pattern to match for suppression
  */
-export function debug(message, data = null) {
-    if (logLevel >= 4) {
-        if (data) {
-            console.log(`%c${message}`, logStyles.debug, data);
-        } else {
-            console.log(`%c${message}`, logStyles.debug);
-        }
-    }
+export function addSuppressPattern(pattern) {
+  if (!suppressPatterns.includes(pattern)) {
+    suppressPatterns.push(pattern);
+  }
 }
 
 /**
- * Log a trace message
+ * Debug logging function with location tracking
  * @param {string} message - The message to log
- * @param {any} data - Optional data to log
+ * @param {...any} optionalParams - Additional parameters to log
  */
-export function trace(message, data = null) {
-    if (logLevel >= 5) {
-        if (data) {
-            console.log(`%c${message}`, logStyles.trace, data);
-        } else {
-            console.log(`%c${message}`, logStyles.trace);
-        }
+export function debug(message, ...optionalParams) {
+  if (DEBUG_MODE) {
+    try {
+      const stack = new Error().stack;
+      const callerInfo = stack.split('\n')[2] || '';
+      const fileMatch = callerInfo.match(/\((.*?)\:(\d+)\:(\d+)\)/) || 
+                       callerInfo.match(/@(.*?)\:(\d+)\:(\d+)/);
+      
+      let location = 'unknown';
+      if (fileMatch && fileMatch.length >= 4) {
+        const filePath = fileMatch[1];
+        const lineNumber = fileMatch[2];
+        const fileName = filePath.split('/').pop();
+        location = `${fileName}:${lineNumber}`;
+      }
+      
+      originalConsole.log(`[DEBUG ${location}]`, message, ...optionalParams);
+    } catch (e) {
+      // Fall back to simple logging if stack trace fails
+      originalConsole.log('[DEBUG]', message, ...optionalParams);
     }
+  }
 }
+
+// Export a logger object for convenience
+export const logger = {
+  debug
+};

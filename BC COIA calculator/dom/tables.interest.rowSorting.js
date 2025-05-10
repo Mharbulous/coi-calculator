@@ -1,6 +1,7 @@
 // BC COIA calculator/dom/tables.interest.rowSorting.js
 import { parseDateInput, datesEqual, formatDateForDisplay, normalizeDate } from '../utils.date.js';
 import useStore from '../store.js';
+import { logger } from '../util.logger.js'; // Import for enhanced debugging
 import { insertSpecialDamagesRowFromData } from './specialDamages.js';
 import { insertPaymentRowFromData } from './payments.js';
 
@@ -39,194 +40,118 @@ function getExistingSpecialDamages(tableBody, isPrejudgmentTable) {
 
 // Helper function to get existing payments from store
 function getExistingPayments(isPrejudgmentTable) {
-    return import('../util.logger.js').then(logger => {
-        const existingPayments = [];
-        if (isPrejudgmentTable) {
-            const state = useStore.getState();
-            
-            logger.debug('Getting existing payments from store');
-            
-            if (state.results.payments && state.results.payments.length > 0) {
-                logger.debug(`Found ${state.results.payments.length} payments in store`);
-                
-                state.results.payments.forEach((payment, index) => {
-                    logger.debug(`Processing payment ${index}:`, payment);
-                    existingPayments.push({
-                        date: payment.date,
-                        amount: payment.amount.toString()
-                    });
+    const existingPayments = [];
+    if (isPrejudgmentTable) {
+        const state = useStore.getState();
+        console.log("[DEBUG] getExistingPayments: Checking store for payments, isPrejudgmentTable:", isPrejudgmentTable);
+        if (state.results.payments && state.results.payments.length > 0) {
+            console.log("[DEBUG] getExistingPayments: Found payments in store (raw):", state.results.payments);
+            console.log("[DEBUG] getExistingPayments: Detailed payments list (JSON):", JSON.stringify(state.results.payments));
+            state.results.payments.forEach(payment => {
+                existingPayments.push({
+                    date: payment.date,
+                    amount: payment.amount.toString()
                 });
-            } else {
-                logger.debug('No payments found in store');
-            }
+            });
         } else {
-            logger.debug('Not looking for payments (not prejudgment table)');
+            console.log("[DEBUG] getExistingPayments: No payments found in store or empty array");
         }
-        
-        logger.debug('Existing payments result:', existingPayments);
-        return existingPayments;
-    }).catch(error => {
-        console.error("Error importing logger:", error);
-        
-        // Fallback to non-instrumented version
-        const existingPayments = [];
-        if (isPrejudgmentTable) {
-            const state = useStore.getState();
-            if (state.results.payments && state.results.payments.length > 0) {
-                state.results.payments.forEach(payment => {
-                    existingPayments.push({
-                        date: payment.date,
-                        amount: payment.amount.toString()
-                    });
-                });
-            }
-        }
-        return existingPayments;
-    });
+    } else {
+        console.log("[DEBUG] getExistingPayments: Not a prejudgment table, skipping payment collection");
+    }
+    console.log("[DEBUG] getExistingPayments: Returning payments:", existingPayments);
+    return existingPayments;
 }
 
 export function collectAndSortRows(tableBody, details, resultState, isPrejudgmentTable, finalPeriodStartDateStr, finalPeriodDamageInterestDetails) {
-    // Import logger and use async/await to handle the Promise from getExistingPayments
-    import('../util.logger.js').then(async (logger) => {
-        try {
-            if (!isPrejudgmentTable) {
-                logger.debug("Not a prejudgment table, skipping collectAndSortRows");
-                return; // Sorting logic is primarily for prejudgment
-            }
+    console.log("[DEBUG] collectAndSortRows: Starting with tableBody ID:", tableBody.id, "isPrejudgmentTable:", isPrejudgmentTable);
+    
+    if (!isPrejudgmentTable) {
+        console.log("[DEBUG] collectAndSortRows: Not a prejudgment table, exiting early");
+        return; // Sorting logic is primarily for prejudgment
+    }
 
-            logger.debug("Starting collectAndSortRows");
-            
-            const existingSpecialDamagesRows = getExistingSpecialDamages(tableBody, isPrejudgmentTable);
-            logger.debug(`Found ${existingSpecialDamagesRows.length} special damages rows`);
-            
-            // Get payments as async operation
-            const existingPayments = await getExistingPayments(isPrejudgmentTable);
-            logger.debug(`Retrieved ${existingPayments.length} payment rows from async function`);
+    const existingSpecialDamagesRows = getExistingSpecialDamages(tableBody, isPrejudgmentTable);
+    console.log("[DEBUG] collectAndSortRows: Retrieved existingSpecialDamagesRows:", existingSpecialDamagesRows.length);
+    
+    const existingPayments = getExistingPayments(isPrejudgmentTable);
+    console.log("[DEBUG] collectAndSortRows: Retrieved existingPayments:", existingPayments.length);
 
-            if (existingSpecialDamagesRows.length === 0 && existingPayments.length === 0) {
-                logger.debug("No special damages or payments to process, exiting");
-                return; // No special damages or payments to process
-            }
-            
-            // `finalPeriodStartDateStr` is passed from core, it's the start date of the last interest period.
-            // We need to parse it if it's used for `insertSpecialDamagesRowFromData`.
-            const finalPeriodStartDate = finalPeriodStartDateStr ? parseDateInput(finalPeriodStartDateStr) : null;
-            const mutableFinalPeriodDetails = [...(finalPeriodDamageInterestDetails || [])];
+    if (existingSpecialDamagesRows.length === 0 && existingPayments.length === 0) {
+        console.log("[DEBUG] collectAndSortRows: No special damages or payments to process, exiting");
+        return; // No special damages or payments to process
+    }
+    
+    // `finalPeriodStartDateStr` is passed from core, it's the start date of the last interest period.
+    // We need to parse it if it's used for `insertSpecialDamagesRowFromData`.
+    const finalPeriodStartDate = finalPeriodStartDateStr ? parseDateInput(finalPeriodStartDateStr) : null;
+    const mutableFinalPeriodDetails = [...(finalPeriodDamageInterestDetails || [])];
 
-            logger.debug("Mapping rows for insertion");
-            const allRowsToInsert = [
-                ...existingSpecialDamagesRows.map(rowData => ({
-                    date: parseDateInput(rowData.date),
-                    dateStr: rowData.date,
-                    isSpecialDamage: true,
-                    isPayment: false,
-                    rowData
-                })),
-                ...existingPayments.map(rowData => ({
-                    date: parseDateInput(rowData.date),
-                    dateStr: rowData.date,
-                    isSpecialDamage: false,
-                    isPayment: true,
-                    rowData
-                }))
-            ].filter(item => item.date !== null);
-            
-            logger.debug(`After filtering, ${allRowsToInsert.length} rows ready for insertion`);
 
-            allRowsToInsert.sort((a, b) => {
-                const dateComparison = a.date - b.date;
-                if (dateComparison === 0) {
-                    // Order: Special Damage (true = 1) before Payment (false = 0) if types differ
-                    if (a.isPayment && !b.isPayment) return -1; // Payment a comes before Special Damage b
-                    if (!a.isPayment && b.isPayment) return 1;  // Special Damage a comes after Payment b
-                    return 0; // Same type
-                }
-                return dateComparison;
-            });
+    const allRowsToInsert = [
+        ...existingSpecialDamagesRows.map(rowData => ({
+            date: parseDateInput(rowData.date),
+            dateStr: rowData.date,
+            isSpecialDamage: true,
+            isPayment: false,
+            rowData
+        })),
+        ...existingPayments.map(rowData => ({
+            date: parseDateInput(rowData.date),
+            dateStr: rowData.date,
+            isSpecialDamage: false,
+            isPayment: true,
+            rowData
+        }))
+    ].filter(item => item.date !== null);
 
-            logger.debug("Sorted rows, processing for insertion");
-            
-            for (const rowToInsert of allRowsToInsert) {
-                const insertIndex = findInsertionIndex(tableBody, rowToInsert.date, rowToInsert.isSpecialDamage, rowToInsert.isPayment);
-                
-                logger.debug(`Inserting ${rowToInsert.isPayment ? 'payment' : 'special damage'} at index ${insertIndex}`);
-                
-                if (rowToInsert.isSpecialDamage) {
-                    insertSpecialDamagesRowFromData(
-                        tableBody,
-                        insertIndex,
-                        rowToInsert.rowData,
-                        finalPeriodStartDate,
-                        mutableFinalPeriodDetails
-                    );
-                } else if (rowToInsert.isPayment) {
-                    const insertedPaymentRow = insertPaymentRowFromData(
-                        tableBody,
-                        insertIndex,
-                        rowToInsert.rowData
-                    );
-                    
-                    if (insertedPaymentRow) {
-                        logger.debug("Payment row inserted, handling row duplication");
-                        handleRowDuplicationAfterPayment(insertedPaymentRow, tableBody, insertIndex);
-                    } else {
-                        logger.error("Failed to insert payment row");
-                    }
-                }
-            }
-            
-            logger.debug("collectAndSortRows completed");
-            
-        } catch (error) {
-            console.error("Error in collectAndSortRows:", error);
+    allRowsToInsert.sort((a, b) => {
+        const dateComparison = a.date - b.date;
+        if (dateComparison === 0) {
+            // Order: Special Damage (true = 1) before Payment (false = 0) if types differ
+            // This means if a is SD and b is Payment, a comes first.
+            // If a is Payment and b is SD, b comes first.
+            // The original sort was:
+            // if (a.isSpecialDamage && !b.isSpecialDamage) return 1; (SD after non-SD, which means payment first)
+            // if (!a.isSpecialDamage && b.isSpecialDamage) return -1; (non-SD before SD, which means payment first)
+            // This seems to prioritize payments over special damages on the same day.
+            // Let's stick to the original logic: Payments first, then Special Damages.
+            if (a.isPayment && !b.isPayment) return -1; // Payment a comes before Special Damage b
+            if (!a.isPayment && b.isPayment) return 1;  // Special Damage a comes after Payment b
+            return 0; // Same type or neither is payment/SD (should not happen here)
         }
-    }).catch(error => {
-        console.error("Error importing logger in collectAndSortRows:", error);
-        
-        // Fallback non-instrumented version
-        if (!isPrejudgmentTable) return;
-
-        const existingSpecialDamagesRows = getExistingSpecialDamages(tableBody, isPrejudgmentTable);
-        
-        // Since getExistingPayments now returns a Promise, we need to handle it differently
-        // in the fallback. For simplicity, we'll just use an empty array
-        const existingPayments = [];
-        
-        if (existingSpecialDamagesRows.length === 0 && existingPayments.length === 0) {
-            return;
-        }
-        
-        const finalPeriodStartDate = finalPeriodStartDateStr ? parseDateInput(finalPeriodStartDateStr) : null;
-        const mutableFinalPeriodDetails = [...(finalPeriodDamageInterestDetails || [])];
-
-        const allRowsToInsert = [
-            ...existingSpecialDamagesRows.map(rowData => ({
-                date: parseDateInput(rowData.date),
-                dateStr: rowData.date,
-                isSpecialDamage: true,
-                isPayment: false,
-                rowData
-            }))
-        ].filter(item => item.date !== null);
-
-        allRowsToInsert.sort((a, b) => {
-            return a.date - b.date;
-        });
-
-        for (const rowToInsert of allRowsToInsert) {
-            const insertIndex = findInsertionIndex(tableBody, rowToInsert.date, rowToInsert.isSpecialDamage, rowToInsert.isPayment);
-            
-            if (rowToInsert.isSpecialDamage) {
-                insertSpecialDamagesRowFromData(
-                    tableBody,
-                    insertIndex,
-                    rowToInsert.rowData,
-                    finalPeriodStartDate,
-                    mutableFinalPeriodDetails
-                );
-            }
-        }
+        return dateComparison;
     });
+
+    for (const rowToInsert of allRowsToInsert) {
+        const insertIndex = findInsertionIndex(tableBody, rowToInsert.date, rowToInsert.isSpecialDamage, rowToInsert.isPayment);
+        console.log("[DEBUG] collectAndSortRows: For row type:", rowToInsert.isPayment ? "Payment" : "Special Damage", 
+                   "date:", rowToInsert.dateStr, "found insertIndex:", insertIndex);
+        
+        if (rowToInsert.isSpecialDamage) {
+            console.log("[DEBUG] collectAndSortRows: Inserting special damage row with data:", rowToInsert.rowData);
+            insertSpecialDamagesRowFromData(
+                tableBody,
+                insertIndex,
+                rowToInsert.rowData,
+                finalPeriodStartDate, // This is the parsed date object
+                mutableFinalPeriodDetails
+            );
+        } else if (rowToInsert.isPayment) {
+            console.log("[DEBUG] collectAndSortRows: Inserting payment row with data:", rowToInsert.rowData);
+            const insertedPaymentRow = insertPaymentRowFromData(
+                tableBody,
+                insertIndex,
+                rowToInsert.rowData
+            );
+            console.log("[DEBUG] collectAndSortRows: Result of insertPaymentRowFromData:", insertedPaymentRow ? "Row inserted" : "No row inserted");
+            
+            if (insertedPaymentRow) {
+                console.log("[DEBUG] collectAndSortRows: Calling handleRowDuplicationAfterPayment for inserted payment row");
+                handleRowDuplicationAfterPayment(insertedPaymentRow, tableBody, insertIndex);
+            }
+        }
+    }
 }
 
 export function findInsertionIndex(tableBody, dateToInsert, isSpecialDamage, isPayment) {
@@ -302,6 +227,16 @@ export function findInsertionIndex(tableBody, dateToInsert, isSpecialDamage, isP
 }
 
 export function handleRowDuplicationAfterPayment(insertedPaymentRow, tableBody, insertIndex) {
+    console.log("[DEBUG] handleRowDuplicationAfterPayment: Starting with insertedPaymentRow:", insertedPaymentRow, 
+                "tableBody rowCount:", tableBody.rows.length, "original insertIndex:", insertIndex);
+    
+    // Detailed check of the insertedPaymentRow to verify it's a valid row
+    console.log("[DEBUG] handleRowDuplicationAfterPayment: Payment row details:", 
+                "instanceof HTMLTableRowElement:", insertedPaymentRow instanceof HTMLTableRowElement,
+                "className:", insertedPaymentRow?.className,
+                "nodeType:", insertedPaymentRow?.nodeType,
+                "parentNode:", insertedPaymentRow?.parentNode);
+    
     // The original logic for insertIndex for duplication was `tableBody.rows[insertIndex -1]`
     // If insertIndex is where the payment row IS, then the row before it is `insertIndex -1` if insertIndex > 0.
     // If payment row was inserted at index `idx`, it is now `tableBody.rows[idx]`.
@@ -310,21 +245,34 @@ export function handleRowDuplicationAfterPayment(insertedPaymentRow, tableBody, 
 
     // Find the actual index of the insertedPaymentRow as DOM might have shifted
     let actualPaymentRowIndex = -1;
+    console.log("[DEBUG] handleRowDuplicationAfterPayment: Trying to find payment row index in tableBody.rows");
     for(let i=0; i < tableBody.rows.length; i++) {
+        console.log(`[DEBUG] handleRowDuplicationAfterPayment: Checking row ${i}, same as insertedPaymentRow:`, 
+                    tableBody.rows[i] === insertedPaymentRow,
+                    "row class:", tableBody.rows[i].className);
         if (tableBody.rows[i] === insertedPaymentRow) {
             actualPaymentRowIndex = i;
             break;
         }
     }
+    console.log("[DEBUG] handleRowDuplicationAfterPayment: Found actualPaymentRowIndex:", actualPaymentRowIndex);
 
     if (actualPaymentRowIndex > 0) {
         const targetRowElement = tableBody.rows[actualPaymentRowIndex - 1];
+        console.log("[DEBUG] handleRowDuplicationAfterPayment: Target row for duplication:", targetRowElement);
+        console.log("[DEBUG] handleRowDuplicationAfterPayment: Target row classes:", targetRowElement.className);
+        console.log("[DEBUG] handleRowDuplicationAfterPayment: Target row innerHTML:", targetRowElement.innerHTML);
+
         // Ensure target is an interest calculation row (not SD or another payment)
         if (targetRowElement && 
             !targetRowElement.classList.contains('editable-item-row') &&
             !targetRowElement.classList.contains('payment-row')) {
+            console.log("[DEBUG] handleRowDuplicationAfterPayment: Attempting to duplicate target row");
+            
             try {
                 const duplicatedRowElement = targetRowElement.cloneNode(true);
+                console.log("[DEBUG] handleRowDuplicationAfterPayment: Successfully cloned target row");
+                console.log("[DEBUG] handleRowDuplicationAfterPayment: Duplicated row innerHTML:", duplicatedRowElement.innerHTML);
                 
                 // Re-attach click event listener to "add special damages" button in the cloned row
                 const addButton = duplicatedRowElement.querySelector('.add-special-damages-btn');

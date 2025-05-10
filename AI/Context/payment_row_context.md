@@ -35,6 +35,13 @@ The payment row implementation spans multiple files and follows a separation of 
 
 ## Non-Obvious Implementation Details
 
+### State Management: Store as Single Source of Truth
+
+A critical architectural principle is that the **Zustand store is the single source of truth** for all application data, including payments.
+-   **One-Way Data Flow**: Data primarily flows from the store to the DOM. UI elements should render based on the current store state.
+-   **DOM-to-Store Updates**: Updates to the store based on DOM input (e.g., editing a payment amount) should only occur as a direct result of explicit user actions (e.g., an `onchange` event on an input field that calls a store action).
+-   **Recalculation Cycle Integrity**: During a `recalculate()` cycle, functions that gather data (like `collectPayments`) must read directly from the store. They **must not** read from the DOM and then update the store, as this can overwrite recent, valid store changes that haven't yet been rendered to the DOM, leading to data loss or inconsistent states. The store must be updated *before* any events are dispatched that would trigger a recalculation based on that new state.
+
 ### Default Payment Record
 
 When the application is reset with default values (`resetStore(true)`), a default payment record is included:
@@ -157,7 +164,9 @@ This implementation follows a clean, functional approach with immutable state up
 
 ## Common Pitfalls
 
-1. **HTML Tag Display:** Using `textContent` instead of `innerHTML` for currency display will show raw HTML.
+1.  **Store vs. DOM Synchronization (Anti-Pattern)**: **Never read data from the DOM to update the store during a general recalculation or rendering cycle.** For example, a function like `collectPayments` if called during `recalculate()`, should fetch payment data *only* from the Zustand store. Reading from DOM rows and then calling `store.setResult('payments', ...)` with that DOM-derived data at this stage is an anti-pattern that can erase legitimate store updates (e.g., a newly added payment via `store.addPayment()`) before they are rendered. The store is the source of truth.
+
+2.  **HTML Tag Display:** Using `textContent` instead of `innerHTML` for currency display will show raw HTML.
 
 2. **Event Coordination:** Changes to payment amounts must trigger recalculation events.
 
@@ -193,7 +202,7 @@ The store provides several actions for managing payments:
 - `savePrejudgmentState()`: Saves the current payments when toggling prejudgment off
 - `restorePrejudgmentState()`: Restores saved payments when toggling prejudgment on
 
-When working with payments, always use these store actions to ensure consistent state management.
+When working with payments, always use these store actions to ensure consistent state management. **Critically, ensure that any function responsible for gathering payment data for calculation or rendering purposes (e.g., `collectPayments` in `calculator.core.js`) reads directly from `store.getState().results.payments` and does not attempt to overwrite this store data by reading from the DOM during a recalculation cycle.**
 
 ## Related Documentation
 

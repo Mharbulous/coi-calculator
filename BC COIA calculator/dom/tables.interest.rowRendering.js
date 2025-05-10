@@ -3,6 +3,7 @@ import { parseDateInput, formatDateForDisplay, normalizeDate, calculateMidpointD
 import { formatCurrencyForDisplay } from '../utils.currency.js';
 import elements from './elements.js'; // Needed for footer updates
 import useStore from '../store.js'; // Potentially for "add special damages" context or footer
+import { logger } from '../util.logger.js'; // Import for enhanced debugging
 
 // Note: insertSpecialDamagesRow is imported dynamically in createAndAddSpecialDamagesButton
 
@@ -155,63 +156,49 @@ export function createAndAddSpecialDamagesButton(descriptionContainer, item, tab
         event.preventDefault();
         
         try {
-            // Import logger for debugging
-            import('../util.logger.js').then((logger) => {
-                logger.debug("Payment option clicked - Starting payment insertion process");
+            const state = useStore.getState();
+            
+            console.log("[DEBUG] Payment option clicked. Starting payment creation process.");
+            
+            // Get row start and end dates for the midpoint calculation
+            const rowStartDate = parseDateInput(item.start);
+            const rowEndDate = parseDateInput(item._endDate);
+            console.log("[DEBUG] Row dates for calculation:", { start: item.start, end: item._endDate, parsedStart: rowStartDate, parsedEnd: rowEndDate });
+            
+            // Calculate midpoint date between row start and end dates
+            const midpointDate = calculateMidpointDate(rowStartDate, rowEndDate);
+            console.log("[DEBUG] Calculated midpoint date:", midpointDate);
+            
+            if (midpointDate) {
+                // Format date for display
+                const formattedDate = formatDateForDisplay(midpointDate);
+                console.log("[DEBUG] Formatted midpoint date:", formattedDate);
                 
-                const state = useStore.getState();
+                // Get current payments before adding
+                console.log("[DEBUG] Current payments in store BEFORE adding (raw):", state.results.payments);
+                console.log("[DEBUG] Current payments in store BEFORE adding (JSON):", JSON.stringify(state.results.payments));
                 
-                // Get row start and end dates for the midpoint calculation
-                const rowStartDate = parseDateInput(item.start);
-                const rowEndDate = parseDateInput(item._endDate);
+                // Add payment to the store with zero amount
+                const newPayment = { date: formattedDate, amount: 0.00 };
+                console.log("[DEBUG] Detailed payment being added (JSON):", JSON.stringify(newPayment));
+                state.addPayment(newPayment);
                 
-                logger.debug("Row dates for payment:", { 
-                    start: item.start, 
-                    parsedStart: rowStartDate, 
-                    end: item._endDate, 
-                    parsedEnd: rowEndDate 
-                });
+                // Check if payment was added to store
+                console.log("[DEBUG] Current payments in store AFTER adding (raw):", state.results.payments);
+                console.log("[DEBUG] Current payments in store AFTER adding (JSON):", JSON.stringify(state.results.payments));
                 
-                // Calculate midpoint date between row start and end dates
-                const midpointDate = calculateMidpointDate(rowStartDate, rowEndDate);
+                console.log(`Payment placeholder added: $0.00 on ${formattedDate}`);
                 
-                if (midpointDate) {
-                    // Format date for display
-                    const formattedDate = formatDateForDisplay(midpointDate);
-                    
-                    logger.debug("Adding payment to store:", { date: formattedDate, amount: 0.00 });
-                    
-                    // Add payment to the store with zero amount
-                    state.addPayment({
-                        date: formattedDate,
-                        amount: 0.00
-                    });
-                    
-                    logger.info(`Payment placeholder added: $0.00 on ${formattedDate}`);
-                    
-                    // Get payments from state after addition to verify it was added
-                    const paymentsAfterAdd = state.results.payments;
-                    logger.debug("Payments in store after addition:", paymentsAfterAdd);
-                    
-                    // Log the DOM state before triggering event
-                    logger.debug("Current table rows before recalculation:", tableBody.rows.length);
-                    
-                    // Trigger recalculation
-                    logger.debug("Dispatching payment-updated event");
-                    const updateEvent = new CustomEvent('payment-updated');
-                    document.dispatchEvent(updateEvent);
-                } else {
-                    logger.error("Failed to calculate midpoint date for payment", { 
-                        rowStartDate, 
-                        rowEndDate 
-                    });
-                }
-                
-                // Close dropdown by blurring the button
-                dropdownButton.blur();
-            }).catch(e => {
-                console.error("Failed to import logger:", e);
-            });
+                // Trigger recalculation
+                console.log("[DEBUG] Dispatching payment-updated event");
+                const event = new CustomEvent('payment-updated');
+                document.dispatchEvent(event);
+            } else {
+                console.error("Failed to calculate midpoint date for payment", rowStartDate, rowEndDate);
+            }
+            
+            // Close dropdown by blurring the button
+            dropdownButton.blur();
         } catch (e) {
             console.error("Failed to add payment:", e);
         }
