@@ -172,7 +172,7 @@ This implementation follows a clean, functional approach with immutable state up
 
 3. **Input References:** Be careful with variable references - ensure the correct inputs are focused.
 
-4. **Row Classification:** Interest tables contain multiple row types that need different styling and event handling.
+4. **Row Classification:** Interest tables contain multiple row types (interest periods, special damages, payments). While the goal is a unified visual style for special damages and payment rows (differing primarily in content), these row types still have distinct CSS classes (e.g., `payment-row`, `editable-item-row`) and require different JavaScript-driven event handling and content rendering logic.
 
 5. **Split Implementation:** Remember that payment row creation spans multiple files, so changes often need to be made in multiple places.
 
