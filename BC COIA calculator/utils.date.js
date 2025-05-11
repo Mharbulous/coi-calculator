@@ -236,10 +236,9 @@ export function daysBetween(date1, date2) {
     // Calculate difference in milliseconds between normalized dates
     const differenceInMilliseconds = normalizedDate2.getTime() - normalizedDate1.getTime();
     
-    // Convert milliseconds to days (using Math.floor to exclude the last day)
-    // To include the first day and exclude the last day, we need to add 1 to the count and then 
-    // use Math.floor instead of Math.round to ensure exclusion of the last day
-    return Math.floor(differenceInMilliseconds / (1000 * 60 * 60 * 24)) + 1;
+    // Convert milliseconds to days using Math.floor to exclude the last day
+    // This correctly includes first day and excludes last day without adding 1
+    return Math.floor(differenceInMilliseconds / (1000 * 60 * 60 * 24));
 }
 
 /**
