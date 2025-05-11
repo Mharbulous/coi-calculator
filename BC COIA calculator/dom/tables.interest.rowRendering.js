@@ -159,6 +159,7 @@ export function createAndAddSpecialDamagesButton(descriptionContainer, item, tab
             const state = useStore.getState();
             
             console.log("[DEBUG] Payment option clicked. Starting payment creation process.");
+            console.log("[DEBUG] Current table is " + (isPrejudgmentTable ? "prejudgment" : "postjudgment"));
             
             // Get row start and end dates for the midpoint calculation
             const rowStartDate = parseDateInput(item.start);
@@ -178,6 +179,11 @@ export function createAndAddSpecialDamagesButton(descriptionContainer, item, tab
                 console.log("[DEBUG] Current payments in store BEFORE adding (raw):", state.results.payments);
                 console.log("[DEBUG] Current payments in store BEFORE adding (JSON):", JSON.stringify(state.results.payments));
                 
+                // The payment date needs to respect which table we're working with
+                // Note: This is just for the initial placement in the appropriate table
+                // The actual payment date will always be the midpoint date, which is correct
+                // for both prejudgment and postjudgment payments
+                
                 // Add payment to the store with zero amount
                 const newPayment = { date: formattedDate, amount: 0.00 };
                 console.log("[DEBUG] Detailed payment being added (JSON):", JSON.stringify(newPayment));
@@ -187,7 +193,7 @@ export function createAndAddSpecialDamagesButton(descriptionContainer, item, tab
                 console.log("[DEBUG] Current payments in store AFTER adding (raw):", state.results.payments);
                 console.log("[DEBUG] Current payments in store AFTER adding (JSON):", JSON.stringify(state.results.payments));
                 
-                console.log(`Payment placeholder added: $0.00 on ${formattedDate}`);
+                console.log(`Payment placeholder added: $0.00 on ${formattedDate} to ${isPrejudgmentTable ? "prejudgment" : "postjudgment"} table`);
                 
                 // Trigger recalculation
                 console.log("[DEBUG] Dispatching payment-updated event");

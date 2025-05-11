@@ -39,26 +39,51 @@ function getExistingSpecialDamages(tableBody, isPrejudgmentTable) {
     return existingSpecialDamagesRows;
 }
 
-// Helper function to get existing payments from store - reverting to original implementation
-// We'll refine the date filtering in a future update after resolving the Firebase error
+// Helper function to get existing payments from store
+// Filter payments based on date compared to judgment date
 function getExistingPayments(isPrejudgmentTable) {
     const existingPayments = [];
-    if (isPrejudgmentTable) {
-        const state = useStore.getState();
-        console.log("[DEBUG] getExistingPayments: Checking store for payments, isPrejudgmentTable:", isPrejudgmentTable);
-        if (state.results.payments && state.results.payments.length > 0) {
-            console.log("[DEBUG] getExistingPayments: Found payments in store (raw):", state.results.payments);
-            console.log("[DEBUG] getExistingPayments: Detailed payments list (JSON):", JSON.stringify(state.results.payments));
-            state.results.payments.forEach(payment => {
+    const state = useStore.getState();
+    console.log("[DEBUG] getExistingPayments: Checking store for payments, isPrejudgmentTable:", isPrejudgmentTable);
+    
+    if (state.results.payments && state.results.payments.length > 0) {
+        console.log("[DEBUG] getExistingPayments: Found payments in store (raw):", state.results.payments);
+        console.log("[DEBUG] getExistingPayments: Detailed payments list (JSON):", JSON.stringify(state.results.payments));
+        
+        // Get judgment date to filter payments
+        const judgmentDate = state.inputs.dateOfJudgment ? 
+            (typeof state.inputs.dateOfJudgment === 'string' ? 
+                parseDateInput(state.inputs.dateOfJudgment) : 
+                state.inputs.dateOfJudgment) : 
+            null;
+        
+        if (!judgmentDate) {
+            console.warn("[DEBUG] getExistingPayments: No judgment date found, can't filter payments");
+            return existingPayments;
+        }
+        
+        state.results.payments.forEach(payment => {
+            // Parse payment date
+            const paymentDate = parseDateInput(payment.date);
+            
+            if (!paymentDate) {
+                console.warn(`[DEBUG] getExistingPayments: Invalid payment date: ${payment.date}`);
+                return; // Skip this payment
+            }
+            
+            // For prejudgment table: include payments with dates <= judgmentDate
+            // For postjudgment table: include payments with dates > judgmentDate
+            const isForPrejudgmentTable = paymentDate <= judgmentDate;
+            
+            if ((isPrejudgmentTable && isForPrejudgmentTable) || 
+                (!isPrejudgmentTable && !isForPrejudgmentTable)) {
                 existingPayments.push({
                     date: payment.date,
                     amount: payment.amount.toString(),
                     paymentId: payment.paymentId // Include paymentId
                 });
-            });
-        } else {
-            console.log("[DEBUG] getExistingPayments: No payments found in store or empty array");
-        }
+            }
+        });
     } else {
         console.log("[DEBUG] getExistingPayments: No payments found in store or empty array");
     }
@@ -69,12 +94,6 @@ function getExistingPayments(isPrejudgmentTable) {
 
 export function collectAndSortRows(tableBody, details, resultState, isPrejudgmentTable, finalPeriodStartDateStr, finalPeriodDamageInterestDetails) {
     console.log("[DEBUG] collectAndSortRows: Starting with tableBody ID:", tableBody.id, "isPrejudgmentTable:", isPrejudgmentTable);
-    
-    // For now, we'll exit early for postjudgment table until we resolve the Firebase error
-    if (!isPrejudgmentTable) {
-        console.log("[DEBUG] collectAndSortRows: Not a prejudgment table, exiting early");
-        return; // Sorting logic is temporarily limited to prejudgment table
-    }
 
     const existingSpecialDamagesRows = getExistingSpecialDamages(tableBody, isPrejudgmentTable);
     console.log("[DEBUG] collectAndSortRows: Retrieved existingSpecialDamagesRows:", existingSpecialDamagesRows.length);
