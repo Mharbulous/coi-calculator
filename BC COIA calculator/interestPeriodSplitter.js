@@ -247,8 +247,8 @@ export function splitInterestPeriodsWithPayments(originalPeriods, payments, stat
                 // Add payment row
                 finalResults.push(createPaymentRow(payment));
                 // Duplicate the preceding interest period (currentPeriod) and add it after the payment
-                const duplicatedTargetRow = JSON.parse(JSON.stringify(currentPeriod));
-                finalResults.push(duplicatedTargetRow);
+                // const duplicatedTargetRow = JSON.parse(JSON.stringify(currentPeriod)); // Removed to prevent duplicate row
+                // finalResults.push(duplicatedTargetRow); // Removed to prevent duplicate row
                 paymentIndex++;
             } else {
                 break; // This payment belongs to a later period
