@@ -50,9 +50,9 @@ export function renderInitialInterestRows(tableBody, details, isPrejudgmentTable
         }
         descriptionContainer.appendChild(descriptionText);
 
-        // "Add special damages" button
-        if (isPrejudgmentTable && item.interest > 0 && !item.isFinalPeriodDamage && !item.isPayment) {
-            createAndAddSpecialDamagesButton(descriptionContainer, item, tableBody);
+        // "Add..." button for both tables
+        if (item.interest > 0 && !item.isFinalPeriodDamage && !item.isPayment) {
+            createAndAddSpecialDamagesButton(descriptionContainer, item, tableBody, isPrejudgmentTable);
         }
         descCell.appendChild(descriptionContainer);
 
@@ -99,7 +99,7 @@ export function renderInitialInterestRows(tableBody, details, isPrejudgmentTable
 
 // This function is kept separate as it involves a dynamic import and event listener.
 // It's called from within renderInitialInterestRows.
-export function createAndAddSpecialDamagesButton(descriptionContainer, item, tableBody) {
+export function createAndAddSpecialDamagesButton(descriptionContainer, item, tableBody, isPrejudgmentTable) {
     // Create dropdown container
     const dropdownContainer = document.createElement('div');
     dropdownContainer.className = 'add-dropdown-container';
@@ -204,8 +204,10 @@ export function createAndAddSpecialDamagesButton(descriptionContainer, item, tab
         }
     });
     
-    // Assemble dropdown
-    dropdownMenu.appendChild(specialDamagesOption);
+    // Assemble dropdown - only include Special damages option for prejudgment table
+    if (isPrejudgmentTable) {
+        dropdownMenu.appendChild(specialDamagesOption);
+    }
     dropdownMenu.appendChild(paymentOption);
     dropdownContainer.appendChild(dropdownButton);
     dropdownContainer.appendChild(dropdownMenu);
