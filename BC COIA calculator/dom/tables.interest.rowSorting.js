@@ -261,12 +261,6 @@ export function handleRowDuplicationAfterPayment(insertedPaymentRow, tableBody, 
                 "nodeType:", insertedPaymentRow?.nodeType,
                 "parentNode:", insertedPaymentRow?.parentNode);
     
-    // The original logic for insertIndex for duplication was `tableBody.rows[insertIndex -1]`
-    // If insertIndex is where the payment row IS, then the row before it is `insertIndex -1` if insertIndex > 0.
-    // If payment row was inserted at index `idx`, it is now `tableBody.rows[idx]`.
-    // The row *before* the payment row (which was the target for duplication) would be `tableBody.rows[idx-1]` if `idx > 0`.
-    // The payment row itself is `insertedPaymentRow`.
-
     // Find the actual index of the insertedPaymentRow as DOM might have shifted
     let actualPaymentRowIndex = -1;
     console.log("[DEBUG] handleRowDuplicationAfterPayment: Trying to find payment row index in tableBody.rows");
@@ -281,7 +275,34 @@ export function handleRowDuplicationAfterPayment(insertedPaymentRow, tableBody, 
     }
     console.log("[DEBUG] handleRowDuplicationAfterPayment: Found actualPaymentRowIndex:", actualPaymentRowIndex);
 
+    // Check if this payment falls on the end date of an interest period
+    // by examining the date in the payment row and the date in the previous row
+    let isPaymentOnEndDate = false;
+    
     if (actualPaymentRowIndex > 0) {
+        const targetRowElement = tableBody.rows[actualPaymentRowIndex - 1];
+        const paymentDateCell = insertedPaymentRow.cells[0];
+        const previousRowDateCell = targetRowElement.cells[0];
+        
+        // Get payment date
+        const paymentDate = paymentDateCell.textContent.trim();
+        
+        // Get previous row end date - it may be in a <br> format like "2019-06-30<br>2019-07-01"
+        let previousRowEndDate = "";
+        if (previousRowDateCell.innerHTML.includes('<br>')) {
+            const dateLines = previousRowDateCell.innerHTML.split('<br>');
+            previousRowEndDate = dateLines[1] ? dateLines[1].trim() : "";
+        }
+        
+        // Check if payment date is exactly the end date of the previous row
+        if (paymentDate === previousRowEndDate) {
+            isPaymentOnEndDate = true;
+            console.log("[DEBUG] handleRowDuplicationAfterPayment: Payment date matches previous row end date, not duplicating");
+        }
+    }
+    
+    // Only duplicate the row if it's not a payment on an end date
+    if (!isPaymentOnEndDate && actualPaymentRowIndex > 0) {
         const targetRowElement = tableBody.rows[actualPaymentRowIndex - 1];
         console.log("[DEBUG] handleRowDuplicationAfterPayment: Target row for duplication:", targetRowElement);
         console.log("[DEBUG] handleRowDuplicationAfterPayment: Target row classes:", targetRowElement.className);

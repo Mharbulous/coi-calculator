@@ -2,8 +2,10 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { insertPaymentRecord, processMultiplePayments } from '../BC COIA calculator/payment-insertion.js';
 
 // Mock dependencies
-vi.mock('../BC COIA calculator/utils.date.js', () => {
+vi.mock('../BC COIA calculator/utils.date.js', async () => {
+    const actual = await vi.importActual('../BC COIA calculator/utils.date.js');
     return {
+        ...actual,
         daysBetween: (start, end) => {
             // Simple implementation for testing
             const startDate = new Date(start);

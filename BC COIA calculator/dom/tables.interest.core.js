@@ -40,10 +40,44 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
     // Clear previous rows
     console.log("[DEBUG] Clearing previous table rows");
     tableBody.innerHTML = '';
+    
+    // Filter out any duplicative rows from details
+    // This is an extra check to ensure no duplications in row data
+    const filteredDetails = [];
+    const seenDates = new Set();
+    
+    // First pass: identify payment dates that match end dates
+    const paymentDates = new Set();
+    if (resultState.payments && resultState.payments.length > 0) {
+        resultState.payments.forEach(payment => {
+            paymentDates.add(payment.date.toString());
+        });
+    }
+    
+    // Second pass: filter out rows that would cause duplication
+    for (let i = 0; i < details.length; i++) {
+        const detail = details[i];
+        
+        // Skip payment rows that were already processed
+        if (detail.isPayment && seenDates.has(detail.start.toString())) {
+            continue;
+        }
+        
+        // Add the row to our filtered list
+        filteredDetails.push(detail);
+        
+        // Mark this date as seen
+        if (detail.start) {
+            seenDates.add(detail.start.toString());
+        }
+    }
+    
+    console.log("[DEBUG] Filtered details count:", filteredDetails.length, 
+                "Original count:", details.length);
 
     // 1. Render initial interest calculation rows
-    console.log("[DEBUG] Calling renderInitialInterestRows with details length:", details.length);
-    renderInitialInterestRows(tableBody, details, isPrejudgmentTable, principalTotal);
+    console.log("[DEBUG] Calling renderInitialInterestRows with filtered details length:", filteredDetails.length);
+    renderInitialInterestRows(tableBody, filteredDetails, isPrejudgmentTable, principalTotal);
     console.log("[DEBUG] After renderInitialInterestRows, tableBody row count:", tableBody.rows.length);
 
     // 2. Collect, sort, and insert special damages and payments
