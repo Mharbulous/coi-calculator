@@ -258,15 +258,9 @@ export function insertSpecialDamagesRow(tableBody, currentRow, date) {
     const currentSpecialDamages = useStore.getState().results.specialDamages;
     if (currentSpecialDamages.length > 0) {
         const addedDamageWithId = currentSpecialDamages[currentSpecialDamages.length - 1];
-        console.log('[DEBUG specialDamages.js] insertSpecialDamagesRow - addedDamageWithId from store:', addedDamageWithId);
         if (addedDamageWithId && addedDamageWithId.specialDamageId) {
             dateInput.dataset.specialDamageId = addedDamageWithId.specialDamageId;
-            console.log('[DEBUG specialDamages.js] insertSpecialDamagesRow - set dateInput.dataset.specialDamageId to:', addedDamageWithId.specialDamageId);
-        } else {
-            console.warn('[DEBUG specialDamages.js] insertSpecialDamagesRow - addedDamageWithId or its specialDamageId is missing.');
         }
-    } else {
-        console.warn('[DEBUG specialDamages.js] insertSpecialDamagesRow - currentSpecialDamages array is empty after add.');
     }
 
     // Trigger recalculation after adding the row and updating the store
@@ -334,12 +328,8 @@ export function insertSpecialDamagesRowFromData(tableBody, index, rowData, final
     dateInput.value = validDate; // Already in YYYY-MM-DD
     
     // Add specialDamageId as a data attribute if it exists in rowData
-    console.log('[DEBUG specialDamages.js] insertSpecialDamagesRowFromData - rowData:', JSON.stringify(rowData));
     if (rowData.specialDamageId) {
         dateInput.dataset.specialDamageId = rowData.specialDamageId;
-        console.log('[DEBUG specialDamages.js] insertSpecialDamagesRowFromData - set dateInput.dataset.specialDamageId to:', rowData.specialDamageId);
-    } else {
-        console.warn('[DEBUG specialDamages.js] insertSpecialDamagesRowFromData - rowData.specialDamageId is missing.');
     }
     
     // Initialize the datepicker for proper constraints

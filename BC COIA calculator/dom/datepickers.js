@@ -546,8 +546,6 @@ export function destroySpecialDamagesDatePicker(inputElement) {
  * @param {Function} recalculateCallback - Function to call to trigger recalculation.
  */
 function onSpecialDamagesDateChange(selectedDates, inputElement, recalculateCallback) {
-    console.log('[DEBUG datepickers.js] onSpecialDamagesDateChange triggered. Input outerHTML:', inputElement.outerHTML);
-    console.log('[DEBUG datepickers.js] inputElement.dataset.specialDamageId:', inputElement.dataset.specialDamageId);
     // Get the new date from selectedDates
     const newDate = selectedDates.length > 0 ? selectedDates[0] : null;
     
@@ -612,30 +610,23 @@ function onSpecialDamagesDateChange(selectedDates, inputElement, recalculateCall
 
             // Update the store
             const specialDamageIdString = inputElement.dataset.specialDamageId;
-            console.log('[DEBUG datepickers.js] specialDamageIdString from dataset:', specialDamageIdString);
             if (specialDamageIdString) {
                 let specialDamageIndex = useStore.getState().results.specialDamages.findIndex(sd => sd.specialDamageId === specialDamageIdString);
-                console.log('[DEBUG datepickers.js] specialDamageIndex (string match):', specialDamageIndex);
 
                 // Fallback for potential numeric IDs
                 if (specialDamageIndex === -1) {
                     const specialDamageIdNumber = parseFloat(specialDamageIdString);
                     if (!isNaN(specialDamageIdNumber)) {
                         specialDamageIndex = useStore.getState().results.specialDamages.findIndex(sd => sd.specialDamageId === specialDamageIdNumber);
-                        console.log('[DEBUG datepickers.js] specialDamageIndex (numeric fallback match):', specialDamageIndex);
                     }
                 }
 
                 if (specialDamageIndex !== -1) {
-                    console.log(`[DEBUG datepickers.js] Updating special damage at index ${specialDamageIndex} with date ${formattedDate}`);
                     const currentDamage = useStore.getState().results.specialDamages[specialDamageIndex];
                     const updatedDamage = { ...currentDamage, date: formattedDate };
                     useStore.getState().updateSpecialDamage(specialDamageIndex, updatedDamage);
-                    // Log store state AFTER update
-                    console.log('[DEBUG datepickers.js] Store state for item after update:', useStore.getState().results.specialDamages[specialDamageIndex]);
                 } else {
                     console.warn(`[onSpecialDamagesDateChange] Special Damage with ID ${specialDamageIdString} not found in store for date: ${formattedDate}.`);
-                    console.log('[DEBUG datepickers.js] Current specialDamages in store:', JSON.stringify(useStore.getState().results.specialDamages.map(d => d.specialDamageId)));
                 }
             } else {
                 console.warn(`[onSpecialDamagesDateChange] specialDamageId not found on inputElement dataset for date: ${formattedDate}. Input type: ${inputElement.dataset.type}`);
@@ -895,8 +886,6 @@ export function destroyPaymentDatePicker(inputElement) {
  * @param {Function} recalculateCallback - Function to call to trigger recalculation.
  */
 function onPaymentDateChange(selectedDates, inputElement, recalculateCallback) {
-    console.log('[DEBUG datepickers.js] onPaymentDateChange triggered. Input outerHTML:', inputElement.outerHTML);
-    console.log('[DEBUG datepickers.js] inputElement.dataset.paymentId:', inputElement.dataset.paymentId);
     // Get the new date from selectedDates
     const newDate = selectedDates.length > 0 ? selectedDates[0] : null;
     
@@ -959,32 +948,25 @@ function onPaymentDateChange(selectedDates, inputElement, recalculateCallback) {
             
             // Update the store
             const paymentIdString = inputElement.dataset.paymentId;
-            console.log('[DEBUG datepickers.js] paymentIdString from dataset:', paymentIdString);
             if (paymentIdString) {
                 // Attempt to find by string ID first
                 let paymentIndex = useStore.getState().results.payments.findIndex(p => p.paymentId === paymentIdString);
-                console.log('[DEBUG datepickers.js] paymentIndex (string match):', paymentIndex);
 
                 // Fallback: if paymentId is somehow a number in the store (older data before string IDs)
                 if (paymentIndex === -1) {
                     const paymentIdNumber = parseFloat(paymentIdString);
                      if (!isNaN(paymentIdNumber)) {
                         paymentIndex = useStore.getState().results.payments.findIndex(p => p.paymentId === paymentIdNumber);
-                        console.log('[DEBUG datepickers.js] paymentIndex (numeric fallback match):', paymentIndex);
                     }
                 }
 
 
                 if (paymentIndex !== -1) {
-                    console.log(`[DEBUG datepickers.js] Updating payment at index ${paymentIndex} with date ${formattedDate}`);
                     const currentPayment = useStore.getState().results.payments[paymentIndex];
                     const updatedPayment = { ...currentPayment, date: formattedDate };
                     useStore.getState().updatePayment(paymentIndex, updatedPayment);
-                    // Log store state AFTER update
-                    console.log('[DEBUG datepickers.js] Store state for item after update:', useStore.getState().results.payments[paymentIndex]);
                 } else {
                     console.warn(`[onPaymentDateChange] Payment with ID ${paymentIdString} not found in store for date: ${formattedDate}.`);
-                    console.log('[DEBUG datepickers.js] Current payments in store:', JSON.stringify(useStore.getState().results.payments.map(p => p.paymentId)));
                 }
             } else {
                 // Fallback for rows that might not have paymentId (e.g., newly added, not yet saved)
