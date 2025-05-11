@@ -29,7 +29,8 @@ function getExistingSpecialDamages(tableBody, isPrejudgmentTable) {
                     existingSpecialDamagesRows.push({
                         date: damage.date,
                         description: damage.description,
-                        amount: damage.amount.toString()
+                        amount: damage.amount.toString(),
+                        specialDamageId: damage.specialDamageId // Include specialDamageId
                     });
                 });
             }
@@ -50,7 +51,8 @@ function getExistingPayments(isPrejudgmentTable) {
             state.results.payments.forEach(payment => {
                 existingPayments.push({
                     date: payment.date,
-                    amount: payment.amount.toString()
+                    amount: payment.amount.toString(),
+                    paymentId: payment.paymentId // Include paymentId
                 });
             });
         } else {

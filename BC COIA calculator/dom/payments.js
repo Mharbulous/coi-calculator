@@ -231,6 +231,28 @@ export function insertPaymentRow(tableBody, currentRow, date) {
         }, 2000);
     }, 100);
     
+    // Add a corresponding entry to the store
+    const newPaymentData = {
+        date: date, // This is the pre-populated date
+        amount: 0 // New payments start with zero amount
+    };
+    useStore.getState().addPayment(newPaymentData);
+
+    // Retrieve the newly added payment with its ID to set it on the input
+    const currentPayments = useStore.getState().results.payments;
+    if (currentPayments.length > 0) {
+        const addedPaymentWithId = currentPayments[currentPayments.length - 1];
+        console.log('[DEBUG payments.js] insertPaymentRow - addedPaymentWithId from store:', addedPaymentWithId);
+        if (addedPaymentWithId && addedPaymentWithId.paymentId) {
+            dateInput.dataset.paymentId = addedPaymentWithId.paymentId;
+            console.log('[DEBUG payments.js] insertPaymentRow - set dateInput.dataset.paymentId to:', addedPaymentWithId.paymentId);
+        } else {
+            console.warn('[DEBUG payments.js] insertPaymentRow - addedPaymentWithId or its paymentId is missing.');
+        }
+    } else {
+        console.warn('[DEBUG payments.js] insertPaymentRow - currentPayments array is empty after add.');
+    }
+
     // Trigger recalculation after adding the row
     const event = new CustomEvent('payment-updated');
     document.dispatchEvent(event);
@@ -301,6 +323,15 @@ export function insertPaymentRowFromData(tableBody, index, rowData) {
     // Ensure we have a valid date
     const validDate = rowData.date || '';
     dateInput.value = validDate; // Already in YYYY-MM-DD
+    
+    // Add paymentId as a data attribute if it exists in rowData
+    console.log('[DEBUG payments.js] insertPaymentRowFromData - rowData:', JSON.stringify(rowData));
+    if (rowData.paymentId) {
+        dateInput.dataset.paymentId = rowData.paymentId;
+        console.log('[DEBUG payments.js] insertPaymentRowFromData - set dateInput.dataset.paymentId to:', rowData.paymentId);
+    } else {
+        console.warn('[DEBUG payments.js] insertPaymentRowFromData - rowData.paymentId is missing.');
+    }
     
     // Initialize the datepicker for proper constraints
     initializePaymentDatePicker(dateInput, function() {

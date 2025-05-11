@@ -251,19 +251,27 @@ export function insertSpecialDamagesRow(tableBody, currentRow, date) {
         description: '', // New rows start with an empty description
         amount: 0 // New rows start with a zero amount
     };
+    // Add to store (which assigns an ID)
     useStore.getState().addSpecialDamage(newDamageData);
 
-    // Set a global flag to prevent table rebuild during the add operation
-    window._isSpecialDamagesAddInProgress = true;
+    // Retrieve the newly added damage with its ID to set it on the input
+    const currentSpecialDamages = useStore.getState().results.specialDamages;
+    if (currentSpecialDamages.length > 0) {
+        const addedDamageWithId = currentSpecialDamages[currentSpecialDamages.length - 1];
+        console.log('[DEBUG specialDamages.js] insertSpecialDamagesRow - addedDamageWithId from store:', addedDamageWithId);
+        if (addedDamageWithId && addedDamageWithId.specialDamageId) {
+            dateInput.dataset.specialDamageId = addedDamageWithId.specialDamageId;
+            console.log('[DEBUG specialDamages.js] insertSpecialDamagesRow - set dateInput.dataset.specialDamageId to:', addedDamageWithId.specialDamageId);
+        } else {
+            console.warn('[DEBUG specialDamages.js] insertSpecialDamagesRow - addedDamageWithId or its specialDamageId is missing.');
+        }
+    } else {
+        console.warn('[DEBUG specialDamages.js] insertSpecialDamagesRow - currentSpecialDamages array is empty after add.');
+    }
 
     // Trigger recalculation after adding the row and updating the store
     const event = new CustomEvent('special-damages-updated');
     document.dispatchEvent(event);
-    
-    // Clear the global flag after a short delay
-    setTimeout(() => {
-        window._isSpecialDamagesAddInProgress = false;
-    }, 500);
 }
 
 /**
@@ -324,6 +332,15 @@ export function insertSpecialDamagesRowFromData(tableBody, index, rowData, final
     // Ensure we have a valid date
     const validDate = rowData.date || '';
     dateInput.value = validDate; // Already in YYYY-MM-DD
+    
+    // Add specialDamageId as a data attribute if it exists in rowData
+    console.log('[DEBUG specialDamages.js] insertSpecialDamagesRowFromData - rowData:', JSON.stringify(rowData));
+    if (rowData.specialDamageId) {
+        dateInput.dataset.specialDamageId = rowData.specialDamageId;
+        console.log('[DEBUG specialDamages.js] insertSpecialDamagesRowFromData - set dateInput.dataset.specialDamageId to:', rowData.specialDamageId);
+    } else {
+        console.warn('[DEBUG specialDamages.js] insertSpecialDamagesRowFromData - rowData.specialDamageId is missing.');
+    }
     
     // Initialize the datepicker for proper constraints
     // Let flatpickr fully handle the date input

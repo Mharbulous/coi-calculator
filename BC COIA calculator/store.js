@@ -158,7 +158,9 @@ const store = createStore((set) => ({
      * @param {Object} damage - The special damage to add
      */
     addSpecialDamage: (damage) => set((state) => {
-        const specialDamages = [...state.results.specialDamages, damage];
+        // Add a unique ID to the special damage object
+        const damageWithId = { ...damage, specialDamageId: Date.now() + Math.random().toString(36).substr(2, 9) };
+        const specialDamages = [...state.results.specialDamages, damageWithId];
         const specialDamagesTotal = specialDamages.reduce((sum, damage) => sum + damage.amount, 0);
         return {
             results: {
@@ -174,9 +176,15 @@ const store = createStore((set) => ({
      * @param {number} index - The index of the special damage to update
      * @param {Object} damage - The updated special damage
      */
-    updateSpecialDamage: (index, damage) => set((state) => {
+    updateSpecialDamage: (index, newDamageData) => set((state) => {
         const specialDamages = [...state.results.specialDamages];
-        specialDamages[index] = damage;
+        const existingDamage = specialDamages[index];
+        // Ensure ID is preserved or assigned, merge new data
+        specialDamages[index] = { 
+            ...existingDamage, 
+            ...newDamageData, 
+            specialDamageId: (existingDamage && existingDamage.specialDamageId) || newDamageData.specialDamageId || (Date.now() + Math.random().toString(36).substr(2, 9) + "_sd")
+        };
         const specialDamagesTotal = specialDamages.reduce((sum, damage) => sum + damage.amount, 0);
         return {
             results: {
@@ -209,7 +217,9 @@ const store = createStore((set) => ({
      * @param {Object} payment - Payment object containing date, amount, interestApplied, principalApplied, etc.
      */
     addPayment: (payment) => set((state) => {
-        const payments = [...state.results.payments, payment];
+        // Add a unique ID to the payment object
+        const paymentWithId = { ...payment, paymentId: Date.now() + Math.random().toString(36).substr(2, 9) };
+        const payments = [...state.results.payments, paymentWithId];
         return {
             results: {
                 ...state.results,
@@ -223,9 +233,15 @@ const store = createStore((set) => ({
      * @param {number} index - The index of the payment to update
      * @param {Object} payment - The updated payment object
      */
-    updatePayment: (index, payment) => set((state) => {
+    updatePayment: (index, newPaymentData) => set((state) => {
         const payments = [...state.results.payments];
-        payments[index] = payment;
+        const existingPayment = payments[index];
+        // Ensure ID is preserved or assigned, merge new data
+        payments[index] = { 
+            ...existingPayment, 
+            ...newPaymentData, 
+            paymentId: (existingPayment && existingPayment.paymentId) || newPaymentData.paymentId || (Date.now() + Math.random().toString(36).substr(2, 9) + "_p")
+        };
         return {
             results: {
                 ...state.results,
@@ -301,10 +317,13 @@ const store = createStore((set) => ({
             // Prepare result updates
             const resultUpdates = {};
             
-            // Add special damages to results if they exist
+            // Add special damages to results if they exist, ensuring IDs
             if (hasSpecialDamages) {
-                resultUpdates.specialDamages = [...state.savedPrejudgmentState.specialDamages];
-                resultUpdates.specialDamagesTotal = state.savedPrejudgmentState.specialDamages.reduce(
+                resultUpdates.specialDamages = state.savedPrejudgmentState.specialDamages.map((damage, i) => ({
+                    ...damage,
+                    specialDamageId: damage.specialDamageId || (Date.now() + Math.random().toString(36).substr(2, 9) + `_rsd${i}`)
+                }));
+                resultUpdates.specialDamagesTotal = resultUpdates.specialDamages.reduce(
                     (sum, damage) => sum + damage.amount, 0
                 );
                 resultUpdates.prejudgmentResult = {
@@ -312,9 +331,12 @@ const store = createStore((set) => ({
                 };
             }
             
-            // Add payments to results if they exist
+            // Add payments to results if they exist, ensuring IDs
             if (hasPayments) {
-                resultUpdates.payments = [...state.savedPrejudgmentState.payments];
+                resultUpdates.payments = state.savedPrejudgmentState.payments.map((payment, i) => ({
+                    ...payment,
+                    paymentId: payment.paymentId || (Date.now() + Math.random().toString(36).substr(2, 9) + `_rp${i}`)
+                }));
             }
             
             // If we have result updates, return them along with input updates
@@ -419,7 +441,7 @@ const store = createStore((set) => ({
                 totalOwing: 0,
                 perDiem: 0,
                 finalCalculationDate: finalCalculationDate,
-                payments: useDefaults ? [{ date: '2021-10-13', amount: 500 }] : [] // Include default payment if useDefaults is true
+                payments: useDefaults ? [{ date: '2021-10-13', amount: 500, paymentId: Date.now() + Math.random().toString(36).substr(2, 9) + "_dp" }] : [] // Include default payment with ID if useDefaults is true
             }
         });
     },
