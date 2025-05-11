@@ -138,17 +138,19 @@
     }
 }
 
-/* --- Reposition Delete Icon outside the Prejudgment Table Row --- */
+/* --- Reposition Delete Icon outside the Interest Tables Row --- */
 
 /* Make the last cell of special damages/payment rows a positioning context */
-#prejudgmentTable tbody .editable-item-row td:nth-child(5) {
+#prejudgmentTable tbody .editable-item-row td:nth-child(5),
+#postjudgmentTable tbody .editable-item-row td:nth-child(5) {
     position: relative;
     /* Ensure icon isn't clipped if cell had overflow hidden (unlikely based on review) */
     overflow: visible; 
 }
 
 /* Position the delete icon outside the cell */
-#prejudgmentTable tbody .editable-item-row td:nth-child(5) .delete-icon {
+#prejudgmentTable tbody .editable-item-row td:nth-child(5) .delete-icon,
+#postjudgmentTable tbody .editable-item-row td:nth-child(5) .delete-icon {
     position: absolute;
     left: 100%; /* Position left edge at the cell's right edge */
     top: 50%;   /* Align top to the vertical middle */
