@@ -39,7 +39,8 @@ function getExistingSpecialDamages(tableBody, isPrejudgmentTable) {
     return existingSpecialDamagesRows;
 }
 
-// Helper function to get existing payments from store
+// Helper function to get existing payments from store - reverting to original implementation
+// We'll refine the date filtering in a future update after resolving the Firebase error
 function getExistingPayments(isPrejudgmentTable) {
     const existingPayments = [];
     if (isPrejudgmentTable) {
@@ -59,18 +60,20 @@ function getExistingPayments(isPrejudgmentTable) {
             console.log("[DEBUG] getExistingPayments: No payments found in store or empty array");
         }
     } else {
-        console.log("[DEBUG] getExistingPayments: Not a prejudgment table, skipping payment collection");
+        console.log("[DEBUG] getExistingPayments: No payments found in store or empty array");
     }
-    console.log("[DEBUG] getExistingPayments: Returning payments:", existingPayments);
+    
+    console.log(`[DEBUG] getExistingPayments: Returning ${existingPayments.length} payments for ${isPrejudgmentTable ? 'prejudgment' : 'postjudgment'} table`);
     return existingPayments;
 }
 
 export function collectAndSortRows(tableBody, details, resultState, isPrejudgmentTable, finalPeriodStartDateStr, finalPeriodDamageInterestDetails) {
     console.log("[DEBUG] collectAndSortRows: Starting with tableBody ID:", tableBody.id, "isPrejudgmentTable:", isPrejudgmentTable);
     
+    // For now, we'll exit early for postjudgment table until we resolve the Firebase error
     if (!isPrejudgmentTable) {
         console.log("[DEBUG] collectAndSortRows: Not a prejudgment table, exiting early");
-        return; // Sorting logic is primarily for prejudgment
+        return; // Sorting logic is temporarily limited to prejudgment table
     }
 
     const existingSpecialDamagesRows = getExistingSpecialDamages(tableBody, isPrejudgmentTable);
