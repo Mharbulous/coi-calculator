@@ -44,12 +44,10 @@ export function splitInterestPeriod(period, paymentDate, originalPrincipal, redu
     
     // 4. Calculate split for payment in the middle of the period
     
-    // Create a date for the day before payment (end of first segment)
-    const dayBeforePayment = new Date(paymentDate);
-    dayBeforePayment.setUTCDate(dayBeforePayment.getUTCDate() - 1);
-    
-    // First segment: from period start to day before payment
-    const daysInFirstSegment = daysBetween(period.start, dayBeforePayment);
+    // First segment: from period start to payment date
+    // The paymentDate itself is the end of this segment.
+    // daysBetween(start, end) typically calculates for [start, end), so interest is for days up to paymentDate.
+    const daysInFirstSegment = daysBetween(period.start, paymentDate);
     const firstSegmentYear = period.start.getUTCFullYear();
     const daysInFirstYear = daysInYear(firstSegmentYear);
     
@@ -57,15 +55,15 @@ export function splitInterestPeriod(period, paymentDate, originalPrincipal, redu
     
     const firstSegment = {
         start: new Date(period.start),
-        end: new Date(dayBeforePayment),
+        end: new Date(paymentDate), // End date is the payment date
         rate: period.rate,
         principal: originalPrincipal,
         interest: firstSegmentInterest,
         isFinalSegment: false,
         isSplitSegment: true,
         _days: daysInFirstSegment,
-        _endDate: formatDateForDisplay(dayBeforePayment),
-        description: `${daysInFirstSegment} days (from ${formatDateForDisplay(period.start)} to ${formatDateForDisplay(dayBeforePayment)})`
+        _endDate: formatDateForDisplay(paymentDate), // Display end date is payment date
+        description: `${daysInFirstSegment} days (from ${formatDateForDisplay(period.start)} to ${formatDateForDisplay(paymentDate)})` // Description reflects payment date
     };
     
     // Second segment: from payment date to period end

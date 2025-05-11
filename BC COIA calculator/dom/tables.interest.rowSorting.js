@@ -304,68 +304,69 @@ export function handleRowDuplicationAfterPayment(insertedPaymentRow, tableBody, 
     // Only duplicate the row if it's not a payment on an end date
     if (!isPaymentOnEndDate && actualPaymentRowIndex > 0) {
         const targetRowElement = tableBody.rows[actualPaymentRowIndex - 1];
-        console.log("[DEBUG] handleRowDuplicationAfterPayment: Target row for duplication:", targetRowElement);
-        console.log("[DEBUG] handleRowDuplicationAfterPayment: Target row classes:", targetRowElement.className);
-        console.log("[DEBUG] handleRowDuplicationAfterPayment: Target row innerHTML:", targetRowElement.innerHTML);
+        // console.log("[DEBUG] handleRowDuplicationAfterPayment: Target row for duplication:", targetRowElement);
+        // console.log("[DEBUG] handleRowDuplicationAfterPayment: Target row classes:", targetRowElement.className);
+        // console.log("[DEBUG] handleRowDuplicationAfterPayment: Target row innerHTML:", targetRowElement.innerHTML);
 
         // Ensure target is an interest calculation row (not SD or another payment)
         if (targetRowElement && 
             !targetRowElement.classList.contains('editable-item-row') &&
             !targetRowElement.classList.contains('payment-row')) {
-            console.log("[DEBUG] handleRowDuplicationAfterPayment: Attempting to duplicate target row");
+            // console.log("[DEBUG] handleRowDuplicationAfterPayment: Attempting to duplicate target row");
             
-            try {
-                const duplicatedRowElement = targetRowElement.cloneNode(true);
-                console.log("[DEBUG] handleRowDuplicationAfterPayment: Successfully cloned target row");
-                console.log("[DEBUG] handleRowDuplicationAfterPayment: Duplicated row innerHTML:", duplicatedRowElement.innerHTML);
+            // try {
+            //     const duplicatedRowElement = targetRowElement.cloneNode(true);
+            //     console.log("[DEBUG] handleRowDuplicationAfterPayment: Successfully cloned target row");
+            //     console.log("[DEBUG] handleRowDuplicationAfterPayment: Duplicated row innerHTML:", duplicatedRowElement.innerHTML);
                 
-                // Re-attach click event listener to "add special damages" button in the cloned row
-                const addButton = duplicatedRowElement.querySelector('.add-special-damages-btn');
-                if (addButton) {
-                    // Get the date and interest from the button's data attributes
-                    const startDate = addButton.dataset.date;
-                    const interestAmount = addButton.dataset.amount;
+            //     // Re-attach click event listener to "add special damages" button in the cloned row
+            //     const addButton = duplicatedRowElement.querySelector('.add-special-damages-btn');
+            //     if (addButton) {
+            //         // Get the date and interest from the button's data attributes
+            //         const startDate = addButton.dataset.date;
+            //         const interestAmount = addButton.dataset.amount;
                     
-                    // Remove the original non-functional event listener
-                    const newButton = addButton.cloneNode(true);
-                    addButton.parentNode.replaceChild(newButton, addButton);
+            //         // Remove the original non-functional event listener
+            //         const newButton = addButton.cloneNode(true);
+            //         addButton.parentNode.replaceChild(newButton, addButton);
                     
-                    // Add new event listener with the same functionality as in createAndAddSpecialDamagesButton
-                    newButton.addEventListener('click', async function(event) {
-                        event.preventDefault();
-                        const currentRow = this.closest('tr');
-                        if (!currentRow) {
-                            console.error("Could not find closest tr to button");
-                            return;
-                        }
+            //         // Add new event listener with the same functionality as in createAndAddSpecialDamagesButton
+            //         newButton.addEventListener('click', async function(event) {
+            //             event.preventDefault();
+            //             const currentRow = this.closest('tr');
+            //             if (!currentRow) {
+            //                 console.error("Could not find closest tr to button");
+            //                 return;
+            //             }
 
-                        try {
-                            const { insertSpecialDamagesRow } = await import('./specialDamages.js');
+            //             try {
+            //                 const { insertSpecialDamagesRow } = await import('./specialDamages.js');
                             
-                            const currentDate = parseDateInput(startDate);
-                            if (currentDate) {
-                                const nextDate = new Date(normalizeDate(currentDate));
-                                nextDate.setUTCDate(nextDate.getUTCDate() + 1);
-                                const nextDateFormatted = formatDateForDisplay(nextDate);
-                                insertSpecialDamagesRow(tableBody, currentRow, nextDateFormatted);
-                            } else {
-                                insertSpecialDamagesRow(tableBody, currentRow, startDate);
-                            }
-                        } catch (e) {
-                            console.error("Failed to load or execute specialDamages.js module:", e);
-                        }
-                    });
-                }
+            //                 const currentDate = parseDateInput(startDate);
+            //                 if (currentDate) {
+            //                     const nextDate = new Date(normalizeDate(currentDate));
+            //                     nextDate.setUTCDate(nextDate.getUTCDate() + 1);
+            //                     const nextDateFormatted = formatDateForDisplay(nextDate);
+            //                     insertSpecialDamagesRow(tableBody, currentRow, nextDateFormatted);
+            //                 } else {
+            //                     insertSpecialDamagesRow(tableBody, currentRow, startDate);
+            //                 }
+            //             } catch (e) {
+            //                 console.error("Failed to load or execute specialDamages.js module:", e);
+            //             }
+            //         });
+            //     }
                 
-                // Insert the duplicated row immediately after the payment row
-                if (tableBody.rows[actualPaymentRowIndex + 1]) {
-                    tableBody.insertBefore(duplicatedRowElement, tableBody.rows[actualPaymentRowIndex + 1]);
-                } else {
-                    tableBody.appendChild(duplicatedRowElement);
-                }
-            } catch (e) {
-                console.error("Error duplicating or inserting row:", e);
-            }
+            //     // Insert the duplicated row immediately after the payment row
+            //     if (tableBody.rows[actualPaymentRowIndex + 1]) {
+            //         tableBody.insertBefore(duplicatedRowElement, tableBody.rows[actualPaymentRowIndex + 1]);
+            //     } else {
+            //         tableBody.appendChild(duplicatedRowElement);
+            //     }
+            // } catch (e) {
+            //     console.error("Error duplicating or inserting row:", e);
+            // }
+            console.log("[DEBUG] handleRowDuplicationAfterPayment: Row duplication logic has been intentionally disabled to prevent visual duplication. The store should provide the correct split rows.");
         }
     }
 }
