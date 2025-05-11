@@ -214,7 +214,28 @@ export function insertSpecialDamagesRow(tableBody, currentRow, date) {
     principalInput.className = 'special-damages-amount';
     principalInput.dataset.type = 'special-damages-amount';
     principalInput.value = '';
-    setupCurrencyInputListeners(principalInput, function() {
+    setupCurrencyInputListeners(principalInput, function(currentAmountInput) {
+        const row = currentAmountInput.closest('tr');
+        if (!row) return;
+        const dateInputForRow = row.querySelector('.special-damages-date');
+        if (!dateInputForRow) return;
+
+        const specialDamageId = dateInputForRow.dataset.specialDamageId;
+        const newAmount = parseCurrency(currentAmountInput.value);
+
+        if (specialDamageId) {
+            const state = useStore.getState();
+            const damageIndex = state.results.specialDamages.findIndex(sd => sd.specialDamageId === specialDamageId);
+            if (damageIndex !== -1) {
+                const currentDamage = state.results.specialDamages[damageIndex];
+                const updatedDamage = { ...currentDamage, amount: newAmount };
+                state.updateSpecialDamage(damageIndex, updatedDamage);
+            } else {
+                console.warn(`[specialDamages.js] Special Damage ID ${specialDamageId} not found in store for amount update.`);
+            }
+        } else {
+            console.warn('[specialDamages.js] specialDamageId missing from date input for amount update in new row.');
+        }
         // When the amount changes, trigger recalculation
         const event = new CustomEvent('special-damages-updated');
         document.dispatchEvent(event);
@@ -448,7 +469,28 @@ export function insertSpecialDamagesRowFromData(tableBody, index, rowData, final
     const numericValue = parseCurrency(rowData.amount || 0);
     principalInput.value = formatCurrencyForInputWithCommas(numericValue);
     
-    setupCurrencyInputListeners(principalInput, function() {
+    setupCurrencyInputListeners(principalInput, function(currentAmountInput) {
+        const row = currentAmountInput.closest('tr');
+        if (!row) return;
+        const dateInputForRow = row.querySelector('.special-damages-date');
+        if (!dateInputForRow) return;
+
+        const specialDamageId = dateInputForRow.dataset.specialDamageId;
+        const newAmount = parseCurrency(currentAmountInput.value);
+
+        if (specialDamageId) {
+            const state = useStore.getState();
+            const damageIndex = state.results.specialDamages.findIndex(sd => sd.specialDamageId === specialDamageId);
+            if (damageIndex !== -1) {
+                const currentDamage = state.results.specialDamages[damageIndex];
+                const updatedDamage = { ...currentDamage, amount: newAmount };
+                state.updateSpecialDamage(damageIndex, updatedDamage);
+            } else {
+                console.warn(`[specialDamages.js] Special Damage ID ${specialDamageId} not found in store for amount update.`);
+            }
+        } else {
+            console.warn('[specialDamages.js] specialDamageId missing from date input for amount update in existing row.');
+        }
         const event = new CustomEvent('special-damages-updated');
         document.dispatchEvent(event);
     });

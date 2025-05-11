@@ -195,7 +195,28 @@ export function insertPaymentRow(tableBody, currentRow, date) {
     amountInput.dataset.type = 'payment-amount';
     amountInput.value = '';
     amountInput.style.width = '100px';
-    setupCurrencyInputListeners(amountInput, function() {
+    setupCurrencyInputListeners(amountInput, function(currentAmountInput) {
+        const row = currentAmountInput.closest('tr');
+        if (!row) return;
+        const dateInputForRow = row.querySelector('.payment-date');
+        if (!dateInputForRow) return;
+
+        const paymentId = dateInputForRow.dataset.paymentId;
+        const newAmount = parseCurrency(currentAmountInput.value);
+
+        if (paymentId) {
+            const state = useStore.getState();
+            const paymentIndex = state.results.payments.findIndex(p => p.paymentId === paymentId);
+            if (paymentIndex !== -1) {
+                const currentPayment = state.results.payments[paymentIndex];
+                const updatedPayment = { ...currentPayment, amount: newAmount };
+                state.updatePayment(paymentIndex, updatedPayment);
+            } else {
+                console.warn(`[payments.js] Payment ID ${paymentId} not found in store for amount update.`);
+            }
+        } else {
+            console.warn('[payments.js] paymentId missing from date input for amount update in new row.');
+        }
         // When the amount changes, trigger recalculation
         const event = new CustomEvent('payment-updated');
         document.dispatchEvent(event);
@@ -359,7 +380,29 @@ export function insertPaymentRowFromData(tableBody, index, rowData) {
     amountInput.dataset.type = 'payment-amount';
     amountInput.value = formatCurrencyForInputWithCommas(numericValue);
     amountInput.style.width = '100px';
-    setupCurrencyInputListeners(amountInput, function() {
+    setupCurrencyInputListeners(amountInput, function(currentAmountInput) {
+        const row = currentAmountInput.closest('tr');
+        if (!row) return;
+        const dateInputForRow = row.querySelector('.payment-date');
+        if (!dateInputForRow) return;
+
+        const paymentId = dateInputForRow.dataset.paymentId;
+        const newAmount = parseCurrency(currentAmountInput.value);
+
+        if (paymentId) {
+            const state = useStore.getState();
+            const paymentIndex = state.results.payments.findIndex(p => p.paymentId === paymentId);
+            if (paymentIndex !== -1) {
+                const currentPayment = state.results.payments[paymentIndex];
+                const updatedPayment = { ...currentPayment, amount: newAmount };
+                state.updatePayment(paymentIndex, updatedPayment);
+            } else {
+                console.warn(`[payments.js] Payment ID ${paymentId} not found in store for amount update.`);
+            }
+        } else {
+            // This case can happen if rowData itself didn't have paymentId
+            console.warn('[payments.js] paymentId missing from date input for amount update in existing row.');
+        }
         // When the amount changes, trigger recalculation
         const event = new CustomEvent('payment-updated');
         document.dispatchEvent(event);
