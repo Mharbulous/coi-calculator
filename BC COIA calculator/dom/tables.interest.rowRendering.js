@@ -60,7 +60,8 @@ export function renderInitialInterestRows(tableBody, details, isPrejudgmentTable
         const principalCell = row.insertCell();
         if (item.isPayment) {
             principalCell.innerHTML = formatCurrencyForDisplay(item.principal);
-            if (item.principal < 0) principalCell.classList.add('negative-value');
+            // Always add the negative-value class for payment principal amount (which is negative)
+            principalCell.classList.add('negative-value');
         } else if (!isPrejudgmentTable && principalTotalForPostjudgment !== null) {
             principalCell.innerHTML = formatCurrencyForDisplay(principalTotalForPostjudgment);
         } else {
@@ -81,7 +82,8 @@ export function renderInitialInterestRows(tableBody, details, isPrejudgmentTable
         const interestCell = row.insertCell();
         if (item.isPayment) {
             interestCell.innerHTML = formatCurrencyForDisplay(item.interest);
-            if (item.interest < 0) interestCell.classList.add('negative-value');
+            // Always add the negative-value class for payment interest amount (which is negative)
+            interestCell.classList.add('negative-value');
         } else if (!item.isFinalPeriodDamage) {
             interestCell.innerHTML = `<br>${formatCurrencyForDisplay(item.interest)}`;
         } else {
