@@ -14,15 +14,10 @@ import { updateInterestTable as coreUpdateInterestTable } from './tables.interes
  * @param {number|null} principalTotalForFooter - The specific principal total to display in the footer (used for prejudgment).
  */
 export function updateInterestTable(tableBody, principalTotalElement, interestTotalElement, resultState, principalTotalForFooter) {
-    // Check if this is a recent special damages add operation
-    const isRecentSpecialDamagesAdd = window._isSpecialDamagesAddInProgress;
-    if (isRecentSpecialDamagesAdd) {
-        // Skip table rebuild during special damages add operation
-        // This prevents the issue where the table is rebuilt immediately after a special damage row
-        // is added, which would cause the new row to be lost or incorrectly positioned
-        return;
-    }
-    
+    // The window._isSpecialDamagesAddInProgress flag check was removed on 2025-05-11
+    // as it was deprecated. The core logic (tables.interest.core.js) no longer relies on this flag.
+    // Table updates are now consistently handled by the event-driven recalculation flow
+    // triggered after store updates.
     coreUpdateInterestTable(tableBody, principalTotalElement, interestTotalElement, resultState, principalTotalForFooter);
 }
 
