@@ -335,6 +335,7 @@ function validatePaymentDate(dateStr) {
  * @returns {HTMLTableRowElement} The newly inserted row element.
  */
 export function insertPaymentRowFromData(tableBody, index, rowData) {
+    logger.debug(`[DEBUG payments.js insertPaymentRowFromData] Received rowData: ${JSON.stringify(rowData)}`); // DEBUG LOG
     console.log("[DEBUG] insertPaymentRowFromData: Starting with tableBody:", tableBody?.id || "undefined", 
                 "index:", index, "rowData:", rowData);
     
@@ -420,7 +421,10 @@ export function insertPaymentRowFromData(tableBody, index, rowData) {
     
     // Principal cell (will show calculated effect after processing)
     const principalCell = newRow.insertCell();
-    principalCell.textContent = ''; // Will be filled after processing
+    // Use principalApplied from rowData, display as negative
+    const principalApplied = parseCurrency(rowData.principalApplied || 0);
+    principalCell.innerHTML = formatCurrencyForDisplay(-principalApplied);
+    if (principalApplied > 0) principalCell.classList.add('negative-value');
     principalCell.classList.add('text-right');
 
     // Rate cell (empty for payments)
@@ -430,6 +434,10 @@ export function insertPaymentRowFromData(tableBody, index, rowData) {
 
     // Interest cell (empty) with delete icon
     const interestCell = newRow.insertCell();
+    // Use interestApplied from rowData, display as negative
+    const interestApplied = parseCurrency(rowData.interestApplied || 0);
+    interestCell.innerHTML = formatCurrencyForDisplay(-interestApplied);
+    if (interestApplied > 0) interestCell.classList.add('negative-value');
     interestCell.classList.add('text-right');
     
     // Add delete icon

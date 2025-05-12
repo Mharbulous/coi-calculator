@@ -71,10 +71,10 @@ function getExistingPayments(isPrejudgmentTable) {
             
             if ((isPrejudgmentTable && isForPrejudgmentTable) || 
                 (!isPrejudgmentTable && !isForPrejudgmentTable)) {
+                // Push the full payment object, ensuring amount is a string for consistency if needed elsewhere
                 existingPayments.push({
-                    date: payment.date,
-                    amount: payment.amount.toString(),
-                    paymentId: payment.paymentId // Include paymentId
+                    ...payment, // Include all properties like principalApplied, interestApplied
+                    amount: payment.amount.toString() 
                 });
             }
         });
@@ -169,7 +169,7 @@ export function collectAndSortRows(tableBody, details, resultState, isPrejudgmen
                 mutableFinalPeriodDetails
             );
         } else if (rowToInsert.isPayment) {
-            console.log("[DEBUG] collectAndSortRows: Inserting payment row with data:", rowToInsert.rowData);
+            logger.debug(`[DEBUG rowSorting] collectAndSortRows: Inserting payment row with data: ${JSON.stringify(rowToInsert.rowData)}`); // DEBUG LOG
             const insertedPaymentRow = insertPaymentRowFromData(
                 tableBody,
                 insertIndex,

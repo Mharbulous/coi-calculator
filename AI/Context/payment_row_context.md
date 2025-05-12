@@ -105,14 +105,14 @@ Interest tables handle multiple row types (interest periods, payments, special d
 
 ### Chronological Sorting Logic
 
-The application implements sophisticated logic for sorting different row types in chronological order. When multiple events occur on the same day, the current implementation sorts and inserts them in the following order:
+The application implements sophisticated logic for sorting different row types in chronological order:
 
-1. Interest calculation row/segment ending on that day
-2. Payment row for a payment made on that day
-3. Special Damage entry on that day (if applicable)
+1. Interest calculation row/segment ending on a specific day
+2. Special Damage entry on that day (if applicable)
+3. Payment row for a payment made on that day
 4. Interest calculation row/segment starting on that day
 
-This ordering ensures that calculations are performed correctly and that the UI presents a logical flow of events. Note that the sorting logic resides primarily in `dom/tables.interest.rowSorting.js`.
+This ordering ensures that calculations are performed correctly and that the UI presents a logical flow of events.
 
 ### HTML vs. Text Content
 
@@ -154,7 +154,7 @@ The current payment insertion algorithm:
 
 1. Determines which table (prejudgment/postjudgment) to use based on payment date
 2. Finds the calculation row containing the payment date
-3. Splits the row at the payment date if necessary (Note: The data for the split row is calculated, but the visual representation relies on the store providing the correctly split rows to the rendering functions, rather than DOM manipulation during rendering. The `handleRowDuplicationAfterPayment` function in `dom/tables.interest.rowSorting.js` which previously handled DOM duplication is currently disabled.)
+3. Splits the row at the payment date if necessary
 4. Applies payment first to interest, then to principal
 5. Allows negative principal for overpayments
 6. Updates all subsequent periods with the new principal

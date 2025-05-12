@@ -59,8 +59,11 @@ export function renderInitialInterestRows(tableBody, details, isPrejudgmentTable
         // Principal cell
         const principalCell = row.insertCell();
         if (item.isPayment) {
-            principalCell.innerHTML = formatCurrencyForDisplay(item.principal);
-            if (item.principal < 0) principalCell.classList.add('negative-value');
+            logger.debug(`[DEBUG rowRendering] Rendering payment row item: ${JSON.stringify(item)}`); // DEBUG LOG
+            // Display the negative of principalApplied
+            const principalApplied = item.principalApplied || 0;
+            principalCell.innerHTML = formatCurrencyForDisplay(-principalApplied);
+            if (principalApplied > 0) principalCell.classList.add('negative-value'); // Add class if actual applied amount is positive
         } else if (!isPrejudgmentTable && principalTotalForPostjudgment !== null) {
             principalCell.innerHTML = formatCurrencyForDisplay(principalTotalForPostjudgment);
         } else {
@@ -80,8 +83,10 @@ export function renderInitialInterestRows(tableBody, details, isPrejudgmentTable
         // Interest cell
         const interestCell = row.insertCell();
         if (item.isPayment) {
-            interestCell.innerHTML = formatCurrencyForDisplay(item.interest);
-            if (item.interest < 0) interestCell.classList.add('negative-value');
+            // Display the negative of interestApplied
+            const interestApplied = item.interestApplied || 0;
+            interestCell.innerHTML = formatCurrencyForDisplay(-interestApplied);
+            if (interestApplied > 0) interestCell.classList.add('negative-value'); // Add class if actual applied amount is positive
         } else if (!item.isFinalPeriodDamage) {
             interestCell.innerHTML = `<br>${formatCurrencyForDisplay(item.interest)}`;
         } else {
