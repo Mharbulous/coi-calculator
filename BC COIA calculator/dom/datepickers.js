@@ -7,6 +7,7 @@
 import elements from './elements.js';
 import useStore from '../store.js';
 import { formatDateForDisplay } from '../utils.date.js';
+import { parseCurrency } from '../utils.currency.js'; // Added for parseCurrency
 
 // Define the error background color to match the error message background
 const ERROR_BACKGROUND_COLOR = '#f8d7da';
@@ -425,10 +426,10 @@ function positionCalendar(selectedDates, dateStr, instance) {
  * Applies date constraints based on Prejudgment Interest Date and Judgment Date.
  * 
  * @param {HTMLElement} inputElement - The special damages date input element to initialize.
- * @param {Function} recalculateCallback - Function to call when dates change to trigger recalculation.
+ * @param {Function} onChangeCallbackProvidedByCaller - Function to call when dates change, expects (selectedDates, dateStr, instance).
  * @returns {Object} The flatpickr instance.
  */
-export function initializeSpecialDamagesDatePicker(inputElement, recalculateCallback) {
+export function initializeSpecialDamagesDatePicker(inputElement, onChangeCallbackProvidedByCaller) { // Renamed recalculateCallback
     // Check if this input already has a flatpickr instance
     if (specialDamagesDatePickers.has(inputElement)) {
         // Return the existing instance instead of destroying and recreating it
@@ -496,7 +497,7 @@ export function initializeSpecialDamagesDatePicker(inputElement, recalculateCall
         minDate: minDate,
         maxDate: maxDate,
         disable: disabledDates, // Explicitly disable the prejudgment date
-        onChange: (selectedDates) => onSpecialDamagesDateChange(selectedDates, inputElement, recalculateCallback),
+        onChange: onChangeCallbackProvidedByCaller, // Use the callback directly
         onOpen: positionCalendar
     });
     
@@ -967,7 +968,7 @@ function onPaymentDateChange(selectedDates, inputElement, recalculateCallback) {
             // TEMPORARY direct update logic here, to be refactored if a cleaner way is found.
             const row = inputElement.closest('tr');
             if (row) {
-                const amountInput = row.querySelector('.special-damages-amount[data-type="payment-amount"]');
+                const amountInput = row.querySelector('.payment-amount'); // Corrected selector
                 const paymentId = inputElement.dataset.paymentId;
 
                 if (amountInput && paymentId) {
