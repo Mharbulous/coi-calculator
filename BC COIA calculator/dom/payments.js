@@ -7,6 +7,56 @@ import useStore from '../store.js';
 import { logger } from '../util.logger.js'; // Import for enhanced debugging
 
 /**
+ * Centralized function to update a payment item in the store based on current DOM input values.
+ * @param {HTMLTableRowElement} rowElement - The table row element containing the inputs.
+ */
+function updatePaymentInStoreFromRow(rowElement) {
+    if (!rowElement) {
+        logger.warn('[payments.js updatePaymentInStoreFromRow] Called with null rowElement.');
+        return;
+    }
+
+    const dateInput = rowElement.querySelector('.payment-date');
+    // Payment amount input has class 'special-damages-amount' but a specific data-type
+    const amountInput = rowElement.querySelector('.special-damages-amount[data-type="payment-amount"]');
+
+    if (!dateInput || !amountInput) {
+        logger.warn('[payments.js updatePaymentInStoreFromRow] Could not find all required inputs in row.');
+        return;
+    }
+
+    const paymentId = dateInput.dataset.paymentId;
+    if (!paymentId) {
+        logger.warn('[payments.js updatePaymentInStoreFromRow] paymentId missing from date input; cannot update store.');
+        return;
+    }
+
+    const newDate = dateInput.value;
+    const newAmount = parseCurrency(amountInput.value);
+
+    logger.debug(`[payments.js updatePaymentInStoreFromRow] Updating ID ${paymentId} with Date: ${newDate}, Amount: ${newAmount}`);
+
+    const state = useStore.getState();
+    const paymentIndex = state.results.payments.findIndex(p => p.paymentId === paymentId);
+
+    if (paymentIndex !== -1) {
+        const updatedPaymentData = {
+            date: newDate,
+            amount: newAmount
+            // The paymentId is preserved by the updatePayment action in the store
+        };
+        state.updatePayment(paymentIndex, updatedPaymentData);
+        
+        // Dispatch event after successful store update
+        const event = new CustomEvent('payment-updated', { bubbles: true, cancelable: true });
+        document.dispatchEvent(event);
+        logger.debug(`[payments.js updatePaymentInStoreFromRow] Dispatched payment-updated for ID ${paymentId}`);
+    } else {
+        logger.warn(`[payments.js updatePaymentInStoreFromRow] Payment ID ${paymentId} not found in store.`);
+    }
+}
+
+/**
  * Finds the index of a payment in the state store based on DOM row
  * @param {HTMLTableRowElement} row - The row element to find in the store
  * @returns {number} The index in the store, or -1 if not found
@@ -195,31 +245,10 @@ export function insertPaymentRow(tableBody, currentRow, date) {
     amountInput.dataset.type = 'payment-amount';
     amountInput.value = '';
     amountInput.style.width = '100px';
-    setupCurrencyInputListeners(amountInput, function(currentAmountInput) {
-        const row = currentAmountInput.closest('tr');
-        if (!row) return;
-        const dateInputForRow = row.querySelector('.payment-date');
-        if (!dateInputForRow) return;
-
-        const paymentId = dateInputForRow.dataset.paymentId;
-        const newAmount = parseCurrency(currentAmountInput.value);
-
-        if (paymentId) {
-            const state = useStore.getState();
-            const paymentIndex = state.results.payments.findIndex(p => p.paymentId === paymentId);
-            if (paymentIndex !== -1) {
-                const currentPayment = state.results.payments[paymentIndex];
-                const updatedPayment = { ...currentPayment, amount: newAmount };
-                state.updatePayment(paymentIndex, updatedPayment);
-            } else {
-                console.warn(`[payments.js] Payment ID ${paymentId} not found in store for amount update.`);
-            }
-        } else {
-            console.warn('[payments.js] paymentId missing from date input for amount update in new row.');
-        }
-        // When the amount changes, trigger recalculation
-        const event = new CustomEvent('payment-updated');
-        document.dispatchEvent(event);
+    // Pass newRow directly to the callback's closure for robustness
+    setupCurrencyInputListeners(amountInput, function(/* currentAmountInput */) {
+        // currentAmountInput is the input element, but we use newRow from the outer scope
+        updatePaymentInStoreFromRow(newRow);
     });
     descContainer.appendChild(amountInput);
     descCell.appendChild(descContainer);
@@ -325,6 +354,7 @@ export function insertPaymentRowFromData(tableBody, index, rowData) {
     // IMPORTANT: Add the payment-row class to identify this as a payment row
     newRow.className = 'editable-item-row payment-row breakable'; // Add payment-row class
     console.log("[DEBUG] insertPaymentRowFromData: Set row className to:", newRow.className);
+    logger.debug(`[payments.js insertPaymentRowFromData] Received rowData: ${JSON.stringify(rowData)}`);
 
     // Date cell
     const dateCell = newRow.insertCell();
@@ -380,32 +410,10 @@ export function insertPaymentRowFromData(tableBody, index, rowData) {
     amountInput.dataset.type = 'payment-amount';
     amountInput.value = formatCurrencyForInputWithCommas(numericValue);
     amountInput.style.width = '100px';
-    setupCurrencyInputListeners(amountInput, function(currentAmountInput) {
-        const row = currentAmountInput.closest('tr');
-        if (!row) return;
-        const dateInputForRow = row.querySelector('.payment-date');
-        if (!dateInputForRow) return;
-
-        const paymentId = dateInputForRow.dataset.paymentId;
-        const newAmount = parseCurrency(currentAmountInput.value);
-
-        if (paymentId) {
-            const state = useStore.getState();
-            const paymentIndex = state.results.payments.findIndex(p => p.paymentId === paymentId);
-            if (paymentIndex !== -1) {
-                const currentPayment = state.results.payments[paymentIndex];
-                const updatedPayment = { ...currentPayment, amount: newAmount };
-                state.updatePayment(paymentIndex, updatedPayment);
-            } else {
-                console.warn(`[payments.js] Payment ID ${paymentId} not found in store for amount update.`);
-            }
-        } else {
-            // This case can happen if rowData itself didn't have paymentId
-            console.warn('[payments.js] paymentId missing from date input for amount update in existing row.');
-        }
-        // When the amount changes, trigger recalculation
-        const event = new CustomEvent('payment-updated');
-        document.dispatchEvent(event);
+    // Pass newRow directly to the callback's closure for robustness
+    setupCurrencyInputListeners(amountInput, function(/* currentAmountInput */) {
+        // currentAmountInput is the input element, but we use newRow from the outer scope
+        updatePaymentInStoreFromRow(newRow);
     });
     descContainer.appendChild(amountInput);
     descCell.appendChild(descContainer);

@@ -942,48 +942,66 @@ function onPaymentDateChange(selectedDates, inputElement, recalculateCallback) {
         if (newDate) {
             // Format the date as YYYY-MM-DD
             const formattedDate = formatDateForDisplay(newDate);
-            
-            // Update the input element's value directly
+            // Update the input element's value directly, Flatpickr might do this but good to be explicit
             inputElement.value = formattedDate;
-            
-            // Update the store
-            const paymentIdString = inputElement.dataset.paymentId;
-            if (paymentIdString) {
-                // Attempt to find by string ID first
-                let paymentIndex = useStore.getState().results.payments.findIndex(p => p.paymentId === paymentIdString);
 
-                // Fallback: if paymentId is somehow a number in the store (older data before string IDs)
-                if (paymentIndex === -1) {
-                    const paymentIdNumber = parseFloat(paymentIdString);
-                     if (!isNaN(paymentIdNumber)) {
-                        paymentIndex = useStore.getState().results.payments.findIndex(p => p.paymentId === paymentIdNumber);
+            // Instead of updating the store directly here with partial data,
+            // we will rely on a function in payments.js to read the whole row and update.
+            // However, the `recalculateCallback` is what eventually triggers `updatePaymentInStoreFromRow`
+            // via the event chain if `updatePaymentInStoreFromRow` dispatches 'payment-updated'.
+            // For now, to ensure the store is updated with the new date and amount from the row,
+            // we need to call a function that does that.
+            // The `recalculateCallback` itself doesn't update the store; it triggers processes that *read* from it.
+
+            // The most straightforward way is to have `onPaymentDateChange` call a function
+            // that reads the whole row and updates the store, similar to `updateSpecialDamageInStoreFromRow`.
+            // Since `updatePaymentInStoreFromRow` is in `payments.js`, we can't directly call it here
+            // without creating circular dependencies or passing it around.
+
+            // For now, let's replicate the logic of reading the full row here for payments.
+            // This is not ideal as it duplicates logic from the conceptual updatePaymentInStoreFromRow.
+            // A better long-term solution would be to pass the updatePaymentInStoreFromRow function
+            // or use a more event-driven approach where this function only sets the date value
+            // and another listener on the input (e.g., blur) calls the consolidated updater.
+
+            // TEMPORARY direct update logic here, to be refactored if a cleaner way is found.
+            const row = inputElement.closest('tr');
+            if (row) {
+                const amountInput = row.querySelector('.special-damages-amount[data-type="payment-amount"]');
+                const paymentId = inputElement.dataset.paymentId;
+
+                if (amountInput && paymentId) {
+                    const newAmount = parseCurrency(amountInput.value);
+                    const state = useStore.getState();
+                    const paymentIndex = state.results.payments.findIndex(p => p.paymentId === paymentId);
+
+                    if (paymentIndex !== -1) {
+                        const updatedPaymentData = {
+                            date: formattedDate, // new date from picker
+                            amount: newAmount    // current amount from input
+                        };
+                        state.updatePayment(paymentIndex, updatedPaymentData);
+                        // Dispatch event after successful store update
+                        // The recalculateCallback will be triggered by this event via calculator.ui.js
+                        const event = new CustomEvent('payment-updated', { bubbles: true, cancelable: true });
+                        document.dispatchEvent(event);
+                    } else {
+                        console.warn(`[onPaymentDateChange] Payment ID ${paymentId} not found in store.`);
                     }
-                }
-
-
-                if (paymentIndex !== -1) {
-                    const currentPayment = useStore.getState().results.payments[paymentIndex];
-                    const updatedPayment = { ...currentPayment, date: formattedDate };
-                    useStore.getState().updatePayment(paymentIndex, updatedPayment);
                 } else {
-                    console.warn(`[onPaymentDateChange] Payment with ID ${paymentIdString} not found in store for date: ${formattedDate}.`);
+                    console.warn('[onPaymentDateChange] Could not find amount input or paymentId for row.');
                 }
             } else {
-                // Fallback for rows that might not have paymentId (e.g., newly added, not yet saved)
-                // This part might need more robust handling if rows can exist in DOM without being in store yet
-                // For now, we assume that if it's an existing row being edited, it should have an ID.
-                console.warn(`[onPaymentDateChange] paymentId not found on inputElement dataset for date: ${formattedDate}. Input type: ${inputElement.dataset.type}`);
+                console.warn('[onPaymentDateChange] Could not find parent row for payment date input.');
             }
-            
-            // Dispatch a change event to ensure DOM state synchronization (Flatpickr might not do this automatically on programmatic changes)
-            const changeEvent = new Event('change', { bubbles: true });
-            inputElement.dispatchEvent(changeEvent);
+            // The original recalculateCallback is effectively triggered by the 'payment-updated' event.
+        } else {
+             // If newDate is null (e.g., picker cleared), we might still need to trigger recalculation
+             // if the expectation is that clearing a date field should update totals.
+             // For now, only trigger if there was a valid newDate.
         }
-        
-        // Trigger recalculation
-        if (typeof recalculateCallback === 'function') {
-            recalculateCallback();
-        }
+        // The original `recalculateCallback()` call is removed from here because the 'payment-updated'
+        // event dispatched above will trigger it via `calculator.ui.js`.
     }
 }
 

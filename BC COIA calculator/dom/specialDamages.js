@@ -273,9 +273,10 @@ export function insertSpecialDamagesRow(tableBody, currentRow, date) {
     principalInput.className = 'special-damages-amount';
     principalInput.dataset.type = 'special-damages-amount';
     principalInput.value = ''; // New rows start with empty amount
-    setupCurrencyInputListeners(principalInput, function(currentAmountInput) {
-        const row = currentAmountInput.closest('tr');
-        updateSpecialDamageInStoreFromRow(row);
+    // Pass newRow directly to the callback's closure for robustness
+    setupCurrencyInputListeners(principalInput, function(/* currentAmountInput */) {
+        // currentAmountInput is the input element, but we use newRow from the outer scope
+        updateSpecialDamageInStoreFromRow(newRow);
     });
     principalCell.appendChild(principalInput);
     principalCell.classList.add('text-right');
@@ -510,9 +511,10 @@ export function insertSpecialDamagesRowFromData(tableBody, index, rowData, final
     const numericValue = parseCurrency(rowData.amount || 0);
     principalInput.value = formatCurrencyForInputWithCommas(numericValue);
     
-    setupCurrencyInputListeners(principalInput, function(currentAmountInput) {
-        const row = currentAmountInput.closest('tr');
-        updateSpecialDamageInStoreFromRow(row);
+    // Pass newRow directly to the callback's closure for robustness
+    setupCurrencyInputListeners(principalInput, function(/* currentAmountInput */) {
+        // currentAmountInput is the input element, but we use newRow from the outer scope
+        updateSpecialDamageInStoreFromRow(newRow);
     });
     principalCell.appendChild(principalInput);
     principalCell.classList.add('text-right');

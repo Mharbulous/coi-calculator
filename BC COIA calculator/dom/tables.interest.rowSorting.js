@@ -93,6 +93,8 @@ export function collectAndSortRows(tableBody, details, resultState, isPrejudgmen
     console.log("[DEBUG] collectAndSortRows: Retrieved existingSpecialDamagesRows:", existingSpecialDamagesRows.length);
     
     const existingPayments = getExistingPayments(isPrejudgmentTable);
+    // Detailed log for payment amounts as retrieved by getExistingPayments
+    logger.debug(`[tables.interest.rowSorting.js collectAndSortRows] existingPayments from getExistingPayments: ${JSON.stringify(existingPayments.map(p => ({ amount: p.amount, date: p.date, id: p.paymentId })))}`);
     console.log("[DEBUG] collectAndSortRows: Retrieved existingPayments:", existingPayments.length);
 
     if (existingSpecialDamagesRows.length === 0 && existingPayments.length === 0) {

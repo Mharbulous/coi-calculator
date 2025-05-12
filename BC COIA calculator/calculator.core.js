@@ -487,6 +487,7 @@ function recalculate() {
     }
 
     // 2. Collect Payments and Special Damages (needed for both prejudgment calc and totals)
+    logger.debug(`[calculator.core.js recalculate] Before collectPayments, store payments: ${JSON.stringify(useStore.getState().results.payments)}`);
     const payments = collectPayments();
     logger.debug("[calculator.core.js recalculate] After collectPayments, payments array (raw):", payments); // Changed console.log to logger.debug
     logger.debug("[calculator.core.js recalculate] After collectPayments, payments array (JSON):", JSON.stringify(payments)); // Changed console.log to logger.debug
