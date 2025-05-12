@@ -968,7 +968,7 @@ function onPaymentDateChange(selectedDates, inputElement, recalculateCallback) {
             // TEMPORARY direct update logic here, to be refactored if a cleaner way is found.
             const row = inputElement.closest('tr');
             if (row) {
-                const amountInput = row.querySelector('.payment-amount'); // Corrected selector
+                const amountInput = row.querySelector('.special-damages-amount[data-type="payment-amount"]'); // Further corrected selector
                 const paymentId = inputElement.dataset.paymentId;
 
                 if (amountInput && paymentId) {
