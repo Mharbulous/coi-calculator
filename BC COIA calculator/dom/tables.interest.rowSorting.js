@@ -108,7 +108,7 @@ export function collectAndSortRows(tableBody, details, resultState, isPrejudgmen
     const mutableFinalPeriodDetails = [...(finalPeriodDamageInterestDetails || [])];
 
 
-    const allRowsToInsert = [
+    let allRowsToInsert = [ // Changed to let for logging before sort
         ...existingSpecialDamagesRows.map(rowData => ({
             date: parseDateInput(rowData.date),
             dateStr: rowData.date,
@@ -124,6 +124,9 @@ export function collectAndSortRows(tableBody, details, resultState, isPrejudgmen
             rowData
         }))
     ].filter(item => item.date !== null);
+
+    // DEBUG_SORT: Log allRowsToInsert before sorting
+    console.log("[DEBUG_SORT] collectAndSortRows: allRowsToInsert BEFORE sort:", JSON.stringify(allRowsToInsert.map(r => ({ dateStr: r.dateStr, type: r.isSpecialDamage ? 'SD' : (r.isPayment ? 'Payment' : 'Unknown'), id: r.rowData.specialDamageId || r.rowData.paymentId }))));
 
     allRowsToInsert.sort((a, b) => {
         const dateComparison = a.date - b.date;
@@ -143,10 +146,18 @@ export function collectAndSortRows(tableBody, details, resultState, isPrejudgmen
         return dateComparison;
     });
 
+    // DEBUG_SORT: Log allRowsToInsert after sorting
+    console.log("[DEBUG_SORT] collectAndSortRows: allRowsToInsert AFTER sort:", JSON.stringify(allRowsToInsert.map(r => ({ dateStr: r.dateStr, type: r.isSpecialDamage ? 'SD' : (r.isPayment ? 'Payment' : 'Unknown'), id: r.rowData.specialDamageId || r.rowData.paymentId }))));
+
     for (const rowToInsert of allRowsToInsert) {
+        // DEBUG_SORT: Log current rowToInsert
+        console.log("[DEBUG_SORT] collectAndSortRows: Processing rowToInsert:", JSON.stringify({ dateStr: rowToInsert.dateStr, type: rowToInsert.isSpecialDamage ? 'SD' : (rowToInsert.isPayment ? 'Payment' : 'Unknown'), id: rowToInsert.rowData.specialDamageId || rowToInsert.rowData.paymentId, data: rowToInsert.rowData }));
+
         const insertIndex = findInsertionIndex(tableBody, rowToInsert.date, rowToInsert.isSpecialDamage, rowToInsert.isPayment);
         console.log("[DEBUG] collectAndSortRows: For row type:", rowToInsert.isPayment ? "Payment" : "Special Damage", 
                    "date:", rowToInsert.dateStr, "found insertIndex:", insertIndex);
+        // DEBUG_SORT: Log insertIndex received for current rowToInsert
+        console.log("[DEBUG_SORT] collectAndSortRows: Received insertIndex:", insertIndex, "for item:", rowToInsert.dateStr);
         
         if (rowToInsert.isSpecialDamage) {
             console.log("[DEBUG] collectAndSortRows: Inserting special damage row with data:", rowToInsert.rowData);
@@ -175,6 +186,8 @@ export function collectAndSortRows(tableBody, details, resultState, isPrejudgmen
 }
 
 export function findInsertionIndex(tableBody, dateToInsert, isSpecialDamage, isPayment) {
+    // DEBUG_SORT: Log parameters on entry to findInsertionIndex
+    console.log("[DEBUG_SORT] findInsertionIndex: Called with dateToInsert:", dateToInsert ? formatDateForDisplay(dateToInsert) : 'null date', "isSpecialDamage:", isSpecialDamage, "isPayment:", isPayment);
     let insertIndex = -1; // Default to append
 
     for (let i = 0; i < tableBody.rows.length; i++) {
@@ -182,6 +195,7 @@ export function findInsertionIndex(tableBody, dateToInsert, isSpecialDamage, isP
         const currentRowDateCell = currentRow.cells[0];
         let currentRowStartDate = null;
         let currentRowEndDate = null; // For interest calculation rows
+        let rawDateSource = ''; // To log the source of the date string
 
         const isCurrentRowPayment = currentRow.classList.contains('payment-row');
         const isCurrentRowSpecialDamage = currentRow.classList.contains('editable-item-row'); // Assuming this class is added by insertSpecialDamagesRowFromData
@@ -191,12 +205,15 @@ export function findInsertionIndex(tableBody, dateToInsert, isSpecialDamage, isP
         const paymentDateInput = currentRow.querySelector('.payment-date'); // Assuming .payment-date exists on payment rows
 
         if (sdDateInput) {
+            rawDateSource = `SD Input Value: '${sdDateInput.value}'`;
             currentRowStartDate = parseDateInput(sdDateInput.value);
         } else if (paymentDateInput) {
+            rawDateSource = `Payment Input Value: '${paymentDateInput.value}'`;
             currentRowStartDate = parseDateInput(paymentDateInput.value);
         } else { // It's an interest calculation row
             const dateText = currentRowDateCell.textContent.trim();
             const dateHtml = currentRowDateCell.innerHTML;
+            rawDateSource = `Interest Row HTML: '${dateHtml}'`;
             if (dateHtml.includes('<br>')) {
                 const dateLines = dateHtml.split('<br>');
                 currentRowStartDate = parseDateInput(dateLines[0].trim());
@@ -206,8 +223,11 @@ export function findInsertionIndex(tableBody, dateToInsert, isSpecialDamage, isP
             }
         }
 
+        // DEBUG_SORT: Log details of currentRow inside the loop in findInsertionIndex
+        console.log(`[DEBUG_SORT] findInsertionIndex: Row ${i}, Parsed Start: ${currentRowStartDate ? formatDateForDisplay(currentRowStartDate) : 'null'}, Parsed End: ${currentRowEndDate ? formatDateForDisplay(currentRowEndDate) : 'null'}, isSD: ${isCurrentRowSpecialDamage}, isPayment: ${isCurrentRowPayment}, Raw Date Source: ${rawDateSource}`);
+
         if (currentRowStartDate) {
-            if (datesEqual(dateToInsert, currentRowStartDate)) {
+            if (dateToInsert && datesEqual(dateToInsert, currentRowStartDate)) { // Added null check for dateToInsert
                 // Same date, apply precedence:
                 // 1. Interest calculation row ENDING on this day (handled by dateToInsert < currentRowStartDate for next row)
                 // 2. Special Damage
@@ -243,6 +263,8 @@ export function findInsertionIndex(tableBody, dateToInsert, isSpecialDamage, isP
             }
         }
     }
+    // DEBUG_SORT: Log the returned insertIndex from findInsertionIndex
+    console.log("[DEBUG_SORT] findInsertionIndex: Returning insertIndex:", insertIndex);
     return insertIndex;
 }
 
