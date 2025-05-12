@@ -62,6 +62,9 @@ export function processPayment(state, payment, ratesData) {
     // Determine which segment this payment falls into
     const segmentIndex = determineSegmentIndex(paymentDate, prejudgmentStartDate, ratesData, state);
 
+    // Log the payment distribution for debugging
+    console.log(`[DEBUG] processPayment: Payment of ${payment.amount} applied: interestApplied=${interestApplied}, principalApplied=${principalApplied}, remainingPrincipal=${newRemainingPrincipal}`);
+
     // Create the processed payment object
     const processedPayment = {
         date: paymentDate,

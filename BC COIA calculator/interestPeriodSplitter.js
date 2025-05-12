@@ -274,14 +274,28 @@ export function splitInterestPeriodsWithPayments(originalPeriods, payments, stat
 function createPaymentRow(payment) {
     // The 'payment' object here is expected to have 'amount', 'date',
     // 'principalApplied', and 'interestApplied' from the processPayment function.
+    
+    // Calculate payment distribution if not already provided
+    let principalApplied = payment.principalApplied;
+    let interestApplied = payment.interestApplied;
+    
+    // If principalApplied and interestApplied are not provided, calculate them
+    if (principalApplied === undefined || interestApplied === undefined) {
+        // Default to applying the entire payment to principal
+        principalApplied = payment.amount;
+        interestApplied = 0;
+        
+        console.log(`[DEBUG] createPaymentRow: Calculated payment distribution for payment ${payment.amount}: principalApplied=${principalApplied}, interestApplied=${interestApplied}`);
+    }
+    
     return {
         start: formatDateForDisplay(payment.date), // Use formatted date string for display consistency
         description: `Payment received: ${formatCurrency(payment.amount)}`,
         // We will use principalApplied and interestApplied directly in rendering
         isPayment: true,
         paymentAmount: payment.amount, // Store original amount for description/display
-        principalApplied: payment.principalApplied || 0, // Actual amount applied to principal
-        interestApplied: payment.interestApplied || 0   // Actual amount applied to interest
+        principalApplied: principalApplied, // Actual amount applied to principal
+        interestApplied: interestApplied   // Actual amount applied to interest
     };
 }
 

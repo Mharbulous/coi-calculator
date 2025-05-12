@@ -67,17 +67,7 @@ export function insertPaymentRecord(state, payment, ratesData) {
         return state;
     }
     
-    // Create payment record row with placeholder values for interest/principal applied
-    // as calculations are out of scope for this specific task.
-    const paymentRowData = createPaymentRow(
-        paymentDate,
-        payment.amount,
-        0, // interestApplied placeholder
-        0  // principalApplied placeholder
-    );
-
     // Calculate interest application and principal application for the payment
-    // These calculations would normally be called elsewhere but are included here for the tests
     const startDate = typeof containingRow.start === 'string' 
         ? parseDateInput(containingRow.start) 
         : containingRow.start;
@@ -100,11 +90,15 @@ export function insertPaymentRecord(state, payment, ratesData) {
         interestApplied = payment.amount;
     }
     
-    // Update the payment row with the calculated interest and principal applications
-    paymentRowData.interest = -interestApplied;
-    paymentRowData.principal = -principalApplied;
-    paymentRowData.interestApplied = interestApplied;
-    paymentRowData.principalApplied = principalApplied;
+    console.log(`[DEBUG] insertPaymentRecord: Calculated payment distribution for payment ${payment.amount}: interestApplied=${interestApplied}, principalApplied=${principalApplied}`);
+    
+    // Create payment record row with calculated values for interest/principal applied
+    const paymentRowData = createPaymentRow(
+        paymentDate,
+        payment.amount,
+        interestApplied,
+        principalApplied
+    );
     
     // Calculate remaining principal
     const remainingPrincipal = containingRow.principal - principalApplied;
