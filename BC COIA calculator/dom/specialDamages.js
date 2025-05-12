@@ -4,6 +4,61 @@ import { setupCustomDateInputListeners, setupCurrencyInputListeners } from './se
 import { initializeSpecialDamagesDatePicker, destroySpecialDamagesDatePicker } from './datepickers.js'; // Import destroy function
 import { showSpecialDamagesConfirmationModal } from './modal.js';
 import useStore from '../store.js';
+import { logger } from '../util.logger.js'; // Import logger
+
+/**
+ * Centralized function to update a special damage item in the store based on current DOM input values.
+ * @param {HTMLTableRowElement} rowElement - The table row element containing the inputs.
+ */
+function updateSpecialDamageInStoreFromRow(rowElement) {
+    if (!rowElement) {
+        logger.warn('[specialDamages.js updateSpecialDamageInStoreFromRow] Called with null rowElement.');
+        return;
+    }
+
+    const dateInput = rowElement.querySelector('.special-damages-date');
+    const descInput = rowElement.querySelector('.special-damages-description');
+    const amountInput = rowElement.querySelector('.special-damages-amount');
+
+    if (!dateInput || !descInput || !amountInput) {
+        logger.warn('[specialDamages.js updateSpecialDamageInStoreFromRow] Could not find all required inputs in row.');
+        return;
+    }
+
+    const specialDamageId = dateInput.dataset.specialDamageId;
+    if (!specialDamageId) {
+        logger.warn('[specialDamages.js updateSpecialDamageInStoreFromRow] specialDamageId missing from date input; cannot update store.');
+        // This is expected for a brand new row before its initial addSpecialDamage call completes and sets the ID.
+        // The initial addSpecialDamage in insertSpecialDamagesRow handles the first store entry.
+        return;
+    }
+
+    const newDate = dateInput.value;
+    const newDescription = descInput.value.trim(); // Trim description
+    const newAmount = parseCurrency(amountInput.value);
+
+    logger.debug(`[specialDamages.js updateSpecialDamageInStoreFromRow] Updating ID ${specialDamageId} with Date: ${newDate}, Desc: ${newDescription}, Amount: ${newAmount}`);
+
+    const state = useStore.getState();
+    const damageIndex = state.results.specialDamages.findIndex(sd => sd.specialDamageId === specialDamageId);
+
+    if (damageIndex !== -1) {
+        const updatedDamageData = {
+            date: newDate,
+            description: newDescription,
+            amount: newAmount
+            // The specialDamageId is preserved by the updateSpecialDamage action in the store
+        };
+        state.updateSpecialDamage(damageIndex, updatedDamageData);
+        
+        // Dispatch event after successful store update
+        const event = new CustomEvent('special-damages-updated', { bubbles: true, cancelable: true });
+        document.dispatchEvent(event);
+        logger.debug(`[specialDamages.js updateSpecialDamageInStoreFromRow] Dispatched special-damages-updated for ID ${specialDamageId}`);
+    } else {
+        logger.warn(`[specialDamages.js updateSpecialDamageInStoreFromRow] Special Damage ID ${specialDamageId} not found in store.`);
+    }
+}
 
 /**
  * Finds the index of a special damage in the state store based on DOM row
@@ -184,11 +239,10 @@ export function insertSpecialDamagesRow(tableBody, currentRow, date) {
     dateInput.value = isValidDate ? date : ''; 
     
     // Initialize the datepicker for proper constraints
-    // Let flatpickr fully handle the date input
-    initializeSpecialDamagesDatePicker(dateInput, function() {
-        // When the date changes, trigger recalculation
-        const event = new CustomEvent('special-damages-updated');
-        document.dispatchEvent(event);
+    initializeSpecialDamagesDatePicker(dateInput, function(selectedDates, dateStr, instance) {
+        // 'instance.element' is the dateInput itself
+        const row = instance.element.closest('tr');
+        updateSpecialDamageInStoreFromRow(row);
     });
     
     // Do NOT add setupCustomDateInputListeners for flatpickr-managed inputs
@@ -204,6 +258,11 @@ export function insertSpecialDamagesRow(tableBody, currentRow, date) {
     descInput.className = 'special-damages-description';
     descInput.placeholder = 'Describe special damages';
     descInput.dataset.type = 'special-damages-description';
+    // Add blur listener to update store when description changes
+    descInput.addEventListener('blur', function(event) {
+        const row = event.target.closest('tr');
+        updateSpecialDamageInStoreFromRow(row);
+    });
     descCell.appendChild(descInput);
     descCell.classList.add('text-left');
     
@@ -213,32 +272,10 @@ export function insertSpecialDamagesRow(tableBody, currentRow, date) {
     principalInput.type = 'text';
     principalInput.className = 'special-damages-amount';
     principalInput.dataset.type = 'special-damages-amount';
-    principalInput.value = '';
+    principalInput.value = ''; // New rows start with empty amount
     setupCurrencyInputListeners(principalInput, function(currentAmountInput) {
         const row = currentAmountInput.closest('tr');
-        if (!row) return;
-        const dateInputForRow = row.querySelector('.special-damages-date');
-        if (!dateInputForRow) return;
-
-        const specialDamageId = dateInputForRow.dataset.specialDamageId;
-        const newAmount = parseCurrency(currentAmountInput.value);
-
-        if (specialDamageId) {
-            const state = useStore.getState();
-            const damageIndex = state.results.specialDamages.findIndex(sd => sd.specialDamageId === specialDamageId);
-            if (damageIndex !== -1) {
-                const currentDamage = state.results.specialDamages[damageIndex];
-                const updatedDamage = { ...currentDamage, amount: newAmount };
-                state.updateSpecialDamage(damageIndex, updatedDamage);
-            } else {
-                console.warn(`[specialDamages.js] Special Damage ID ${specialDamageId} not found in store for amount update.`);
-            }
-        } else {
-            console.warn('[specialDamages.js] specialDamageId missing from date input for amount update in new row.');
-        }
-        // When the amount changes, trigger recalculation
-        const event = new CustomEvent('special-damages-updated');
-        document.dispatchEvent(event);
+        updateSpecialDamageInStoreFromRow(row);
     });
     principalCell.appendChild(principalInput);
     principalCell.classList.add('text-right');
@@ -354,11 +391,10 @@ export function insertSpecialDamagesRowFromData(tableBody, index, rowData, final
     }
     
     // Initialize the datepicker for proper constraints
-    // Let flatpickr fully handle the date input
-    initializeSpecialDamagesDatePicker(dateInput, function() {
-        // When the date changes, trigger recalculation
-        const event = new CustomEvent('special-damages-updated');
-        document.dispatchEvent(event);
+    initializeSpecialDamagesDatePicker(dateInput, function(selectedDates, dateStr, instance) {
+        // 'instance.element' is the dateInput itself
+        const row = instance.element.closest('tr');
+        updateSpecialDamageInStoreFromRow(row);
     });
     
     // Do NOT add setupCustomDateInputListeners for flatpickr-managed inputs
@@ -378,6 +414,11 @@ export function insertSpecialDamagesRowFromData(tableBody, index, rowData, final
     // Handle various edge cases for description
     const description = rowData.description || '';
     descInput.value = (description === descInput.placeholder) ? '' : description; 
+    // Add blur listener to update store when description changes
+    descInput.addEventListener('blur', function(event) {
+        const row = event.target.closest('tr');
+        updateSpecialDamageInStoreFromRow(row);
+    });
     descCell.appendChild(descInput);
     
     // Store the calculated detail for later use
@@ -471,28 +512,7 @@ export function insertSpecialDamagesRowFromData(tableBody, index, rowData, final
     
     setupCurrencyInputListeners(principalInput, function(currentAmountInput) {
         const row = currentAmountInput.closest('tr');
-        if (!row) return;
-        const dateInputForRow = row.querySelector('.special-damages-date');
-        if (!dateInputForRow) return;
-
-        const specialDamageId = dateInputForRow.dataset.specialDamageId;
-        const newAmount = parseCurrency(currentAmountInput.value);
-
-        if (specialDamageId) {
-            const state = useStore.getState();
-            const damageIndex = state.results.specialDamages.findIndex(sd => sd.specialDamageId === specialDamageId);
-            if (damageIndex !== -1) {
-                const currentDamage = state.results.specialDamages[damageIndex];
-                const updatedDamage = { ...currentDamage, amount: newAmount };
-                state.updateSpecialDamage(damageIndex, updatedDamage);
-            } else {
-                console.warn(`[specialDamages.js] Special Damage ID ${specialDamageId} not found in store for amount update.`);
-            }
-        } else {
-            console.warn('[specialDamages.js] specialDamageId missing from date input for amount update in existing row.');
-        }
-        const event = new CustomEvent('special-damages-updated');
-        document.dispatchEvent(event);
+        updateSpecialDamageInStoreFromRow(row);
     });
     principalCell.appendChild(principalInput);
     principalCell.classList.add('text-right');

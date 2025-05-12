@@ -5,37 +5,31 @@ import { logger } from '../util.logger.js'; // Import for enhanced debugging
 import { insertSpecialDamagesRowFromData } from './specialDamages.js';
 import { insertPaymentRowFromData } from './payments.js';
 
-// Helper function to get existing special damages rows from DOM or store
+// Helper function to get existing special damages rows from the store
+// This function now prioritizes reading directly from the Zustand store,
+// aligning with the architectural principle of the store being the single source of truth.
 function getExistingSpecialDamages(tableBody, isPrejudgmentTable) {
     const existingSpecialDamagesRows = [];
     if (isPrejudgmentTable) {
-        const specialRows = tableBody.querySelectorAll('.editable-item-row');
-        specialRows.forEach(row => {
-            const dateInput = row.querySelector('.special-damages-date');
-            const descInput = row.querySelector('.special-damages-description');
-            const amountInput = row.querySelector('.special-damages-amount');
-            if (dateInput && descInput && amountInput) {
+        const state = useStore.getState();
+        if (state.results.specialDamages && state.results.specialDamages.length > 0) {
+            logger.debug('[getExistingSpecialDamages] Reading special damages from store.');
+            state.results.specialDamages.forEach(damage => {
                 existingSpecialDamagesRows.push({
-                    date: dateInput.value,
-                    description: descInput.value.trim() || descInput.placeholder,
-                    amount: amountInput.value
+                    date: damage.date, // Should be a string in YYYY-MM-DD format
+                    description: damage.description,
+                    amount: damage.amount.toString(), // Ensure amount is a string
+                    specialDamageId: damage.specialDamageId // Include specialDamageId
                 });
-            }
-        });
-        if (existingSpecialDamagesRows.length === 0) {
-            const state = useStore.getState();
-            if (state.results.specialDamages && state.results.specialDamages.length > 0) {
-                state.results.specialDamages.forEach(damage => {
-                    existingSpecialDamagesRows.push({
-                        date: damage.date,
-                        description: damage.description,
-                        amount: damage.amount.toString(),
-                        specialDamageId: damage.specialDamageId // Include specialDamageId
-                    });
-                });
-            }
+            });
+        } else {
+            logger.debug('[getExistingSpecialDamages] No special damages found in store.');
         }
+    } else {
+        logger.debug('[getExistingSpecialDamages] Not a prejudgment table, so no special damages will be fetched.');
     }
+    // The tableBody parameter is no longer used but kept for API consistency with getExistingPayments.
+    logger.debug(`[getExistingSpecialDamages] Returning ${existingSpecialDamagesRows.length} special damages.`);
     return existingSpecialDamagesRows;
 }
 

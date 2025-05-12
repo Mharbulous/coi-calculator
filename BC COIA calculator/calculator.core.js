@@ -38,6 +38,7 @@ loadRatesFromFirebase().catch(error => {
     // Show an alert to inform the user about the error
     alert("Error: Could not load interest rates from Firebase. Please check your internet connection and try again.");
 });
+import { logger } from './util.logger.js'; // Import logger
 import { calculateInterestPeriods, calculatePerDiem } from './calculations.js';
 import {
     elements,
@@ -422,6 +423,29 @@ function calculateFinalTotals(judgmentTotal, postjudgmentResult, finalCalculatio
  * Main function to recalculate interest based on current inputs.
  */
 function recalculate() {
+    // Log when recalculate is called
+    // Attempt to get event type, but handle cases where window.event might not be reliable
+    let eventSource = 'unknown';
+    try {
+        if (window.event && typeof window.event.type === 'string') {
+            eventSource = window.event.type;
+        }
+    } catch (e) {
+        // Silently ignore errors accessing window.event, as it's not always available or standard
+    }
+    
+    logger.debug(`[calculator.core.js recalculate] Recalculate triggered. Event type hint: ${eventSource}.`);
+
+    // More detailed log if the event type suggests it's from a special damages update
+    if (eventSource === 'special-damages-updated') { 
+        // This 'special-damages-updated' is the custom event dispatched from specialDamages.js
+        try {
+            logger.debug(`[calculator.core.js recalculate] Detailed log for 'special-damages-updated' event: Current store special damages: ${JSON.stringify(useStore.getState().results.specialDamages)}`);
+        } catch (e) {
+            logger.error('[calculator.core.js recalculate] Error stringifying special damages for log:', e);
+        }
+    }
+
     // 1. Get and Validate Inputs
     const inputs = getInputValues();
     
@@ -464,9 +488,11 @@ function recalculate() {
 
     // 2. Collect Payments and Special Damages (needed for both prejudgment calc and totals)
     const payments = collectPayments();
-    console.log("[DEBUG] recalculate: After collectPayments, payments array (raw):", payments);
-    console.log("[DEBUG] recalculate: After collectPayments, payments array (JSON):", JSON.stringify(payments));
+    logger.debug("[calculator.core.js recalculate] After collectPayments, payments array (raw):", payments); // Changed console.log to logger.debug
+    logger.debug("[calculator.core.js recalculate] After collectPayments, payments array (JSON):", JSON.stringify(payments)); // Changed console.log to logger.debug
     const specialDamages = collectSpecialDamages();
+    logger.debug("[calculator.core.js recalculate] After collectSpecialDamages, specialDamages array (raw):", specialDamages);
+    logger.debug("[calculator.core.js recalculate] After collectSpecialDamages, specialDamages array (JSON):", JSON.stringify(specialDamages));
     
     // Calculate the total special damages amount
     const specialDamagesTotal = specialDamages.reduce((total, damage) => total + damage.amount, 0);
