@@ -272,16 +272,19 @@ export function splitInterestPeriodsWithPayments(originalPeriods, payments, stat
  * @returns {Object} Payment row object for the interest table
  */
 function createPaymentRow(payment) {
-    // Use negative values for principalApplied and interestApplied to show
-    // how much was applied to each component in the UI
+    // As per task instructions, for visual duplication, set applied amounts to 0.
+    // Calculations of actual effect are out of scope for this specific change.
+    // The 'payment' object here is expected to have 'amount', 'date'.
+    // 'principalApplied' and 'interestApplied' might not be on it if coming directly from store's default.
     return {
         start: formatDateForDisplay(payment.date),
         description: `Payment received: ${formatCurrency(payment.amount)}`,
-        principal: payment.principalApplied ? -payment.principalApplied : 0, // Show as negative amount
-        interest: payment.interestApplied ? -payment.interestApplied : 0,    // Show as negative amount
+        principal: 0, // Placeholder
+        interest: 0,  // Placeholder
         isPayment: true,
-        paymentAmount: payment.amount, // Store original amount for display
-        remainingPrincipal: payment.remainingPrincipal // Store for potential future use
+        paymentAmount: payment.amount // Store original amount for display
+        // principalApplied: 0, // Explicitly setting these if needed by other parts
+        // interestApplied: 0
     };
 }
 
