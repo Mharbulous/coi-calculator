@@ -201,7 +201,7 @@ function initializeCalculator() {
     const defaultSpecialDamages = [
         { date: '2019-04-30', description: 'Ambulance fees', amount: 320, specialDamageId: `default_sd_1_${Date.now()}` },
         { date: '2020-07-03', description: 'Physiotherapy - 1 hour', amount: 220.50, specialDamageId: `default_sd_2_${Date.now()}` },
-        { date: '2024-07-02', description: 'Oxycodone', amount: 39.80, specialDamageId: `default_sd_3_${Date.now()}` }
+        { date: '2022-03-02', description: 'Oxycodone', amount: 39.80, specialDamageId: `default_sd_3_${Date.now()}` }
     ];
     
     // Calculate the total of special damages
