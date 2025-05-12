@@ -194,6 +194,8 @@ function onJudgmentDateChange(selectedDates, recalculateCallback) {
     
     // Update constraints on all special damages date pickers
     updateSpecialDamagesConstraints();
+    // Update constraints on all payment date pickers
+    updatePaymentDateConstraints();
     
     // Trigger recalculation
     if (typeof recalculateCallback === 'function') {
@@ -235,6 +237,8 @@ function onPrejudgmentDateChange(selectedDates, recalculateCallback) {
     
     // Update constraints on all special damages date pickers
     updateSpecialDamagesConstraints();
+    // Update constraints on all payment date pickers
+    updatePaymentDateConstraints();
     
     // Trigger recalculation
     if (typeof recalculateCallback === 'function') {
@@ -287,6 +291,8 @@ function onPostjudgmentDateChange(selectedDates, recalculateCallback) {
     
     // Update constraints on prejudgment and postjudgment pickers
     updatePrejudgmentPostjudgmentConstraints();
+    // Update constraints on all payment date pickers
+    updatePaymentDateConstraints();
     
     // Trigger recalculation
     if (typeof recalculateCallback === 'function') {
@@ -806,25 +812,21 @@ export function initializePaymentDatePicker(inputElement, recalculateCallback) {
     
     // Get constraint dates from store
     const state = useStore.getState();
-    const judgmentDate = state.inputs.dateOfJudgment;
+    const judgmentDate = state.inputs.dateOfJudgment; // Still needed for context, though not direct constraint
     const prejudgmentDate = state.inputs.prejudgmentStartDate;
-    
+    const postjudgmentEndDate = state.inputs.postjudgmentEndDate; // Use this for maxDate
+
     // Calculate minimum and maximum dates for payment
     let minDate = "1993-01-01"; // Default fallback
     if (prejudgmentDate) {
         // Payment can be on or after the prejudgment date
-        minDate = formatDateForDisplay(prejudgmentDate);
+        minDate = formatDateForDisplay(prejudgmentDate); // prejudgmentDate is a Date object
     }
     
-    // Maximum date is judgment date + 1 year (arbitrary for now)
-    let maxDate = "2025-06-30"; // Default fallback
-    if (judgmentDate) {
-        const oneYearAfterJudgment = new Date(Date.UTC(
-            judgmentDate.getUTCFullYear() + 1,
-            judgmentDate.getUTCMonth(),
-            judgmentDate.getUTCDate()
-        ));
-        maxDate = formatDateForDisplay(oneYearAfterJudgment);
+    // Maximum date is the postjudgmentEndDate from the store
+    let maxDate = "2025-06-30"; // Default fallback if postjudgmentEndDate is not set
+    if (postjudgmentEndDate) {
+        maxDate = formatDateForDisplay(postjudgmentEndDate); // postjudgmentEndDate is a Date object
     }
     
     // Initialize flatpickr for the payment date input
@@ -892,24 +894,19 @@ function onPaymentDateChange(selectedDates, inputElement, recalculateCallback) {
     
     // Get constraint dates from store
     const state = useStore.getState();
-    const judgmentDate = state.inputs.dateOfJudgment;
+    // const judgmentDate = state.inputs.dateOfJudgment; // Not directly used for validation here anymore
     const prejudgmentDate = state.inputs.prejudgmentStartDate;
-    
-    // Calculate min and max dates
-    let minDate = null;
+    const postjudgmentEndDate = state.inputs.postjudgmentEndDate; // Use this for maxDate validation
+
+    // Calculate min and max dates for validation
+    let minDateObj = null; 
     if (prejudgmentDate) {
-        // Payments can be on or after the prejudgment date
-        minDate = prejudgmentDate;
+        minDateObj = prejudgmentDate; // This is a Date object from the store
     }
     
-    let maxDate = null;
-    if (judgmentDate) {
-        // Maximum date is judgment date + 1 year (arbitrary for now)
-        maxDate = new Date(Date.UTC(
-            judgmentDate.getUTCFullYear() + 1,
-            judgmentDate.getUTCMonth(),
-            judgmentDate.getUTCDate()
-        ));
+    let maxDateObj = null; 
+    if (postjudgmentEndDate) {
+        maxDateObj = postjudgmentEndDate; // This is a Date object from the store
     }
     
     // Validate the selected date
@@ -917,13 +914,18 @@ function onPaymentDateChange(selectedDates, inputElement, recalculateCallback) {
     
     if (newDate) {
         // Check if date is on or after prejudgment date
-        if (minDate && newDate < minDate) {
+        // Assuming minDateObj is a Date object and newDate is a Date object
+        if (minDateObj && newDate < minDateObj) {
             isValid = false;
         }
         
-        // Check if date is before or on max date
-        if (maxDate && newDate > maxDate) {
-            isValid = false;
+        // Check if date is before or on max date, using string comparison
+        if (maxDateObj) {
+            const selectedDateStr = formatDateForDisplay(newDate);
+            const maxDateStr = formatDateForDisplay(maxDateObj);
+            if (selectedDateStr > maxDateStr) {
+                isValid = false;
+            }
         }
     }
     
@@ -1027,4 +1029,53 @@ export function destroyAllPaymentDatePickers() {
     
     // Clear the Map
     paymentDatePickers.clear();
+}
+
+/**
+ * Updates the constraints for all payment date pickers.
+ * This should be called when prejudgment start date or postjudgment end date changes.
+ */
+export function updatePaymentDateConstraints() {
+    const state = useStore.getState();
+    const prejudgmentDate = state.inputs.prejudgmentStartDate;
+    const postjudgmentEndDate = state.inputs.postjudgmentEndDate;
+
+    let minConstraint = "1993-01-01";
+    if (prejudgmentDate) {
+        minConstraint = formatDateForDisplay(prejudgmentDate);
+    }
+
+    let maxConstraint = "2025-06-30"; // Fallback
+    if (postjudgmentEndDate) {
+        maxConstraint = formatDateForDisplay(postjudgmentEndDate);
+    }
+
+    paymentDatePickers.forEach((instance, inputElement) => {
+        try {
+            instance.set('minDate', minConstraint);
+            instance.set('maxDate', maxConstraint);
+
+            // Re-validate current selection
+            const selectedDate = instance.selectedDates.length > 0 ? instance.selectedDates[0] : null;
+            let isValid = true;
+            if (selectedDate) {
+                const selectedDateStr = formatDateForDisplay(selectedDate);
+                if (prejudgmentDate && selectedDateStr < minConstraint) {
+                    isValid = false;
+                }
+                if (postjudgmentEndDate && selectedDateStr > maxConstraint) {
+                    isValid = false;
+                }
+            }
+
+            if (!isValid && selectedDate) {
+                instance.clear();
+                inputElement.style.backgroundColor = ERROR_BACKGROUND_COLOR;
+            } else if (selectedDate) {
+                inputElement.style.backgroundColor = NORMAL_BACKGROUND_COLOR;
+            }
+        } catch (error) {
+            // Silently handle error
+        }
+    });
 }
