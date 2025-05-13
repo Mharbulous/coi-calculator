@@ -4,6 +4,7 @@ import useStore from '../store.js';
 import { logger } from '../util.logger.js'; // Import for enhanced debugging
 import { insertSpecialDamagesRowFromData } from './specialDamages.js';
 import { insertPaymentRowFromData } from './payments.js';
+import { calculateInterestAllocation, getPriorPayments } from '../calculations.core.js';
 
 // Helper function to get existing special damages rows from the store
 // This function now prioritizes reading directly from the Zustand store,
@@ -57,6 +58,7 @@ function getExistingPayments(isPrejudgmentTable, interestRatesData) {
             return existingPayments;
         }
         
+        // Process each payment synchronously using the core calculation module
         state.results.payments.forEach(payment => {
             // Parse payment date
             const paymentDate = parseDateInput(payment.date);
@@ -78,30 +80,24 @@ function getExistingPayments(isPrejudgmentTable, interestRatesData) {
                 // If interestRatesData is provided and the payment doesn't have principalApplied/interestApplied
                 if (interestRatesData && (processedPayment.principalApplied === undefined || processedPayment.interestApplied === undefined)) {
                     try {
-                        // Import processPayment dynamically to avoid circular dependencies
-                        import('../payment-processor.js').then(module => {
-                            const { processPayment } = module;
-                            // Process the payment to calculate principalApplied and interestApplied
-                            const state = useStore.getState();
-                            const fullProcessedPayment = processPayment(state, processedPayment, interestRatesData);
-                            
-                            if (fullProcessedPayment) {
-                                console.log(`[DEBUG] getExistingPayments: Processed payment: ${JSON.stringify(fullProcessedPayment)}`);
-                                // Update the payment in the array with the processed values
-                                const index = existingPayments.findIndex(p => 
-                                    p.date === processedPayment.date && 
-                                    p.amount === processedPayment.amount.toString());
-                                
-                                if (index !== -1) {
-                                    existingPayments[index] = {
-                                        ...fullProcessedPayment,
-                                        amount: fullProcessedPayment.amount.toString()
-                                    };
-                                }
-                            }
-                        }).catch(err => {
-                            console.error("[ERROR] getExistingPayments: Failed to import payment-processor.js:", err);
-                        });
+                        // Get all prior payments for this payment
+                        const priorPayments = getPriorPayments(state, paymentDate);
+                        
+                        // Use the core calculation module to calculate interest allocation
+                        const { interestApplied, principalApplied, remainingPrincipal } = calculateInterestAllocation(
+                            state, 
+                            paymentDate, 
+                            processedPayment.amount, 
+                            priorPayments, 
+                            interestRatesData
+                        );
+                        
+                        // Update the processed payment with the calculated values
+                        processedPayment.interestApplied = interestApplied;
+                        processedPayment.principalApplied = principalApplied;
+                        processedPayment.remainingPrincipal = remainingPrincipal;
+                        
+                        console.log(`[DEBUG] getExistingPayments: Processed payment: ${JSON.stringify(processedPayment)}`);
                     } catch (err) {
                         console.error("[ERROR] getExistingPayments: Error processing payment:", err);
                     }

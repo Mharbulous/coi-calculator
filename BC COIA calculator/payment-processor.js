@@ -1,6 +1,12 @@
 import { daysBetween, daysInYear, formatDateForDisplay, parseDateInput, normalizeDate, dateOnOrAfter, dateOnOrBefore, datesEqual } from './utils.date.js';
 import { calculateInterestPeriods, getInterestRateForDate } from './calculations.js';
 import { splitInterestPeriodsWithPayments } from './interestPeriodSplitter.js';
+import { 
+    calculateInterestToDate, 
+    calculateInterestAllocation, 
+    determineSegmentIndex, 
+    getPriorPayments 
+} from './calculations.core.js';
 
 /**
  * Processes a payment, applying it first to accumulated interest and then to principal.
@@ -28,42 +34,23 @@ export function processPayment(state, payment, ratesData) {
     }
 
     // Get principal and all existing payments
-    const { inputs, results } = state;
+    const { inputs } = state;
     const { prejudgmentStartDate } = inputs;
-    let { specialDamages, judgmentTotal, payments } = results;
 
     // Get all existing payments that happened before this payment
-    const priorPayments = [...payments].filter(p => {
-        const existingPaymentDate = typeof p.date === 'string' 
-            ? parseDateInput(p.date) 
-            : p.date;
-        return existingPaymentDate < paymentDate;
-    }).sort((a, b) => {
-        const dateA = typeof a.date === 'string' ? parseDateInput(a.date) : a.date;
-        const dateB = typeof b.date === 'string' ? parseDateInput(b.date) : b.date;
-        return dateA - dateB;
-    });
+    const priorPayments = getPriorPayments(state, paymentDate);
 
-    // Calculate interest up to payment date
-    const { interestAccrued, remainingPrincipal } = calculateInterestToDate(
+    // Calculate interest allocation using the core calculation module
+    const { interestApplied, principalApplied, remainingPrincipal } = calculateInterestAllocation(
         state, 
         paymentDate, 
+        payment.amount, 
         priorPayments, 
         ratesData
     );
 
-    // Apply payment to interest first, then principal
-    let interestApplied = Math.min(payment.amount, interestAccrued);
-    let principalApplied = payment.amount - interestApplied;
-    
-    // Calculate the remaining principal after payment - allow negative principal for overpayments
-    const newRemainingPrincipal = remainingPrincipal - principalApplied;
-
     // Determine which segment this payment falls into
     const segmentIndex = determineSegmentIndex(paymentDate, prejudgmentStartDate, ratesData, state);
-
-    // Log the payment distribution for debugging
-    console.log(`[DEBUG] processPayment: Payment of ${payment.amount} applied: interestApplied=${interestApplied}, principalApplied=${principalApplied}, remainingPrincipal=${newRemainingPrincipal}`);
 
     // Create the processed payment object
     const processedPayment = {
@@ -72,71 +59,15 @@ export function processPayment(state, payment, ratesData) {
         amount: payment.amount,
         interestApplied,
         principalApplied,
-        remainingPrincipal: newRemainingPrincipal, // Allow negative principal
+        remainingPrincipal, // Allow negative principal
         segmentIndex
     };
 
     return processedPayment;
 }
 
-/**
- * Calculates the total interest accrued up to a specific date, considering prior payments.
- * 
- * @param {Object} state - The application state
- * @param {Date} calculationDate - The date to calculate interest up to
- * @param {Array} priorPayments - Array of payments made before the calculation date
- * @param {Object} ratesData - The interest rates data
- * @returns {Object} The accrued interest and remaining principal
- */
-export function calculateInterestToDate(state, calculationDate, priorPayments, ratesData) {
-    const { inputs, results } = state;
-    const { prejudgmentStartDate } = inputs;
-    const { judgmentAwarded } = inputs;
-    const { specialDamages } = results;
-
-    if (!calculationDate || !prejudgmentStartDate) {
-        console.error('Invalid dates for interest calculation:', { calculationDate, prejudgmentStartDate });
-        return { interestAccrued: 0, remainingPrincipal: judgmentAwarded };
-    }
-
-    // Start with the judgment amount as initial principal
-    let currentPrincipal = judgmentAwarded;
-    let totalInterestAccrued = 0;
-
-    // Create state copy for calculation
-    const tempState = JSON.parse(JSON.stringify(state));
-    
-    // Calculate interest from start date to payment date (without including prior payments yet)
-    const interestResult = calculateInterestPeriods(
-        tempState,
-        'prejudgment',
-        prejudgmentStartDate,
-        calculationDate,
-        currentPrincipal,
-        ratesData
-    );
-
-    totalInterestAccrued = interestResult.total;
-    
-    // Apply prior payments in chronological order
-    let remainingInterest = totalInterestAccrued;
-    let remainingPrincipal = interestResult.principal; // This includes special damages up to calculation date
-
-    priorPayments.forEach(payment => {
-        // First apply to interest
-        const interestPayment = Math.min(payment.amount, remainingInterest);
-        remainingInterest -= interestPayment;
-        
-        // Then apply to principal
-        const principalPayment = payment.amount - interestPayment;
-        remainingPrincipal -= principalPayment;
-    });
-
-    return {
-        interestAccrued: remainingInterest,
-        remainingPrincipal: remainingPrincipal
-    };
-}
+// Export the core calculation function for use by other modules
+export { calculateInterestToDate } from './calculations.core.js';
 
 /**
  * Recalculates interest periods with payments applied.
@@ -244,44 +175,6 @@ export function recalculateWithPayments(state, payments, ratesData) {
     return newResults;
 }
 
-/**
- * Determines which interest rate segment a payment date falls into.
- * 
- * @param {Date} paymentDate - The date of the payment
- * @param {Date} startDate - The start date of interest calculation
- * @param {Object} ratesData - The interest rates data
- * @param {Object} state - The application state
- * @returns {number} The segment index
- */
-function determineSegmentIndex(paymentDate, startDate, ratesData, state) {
-    const { jurisdiction } = state.inputs;
-    
-    if (!paymentDate || !startDate || !ratesData[jurisdiction]) {
-        return -1;
-    }
-    
-    const jurisdictionRates = ratesData[jurisdiction];
-    
-    // Find which segment this payment belongs to
-    let currentDate = new Date(startDate);
-    let segmentIndex = 0;
-    
-    while (currentDate < paymentDate && segmentIndex < 100) { // Limit to prevent infinite loops
-        const rate = getInterestRateForDate(currentDate, 'prejudgment', jurisdiction, ratesData);
-        const nextRatePeriod = jurisdictionRates.find(period => 
-            period.start > currentDate && period.prejudgment !== undefined
-        );
-        
-        if (!nextRatePeriod || nextRatePeriod.start >= paymentDate) {
-            break;
-        }
-        
-        currentDate = new Date(nextRatePeriod.start);
-        segmentIndex++;
-    }
-    
-    return segmentIndex;
-}
 
 /**
  * Formats a number as currency for display.

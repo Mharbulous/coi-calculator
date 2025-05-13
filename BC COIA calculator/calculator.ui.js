@@ -209,7 +209,7 @@ function initializeCalculator() {
     
     // Define default payment rcords
     const defaultPayments = [
-        { date: '2019-04-16', amount: 500, paymentId: `default_p_1_${Date.now()}` },
+        { date: '2020-04-16', amount: 500, paymentId: `default_p_1_${Date.now()}` },
         { date: '2021-11-02', amount: 22.22, paymentId: `default_p_2_${Date.now()}` },        
         { date: '2024-01-28', amount: 7500, paymentId: `default_p_3_${Date.now()}` }
     ];
