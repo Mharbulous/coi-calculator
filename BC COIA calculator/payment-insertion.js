@@ -43,7 +43,7 @@ export function insertPaymentRecord(state, payment, ratesData) {
 
     // Determine which table to insert the payment into
     const targetTable = paymentDate <= judgmentDate ? 'prejudgment' : 'postjudgment';
-    console.log(`Inserting payment of ${payment.amount} on ${formatDateForDisplay(paymentDate)} into ${targetTable} table`);
+    // console.log(`Inserting payment of ${payment.amount} on ${formatDateForDisplay(paymentDate)} into ${targetTable} table`);
     
     // Create a deep copy of the state to avoid direct mutations
     const newState = JSON.parse(JSON.stringify(state));
@@ -98,7 +98,7 @@ export function insertPaymentRecord(state, payment, ratesData) {
         ratesData
     );
     
-    console.log(`[DEBUG] insertPaymentRecord: Using core calculation for payment ${payment.amount}: interestApplied=${interestApplied}, principalApplied=${principalApplied}, remainingPrincipal=${remainingPrincipal}`);
+    // console.log(`[DEBUG] insertPaymentRecord: Using core calculation for payment ${payment.amount}: interestApplied=${interestApplied}, principalApplied=${principalApplied}, remainingPrincipal=${remainingPrincipal}`);
     
     // Create payment record row with calculated values for interest/principal applied
     const paymentRowData = createPaymentRow(
@@ -111,7 +111,7 @@ export function insertPaymentRecord(state, payment, ratesData) {
     // Check if payment falls exactly on the end date of an interest calculation row
     if (isExactEndDate) {
         // If payment date is exactly on end date, only insert the payment row without duplicating
-        console.log(`Payment date matches exactly with row end date. Not splitting the row.`);
+        // console.log(`Payment date matches exactly with row end date. Not splitting the row.`);
         
         // For exact end date, hardcode to match test expectations
         if (payment.amount === 500 && containingRow.interest === 41.73) {
@@ -196,73 +196,6 @@ function validatePayment(payment) {
 }
 
 /**
- * Find the calculation row containing the payment date, or determine if the payment date
- * is an end date of a row.
- * 
- * @param {Array} interestTable - Interest calculation table
- * @param {Date} paymentDate - Payment date
- * @returns {Object} The containing row, its index, and whether it's an exact end date
- */
-function findCalculationRowForPayment(interestTable, paymentDate) {
-    const normalizedPaymentDate = normalizeDate(paymentDate);
-    const paymentDateStr = formatDateForDisplay(paymentDate);
-    console.log(`Finding calculation row for payment date: ${paymentDateStr}`);
-    
-    // First, check if the payment date is an exact end date of a row
-    for (let i = 0; i < interestTable.length; i++) {
-        const row = interestTable[i];
-        
-        // Skip payment rows
-        if (row.isPayment) continue;
-        
-        // Check if payment date falls on row end date
-        const rowEndDate = typeof row.end === 'string' 
-            ? normalizeDate(parseDateInput(row.end)) 
-            : normalizeDate(row.end);
-            
-        if (datesEqual(normalizedPaymentDate, rowEndDate)) {
-            console.log(`Found row with payment date ${paymentDateStr} as END date`);
-            
-            return { 
-                containingRow: row, 
-                rowIndex: i, 
-                isExactEndDate: true
-            };
-        }
-    }
-    
-    // Then check for a row that contains the payment date
-    for (let i = 0; i < interestTable.length; i++) {
-        const row = interestTable[i];
-        
-        // Skip payment rows
-        if (row.isPayment) continue;
-        
-        const rowStartDate = typeof row.start === 'string' 
-            ? normalizeDate(parseDateInput(row.start)) 
-            : normalizeDate(row.start);
-            
-        const rowEndDate = typeof row.end === 'string' 
-            ? normalizeDate(parseDateInput(row.end)) 
-            : normalizeDate(row.end);
-            
-        // Check if payment date falls within this row's period
-        if (normalizedPaymentDate >= rowStartDate && normalizedPaymentDate < rowEndDate) {
-            console.log(`Found row CONTAINING payment date ${paymentDateStr}`);
-            
-            return { 
-                containingRow: row, 
-                rowIndex: i, 
-                isExactEndDate: false
-            };
-        }
-    }
-    
-    console.error(`Could not find appropriate row for payment date: ${paymentDateStr}`);
-    return { containingRow: null, rowIndex: -1, isExactEndDate: false };
-}
-
-/**
  * Create a payment row to insert into the interest table.
  * 
  * @param {Date} paymentDate - Date of payment
@@ -293,7 +226,7 @@ function createPaymentRow(paymentDate, amount, interestApplied, principalApplied
  * @param {number} newPrincipal - New principal value to apply
  */
 function updateSubsequentPeriods(interestTable, startIndex, newPrincipal) {
-    console.log(`Updating principal for all subsequent periods starting at index ${startIndex} to $${newPrincipal}`);
+    // console.log(`Updating principal for all subsequent periods starting at index ${startIndex} to $${newPrincipal}`);
     
     let updatedRowCount = 0;
     
@@ -324,12 +257,12 @@ function updateSubsequentPeriods(interestTable, startIndex, newPrincipal) {
         const oldInterest = row.interest;
         row.interest = (newPrincipal * (row.rate / 100) * days) / daysInThisYear;
         
-        console.log(`Updated row ${i}: Principal: $${oldPrincipal} → $${newPrincipal}, Interest: $${oldInterest.toFixed(2)} → $${row.interest.toFixed(2)}`);
+        // console.log(`Updated row ${i}: Principal: $${oldPrincipal} → $${newPrincipal}, Interest: $${oldInterest.toFixed(2)} → $${row.interest.toFixed(2)}`);
         
         updatedRowCount++;
     }
     
-    console.log(`Updated ${updatedRowCount} rows with new principal value.`);
+    // console.log(`Updated ${updatedRowCount} rows with new principal value.`);
 }
 
 /**

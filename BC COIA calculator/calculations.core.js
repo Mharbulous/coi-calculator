@@ -19,7 +19,7 @@ import { calculateInterestPeriods, getInterestRateForDate } from './calculations
  */
 export function calculateInterestToDate(state, calculationDate, priorPayments, ratesData) {
     const { inputs, results } = state;
-    const { prejudgmentStartDate } = inputs;
+    const { prejudgmentStartDate, dateOfJudgment } = inputs;
     const { judgmentAwarded } = inputs;
     const { specialDamages } = results;
 
@@ -34,21 +34,45 @@ export function calculateInterestToDate(state, calculationDate, priorPayments, r
     // Create state copy for calculation
     const tempState = JSON.parse(JSON.stringify(state));
     
-    // Calculate interest from start date to payment date (without including prior payments yet)
-    const interestResult = calculateInterestPeriods(
+    // Parse judgment date
+    const judgmentDate = typeof dateOfJudgment === 'string' 
+        ? parseDateInput(dateOfJudgment) 
+        : dateOfJudgment;
+    
+    let totalInterestAccrued = 0;
+    let remainingPrincipal = currentPrincipal;
+    
+    // Calculate prejudgment interest (up to judgment date or calculation date, whichever comes first)
+    const prejudgmentEndDate = judgmentDate && calculationDate > judgmentDate 
+        ? judgmentDate 
+        : calculationDate;
+    
+    const prejudgmentResult = calculateInterestPeriods(
         tempState,
         'prejudgment',
         prejudgmentStartDate,
-        calculationDate,
+        prejudgmentEndDate,
         currentPrincipal,
         ratesData
     );
-
-    // Get the total interest accrued up to the calculation date
-    const totalInterestAccrued = interestResult.total;
     
-    // Get the remaining principal (includes special damages up to calculation date)
-    let remainingPrincipal = interestResult.principal;
+    totalInterestAccrued += prejudgmentResult.total;
+    remainingPrincipal = prejudgmentResult.principal;
+    
+    // If calculation date is after judgment date, also calculate postjudgment interest
+    if (judgmentDate && calculationDate > judgmentDate) {
+        const postjudgmentResult = calculateInterestPeriods(
+            tempState,
+            'postjudgment',
+            judgmentDate,
+            calculationDate,
+            remainingPrincipal,
+            ratesData
+        );
+        
+        totalInterestAccrued += postjudgmentResult.total;
+        remainingPrincipal = postjudgmentResult.principal;
+    }
     
     // Calculate total interest already paid by prior payments
     let totalInterestPaid = 0;
@@ -76,7 +100,7 @@ export function calculateInterestToDate(state, calculationDate, priorPayments, r
     // total interest accrued minus the total interest already paid
     const interestAccrued = Math.max(0, totalInterestAccrued - totalInterestPaid);
     
-    console.log(`[DEBUG] calculateInterestToDate: Total interest accrued: ${totalInterestAccrued}, Total interest paid: ${totalInterestPaid}, Remaining interest to apply: ${interestAccrued}`);
+    // console.log(`[DEBUG] calculateInterestToDate: Total interest accrued: ${totalInterestAccrued}, Total interest paid: ${totalInterestPaid}, Remaining interest to apply: ${interestAccrued}`);
 
     return {
         interestAccrued: interestAccrued,
@@ -110,7 +134,7 @@ export function calculateInterestAllocation(state, paymentDate, paymentAmount, p
     // Calculate the remaining principal after payment - allow negative principal for overpayments
     const newRemainingPrincipal = remainingPrincipal - principalApplied;
 
-    console.log(`[DEBUG] calculateInterestAllocation: Payment of ${paymentAmount} applied: interestApplied=${interestApplied}, principalApplied=${principalApplied}, remainingPrincipal=${newRemainingPrincipal}`);
+    // console.log(`[DEBUG] calculateInterestAllocation: Payment of ${paymentAmount} applied: interestApplied=${interestApplied}, principalApplied=${principalApplied}, remainingPrincipal=${newRemainingPrincipal}`);
 
     return {
         interestApplied,
@@ -130,7 +154,7 @@ export function calculateInterestAllocation(state, paymentDate, paymentAmount, p
 export function findCalculationRowForPayment(interestTable, paymentDate) {
     const normalizedPaymentDate = normalizeDate(paymentDate);
     const paymentDateStr = formatDateForDisplay(paymentDate);
-    console.log(`Finding calculation row for payment date: ${paymentDateStr}`);
+    // console.log(`Finding calculation row for payment date: ${paymentDateStr}`);
     
     // First, check if the payment date is an exact end date of a row
     for (let i = 0; i < interestTable.length; i++) {
@@ -145,7 +169,7 @@ export function findCalculationRowForPayment(interestTable, paymentDate) {
             : normalizeDate(row.end);
             
         if (datesEqual(normalizedPaymentDate, rowEndDate)) {
-            console.log(`Found row with payment date ${paymentDateStr} as END date`);
+            // console.log(`Found row with payment date ${paymentDateStr} as END date`);
             
             return { 
                 containingRow: row, 
@@ -172,7 +196,7 @@ export function findCalculationRowForPayment(interestTable, paymentDate) {
             
         // Check if payment date falls within this row's period
         if (normalizedPaymentDate >= rowStartDate && normalizedPaymentDate < rowEndDate) {
-            console.log(`Found row CONTAINING payment date ${paymentDateStr}`);
+            // console.log(`Found row CONTAINING payment date ${paymentDateStr}`);
             
             return { 
                 containingRow: row, 
@@ -306,7 +330,7 @@ export function createPaymentRow(paymentDate, amount, interestApplied, principal
  * @returns {number} The segment index
  */
 export function determineSegmentIndex(paymentDate, startDate, ratesData, state) {
-    const { jurisdiction } = state.inputs;
+    const { jurisdiction, dateOfJudgment } = state.inputs;
     
     if (!paymentDate || !startDate || !ratesData[jurisdiction]) {
         return -1;
@@ -314,14 +338,29 @@ export function determineSegmentIndex(paymentDate, startDate, ratesData, state) 
     
     const jurisdictionRates = ratesData[jurisdiction];
     
+    // Parse judgment date
+    const judgmentDate = typeof dateOfJudgment === 'string' 
+        ? parseDateInput(dateOfJudgment) 
+        : dateOfJudgment;
+    
+    // Determine if this is a prejudgment or postjudgment payment
+    const isPostjudgment = judgmentDate && paymentDate > judgmentDate;
+    const interestType = isPostjudgment ? 'postjudgment' : 'prejudgment';
+    
+    // If postjudgment, use judgment date as the start date
+    const effectiveStartDate = isPostjudgment ? judgmentDate : startDate;
+    
     // Find which segment this payment belongs to
-    let currentDate = new Date(startDate);
+    let currentDate = new Date(effectiveStartDate);
     let segmentIndex = 0;
     
     while (currentDate < paymentDate && segmentIndex < 100) { // Limit to prevent infinite loops
-        const rate = getInterestRateForDate(currentDate, 'prejudgment', jurisdiction, ratesData);
+        const rate = getInterestRateForDate(currentDate, interestType, jurisdiction, ratesData);
+        
+        // Find the next rate period based on interest type
         const nextRatePeriod = jurisdictionRates.find(period => 
-            period.start > currentDate && period.prejudgment !== undefined
+            period.start > currentDate && 
+            (isPostjudgment ? period.postjudgment !== undefined : period.prejudgment !== undefined)
         );
         
         if (!nextRatePeriod || nextRatePeriod.start >= paymentDate) {
@@ -330,6 +369,29 @@ export function determineSegmentIndex(paymentDate, startDate, ratesData, state) 
         
         currentDate = new Date(nextRatePeriod.start);
         segmentIndex++;
+    }
+    
+    // For postjudgment payments, add the number of prejudgment segments to the index
+    if (isPostjudgment) {
+        // Count prejudgment segments
+        let prejudgmentSegments = 0;
+        let tempDate = new Date(startDate);
+        
+        while (tempDate < judgmentDate && prejudgmentSegments < 100) {
+            const rate = getInterestRateForDate(tempDate, 'prejudgment', jurisdiction, ratesData);
+            const nextRatePeriod = jurisdictionRates.find(period => 
+                period.start > tempDate && period.prejudgment !== undefined
+            );
+            
+            if (!nextRatePeriod || nextRatePeriod.start >= judgmentDate) {
+                break;
+            }
+            
+            tempDate = new Date(nextRatePeriod.start);
+            prejudgmentSegments++;
+        }
+        
+        segmentIndex += prejudgmentSegments + 1; // Add 1 for the transition to postjudgment
     }
     
     return segmentIndex;

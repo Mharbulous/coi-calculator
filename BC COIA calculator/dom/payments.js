@@ -34,7 +34,7 @@ function updatePaymentInStoreFromRow(rowElement) {
     const newDate = dateInput.value;
     const newAmount = parseCurrency(amountInput.value);
 
-    logger.debug(`[payments.js updatePaymentInStoreFromRow] Updating ID ${paymentId} with Date: ${newDate}, Amount: ${newAmount}`);
+    // logger.debug(`[payments.js updatePaymentInStoreFromRow] Updating ID ${paymentId} with Date: ${newDate}, Amount: ${newAmount}`);
 
     const state = useStore.getState();
     const paymentIndex = state.results.payments.findIndex(p => p.paymentId === paymentId);
@@ -50,7 +50,7 @@ function updatePaymentInStoreFromRow(rowElement) {
         // Dispatch event after successful store update
         const event = new CustomEvent('payment-updated', { bubbles: true, cancelable: true });
         document.dispatchEvent(event);
-        logger.debug(`[payments.js updatePaymentInStoreFromRow] Dispatched payment-updated for ID ${paymentId}`);
+        // logger.debug(`[payments.js updatePaymentInStoreFromRow] Dispatched payment-updated for ID ${paymentId}`);
     } else {
         logger.warn(`[payments.js updatePaymentInStoreFromRow] Payment ID ${paymentId} not found in store.`);
     }
@@ -190,8 +190,8 @@ export function insertPaymentRow(tableBody, currentRow, date) {
     // IMPORTANT: Add the payment-row class to identify this as a payment row
     newRow.className = 'editable-item-row payment-row highlight-new-row breakable'; // Add payment-row class
     
-    console.log("[DEBUG] insertPaymentRow: Created new row at index:", rowIndex);
-    console.log("[DEBUG] insertPaymentRow: Set row className to:", newRow.className);
+    // console.log("[DEBUG] insertPaymentRow: Created new row at index:", rowIndex);
+    // console.log("[DEBUG] insertPaymentRow: Set row className to:", newRow.className);
     
     // Date cell (editable, pre-populated with the date from the current row)
     const dateCell = newRow.insertCell();
@@ -335,27 +335,27 @@ function validatePaymentDate(dateStr) {
  * @returns {HTMLTableRowElement} The newly inserted row element.
  */
 export function insertPaymentRowFromData(tableBody, index, rowData) {
-    logger.debug(`[DEBUG payments.js insertPaymentRowFromData] Received rowData: ${JSON.stringify(rowData)}`); // DEBUG LOG
-    console.log("[DEBUG] insertPaymentRowFromData: Starting with tableBody:", tableBody?.id || "undefined", 
-                "index:", index, "rowData:", rowData);
+    // logger.debug(`[DEBUG payments.js insertPaymentRowFromData] Received rowData: ${JSON.stringify(rowData)}`); // DEBUG LOG
+    // console.log("[DEBUG] insertPaymentRowFromData: Starting with tableBody:", tableBody?.id || "undefined", 
+    //             "index:", index, "rowData:", rowData);
     
     // Validate inputs to prevent issues with missing data
     if (!tableBody || !rowData) {
-        console.log("[DEBUG] insertPaymentRowFromData: Missing tableBody or rowData, returning null");
+        // console.log("[DEBUG] insertPaymentRowFromData: Missing tableBody or rowData, returning null");
         return null;
     }
     
     // Create a safe index value
     const safeIndex = (index !== undefined && index >= 0) ? index : -1;
-    console.log("[DEBUG] insertPaymentRowFromData: Using safeIndex:", safeIndex);
+    // console.log("[DEBUG] insertPaymentRowFromData: Using safeIndex:", safeIndex);
     
     const newRow = tableBody.insertRow(safeIndex);
-    console.log("[DEBUG] insertPaymentRowFromData: Created new row at index:", safeIndex);
+    // console.log("[DEBUG] insertPaymentRowFromData: Created new row at index:", safeIndex);
     
     // IMPORTANT: Add the payment-row class to identify this as a payment row
     newRow.className = 'editable-item-row payment-row breakable'; // Add payment-row class
-    console.log("[DEBUG] insertPaymentRowFromData: Set row className to:", newRow.className);
-    logger.debug(`[payments.js insertPaymentRowFromData] Received rowData: ${JSON.stringify(rowData)}`);
+    // console.log("[DEBUG] insertPaymentRowFromData: Set row className to:", newRow.className);
+    // logger.debug(`[payments.js insertPaymentRowFromData] Received rowData: ${JSON.stringify(rowData)}`);
 
     // Date cell
     const dateCell = newRow.insertCell();
@@ -456,7 +456,7 @@ export function insertPaymentRowFromData(tableBody, index, rowData) {
                 interestApplied = Math.min(interest, paymentAmount);
                 principalApplied = paymentAmount - interestApplied;
                 
-                console.log(`[DEBUG] insertPaymentRowFromData: Calculated payment distribution: interestApplied=${interestApplied}, principalApplied=${principalApplied}`);
+                // console.log(`[DEBUG] insertPaymentRowFromData: Calculated payment distribution: interestApplied=${interestApplied}, principalApplied=${principalApplied}`);
             }
         } else {
             // If no previous row found, apply all to principal

@@ -40,11 +40,11 @@ function getExistingSpecialDamages(tableBody, isPrejudgmentTable) {
 function getExistingPayments(isPrejudgmentTable, interestRatesData) {
     const existingPayments = [];
     const state = useStore.getState();
-    console.log("[DEBUG] getExistingPayments: Checking store for payments, isPrejudgmentTable:", isPrejudgmentTable);
+    // console.log("[DEBUG] getExistingPayments: Checking store for payments, isPrejudgmentTable:", isPrejudgmentTable);
     
     if (state.results.payments && state.results.payments.length > 0) {
-        console.log("[DEBUG] getExistingPayments: Found payments in store (raw):", state.results.payments);
-        console.log("[DEBUG] getExistingPayments: Detailed payments list (JSON):", JSON.stringify(state.results.payments));
+        // console.log("[DEBUG] getExistingPayments: Found payments in store (raw):", state.results.payments);
+        // console.log("[DEBUG] getExistingPayments: Detailed payments list (JSON):", JSON.stringify(state.results.payments));
         
         // Get judgment date to filter payments
         const judgmentDate = state.inputs.dateOfJudgment ? 
@@ -97,7 +97,7 @@ function getExistingPayments(isPrejudgmentTable, interestRatesData) {
                         processedPayment.principalApplied = principalApplied;
                         processedPayment.remainingPrincipal = remainingPrincipal;
                         
-                        console.log(`[DEBUG] getExistingPayments: Processed payment: ${JSON.stringify(processedPayment)}`);
+                        // console.log(`[DEBUG] getExistingPayments: Processed payment: ${JSON.stringify(processedPayment)}`);
                     } catch (err) {
                         console.error("[ERROR] getExistingPayments: Error processing payment:", err);
                     }
@@ -111,26 +111,26 @@ function getExistingPayments(isPrejudgmentTable, interestRatesData) {
             }
         });
     } else {
-        console.log("[DEBUG] getExistingPayments: No payments found in store or empty array");
+        // console.log("[DEBUG] getExistingPayments: No payments found in store or empty array");
     }
     
-    console.log(`[DEBUG] getExistingPayments: Returning ${existingPayments.length} payments for ${isPrejudgmentTable ? 'prejudgment' : 'postjudgment'} table`);
+    // console.log(`[DEBUG] getExistingPayments: Returning ${existingPayments.length} payments for ${isPrejudgmentTable ? 'prejudgment' : 'postjudgment'} table`);
     return existingPayments;
 }
 
 export function collectAndSortRows(tableBody, details, resultState, isPrejudgmentTable, finalPeriodStartDateStr, finalPeriodDamageInterestDetails, interestRatesData) {
-    console.log("[DEBUG] collectAndSortRows: Starting with tableBody ID:", tableBody.id, "isPrejudgmentTable:", isPrejudgmentTable);
+    // console.log("[DEBUG] collectAndSortRows: Starting with tableBody ID:", tableBody.id, "isPrejudgmentTable:", isPrejudgmentTable);
 
     const existingSpecialDamagesRows = getExistingSpecialDamages(tableBody, isPrejudgmentTable);
-    console.log("[DEBUG] collectAndSortRows: Retrieved existingSpecialDamagesRows:", existingSpecialDamagesRows.length);
+    // console.log("[DEBUG] collectAndSortRows: Retrieved existingSpecialDamagesRows:", existingSpecialDamagesRows.length);
     
     const existingPayments = getExistingPayments(isPrejudgmentTable, interestRatesData);
     // Detailed log for payment amounts as retrieved by getExistingPayments
-    logger.debug(`[tables.interest.rowSorting.js collectAndSortRows] existingPayments from getExistingPayments: ${JSON.stringify(existingPayments.map(p => ({ amount: p.amount, date: p.date, id: p.paymentId })))}`);
-    console.log("[DEBUG] collectAndSortRows: Retrieved existingPayments:", existingPayments.length);
+    // logger.debug(`[tables.interest.rowSorting.js collectAndSortRows] existingPayments from getExistingPayments: ${JSON.stringify(existingPayments.map(p => ({ amount: p.amount, date: p.date, id: p.paymentId })))}`);
+    // console.log("[DEBUG] collectAndSortRows: Retrieved existingPayments:", existingPayments.length);
 
     if (existingSpecialDamagesRows.length === 0 && existingPayments.length === 0) {
-        console.log("[DEBUG] collectAndSortRows: No special damages or payments to process, exiting");
+        // console.log("[DEBUG] collectAndSortRows: No special damages or payments to process, exiting");
         return; // No special damages or payments to process
     }
     
@@ -158,7 +158,7 @@ export function collectAndSortRows(tableBody, details, resultState, isPrejudgmen
     ].filter(item => item.date !== null);
 
     // DEBUG_SORT: Log allRowsToInsert before sorting
-    console.log("[DEBUG_SORT] collectAndSortRows: allRowsToInsert BEFORE sort:", JSON.stringify(allRowsToInsert.map(r => ({ dateStr: r.dateStr, type: r.isSpecialDamage ? 'SD' : (r.isPayment ? 'Payment' : 'Unknown'), id: r.rowData.specialDamageId || r.rowData.paymentId }))));
+    // console.log("[DEBUG_SORT] collectAndSortRows: allRowsToInsert BEFORE sort:", JSON.stringify(allRowsToInsert.map(r => ({ dateStr: r.dateStr, type: r.isSpecialDamage ? 'SD' : (r.isPayment ? 'Payment' : 'Unknown'), id: r.rowData.specialDamageId || r.rowData.paymentId }))));
 
     allRowsToInsert.sort((a, b) => {
         const dateComparison = a.date - b.date;
@@ -179,20 +179,20 @@ export function collectAndSortRows(tableBody, details, resultState, isPrejudgmen
     });
 
     // DEBUG_SORT: Log allRowsToInsert after sorting
-    console.log("[DEBUG_SORT] collectAndSortRows: allRowsToInsert AFTER sort:", JSON.stringify(allRowsToInsert.map(r => ({ dateStr: r.dateStr, type: r.isSpecialDamage ? 'SD' : (r.isPayment ? 'Payment' : 'Unknown'), id: r.rowData.specialDamageId || r.rowData.paymentId }))));
+    // console.log("[DEBUG_SORT] collectAndSortRows: allRowsToInsert AFTER sort:", JSON.stringify(allRowsToInsert.map(r => ({ dateStr: r.dateStr, type: r.isSpecialDamage ? 'SD' : (r.isPayment ? 'Payment' : 'Unknown'), id: r.rowData.specialDamageId || r.rowData.paymentId }))));
 
     for (const rowToInsert of allRowsToInsert) {
         // DEBUG_SORT: Log current rowToInsert
-        console.log("[DEBUG_SORT] collectAndSortRows: Processing rowToInsert:", JSON.stringify({ dateStr: rowToInsert.dateStr, type: rowToInsert.isSpecialDamage ? 'SD' : (rowToInsert.isPayment ? 'Payment' : 'Unknown'), id: rowToInsert.rowData.specialDamageId || rowToInsert.rowData.paymentId, data: rowToInsert.rowData }));
+        // console.log("[DEBUG_SORT] collectAndSortRows: Processing rowToInsert:", JSON.stringify({ dateStr: rowToInsert.dateStr, type: rowToInsert.isSpecialDamage ? 'SD' : (rowToInsert.isPayment ? 'Payment' : 'Unknown'), id: rowToInsert.rowData.specialDamageId || rowToInsert.rowData.paymentId, data: rowToInsert.rowData }));
 
         const insertIndex = findInsertionIndex(tableBody, rowToInsert.date, rowToInsert.isSpecialDamage, rowToInsert.isPayment);
-        console.log("[DEBUG] collectAndSortRows: For row type:", rowToInsert.isPayment ? "Payment" : "Special Damage", 
-                   "date:", rowToInsert.dateStr, "found insertIndex:", insertIndex);
+        // console.log("[DEBUG] collectAndSortRows: For row type:", rowToInsert.isPayment ? "Payment" : "Special Damage", 
+        //            "date:", rowToInsert.dateStr, "found insertIndex:", insertIndex);
         // DEBUG_SORT: Log insertIndex received for current rowToInsert
-        console.log("[DEBUG_SORT] collectAndSortRows: Received insertIndex:", insertIndex, "for item:", rowToInsert.dateStr);
+        // console.log("[DEBUG_SORT] collectAndSortRows: Received insertIndex:", insertIndex, "for item:", rowToInsert.dateStr);
         
         if (rowToInsert.isSpecialDamage) {
-            console.log("[DEBUG] collectAndSortRows: Inserting special damage row with data:", rowToInsert.rowData);
+            // console.log("[DEBUG] collectAndSortRows: Inserting special damage row with data:", rowToInsert.rowData);
             insertSpecialDamagesRowFromData(
                 tableBody,
                 insertIndex,
@@ -207,10 +207,10 @@ export function collectAndSortRows(tableBody, details, resultState, isPrejudgmen
                 insertIndex,
                 rowToInsert.rowData
             );
-            console.log("[DEBUG] collectAndSortRows: Result of insertPaymentRowFromData:", insertedPaymentRow ? "Row inserted" : "No row inserted");
+            // console.log("[DEBUG] collectAndSortRows: Result of insertPaymentRowFromData:", insertedPaymentRow ? "Row inserted" : "No row inserted");
             
             if (insertedPaymentRow) {
-                console.log("[DEBUG] collectAndSortRows: Calling handleRowDuplicationAfterPayment for inserted payment row");
+                // console.log("[DEBUG] collectAndSortRows: Calling handleRowDuplicationAfterPayment for inserted payment row");
                 handleRowDuplicationAfterPayment(insertedPaymentRow, tableBody, insertIndex);
             }
         }
@@ -219,7 +219,7 @@ export function collectAndSortRows(tableBody, details, resultState, isPrejudgmen
 
 export function findInsertionIndex(tableBody, dateToInsert, isSpecialDamage, isPayment) {
     // DEBUG_SORT: Log parameters on entry to findInsertionIndex
-    console.log("[DEBUG_SORT] findInsertionIndex: Called with dateToInsert:", dateToInsert ? formatDateForDisplay(dateToInsert) : 'null date', "isSpecialDamage:", isSpecialDamage, "isPayment:", isPayment);
+    // console.log("[DEBUG_SORT] findInsertionIndex: Called with dateToInsert:", dateToInsert ? formatDateForDisplay(dateToInsert) : 'null date', "isSpecialDamage:", isSpecialDamage, "isPayment:", isPayment);
     let insertIndex = -1; // Default to append
 
     for (let i = 0; i < tableBody.rows.length; i++) {
@@ -256,7 +256,7 @@ export function findInsertionIndex(tableBody, dateToInsert, isSpecialDamage, isP
         }
 
         // DEBUG_SORT: Log details of currentRow inside the loop in findInsertionIndex
-        console.log(`[DEBUG_SORT] findInsertionIndex: Row ${i}, Parsed Start: ${currentRowStartDate ? formatDateForDisplay(currentRowStartDate) : 'null'}, Parsed End: ${currentRowEndDate ? formatDateForDisplay(currentRowEndDate) : 'null'}, isSD: ${isCurrentRowSpecialDamage}, isPayment: ${isCurrentRowPayment}, Raw Date Source: ${rawDateSource}`);
+        // console.log(`[DEBUG_SORT] findInsertionIndex: Row ${i}, Parsed Start: ${currentRowStartDate ? formatDateForDisplay(currentRowStartDate) : 'null'}, Parsed End: ${currentRowEndDate ? formatDateForDisplay(currentRowEndDate) : 'null'}, isSD: ${isCurrentRowSpecialDamage}, isPayment: ${isCurrentRowPayment}, Raw Date Source: ${rawDateSource}`);
 
         if (currentRowStartDate) {
             if (dateToInsert && datesEqual(dateToInsert, currentRowStartDate)) { // Added null check for dateToInsert
@@ -296,34 +296,34 @@ export function findInsertionIndex(tableBody, dateToInsert, isSpecialDamage, isP
         }
     }
     // DEBUG_SORT: Log the returned insertIndex from findInsertionIndex
-    console.log("[DEBUG_SORT] findInsertionIndex: Returning insertIndex:", insertIndex);
+    // console.log("[DEBUG_SORT] findInsertionIndex: Returning insertIndex:", insertIndex);
     return insertIndex;
 }
 
 export function handleRowDuplicationAfterPayment(insertedPaymentRow, tableBody, insertIndex) {
-    console.log("[DEBUG] handleRowDuplicationAfterPayment: Starting with insertedPaymentRow:", insertedPaymentRow, 
-                "tableBody rowCount:", tableBody.rows.length, "original insertIndex:", insertIndex);
+    // console.log("[DEBUG] handleRowDuplicationAfterPayment: Starting with insertedPaymentRow:", insertedPaymentRow, 
+    //             "tableBody rowCount:", tableBody.rows.length, "original insertIndex:", insertIndex);
     
     // Detailed check of the insertedPaymentRow to verify it's a valid row
-    console.log("[DEBUG] handleRowDuplicationAfterPayment: Payment row details:", 
-                "instanceof HTMLTableRowElement:", insertedPaymentRow instanceof HTMLTableRowElement,
-                "className:", insertedPaymentRow?.className,
-                "nodeType:", insertedPaymentRow?.nodeType,
-                "parentNode:", insertedPaymentRow?.parentNode);
+    // console.log("[DEBUG] handleRowDuplicationAfterPayment: Payment row details:", 
+    //             "instanceof HTMLTableRowElement:", insertedPaymentRow instanceof HTMLTableRowElement,
+    //             "className:", insertedPaymentRow?.className,
+    //             "nodeType:", insertedPaymentRow?.nodeType,
+    //             "parentNode:", insertedPaymentRow?.parentNode);
     
     // Find the actual index of the insertedPaymentRow as DOM might have shifted
     let actualPaymentRowIndex = -1;
-    console.log("[DEBUG] handleRowDuplicationAfterPayment: Trying to find payment row index in tableBody.rows");
+    // console.log("[DEBUG] handleRowDuplicationAfterPayment: Trying to find payment row index in tableBody.rows");
     for(let i=0; i < tableBody.rows.length; i++) {
-        console.log(`[DEBUG] handleRowDuplicationAfterPayment: Checking row ${i}, same as insertedPaymentRow:`, 
-                    tableBody.rows[i] === insertedPaymentRow,
-                    "row class:", tableBody.rows[i].className);
+        // console.log(`[DEBUG] handleRowDuplicationAfterPayment: Checking row ${i}, same as insertedPaymentRow:`, 
+        //             tableBody.rows[i] === insertedPaymentRow,
+        //             "row class:", tableBody.rows[i].className);
         if (tableBody.rows[i] === insertedPaymentRow) {
             actualPaymentRowIndex = i;
             break;
         }
     }
-    console.log("[DEBUG] handleRowDuplicationAfterPayment: Found actualPaymentRowIndex:", actualPaymentRowIndex);
+    // console.log("[DEBUG] handleRowDuplicationAfterPayment: Found actualPaymentRowIndex:", actualPaymentRowIndex);
 
     // Check if this payment falls on the end date of an interest period
     // by examining the date in the payment row and the date in the previous row
@@ -347,7 +347,7 @@ export function handleRowDuplicationAfterPayment(insertedPaymentRow, tableBody, 
         // Check if payment date is exactly the end date of the previous row
         if (paymentDate === previousRowEndDate) {
             isPaymentOnEndDate = true;
-            console.log("[DEBUG] handleRowDuplicationAfterPayment: Payment date matches previous row end date, not duplicating");
+            // console.log("[DEBUG] handleRowDuplicationAfterPayment: Payment date matches previous row end date, not duplicating");
         }
     }
     
@@ -416,7 +416,7 @@ export function handleRowDuplicationAfterPayment(insertedPaymentRow, tableBody, 
             // } catch (e) {
             //     console.error("Error duplicating or inserting row:", e);
             // }
-            console.log("[DEBUG] handleRowDuplicationAfterPayment: Row duplication logic has been intentionally disabled to prevent visual duplication. The store should provide the correct split rows.");
+            // console.log("[DEBUG] handleRowDuplicationAfterPayment: Row duplication logic has been intentionally disabled to prevent visual duplication. The store should provide the correct split rows.");
         }
     }
 }
