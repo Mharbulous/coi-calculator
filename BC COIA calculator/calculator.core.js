@@ -519,7 +519,8 @@ function recalculate() {
         elements.prejudgmentPrincipalTotalEl,
         elements.prejudgmentInterestTotalEl,
         useStore.getState().results.prejudgmentResult, // Pass the prejudgment result
-        totalPrincipalForFooter // Pass the specific footer principal
+        totalPrincipalForFooter, // Pass the specific footer principal
+        interestRatesData // Pass interestRatesData
     );
 
     // 5. Calculate Base Total for Postjudgment and Summary
@@ -550,7 +551,8 @@ function recalculate() {
         null, // No principal total element for postjudgment
         elements.postjudgmentInterestTotalEl,
         useStore.getState().results.postjudgmentResult, // Pass the postjudgment result
-        postjudgmentPrincipal // Pass the postjudgment principal for display purposes
+        postjudgmentPrincipal, // Pass the postjudgment principal for display purposes
+        interestRatesData // Pass interestRatesData
     );
 
     // 8. Calculate final total and per diem

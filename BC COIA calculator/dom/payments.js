@@ -421,8 +421,51 @@ export function insertPaymentRowFromData(tableBody, index, rowData) {
     
     // Principal cell (will show calculated effect after processing)
     const principalCell = newRow.insertCell();
-    // Use principalApplied from rowData, display as negative
-    const principalApplied = parseCurrency(rowData.principalApplied || 0);
+    
+    // Calculate principalApplied if not provided
+    let principalApplied = 0;
+    let interestApplied = 0;
+    
+    if (rowData.principalApplied !== undefined && rowData.interestApplied !== undefined) {
+        // Use the values from rowData
+        principalApplied = parseCurrency(rowData.principalApplied);
+        interestApplied = parseCurrency(rowData.interestApplied);
+    } else {
+        // If not provided, calculate based on the payment amount and the interest from the previous row
+        // Find the previous interest row (not a payment or special damage)
+        let prevRow = null;
+        let currentRowIndex = newRow.rowIndex;
+        
+        for (let i = currentRowIndex - 1; i >= 0; i--) {
+            const row = tableBody.rows[i];
+            if (row && !row.classList.contains('payment-row') && !row.classList.contains('editable-item-row')) {
+                prevRow = row;
+                break;
+            }
+        }
+        
+        if (prevRow) {
+            // Get the interest amount from the previous row
+            const interestCell = prevRow.cells[4]; // Interest is in the 5th column (index 4)
+            if (interestCell) {
+                const interestText = interestCell.textContent.trim();
+                const interest = parseCurrency(interestText);
+                
+                // Apply payment to interest first, then principal
+                const paymentAmount = parseCurrency(rowData.amount);
+                interestApplied = Math.min(interest, paymentAmount);
+                principalApplied = paymentAmount - interestApplied;
+                
+                console.log(`[DEBUG] insertPaymentRowFromData: Calculated payment distribution: interestApplied=${interestApplied}, principalApplied=${principalApplied}`);
+            }
+        } else {
+            // If no previous row found, apply all to principal
+            principalApplied = parseCurrency(rowData.amount);
+            interestApplied = 0;
+        }
+    }
+    
+    // Display principalApplied as negative
     principalCell.innerHTML = formatCurrencyForDisplay(-principalApplied);
     if (principalApplied > 0) principalCell.classList.add('negative-value');
     principalCell.classList.add('text-right');
@@ -432,10 +475,9 @@ export function insertPaymentRowFromData(tableBody, index, rowData) {
     rateCell.textContent = '';
     rateCell.classList.add('text-center');
 
-    // Interest cell (empty) with delete icon
+    // Interest cell with delete icon
     const interestCell = newRow.insertCell();
-    // Use interestApplied from rowData, display as negative
-    const interestApplied = parseCurrency(rowData.interestApplied || 0);
+    // Display interestApplied as negative
     interestCell.innerHTML = formatCurrencyForDisplay(-interestApplied);
     if (interestApplied > 0) interestCell.classList.add('negative-value');
     interestCell.classList.add('text-right');

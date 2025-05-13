@@ -35,7 +35,8 @@ function getExistingSpecialDamages(tableBody, isPrejudgmentTable) {
 
 // Helper function to get existing payments from store
 // Filter payments based on date compared to judgment date
-function getExistingPayments(isPrejudgmentTable) {
+// Process payments to ensure they have principalApplied and interestApplied values
+function getExistingPayments(isPrejudgmentTable, interestRatesData) {
     const existingPayments = [];
     const state = useStore.getState();
     console.log("[DEBUG] getExistingPayments: Checking store for payments, isPrejudgmentTable:", isPrejudgmentTable);
@@ -71,10 +72,45 @@ function getExistingPayments(isPrejudgmentTable) {
             
             if ((isPrejudgmentTable && isForPrejudgmentTable) || 
                 (!isPrejudgmentTable && !isForPrejudgmentTable)) {
-                // Push the full payment object, ensuring amount is a string for consistency if needed elsewhere
+                // Process the payment to ensure it has principalApplied and interestApplied values
+                let processedPayment = { ...payment };
+                
+                // If interestRatesData is provided and the payment doesn't have principalApplied/interestApplied
+                if (interestRatesData && (processedPayment.principalApplied === undefined || processedPayment.interestApplied === undefined)) {
+                    try {
+                        // Import processPayment dynamically to avoid circular dependencies
+                        import('../payment-processor.js').then(module => {
+                            const { processPayment } = module;
+                            // Process the payment to calculate principalApplied and interestApplied
+                            const state = useStore.getState();
+                            const fullProcessedPayment = processPayment(state, processedPayment, interestRatesData);
+                            
+                            if (fullProcessedPayment) {
+                                console.log(`[DEBUG] getExistingPayments: Processed payment: ${JSON.stringify(fullProcessedPayment)}`);
+                                // Update the payment in the array with the processed values
+                                const index = existingPayments.findIndex(p => 
+                                    p.date === processedPayment.date && 
+                                    p.amount === processedPayment.amount.toString());
+                                
+                                if (index !== -1) {
+                                    existingPayments[index] = {
+                                        ...fullProcessedPayment,
+                                        amount: fullProcessedPayment.amount.toString()
+                                    };
+                                }
+                            }
+                        }).catch(err => {
+                            console.error("[ERROR] getExistingPayments: Failed to import payment-processor.js:", err);
+                        });
+                    } catch (err) {
+                        console.error("[ERROR] getExistingPayments: Error processing payment:", err);
+                    }
+                }
+                
+                // Push the payment object, ensuring amount is a string for consistency if needed elsewhere
                 existingPayments.push({
-                    ...payment, // Include all properties like principalApplied, interestApplied
-                    amount: payment.amount.toString() 
+                    ...processedPayment, // Include all properties like principalApplied, interestApplied
+                    amount: processedPayment.amount.toString() 
                 });
             }
         });
@@ -86,13 +122,13 @@ function getExistingPayments(isPrejudgmentTable) {
     return existingPayments;
 }
 
-export function collectAndSortRows(tableBody, details, resultState, isPrejudgmentTable, finalPeriodStartDateStr, finalPeriodDamageInterestDetails) {
+export function collectAndSortRows(tableBody, details, resultState, isPrejudgmentTable, finalPeriodStartDateStr, finalPeriodDamageInterestDetails, interestRatesData) {
     console.log("[DEBUG] collectAndSortRows: Starting with tableBody ID:", tableBody.id, "isPrejudgmentTable:", isPrejudgmentTable);
 
     const existingSpecialDamagesRows = getExistingSpecialDamages(tableBody, isPrejudgmentTable);
     console.log("[DEBUG] collectAndSortRows: Retrieved existingSpecialDamagesRows:", existingSpecialDamagesRows.length);
     
-    const existingPayments = getExistingPayments(isPrejudgmentTable);
+    const existingPayments = getExistingPayments(isPrejudgmentTable, interestRatesData);
     // Detailed log for payment amounts as retrieved by getExistingPayments
     logger.debug(`[tables.interest.rowSorting.js collectAndSortRows] existingPayments from getExistingPayments: ${JSON.stringify(existingPayments.map(p => ({ amount: p.amount, date: p.date, id: p.paymentId })))}`);
     console.log("[DEBUG] collectAndSortRows: Retrieved existingPayments:", existingPayments.length);

@@ -12,13 +12,14 @@ import { updateInterestTable as coreUpdateInterestTable } from './tables.interes
  * @param {HTMLElement} interestTotalElement - Element for interest total.
  * @param {object} resultState - The state object containing details, total, principal, etc. (e.g., appState.results.prejudgmentResult).
  * @param {number|null} principalTotalForFooter - The specific principal total to display in the footer (used for prejudgment).
+ * @param {object} interestRatesData - The interest rates data for payment processing.
  */
-export function updateInterestTable(tableBody, principalTotalElement, interestTotalElement, resultState, principalTotalForFooter) {
+export function updateInterestTable(tableBody, principalTotalElement, interestTotalElement, resultState, principalTotalForFooter, interestRatesData) {
     // The window._isSpecialDamagesAddInProgress flag check was removed on 2025-05-11
     // as it was deprecated. The core logic (tables.interest.core.js) no longer relies on this flag.
     // Table updates are now consistently handled by the event-driven recalculation flow
     // triggered after store updates.
-    coreUpdateInterestTable(tableBody, principalTotalElement, interestTotalElement, resultState, principalTotalForFooter);
+    coreUpdateInterestTable(tableBody, principalTotalElement, interestTotalElement, resultState, principalTotalForFooter, interestRatesData);
 }
 
 // If there were other functions exported from the original tables.interest.js that are still needed

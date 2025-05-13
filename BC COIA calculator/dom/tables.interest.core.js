@@ -15,7 +15,7 @@ import {
 // We will need elements for the footer update, but let's pass it from here for now or let rowRendering handle it.
 // import elements from './elements.js'; 
 
-export function updateInterestTable(tableBody, principalTotalElement, interestTotalElement, resultState, principalTotalForFooter) {
+export function updateInterestTable(tableBody, principalTotalElement, interestTotalElement, resultState, principalTotalForFooter, interestRatesData) {
     console.log("[DEBUG] updateInterestTable in core.js starting orchestration");
     console.log("[DEBUG] tableBody ID:", tableBody ? tableBody.id : "undefined");
     
@@ -89,9 +89,9 @@ export function updateInterestTable(tableBody, principalTotalElement, interestTo
         console.log("[DEBUG] Set finalPeriodStartDateStr from last detail:", finalPeriodStartDateStr);
     }
     
-    // Pass finalPeriodDamageInterestDetails from resultState
+    // Pass finalPeriodDamageInterestDetails from resultState and interestRatesData
     console.log("[DEBUG] Calling collectAndSortRows to insert special damages and payments");
-    collectAndSortRows(tableBody, details, resultState, isPrejudgmentTable, finalPeriodStartDateStr, resultState.finalPeriodDamageInterestDetails);
+    collectAndSortRows(tableBody, details, resultState, isPrejudgmentTable, finalPeriodStartDateStr, resultState.finalPeriodDamageInterestDetails, interestRatesData);
     console.log("[DEBUG] After collectAndSortRows, tableBody row count:", tableBody.rows.length);
     
     // List all payment rows to check if any were added
