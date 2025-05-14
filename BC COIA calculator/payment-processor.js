@@ -1,7 +1,7 @@
 import { daysBetween, daysInYear, formatDateForDisplay, parseDateInput, normalizeDate, dateOnOrAfter, dateOnOrBefore, datesEqual } from './utils.date.js';
 import { parseCurrency } from './utils.currency.js'; // Added import
 import { calculateInterestPeriods, getInterestRateForDate } from './calculations.js';
-import { splitInterestPeriodsWithPayments } from './interestPeriodSplitter.js';
+// REMOVED: import { splitInterestPeriodsWithPayments } from './interestPeriodSplitter.js';
 import { 
     calculateInterestToDate, 
     calculateInterestAllocation, 
@@ -80,112 +80,9 @@ export function processPayment(state, payment, ratesData, explicitPriorPayments 
 // Export the core calculation function for use by other modules
 export { calculateInterestToDate } from './calculations.core.js';
 
-/**
- * Recalculates interest periods with payments applied.
- * Updated to handle potentially negative principal values.
- * 
- * @param {Object} state - The application state
- * @param {Array} payments - Array of processed payments
- * @param {Object} ratesData - The interest rates data
- * @returns {Object} Updated interest calculation results
- */
-export function recalculateWithPayments(state, payments, ratesData) {
-    if (!payments || payments.length === 0) {
-        return state.results; // No change if no payments
-    }
-
-    const { inputs, results } = state;
-    const { prejudgmentStartDate, dateOfJudgment, postjudgmentEndDate } = inputs;
-    const { judgmentAwarded } = inputs;
-    const endDate = postjudgmentEndDate || dateOfJudgment;
-    
-    // Create new results object
-    const newResults = {
-        ...results,
-        prejudgmentResult: {
-            details: [],
-            total: 0,
-            principal: judgmentAwarded,
-            finalPeriodDamageInterestDetails: []
-        }
-    };
-
-    // Calculate the base interest periods without payments
-    const tempState = JSON.parse(JSON.stringify(state));
-    const baseInterestResult = calculateInterestPeriods(
-        tempState,
-        'prejudgment',
-        prejudgmentStartDate,
-        endDate,
-        judgmentAwarded,
-        ratesData
-    );
-    
-    // Sort payments by date
-    const sortedPayments = [...payments].sort((a, b) => {
-        const dateA = typeof a.date === 'string' ? parseDateInput(a.date) : a.date;
-        const dateB = typeof b.date === 'string' ? parseDateInput(b.date) : b.date;
-        return dateA - dateB;
-    });
-    
-    // Ensure payments have proper Date objects before passing to the splitter
-    const processedPayments = sortedPayments.map(payment => {
-        return {
-            ...payment,
-            date: typeof payment.date === 'string' 
-                ? parseDateInput(payment.date) 
-                : payment.date instanceof Date 
-                    ? payment.date 
-                    : new Date(payment.date)
-        };
-    });
-    
-    // Apply the payments to split the interest periods
-    const splitPeriods = splitInterestPeriodsWithPayments(
-        baseInterestResult.details,
-        processedPayments,
-        state,
-        ratesData,
-        'prejudgment'
-    );
-    
-    // Calculate the total interest and principal after payments
-    let totalInterest = 0;
-    let finalPrincipal = judgmentAwarded;
-    
-    // Calculate the total interest from all periods
-    splitPeriods.forEach(period => {
-        if (!period.isPayment) {
-            // Add interest for regular and split interest periods
-            totalInterest += period.interest || 0;
-        } else {
-            // Subtract interest and principal applied by payments
-            totalInterest -= period.interest || 0; // Payment interest is stored as negative
-        }
-    });
-    
-    // Determine the final principal by applying payments
-    // Use the last payment's remaining principal, which can be negative
-    if (sortedPayments.length > 0) {
-        const lastPayment = sortedPayments[sortedPayments.length - 1];
-        finalPrincipal = lastPayment.remainingPrincipal;
-    }
-    
-    // Update the results
-    newResults.prejudgmentResult.details = splitPeriods;
-    newResults.prejudgmentResult.total = totalInterest;
-    newResults.prejudgmentResult.principal = finalPrincipal;
-    
-    // Handle special damages in final period if needed
-    if (baseInterestResult.finalPeriodDamageInterestDetails && 
-        baseInterestResult.finalPeriodDamageInterestDetails.length > 0) {
-        newResults.prejudgmentResult.finalPeriodDamageInterestDetails = 
-            baseInterestResult.finalPeriodDamageInterestDetails;
-    }
-    
-    return newResults;
-}
-
+// The recalculateWithPayments function appears to be unused and is therefore removed.
+// If it were to be used, it would need refactoring similar to calculator.core.js
+// to use the new timeline-based interest segment generation instead of splitInterestPeriodsWithPayments.
 
 /**
  * Formats a number as currency for display.
@@ -193,6 +90,8 @@ export function recalculateWithPayments(state, payments, ratesData) {
  * @returns {string} Formatted currency string
  */
 function formatCurrency(amount) {
+    // This helper seems local and might be duplicated if not used by exported functions.
+    // For now, keeping it as it doesn't harm.
     return new Intl.NumberFormat('en-CA', {
         style: 'currency',
         currency: 'CAD',
