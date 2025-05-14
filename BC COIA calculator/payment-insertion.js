@@ -196,28 +196,6 @@ function validatePayment(payment) {
 }
 
 /**
- * Create a payment row to insert into the interest table.
- * 
- * @param {Date} paymentDate - Date of payment
- * @param {number} amount - Total payment amount
- * @param {number} interestApplied - Amount applied to interest
- * @param {number} principalApplied - Amount applied to principal
- * @returns {Object} Payment row object
- */
-function createPaymentRow(paymentDate, amount, interestApplied, principalApplied) {
-    return {
-        start: new Date(paymentDate), // Keep as Date object for test compatibility
-        description: `Payment received: ${formatCurrencyForInput(amount)}`,
-        principal: -principalApplied, // Will be 0 for now as per task scope
-        interest: -interestApplied,   // Will be 0 for now as per task scope
-        isPayment: true,
-        paymentAmount: amount,
-        interestApplied: interestApplied, // Will be 0 for now
-        principalApplied: principalApplied  // Will be 0 for now
-    };
-}
-
-/**
  * Update principal values for all periods after a payment, allowing negative principal.
  * (This function is currently not called by the modified insertPaymentRecord for this task)
  * 

@@ -18,93 +18,86 @@ import { calculateInterestPeriods, getInterestRateForDate } from './calculations
  * @returns {Object} The accrued interest and remaining principal
  */
 export function calculateInterestToDate(state, calculationDate, priorPayments, ratesData) {
-    const { inputs, results } = state;
-    const { prejudgmentStartDate, dateOfJudgment } = inputs;
-    const { judgmentAwarded } = inputs;
-    const { specialDamages } = results;
+    const { inputs } = state;
+    const { prejudgmentStartDate, dateOfJudgment, judgmentAwarded } = inputs;
 
     if (!calculationDate || !prejudgmentStartDate) {
         console.error('Invalid dates for interest calculation:', { calculationDate, prejudgmentStartDate });
         return { interestAccrued: 0, remainingPrincipal: judgmentAwarded };
     }
 
-    // Start with the judgment amount as initial principal
-    let currentPrincipal = judgmentAwarded;
+    // 1. Determine effectivePrincipalForInterestCalc: Start with judgmentAwarded and subtract principal parts of ALL prior payments.
+    // This is the principal balance on which interest should accrue up to the current calculationDate.
+    let effectivePrincipalForInterestCalc = judgmentAwarded;
+    priorPayments.forEach(p => {
+        if (p.principalApplied !== undefined) { // Ensure principalApplied exists
+            effectivePrincipalForInterestCalc -= p.principalApplied;
+        }
+        // Note: If p.principalApplied is not available for some prior payments, this calculation will be inaccurate.
+        // This assumes priorPayments in the store are fully processed with interestApplied and principalApplied.
+    });
+
+    const tempState = JSON.parse(JSON.stringify(state)); // For calculateInterestPeriods
+    const judgmentDateObj = typeof dateOfJudgment === 'string' ? parseDateInput(dateOfJudgment) : dateOfJudgment;
     
-    // Create state copy for calculation
-    const tempState = JSON.parse(JSON.stringify(state));
-    
-    // Parse judgment date
-    const judgmentDate = typeof dateOfJudgment === 'string' 
-        ? parseDateInput(dateOfJudgment) 
-        : dateOfJudgment;
-    
-    let totalInterestAccrued = 0;
-    let remainingPrincipal = currentPrincipal;
-    
-    // Calculate prejudgment interest (up to judgment date or calculation date, whichever comes first)
-    const prejudgmentEndDate = judgmentDate && calculationDate > judgmentDate 
-        ? judgmentDate 
+    let totalGrossInterestAccrued = 0;
+    // principalAfterInterestCalcs will be the principal balance *after* interest calculation periods,
+    // starting from effectivePrincipalForInterestCalc. It includes effects of special damages within those periods.
+    let principalAfterInterestCalcs = effectivePrincipalForInterestCalc; 
+
+    // 2. Calculate total gross interest accrued up to calculationDate
+    const prejudgmentEndDate = judgmentDateObj && calculationDate > judgmentDateObj 
+        ? judgmentDateObj 
         : calculationDate;
     
-    const prejudgmentResult = calculateInterestPeriods(
-        tempState,
-        'prejudgment',
-        prejudgmentStartDate,
-        prejudgmentEndDate,
-        currentPrincipal,
-        ratesData
-    );
-    
-    totalInterestAccrued += prejudgmentResult.total;
-    remainingPrincipal = prejudgmentResult.principal;
-    
-    // If calculation date is after judgment date, also calculate postjudgment interest
-    if (judgmentDate && calculationDate > judgmentDate) {
-        const postjudgmentResult = calculateInterestPeriods(
-            tempState,
-            'postjudgment',
-            judgmentDate,
-            calculationDate,
-            remainingPrincipal,
+    if (dateOnOrAfter(prejudgmentEndDate, prejudgmentStartDate)) { // Ensure valid period
+        const prejudgmentResult = calculateInterestPeriods(
+            tempState, 
+            'prejudgment', 
+            prejudgmentStartDate, 
+            prejudgmentEndDate,
+            effectivePrincipalForInterestCalc, // Base principal for this calculation
             ratesData
         );
-        
-        totalInterestAccrued += postjudgmentResult.total;
-        remainingPrincipal = postjudgmentResult.principal;
+        totalGrossInterestAccrued += prejudgmentResult.total;
+        principalAfterInterestCalcs = prejudgmentResult.principal; // Update principal (includes special damages effect)
     }
-    
-    // Calculate total interest already paid by prior payments
-    let totalInterestPaid = 0;
-    
-    // Apply prior payments in chronological order to track how much interest has been paid
-    priorPayments.forEach(payment => {
-        if (payment.interestApplied) {
-            // If the payment has interestApplied property, use it
-            totalInterestPaid += payment.interestApplied;
-            remainingPrincipal -= payment.principalApplied;
-        } else {
-            // For backward compatibility with payments that don't have interestApplied
-            // Calculate how much would have been applied to interest vs principal
-            const interestAtTime = Math.max(0, totalInterestAccrued - totalInterestPaid);
-            const interestPayment = Math.min(payment.amount, interestAtTime);
-            totalInterestPaid += interestPayment;
-            
-            // Apply remainder to principal
-            const principalPayment = payment.amount - interestPayment;
-            remainingPrincipal -= principalPayment;
+
+    if (judgmentDateObj && calculationDate > judgmentDateObj) {
+        if (dateOnOrAfter(calculationDate, judgmentDateObj)) { // Ensure valid period
+            const postjudgmentResult = calculateInterestPeriods(
+                tempState, 
+                'postjudgment', 
+                judgmentDateObj, 
+                calculationDate,
+                principalAfterInterestCalcs, // Base principal is after prejudgment period (and its special damages)
+                ratesData
+            );
+            totalGrossInterestAccrued += postjudgmentResult.total;
+            principalAfterInterestCalcs = postjudgmentResult.principal; // Update principal
+        }
+    }
+
+    // 3. Determine how much of this totalGrossInterestAccrued has already been paid by priorPayments
+    let interestPaidByPriorPayments = 0;
+    priorPayments.forEach(p => {
+        if (p.interestApplied !== undefined) { // Ensure interestApplied exists
+            interestPaidByPriorPayments += p.interestApplied;
         }
     });
+
+    // 4. Calculate net interestAccrued available for the *current* payment
+    const netInterestForCurrentPayment = Math.max(0, totalGrossInterestAccrued - interestPaidByPriorPayments);
+
+    // 5. The remainingPrincipal (to be returned) is the principal balance *before* the current payment is applied.
+    // This is principalAfterInterestCalcs, which started as (judgmentAwarded - prior principal payments)
+    // and was then adjusted by special damages within the calculateInterestPeriods calls.
     
-    // The interest that should be applied to the current payment is the 
-    // total interest accrued minus the total interest already paid
-    const interestAccrued = Math.max(0, totalInterestAccrued - totalInterestPaid);
-    
-    // console.log(`[DEBUG] calculateInterestToDate: Total interest accrued: ${totalInterestAccrued}, Total interest paid: ${totalInterestPaid}, Remaining interest to apply: ${interestAccrued}`);
+    // console.log(`[DEBUG] calculateInterestToDate for ${formatDateForDisplay(calculationDate)}: EffectiveBasePrincipal: ${effectivePrincipalForInterestCalc}, GrossInterestAccrued: ${totalGrossInterestAccrued}, InterestPaidByPrior: ${interestPaidByPriorPayments}, NetInterestForCurrent: ${netInterestForCurrentPayment}, PrincipalBeforeCurrentPayment: ${principalAfterInterestCalcs}`);
 
     return {
-        interestAccrued: interestAccrued,
-        remainingPrincipal: remainingPrincipal
+        interestAccrued: netInterestForCurrentPayment,
+        remainingPrincipal: principalAfterInterestCalcs
     };
 }
 

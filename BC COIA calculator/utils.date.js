@@ -153,7 +153,15 @@ export function validateDateFormat(dateString) {
  * @returns {Date|null} The parsed Date object normalized to midnight UTC, or null if invalid.
  */
 export function parseDateInput(dateString) {
-    if (!dateString) return null;
+    if (typeof dateString !== 'string') {
+        // console.warn('parseDateInput received non-string value:', dateString);
+        return null;
+    }
+    if (!dateString) { // Handles empty string case after confirming it's a string
+        // console.warn('parseDateInput received an empty string.');
+        return null;
+    }
+    console.log('[DEBUG utils.date.js :: parseDateInput] About to split. Value:', "'" + dateString + "'", 'Type:', typeof dateString, 'Has split method:', typeof dateString.split === 'function');
     const parts = dateString.split('-');
     if (parts.length === 3) {
         const year = parseInt(parts[0], 10);

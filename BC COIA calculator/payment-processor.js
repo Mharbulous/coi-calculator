@@ -1,4 +1,5 @@
 import { daysBetween, daysInYear, formatDateForDisplay, parseDateInput, normalizeDate, dateOnOrAfter, dateOnOrBefore, datesEqual } from './utils.date.js';
+import { parseCurrency } from './utils.currency.js'; // Added import
 import { calculateInterestPeriods, getInterestRateForDate } from './calculations.js';
 import { splitInterestPeriodsWithPayments } from './interestPeriodSplitter.js';
 import { 
@@ -15,14 +16,24 @@ import {
  * @param {Object} state - The application state object
  * @param {Object} payment - The payment object {date, amount}
  * @param {Object} ratesData - The interest rates data
+ * @param {Array|null} explicitPriorPayments - Optional array of already processed prior payments
  * @returns {Object} The processed payment with allocation details
  */
-export function processPayment(state, payment, ratesData) {
+export function processPayment(state, payment, ratesData, explicitPriorPayments = null) {
     // Validate payment
-    if (!payment || !payment.date || isNaN(payment.amount) || payment.amount <= 0) {
+    if (!payment || !payment.date || (typeof payment.amount === 'number' && isNaN(payment.amount)) || (typeof payment.amount !== 'number' && !parseCurrency(payment.amount))) {
+        // Allow zero amount payments, but not invalid or negative
+        if (payment.amount !== 0 && (payment.amount < 0 || (typeof payment.amount === 'number' && isNaN(payment.amount)))) {
         console.error('Invalid payment data:', payment);
         return null;
+        }
     }
+    const paymentAmount = typeof payment.amount === 'number' ? payment.amount : parseCurrency(payment.amount);
+    if (paymentAmount < 0) {
+        console.error('Invalid payment amount (negative):', payment.amount);
+        return null;
+    }
+
 
     const paymentDate = typeof payment.date === 'string' 
         ? parseDateInput(payment.date) 
@@ -37,15 +48,15 @@ export function processPayment(state, payment, ratesData) {
     const { inputs } = state;
     const { prejudgmentStartDate } = inputs;
 
-    // Get all existing payments that happened before this payment
-    const priorPayments = getPriorPayments(state, paymentDate);
+    // Use explicitly passed prior payments if available, otherwise fetch them
+    const priorPaymentsToUse = explicitPriorPayments !== null ? explicitPriorPayments : getPriorPayments(state, paymentDate);
 
     // Calculate interest allocation using the core calculation module
     const { interestApplied, principalApplied, remainingPrincipal } = calculateInterestAllocation(
         state, 
         paymentDate, 
-        payment.amount, 
-        priorPayments, 
+        paymentAmount, 
+        priorPaymentsToUse, 
         ratesData
     );
 

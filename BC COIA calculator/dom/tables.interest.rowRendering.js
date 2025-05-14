@@ -8,6 +8,7 @@ import { logger } from '../util.logger.js'; // Import for enhanced debugging
 // Note: insertSpecialDamagesRow is imported dynamically in createAndAddSpecialDamagesButton
 
 export function renderInitialInterestRows(tableBody, details, isPrejudgmentTable, principalTotalForPostjudgment) {
+    console.log('renderInitialInterestRows details:', JSON.stringify(details)); // <--- ADDED THIS LINE
     if (!details || !Array.isArray(details)) {
         console.error('Details are missing or not an array in renderInitialInterestRows');
         return;
