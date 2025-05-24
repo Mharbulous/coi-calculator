@@ -27,7 +27,7 @@ The frontend is deployed using Firebase Hosting:
 firebase deploy --only hosting
 ```
 
-This is handled by the `BC COIA calculator/deploy-test-mode.sh` script for test deployments.
+This is handled by the `src/deploy-test-mode.sh` script for test deployments.
 
 ### Serverless Functions (Netlify)
 
@@ -51,13 +51,13 @@ This architecture leverages the strengths of both platforms:
 ## Directory Structure
 
 - `/functions/` - Contains Netlify serverless functions
-- `/BC COIA calculator/functions/` - Contains Firebase Cloud Functions (not currently used in production)
-- `/BC COIA calculator/` - Contains the main application code deployed to Firebase Hosting
+- `/src/functions/` - Contains Firebase Cloud Functions (not currently used in production)
+- `/src/` - Contains the main application code deployed to Firebase Hosting
 
 ## Configuration Files
 
 - `netlify.toml` - Configures Netlify Functions and redirects
-- `BC COIA calculator/firebase.json` - Configures Firebase Hosting
+- `src/firebase.json` - Configures Firebase Hosting
 
 ## Common Misconceptions
 

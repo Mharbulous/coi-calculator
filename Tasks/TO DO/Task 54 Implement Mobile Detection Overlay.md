@@ -34,7 +34,7 @@ The mobile detection overlay must be implemented with this layering system in mi
 
 ### Step 1: Create CSS File for Mobile Detection
 
-Create a new file at: `BC COIA calculator/styles/components/mobile-detection.css`
+Create a new file at: `src/styles/components/mobile-detection.css`
 
 ```css
 /* Mobile Detection Styles */
@@ -176,7 +176,7 @@ Create a new file at: `BC COIA calculator/styles/components/mobile-detection.css
 
 Update the main CSS file to import the mobile detection styles:
 
-File: `BC COIA calculator/styles/main.css`
+File: `src/styles/main.css`
 
 Add this line after the other component imports, before the page-breaks.css import:
 
@@ -186,7 +186,7 @@ Add this line after the other component imports, before the page-breaks.css impo
 
 ### Step 3: Add HTML for Mobile Detection Message
 
-Add the following HTML to `BC COIA calculator/index.html` right after the opening `<body>` tag and before any layer containers:
+Add the following HTML to `src/index.html` right after the opening `<body>` tag and before any layer containers:
 
 ```html
 <!-- Mobile Detection Message -->

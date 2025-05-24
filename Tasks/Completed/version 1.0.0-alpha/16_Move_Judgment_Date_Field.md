@@ -29,10 +29,10 @@ Currently, the date of judgment is entered by the user in the line labeled "Gene
 - Ensure all calculations still work correctly with the new field arrangement
 
 ## Files to Modify
-1. `BC COIA calculator/index.html`
-2. `BC COIA calculator/dom/elements.js`
-3. `BC COIA calculator/dom/tables.js`
-4. `BC COIA calculator/dom/inputs.js`
+1. `src/index.html`
+2. `src/dom/elements.js`
+3. `src/dom/tables.js`
+4. `src/dom/inputs.js`
 
 ## Expected Outcome
 The date of judgment will be entered in a more intuitive location next to the "Judgment" heading, and the "General Damages & Debt" row will display a static date that references the judgment date, similar to other rows in the summary table.

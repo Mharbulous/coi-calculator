@@ -49,11 +49,11 @@ Understanding the complete validation flow is crucial for fixing this issue:
 3. Test thoroughly with different combinations of checkbox states and date values
 
 ## Related Files
-- BC COIA calculator/dom/inputs.js
-- BC COIA calculator/calculator.core.js
-- BC COIA calculator/dom/datepickers.js
-- BC COIA calculator/dom/tables.summary.js
-- BC COIA calculator/dom/visibility.js
+- src/dom/inputs.js
+- src/calculator.core.js
+- src/dom/datepickers.js
+- src/dom/tables.summary.js
+- src/dom/visibility.js
 
 ## Notes
 - This task is a continuation of the work to add visual cues for invalid date fields and replace the popup error notification with a persistent error message in the TOTAL OWING row

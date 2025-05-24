@@ -75,7 +75,7 @@ const resizeObserver = new ResizeObserver(entries => {
 3. **Reduced CPU Usage**: Less frequent recalculations means less processing overhead
 
 ## Implementation Steps
-1. Open `BC COIA calculator/dom/pageBreaks/pageBreaksCore.js`
+1. Open `src/dom/pageBreaks/pageBreaksCore.js`
 2. Add a module-level `resizeTimeout` variable declaration
 3. Modify the ResizeObserver callback to implement the throttling mechanism using setTimeout
 4. Test with various content changes and resize operations to ensure pagination still works correctly

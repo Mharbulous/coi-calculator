@@ -28,9 +28,9 @@ Add the word "from" next to the date in the Prejudgment Interest row and "until"
 - Ensure that editing the dates still works correctly and triggers recalculations.
 
 ## Files to Modify
-1. `BC COIA calculator/index.html`
-2. `BC COIA calculator/styles.css`
-3. `BC COIA calculator/dom/tables.js`
+1. `src/index.html`
+2. `src/styles.css`
+3. `src/dom/tables.js`
 
 ## Expected Outcome
 The summary table's Prejudgment Interest row will display "from" aligned to the left and the date input aligned to the right within the date cell. The Postjudgment Interest row will similarly display "until" aligned to the left and the date input aligned to the right.

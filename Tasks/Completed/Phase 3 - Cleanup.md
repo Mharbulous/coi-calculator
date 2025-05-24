@@ -33,7 +33,7 @@ First, archive the `interestRates.js` file for reference if needed later:
 # Create a backup directory if it doesn't exist
 mkdir -p backup
 # Move the file to the backup directory
-mv "BC COIA calculator/interestRates.js" "backup/interestRates.js.bak"
+mv "src/interestRates.js" "backup/interestRates.js.bak"
 ```
 
 Then, ensure all references to this file are removed:
@@ -71,7 +71,7 @@ The Firebase configuration is stored in `firebaseConfig.js`. This file contains 
 To upload the interest rate data to Firebase, run:
 
 ```bash
-cd "BC COIA calculator"
+cd "src"
 npm install
 npm run migrate
 ```

@@ -1,5 +1,5 @@
-import { calculateInterestPeriods } from './BC COIA calculator/calculations.js';
-import { daysBetween, normalizeDate } from './BC COIA calculator/utils.date.js';
+import { calculateInterestPeriods } from './src/calculations.js';
+import { daysBetween, normalizeDate } from './src/utils.date.js';
 
 // Helper to create UTC date without time component
 const createUTCDate = (year, month, day) => new Date(Date.UTC(year, month - 1, day));

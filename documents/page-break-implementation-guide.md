@@ -131,7 +131,7 @@ This document outlines the approach for transitioning from the current page brea
 
 1. `page-break-demo.html`: Original demo with gray bar approach
 2. `page-card-demo.html`: New demo with card-based approach
-3. `BC COIA calculator/styles/page-cards.css`: CSS for the new approach
+3. `src/styles/page-cards.css`: CSS for the new approach
 
 ## Implementation Recommendations
 

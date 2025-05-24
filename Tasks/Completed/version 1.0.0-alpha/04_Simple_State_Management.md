@@ -6,9 +6,9 @@
 Currently, application state (like input values and calculation results) is often read directly from the DOM when needed (e.g., in `recalculate`) or passed extensively between functions. Centralizing this state can simplify logic and decouple modules.
 
 **Target Files:**
-*   `BC COIA calculator/calculator.js`
-*   `BC COIA calculator/domUtils.js`
-*   Potentially `BC COIA calculator/calculations.js` (depending on implementation choice)
+*   `src/calculator.js`
+*   `src/domUtils.js`
+*   Potentially `src/calculations.js` (depending on implementation choice)
 
 **Requirements:**
 

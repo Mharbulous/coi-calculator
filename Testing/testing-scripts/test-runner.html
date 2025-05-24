@@ -319,7 +319,7 @@
                 appendLog('data-source-results', 'Testing mock interest rates...', 'normal');
                 try {
                     // Use a dynamic import to get the mock rates
-                    const mockRatesModule = await import('../BC COIA calculator/mockRates.js');
+                    const mockRatesModule = await import('../src/mockRates.js');
                     const mockRates = mockRatesModule.default;
                     const lastUpdated = mockRatesModule.lastUpdated;
                     
@@ -344,7 +344,7 @@
                 appendLog('data-source-results', 'Testing Firebase interest rates...', 'normal');
                 try {
                     // Try to load the Firebase rates
-                    const { fetchRatesFromFirebase } = await import('../BC COIA calculator/firebaseRates.js');
+                    const { fetchRatesFromFirebase } = await import('../src/firebaseRates.js');
                     
                     try {
                         appendLog('data-source-results', 'Fetching rates from Firebase...', 'normal');

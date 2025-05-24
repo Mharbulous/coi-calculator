@@ -18,7 +18,7 @@ This task involves making the following changes to the summary table:
    - The amount should be calculated by totaling the principal amount of all special damages that have been entered in the Prejudgment Interest section
 
 ## Files to Modify
-- `BC COIA calculator/dom/tables.js` - Update the `updateSummaryTable` function to:
+- `src/dom/tables.js` - Update the `updateSummaryTable` function to:
   - Change the item labels as requested
   - Calculate the total of special damages from the state
   - Add a new row for Special Damages in the correct position

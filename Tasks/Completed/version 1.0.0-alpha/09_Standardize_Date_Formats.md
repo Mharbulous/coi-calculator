@@ -6,7 +6,7 @@ Standardize all date formats throughout the codebase to use the YYYY-MM-DD forma
 ## Current State
 Most of the codebase already uses the YYYY-MM-DD format for dates, including:
 
-1. **BC COIA calculator**:
+1. **src**:
    - `utils.js`: All date formatting functions use YYYY-MM-DD
    - `calculations.js`: Uses YYYY-MM-DD for special damages dates and via imported utils.js functions
    - `calculator.js`: Uses YYYY-MM-DD for date inputs and handling special damages

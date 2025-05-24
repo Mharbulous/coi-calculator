@@ -44,7 +44,7 @@ for (let i = 0; i < breakableElements.length; i++) {
 4. **Better Memory Efficiency**: Creates an array with only the elements that will actually be processed
 
 ## Implementation Steps
-1. Open `BC COIA calculator/dom/pageBreaks/pageBreaksCore.js`
+1. Open `src/dom/pageBreaks/pageBreaksCore.js`
 2. Locate the breakable elements selection code
 3. Modify the selection to include the filter for visibility
 4. Remove the redundant visibility checks inside the loop

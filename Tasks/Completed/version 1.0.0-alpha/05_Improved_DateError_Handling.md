@@ -6,9 +6,9 @@
 The application currently uses `alert()` to notify users of input validation errors, including date-related errors. This interrupts the user flow and creates a poor user experience. Instead of showing error messages after invalid data is entered, we can prevent invalid data entry in the first place.
 
 **Target Files:**
-* `BC COIA calculator/index.html`
-* `BC COIA calculator/dom/setup.js`
-* `BC COIA calculator/calculator.core.js`
+* `src/index.html`
+* `src/dom/setup.js`
+* `src/calculator.core.js`
 
 **Requirements:**
 

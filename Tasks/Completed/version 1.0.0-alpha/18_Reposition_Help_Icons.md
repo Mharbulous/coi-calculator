@@ -20,9 +20,9 @@ Reposition the help icons (question marks) in the summary table to improve the u
 - Make any necessary adjustments to the CSS to ensure proper positioning and display of the relocated help icons
 
 ## Files to Modify
-1. `BC COIA calculator/index.html`
-2. `BC COIA calculator/dom/tables.js`
-3. `BC COIA calculator/styles.css` (if needed)
+1. `src/index.html`
+2. `src/dom/tables.js`
+3. `src/styles.css` (if needed)
 
 ## Expected Outcome
 - The help icon next to "General Damages & Debt" will be removed

@@ -6,8 +6,8 @@
 Currently, the `updateSummaryTable` function in `domUtils.js` dynamically creates HTML elements (inputs, cells, rows) for the summary table using `document.createElement`. This mixes HTML structure with JavaScript logic, making it harder to visualize and modify the table structure.
 
 **Target Files:**
-*   `BC COIA calculator/index.html`
-*   `BC COIA calculator/domUtils.js`
+*   `src/index.html`
+*   `src/domUtils.js`
 
 **Requirements:**
 

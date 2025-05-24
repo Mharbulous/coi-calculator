@@ -22,13 +22,13 @@ echo -e "${YELLOW}=======================================${NC}"
 
 # Step 1: Create backup
 echo -e "\n${GREEN}Step 1: Creating backup of production environment...${NC}"
-BACKUP_DIR="BC COIA calculator_backup_$(date +%Y%m%d)"
+BACKUP_DIR="src_backup_$(date +%Y%m%d)"
 if [ -d "$BACKUP_DIR" ]; then
   echo "Backup directory already exists. Appending timestamp."
   BACKUP_DIR="${BACKUP_DIR}_$(date +%H%M%S)"
 fi
 
-cp -r "BC COIA calculator" "$BACKUP_DIR"
+cp -r "src" "$BACKUP_DIR"
 echo "Backup created at: $BACKUP_DIR"
 
 # Step 2: Verify environment variables are set in Netlify
@@ -92,7 +92,7 @@ echo "8. Check the Stripe dashboard to confirm test payments are recorded"
 echo -e "\n${GREEN}Deployment script completed.${NC}"
 echo -e "${YELLOW}If you encounter any issues, refer to the troubleshooting section in the deployment checklist.${NC}"
 echo -e "${YELLOW}Rollback procedure: If needed, restore from backup using:${NC}"
-echo "rm -rf BC\ COIA\ calculator/"
-echo "cp -r $BACKUP_DIR/ BC\ COIA\ calculator/"
+echo "rm -rf src/"
+echo "cp -r $BACKUP_DIR/ src/"
 
 echo -e "\n${GREEN}Deployment Successful!${NC}"

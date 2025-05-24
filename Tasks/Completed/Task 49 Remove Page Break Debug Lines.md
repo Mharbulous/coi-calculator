@@ -8,11 +8,11 @@ The `pageBreaksCore.js` module currently injects `div` elements with classes lik
 **Steps:**
 
 1.  **Identify and Remove JS Code:**
-    *   Locate the section within `BC COIA calculator/dom/pageBreaks/pageBreaksCore.js` where the debug indicator `div` elements (for both top and bottom lines, including their labels) are created and appended to the `document.body`.
+    *   Locate the section within `src/dom/pageBreaks/pageBreaksCore.js` where the debug indicator `div` elements (for both top and bottom lines, including their labels) are created and appended to the `document.body`.
     *   Remove this entire block of code responsible for creating and adding these debug elements.
 
 2.  **Identify and Remove CSS Rules:**
-    *   Search the CSS files (likely in `BC COIA calculator/styles/page-breaks.css` or potentially `main.css` or `base.css`) for rules targeting the following classes:
+    *   Search the CSS files (likely in `src/styles/page-breaks.css` or potentially `main.css` or `base.css`) for rules targeting the following classes:
         *   `.debug-indicator`
         *   `.debug-top`
         *   `.debug-bottom`

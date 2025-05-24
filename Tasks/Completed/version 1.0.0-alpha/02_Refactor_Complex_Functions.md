@@ -6,8 +6,8 @@
 The `recalculate` function in `calculator.js` and the `getInputValues` function in `domUtils.js` currently handle too many distinct steps, making them harder to understand and modify.
 
 **Target Files:**
-*   `BC COIA calculator/calculator.js`
-*   `BC COIA calculator/domUtils.js`
+*   `src/calculator.js`
+*   `src/domUtils.js`
 
 **Requirements:**
 

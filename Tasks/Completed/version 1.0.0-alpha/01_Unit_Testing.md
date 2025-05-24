@@ -6,8 +6,8 @@
 The application currently lacks automated tests. Adding tests will prevent regressions, verify the correctness of calculations and utility functions, and make future refactoring safer.
 
 **Target Files:**
-*   `BC COIA calculator/calculations.js`
-*   `BC COIA calculator/utils.js`
+*   `src/calculations.js`
+*   `src/utils.js`
 
 **Requirements:**
 

@@ -21,7 +21,7 @@ The Firebase configuration is stored in `firebaseConfig.js`. This file contains 
 To upload the interest rate data to Firebase, run:
 
 ```bash
-cd "BC COIA calculator"
+cd "src"
 npm install
 npm run migrate
 ```

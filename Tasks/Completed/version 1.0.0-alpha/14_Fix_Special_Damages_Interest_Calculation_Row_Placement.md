@@ -42,9 +42,9 @@ This inconsistency is caused by:
 
 ## Files to Modify
 
-1. `BC COIA calculator/calculations.js` - Modify the `calculateInterestPeriods` function to not add final period damage interest details to the main details array
-2. `BC COIA calculator/dom/specialDamages.js` - Update the `insertCalculatedRowIfNeeded` function to ensure the calculated row is inserted below the special damages row
-3. `BC COIA calculator/dom/tables.js` - Modify the `updateInterestTable` function to handle the insertion of special damages rows and their calculated interest rows correctly
+1. `src/calculations.js` - Modify the `calculateInterestPeriods` function to not add final period damage interest details to the main details array
+2. `src/dom/specialDamages.js` - Update the `insertCalculatedRowIfNeeded` function to ensure the calculated row is inserted below the special damages row
+3. `src/dom/tables.js` - Modify the `updateInterestTable` function to handle the insertion of special damages rows and their calculated interest rows correctly
 
 ## Implementation Approach
 

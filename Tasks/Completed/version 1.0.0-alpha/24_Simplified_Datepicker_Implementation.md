@@ -19,7 +19,7 @@ Refactor the datepicker logic for the Judgment Date, Prejudgment Start Date, and
 
 ### 1. Create New Module (`datepickers.js`)
 
--   Create a new file: `BC COIA calculator/dom/datepickers.js`.
+-   Create a new file: `src/dom/datepickers.js`.
 -   This module will encapsulate the new datepicker initialization and handling logic.
 
 ### 2. Implement Core Datepicker Logic in `datepickers.js`
