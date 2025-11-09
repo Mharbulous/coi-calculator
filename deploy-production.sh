@@ -3,8 +3,7 @@
 # This script automates the deployment process for the production environment
 # 
 # DEPLOYMENT ARCHITECTURE NOTE:
-# This script handles the Netlify Functions deployment only.
-# The actual application hosting is done via Firebase Hosting.
+# This script handles the Netlify Functions deployment and Firebase hosting deployment
 # We use a hybrid approach where:
 #  - Firebase hosts the application frontend
 #  - Netlify provides serverless functions for payment processing
@@ -48,8 +47,25 @@ if [ "$env_vars_set" != "y" ]; then
   exit 1
 fi
 
-# Step 3: Deploy to Netlify
-echo -e "\n${GREEN}Step 3: Deploying to Netlify...${NC}"
+# Step 3: Build the project for production
+echo -e "\n${GREEN}Step 3: Building project for production...${NC}"
+# Add your build commands here if needed
+# For example:
+# cd "BC COIA calculator" && npm run build
+
+# Step 4: Deploy to Firebase Hosting
+echo -e "\n${GREEN}Step 4: Deploying to Firebase Hosting...${NC}"
+echo -e "${YELLOW}Setting up the production target...${NC}"
+firebase target:apply hosting production courtorderinterestcalculator
+firebase deploy --only hosting:production
+if [ $? -ne 0 ]; then
+  echo -e "${RED}Error deploying to Firebase Hosting. Aborting.${NC}"
+  exit 1
+fi
+echo -e "${GREEN}Firebase Hosting deployment successful.${NC}"
+
+# Step 5: Deploy to Netlify (for serverless functions)
+echo -e "\n${GREEN}Step 5: Deploying serverless functions to Netlify...${NC}"
 echo "Select your deployment method:"
 echo "1. Deploy via Netlify CLI (if installed)"
 echo "2. Deploy through Netlify dashboard (manual)"
@@ -73,8 +89,8 @@ else
   read -p "Press Enter when deployment is complete..." deploy_complete
 fi
 
-# Step 4: Post-deployment verification checklist
-echo -e "\n${GREEN}Step 4: Post-deployment verification checklist${NC}"
+# Step 6: Post-deployment verification checklist
+echo -e "\n${GREEN}Step 6: Post-deployment verification checklist${NC}"
 echo -e "${YELLOW}Please complete the following verification steps:${NC}"
 echo "1. Load the production site in a private/incognito browser window"
 echo "2. Verify demo mode works correctly"

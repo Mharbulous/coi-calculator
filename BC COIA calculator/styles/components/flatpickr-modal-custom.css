@@ -1,0 +1,87 @@
+/* Custom styles for Flatpickr in payment modal */
+
+/* Ensure the Flatpickr calendar appears above all other elements and is properly positioned */
+.flatpickr-calendar.open {
+    z-index: 99999 !important; /* Much higher to ensure it's above everything */
+    position: absolute !important;
+    transform: none !important; /* Prevent transform positioning */
+    max-height: none !important; /* Remove height restrictions */
+}
+
+/* Fix positioning issues */
+.flatpickr-calendar.static {
+    position: absolute !important;
+    top: auto !important;
+    left: auto !important;
+    display: block !important;
+}
+
+/* Ensure calendar container doesn't get clipped */
+.flatpickr-calendar-container {
+    overflow: visible !important;
+}
+
+/* Make sure the calendar height is not restricted */
+.flatpickr-months, 
+.flatpickr-innerContainer,
+.flatpickr-rContainer,
+.dayContainer {
+    max-height: none !important;
+    overflow: visible !important;
+}
+
+/* Make sure modal overlay doesn't clip content */
+.payment-modal-overlay {
+    overflow: visible !important;
+}
+
+/* Ensure the modal-body allows the calendar to overflow */
+.payment-modal-body {
+    overflow: visible !important;
+}
+
+/* Ensure the Flatpickr calendar displays properly in the payment modal context */
+.payment-modal .flatpickr-calendar {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+/* Styling for the selected date */
+.payment-modal .flatpickr-day.selected {
+    background-color: #007bff; /* Match the confirm button color */
+    border-color: #007bff;
+}
+
+.payment-modal .flatpickr-day.selected:hover {
+    background-color: #0069d9;
+    border-color: #0069d9;
+}
+
+/* Hover state for selectable dates */
+.payment-modal .flatpickr-day:hover {
+    background-color: #f0f8ff; /* Light blue on hover */
+}
+
+/* Style for the current day */
+.payment-modal .flatpickr-day.today {
+    border-color: #007bff;
+    color: #007bff;
+}
+
+/* Style for disabled dates (outside min/max range) */
+.payment-modal .flatpickr-day.flatpickr-disabled,
+.payment-modal .flatpickr-day.flatpickr-disabled:hover {
+    color: #ccc;
+    cursor: not-allowed;
+}
+
+/* Make sure the input field correctly shows the selected date */
+#payment-date-input.flatpickr-input {
+    background-color: #fff;
+}
+
+/* When the date input has a selected date */
+#payment-date-input.flatpickr-input.active {
+    border-color: #007bff;
+}

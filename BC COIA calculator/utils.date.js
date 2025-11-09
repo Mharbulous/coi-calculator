@@ -153,7 +153,15 @@ export function validateDateFormat(dateString) {
  * @returns {Date|null} The parsed Date object normalized to midnight UTC, or null if invalid.
  */
 export function parseDateInput(dateString) {
-    if (!dateString) return null;
+    if (typeof dateString !== 'string') {
+        // console.warn('parseDateInput received non-string value:', dateString);
+        return null;
+    }
+    if (!dateString) { // Handles empty string case after confirming it's a string
+        // console.warn('parseDateInput received an empty string.');
+        return null;
+    }
+    console.log('[DEBUG utils.date.js :: parseDateInput] About to split. Value:', "'" + dateString + "'", 'Type:', typeof dateString, 'Has split method:', typeof dateString.split === 'function');
     const parts = dateString.split('-');
     if (parts.length === 3) {
         const year = parseInt(parts[0], 10);
@@ -236,10 +244,9 @@ export function daysBetween(date1, date2) {
     // Calculate difference in milliseconds between normalized dates
     const differenceInMilliseconds = normalizedDate2.getTime() - normalizedDate1.getTime();
     
-    // Convert milliseconds to days (using Math.floor to exclude the last day)
-    // To include the first day and exclude the last day, we need to add 1 to the count and then 
-    // use Math.floor instead of Math.round to ensure exclusion of the last day
-    return Math.floor(differenceInMilliseconds / (1000 * 60 * 60 * 24)) + 1;
+    // Convert milliseconds to days using Math.floor to exclude the last day
+    // This correctly includes first day and excludes last day without adding 1
+    return Math.floor(differenceInMilliseconds / (1000 * 60 * 60 * 24));
 }
 
 /**
@@ -258,4 +265,52 @@ export function isLeap(year) {
  */
 export function daysInYear(year) {
     return isLeap(year) ? 366 : 365;
+}
+
+/**
+ * Calculates the midpoint date between two dates, rounding to the later date if there are an even number of days.
+ * @param {string|Date} startDate - The start date (can be string in YYYY-MM-DD format or Date object)
+ * @param {string|Date} endDate - The end date (can be string in YYYY-MM-DD format or Date object)
+ * @returns {Date|null} The midpoint date, or null if dates are invalid
+ */
+export function calculateMidpointDate(startDate, endDate) {
+    const start = typeof startDate === 'string' ? parseDateInput(startDate) : startDate;
+    const end = typeof endDate === 'string' ? parseDateInput(endDate) : endDate;
+
+    if (!start || !end || isNaN(start.getTime()) || isNaN(end.getTime())) {
+        console.error("Invalid start or end date for midpoint calculation", startDate, endDate);
+        return null; 
+    }
+    
+    // If dates are equal, midpoint is the same day
+    if (datesEqual(start, end)) {
+        return new Date(start);
+    }
+    
+    // If end date is before start date, swap them
+    if (dateAfter(start, end)) {
+        console.error("Start date after end date in midpoint calculation", startDate, endDate);
+        return null;
+    }
+
+    // Calculate the number of days INCLUSIVE of start and end
+    // First create a date for end+1 since daysBetween excludes the end date
+    const tempEndPlusOne = new Date(end);
+    tempEndPlusOne.setUTCDate(tempEndPlusOne.getUTCDate() + 1);
+    const daysInPeriod = daysBetween(start, tempEndPlusOne);
+
+    if (daysInPeriod <= 0) {
+        return new Date(start); // Should not happen given the previous checks
+    }
+
+    // Calculate the day offset from the start date for the midpoint
+    // Using Math.floor for even numbers of days to round to the later date
+    // Example: 4-day period (days 1,2,3,4): floor(4/2) = 2 → start + 2 days = day 3
+    // Example: 3-day period (days 1,2,3): floor(3/2) = 1 → start + 1 day = day 2
+    const dayOffset = Math.floor(daysInPeriod / 2);
+    
+    const midpointDate = new Date(start);
+    midpointDate.setUTCDate(midpointDate.getUTCDate() + dayOffset);
+    
+    return midpointDate;
 }

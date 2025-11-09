@@ -145,11 +145,11 @@ Add a "Record Payment" button below the Per Diem row:
 
 ```javascript
 // In dom/elements.js, add to the elements object
-recordPaymentButton: document.createElement('button')
+oldRecordPaymentButton: document.createElement('button')
 
 // Then in dom/setup.js, initialize the button
-function setupRecordPaymentButton() {
-  const button = elements.recordPaymentButton;
+function setupoldRecordPaymentButton() {
+  const button = elements.oldRecordPaymentButton;
   button.textContent = 'Record Payment';
   button.className = 'record-payment-btn action-button';
   

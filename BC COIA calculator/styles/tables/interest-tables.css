@@ -102,3 +102,17 @@
 .special-damages-days-count span {
     display: block;
 }
+
+/* Payment row styles */
+.payment-row {
+    transition: background-color 0.5s ease; /* Same transition as editable-item-row */
+    font-weight: 500; /* Keep this to maintain the functional difference */
+}
+
+/* Style for negative values in payment rows - kept for functional differences */
+.payment-row .negative-value {
+    color: #d35400; /* Orange-red for negative values */
+}
+
+/* Removed custom border styling to match special damages rows */
+/* Removed font-style: italic to match special damages rows */

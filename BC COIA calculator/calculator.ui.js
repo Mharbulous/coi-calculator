@@ -59,6 +59,12 @@ function setupEventListeners() {
         recalculate();
         document.dispatchEvent(new CustomEvent('content-changed')); // Trigger pagination update
     });
+    
+    // Listen for the payment-updated custom event
+    document.addEventListener('payment-updated', () => {
+        recalculate();
+        document.dispatchEvent(new CustomEvent('content-changed')); // Trigger pagination update
+    });
     // Check if elements exist before adding listeners
     const requiredElements = [
         elements.jurisdictionSelect, elements.showPrejudgmentCheckbox, elements.showPostjudgmentCheckbox,
@@ -157,11 +163,11 @@ function initializeCalculator() {
     
     // Calculate dates for defaults
     const millisecondsPerDay = 24 * 60 * 60 * 1000;
-    const date185DaysBefore = normalizeDate(new Date(today.getTime() - 185 * millisecondsPerDay)); // 185 days before today
+    const dateTwoYearsBefore = normalizeDate(new Date(today.getTime() - 730 * millisecondsPerDay)); // 2 years before today
     const dateOneYearAgo = normalizeDate(new Date(today.getTime() - 365 * millisecondsPerDay)); // One year ago
     
     // Set default dates as per requirements
-    const defaultJudgmentDate = date185DaysBefore; // Judgment date = 185 days before today
+    const defaultJudgmentDate = dateTwoYearsBefore; // Judgment date = 2 years before today
     const defaultPrejudgmentStartDate = normalizeDate(new Date('2019-04-14')); // Prejudgment interest date = 2017-04-14 (for testing)
     const defaultPostjudgmentEndDate = today; // Postjudgment interest date = today
 
@@ -191,15 +197,22 @@ function initializeCalculator() {
         validationMessage: ''
     };
     
-    // Define default special damages based on screenshot
+    // Define default special damages
     const defaultSpecialDamages = [
-        { date: '2019-04-30', description: 'Ambulance fees', amount: 320 },
-        { date: '2020-07-03', description: 'Physiotherapy - 1 hour', amount: 220.50 },
-        { date: '2024-07-02', description: 'Oxycodone', amount: 39.80 }
+        { date: '2019-04-30', description: 'Ambulance fees', amount: 320, specialDamageId: `default_sd_1_${Date.now()}` },
+        { date: '2020-07-03', description: 'Physiotherapy - 1 hour', amount: 220.50, specialDamageId: `default_sd_2_${Date.now()}` },
+        { date: '2022-03-02', description: 'Oxycodone', amount: 39.80, specialDamageId: `default_sd_3_${Date.now()}` }
     ];
     
     // Calculate the total of special damages
     const defaultSpecialDamagesTotal = defaultSpecialDamages.reduce((sum, damage) => sum + damage.amount, 0);
+    
+    // Define default payment rcords
+    const defaultPayments = [
+        { date: '2020-04-16', amount: 500, paymentId: `default_p_1_${Date.now()}` },
+        { date: '2021-11-02', amount: 22.22, paymentId: `default_p_2_${Date.now()}` },        
+        { date: '2024-01-28', amount: 7500, paymentId: `default_p_3_${Date.now()}` }
+    ];
     
     const defaultResults = {
         specialDamages: defaultSpecialDamages,
@@ -209,7 +222,8 @@ function initializeCalculator() {
         judgmentTotal: 0,
         totalOwing: 0,
         perDiem: 0,
-        finalCalculationDate: defaultPostjudgmentEndDate
+        finalCalculationDate: defaultPostjudgmentEndDate,
+        payments: defaultPayments
     };
     
     // Initialize Zustand store with default values

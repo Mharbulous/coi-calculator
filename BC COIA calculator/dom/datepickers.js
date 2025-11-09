@@ -7,6 +7,7 @@
 import elements from './elements.js';
 import useStore from '../store.js';
 import { formatDateForDisplay } from '../utils.date.js';
+import { parseCurrency } from '../utils.currency.js'; // Added for parseCurrency
 
 // Define the error background color to match the error message background
 const ERROR_BACKGROUND_COLOR = '#f8d7da';
@@ -18,9 +19,10 @@ let judgmentDatePicker = null;
 let prejudgmentDatePicker = null;
 let postjudgmentDatePicker = null;
 
-// Store references to special damages flatpickr instances
-// Using a Map with input element as key for each instance
+// Store references to special damages and payment flatpickr instances
+// Using Maps with input element as key for each instance
 const specialDamagesDatePickers = new Map();
+const paymentDatePickers = new Map();
 
 /**
  * Initializes the date pickers with appropriate configurations and constraints.
@@ -192,6 +194,8 @@ function onJudgmentDateChange(selectedDates, recalculateCallback) {
     
     // Update constraints on all special damages date pickers
     updateSpecialDamagesConstraints();
+    // Update constraints on all payment date pickers
+    updatePaymentDateConstraints();
     
     // Trigger recalculation
     if (typeof recalculateCallback === 'function') {
@@ -233,6 +237,8 @@ function onPrejudgmentDateChange(selectedDates, recalculateCallback) {
     
     // Update constraints on all special damages date pickers
     updateSpecialDamagesConstraints();
+    // Update constraints on all payment date pickers
+    updatePaymentDateConstraints();
     
     // Trigger recalculation
     if (typeof recalculateCallback === 'function') {
@@ -285,6 +291,8 @@ function onPostjudgmentDateChange(selectedDates, recalculateCallback) {
     
     // Update constraints on prejudgment and postjudgment pickers
     updatePrejudgmentPostjudgmentConstraints();
+    // Update constraints on all payment date pickers
+    updatePaymentDateConstraints();
     
     // Trigger recalculation
     if (typeof recalculateCallback === 'function') {
@@ -424,10 +432,10 @@ function positionCalendar(selectedDates, dateStr, instance) {
  * Applies date constraints based on Prejudgment Interest Date and Judgment Date.
  * 
  * @param {HTMLElement} inputElement - The special damages date input element to initialize.
- * @param {Function} recalculateCallback - Function to call when dates change to trigger recalculation.
+ * @param {Function} onChangeCallbackProvidedByCaller - Function to call when dates change, expects (selectedDates, dateStr, instance).
  * @returns {Object} The flatpickr instance.
  */
-export function initializeSpecialDamagesDatePicker(inputElement, recalculateCallback) {
+export function initializeSpecialDamagesDatePicker(inputElement, onChangeCallbackProvidedByCaller) { // Renamed recalculateCallback
     // Check if this input already has a flatpickr instance
     if (specialDamagesDatePickers.has(inputElement)) {
         // Return the existing instance instead of destroying and recreating it
@@ -495,7 +503,7 @@ export function initializeSpecialDamagesDatePicker(inputElement, recalculateCall
         minDate: minDate,
         maxDate: maxDate,
         disable: disabledDates, // Explicitly disable the prejudgment date
-        onChange: (selectedDates) => onSpecialDamagesDateChange(selectedDates, inputElement, recalculateCallback),
+        onChange: onChangeCallbackProvidedByCaller, // Use the callback directly
         onOpen: positionCalendar
     });
     
@@ -595,20 +603,41 @@ function onSpecialDamagesDateChange(selectedDates, inputElement, recalculateCall
             instance.clear();
         }
         inputElement.style.backgroundColor = ERROR_BACKGROUND_COLOR;
+        // Do not update store or trigger recalculation for invalid dates
     } else {
         // Valid date - normal background
         inputElement.style.backgroundColor = NORMAL_BACKGROUND_COLOR;
         
-        // Directly update the input value for valid dates
         if (newDate) {
             // Format the date as YYYY-MM-DD
-            const year = newDate.getFullYear();
-            const month = String(newDate.getMonth() + 1).padStart(2, '0');
-            const day = String(newDate.getDate()).padStart(2, '0');
-            const formattedDate = `${year}-${month}-${day}`;
+            const formattedDate = formatDateForDisplay(newDate);
             
             // Update the input element's value directly
             inputElement.value = formattedDate;
+
+            // Update the store
+            const specialDamageIdString = inputElement.dataset.specialDamageId;
+            if (specialDamageIdString) {
+                let specialDamageIndex = useStore.getState().results.specialDamages.findIndex(sd => sd.specialDamageId === specialDamageIdString);
+
+                // Fallback for potential numeric IDs
+                if (specialDamageIndex === -1) {
+                    const specialDamageIdNumber = parseFloat(specialDamageIdString);
+                    if (!isNaN(specialDamageIdNumber)) {
+                        specialDamageIndex = useStore.getState().results.specialDamages.findIndex(sd => sd.specialDamageId === specialDamageIdNumber);
+                    }
+                }
+
+                if (specialDamageIndex !== -1) {
+                    const currentDamage = useStore.getState().results.specialDamages[specialDamageIndex];
+                    const updatedDamage = { ...currentDamage, date: formattedDate };
+                    useStore.getState().updateSpecialDamage(specialDamageIndex, updatedDamage);
+                } else {
+                    console.warn(`[onSpecialDamagesDateChange] Special Damage with ID ${specialDamageIdString} not found in store for date: ${formattedDate}.`);
+                }
+            } else {
+                console.warn(`[onSpecialDamagesDateChange] specialDamageId not found on inputElement dataset for date: ${formattedDate}. Input type: ${inputElement.dataset.type}`);
+            }
             
             // Dispatch a change event to ensure DOM state synchronization
             const changeEvent = new Event('change', { bubbles: true });
@@ -759,6 +788,294 @@ export function destroyAllSpecialDamagesDatePickers() {
     orphanedCalendars.forEach(calendar => {
         if (calendar.parentNode) {
             calendar.parentNode.removeChild(calendar);
+        }
+    });
+}
+
+/**
+ * Initializes a flatpickr date picker for a payment date input.
+ * Applies date constraints based on the application state.
+ * 
+ * @param {HTMLElement} inputElement - The payment date input element to initialize.
+ * @param {Function} recalculateCallback - Function to call when dates change to trigger recalculation.
+ * @returns {Object} The flatpickr instance.
+ */
+export function initializePaymentDatePicker(inputElement, recalculateCallback) {
+    // Check if this input already has a flatpickr instance
+    if (paymentDatePickers.has(inputElement)) {
+        // Return the existing instance instead of destroying and recreating it
+        return paymentDatePickers.get(inputElement);
+    }
+    
+    // Reset background color to default
+    inputElement.style.backgroundColor = NORMAL_BACKGROUND_COLOR;
+    
+    // Get constraint dates from store
+    const state = useStore.getState();
+    const judgmentDate = state.inputs.dateOfJudgment; // Still needed for context, though not direct constraint
+    const prejudgmentDate = state.inputs.prejudgmentStartDate;
+    const postjudgmentEndDate = state.inputs.postjudgmentEndDate; // Use this for maxDate
+
+    // Calculate minimum and maximum dates for payment
+    let minDate = "1993-01-01"; // Default fallback
+    if (prejudgmentDate) {
+        // Payment can be on or after the prejudgment date
+        minDate = formatDateForDisplay(prejudgmentDate); // prejudgmentDate is a Date object
+    }
+    
+    // Maximum date is the postjudgmentEndDate from the store
+    let maxDate = "2025-06-30"; // Default fallback if postjudgmentEndDate is not set
+    if (postjudgmentEndDate) {
+        maxDate = formatDateForDisplay(postjudgmentEndDate); // postjudgmentEndDate is a Date object
+    }
+    
+    // Initialize flatpickr for the payment date input
+    const flatpickrInstance = flatpickr(inputElement, {
+        dateFormat: "Y-m-d",
+        allowInput: true,
+        clickOpens: true,
+        disableMobile: true,
+        monthSelectorType: "dropdown",
+        enableTime: false,
+        minDate: minDate,
+        maxDate: maxDate,
+        onChange: (selectedDates) => onPaymentDateChange(selectedDates, inputElement, recalculateCallback),
+        onOpen: positionCalendar
+    });
+    
+    // Store the flatpickr instance with the input element as key
+    paymentDatePickers.set(inputElement, flatpickrInstance);
+    
+    return flatpickrInstance;
+}
+
+/**
+ * Destroys a specific payment flatpickr instance.
+ * Ensures all DOM elements created by flatpickr are properly removed.
+ * 
+ * @param {HTMLElement} inputElement - The payment date input element whose flatpickr to destroy.
+ * @returns {boolean} True if the instance was found and destroyed, false otherwise.
+ */
+export function destroyPaymentDatePicker(inputElement) {
+    if (paymentDatePickers.has(inputElement)) {
+        const instance = paymentDatePickers.get(inputElement);
+        
+        // Store reference to the calendar container before destroying
+        const calendarContainer = instance.calendarContainer;
+        
+        // Call the destroy method to clean up
+        instance.destroy();
+        
+        // Manually remove the calendar container from the DOM if it still exists
+        if (calendarContainer && calendarContainer.parentNode) {
+            calendarContainer.parentNode.removeChild(calendarContainer);
+        }
+        
+        // Remove from the Map
+        paymentDatePickers.delete(inputElement);
+        
+        return true;
+    }
+    
+    return false;
+}
+
+/**
+ * Handler for when a Payment Date changes.
+ * Validates the selected date against constraints and provides visual feedback.
+ * 
+ * @param {Array} selectedDates - Array of selected dates from Flatpickr.
+ * @param {HTMLElement} inputElement - The input element associated with the picker.
+ * @param {Function} recalculateCallback - Function to call to trigger recalculation.
+ */
+function onPaymentDateChange(selectedDates, inputElement, recalculateCallback) {
+    // Get the new date from selectedDates
+    const newDate = selectedDates.length > 0 ? selectedDates[0] : null;
+    
+    // Get constraint dates from store
+    const state = useStore.getState();
+    // const judgmentDate = state.inputs.dateOfJudgment; // Not directly used for validation here anymore
+    const prejudgmentDate = state.inputs.prejudgmentStartDate;
+    const postjudgmentEndDate = state.inputs.postjudgmentEndDate; // Use this for maxDate validation
+
+    // Calculate min and max dates for validation
+    let minDateObj = null; 
+    if (prejudgmentDate) {
+        minDateObj = prejudgmentDate; // This is a Date object from the store
+    }
+    
+    let maxDateObj = null; 
+    if (postjudgmentEndDate) {
+        maxDateObj = postjudgmentEndDate; // This is a Date object from the store
+    }
+    
+    // Validate the selected date
+    let isValid = true;
+    
+    if (newDate) {
+        // Check if date is on or after prejudgment date
+        // Assuming minDateObj is a Date object and newDate is a Date object
+        if (minDateObj && newDate < minDateObj) {
+            isValid = false;
+        }
+        
+        // Check if date is before or on max date, using string comparison
+        if (maxDateObj) {
+            const selectedDateStr = formatDateForDisplay(newDate);
+            const maxDateStr = formatDateForDisplay(maxDateObj);
+            if (selectedDateStr > maxDateStr) {
+                isValid = false;
+            }
+        }
+    }
+    
+    // Apply visual feedback and update the input
+    if (!isValid) {
+        // Invalid date - clear the picker and set error background
+        const instance = paymentDatePickers.get(inputElement);
+        if (instance) {
+            instance.clear();
+        }
+        inputElement.style.backgroundColor = ERROR_BACKGROUND_COLOR;
+        // Do not update store or trigger recalculation for invalid dates
+    } else {
+        // Valid date - normal background
+        inputElement.style.backgroundColor = NORMAL_BACKGROUND_COLOR;
+        
+        if (newDate) {
+            // Format the date as YYYY-MM-DD
+            const formattedDate = formatDateForDisplay(newDate);
+            // Update the input element's value directly, Flatpickr might do this but good to be explicit
+            inputElement.value = formattedDate;
+
+            // Instead of updating the store directly here with partial data,
+            // we will rely on a function in payments.js to read the whole row and update.
+            // However, the `recalculateCallback` is what eventually triggers `updatePaymentInStoreFromRow`
+            // via the event chain if `updatePaymentInStoreFromRow` dispatches 'payment-updated'.
+            // For now, to ensure the store is updated with the new date and amount from the row,
+            // we need to call a function that does that.
+            // The `recalculateCallback` itself doesn't update the store; it triggers processes that *read* from it.
+
+            // The most straightforward way is to have `onPaymentDateChange` call a function
+            // that reads the whole row and updates the store, similar to `updateSpecialDamageInStoreFromRow`.
+            // Since `updatePaymentInStoreFromRow` is in `payments.js`, we can't directly call it here
+            // without creating circular dependencies or passing it around.
+
+            // For now, let's replicate the logic of reading the full row here for payments.
+            // This is not ideal as it duplicates logic from the conceptual updatePaymentInStoreFromRow.
+            // A better long-term solution would be to pass the updatePaymentInStoreFromRow function
+            // or use a more event-driven approach where this function only sets the date value
+            // and another listener on the input (e.g., blur) calls the consolidated updater.
+
+            // TEMPORARY direct update logic here, to be refactored if a cleaner way is found.
+            const row = inputElement.closest('tr');
+            if (row) {
+                const amountInput = row.querySelector('.special-damages-amount[data-type="payment-amount"]'); // Further corrected selector
+                const paymentId = inputElement.dataset.paymentId;
+
+                if (amountInput && paymentId) {
+                    const newAmount = parseCurrency(amountInput.value);
+                    const state = useStore.getState();
+                    const paymentIndex = state.results.payments.findIndex(p => p.paymentId === paymentId);
+
+                    if (paymentIndex !== -1) {
+                        const updatedPaymentData = {
+                            date: formattedDate, // new date from picker
+                            amount: newAmount    // current amount from input
+                        };
+                        state.updatePayment(paymentIndex, updatedPaymentData);
+                        // Dispatch event after successful store update
+                        // The recalculateCallback will be triggered by this event via calculator.ui.js
+                        const event = new CustomEvent('payment-updated', { bubbles: true, cancelable: true });
+                        document.dispatchEvent(event);
+                    } else {
+                        console.warn(`[onPaymentDateChange] Payment ID ${paymentId} not found in store.`);
+                    }
+                } else {
+                    console.warn('[onPaymentDateChange] Could not find amount input or paymentId for row.');
+                }
+            } else {
+                console.warn('[onPaymentDateChange] Could not find parent row for payment date input.');
+            }
+            // The original recalculateCallback is effectively triggered by the 'payment-updated' event.
+        } else {
+             // If newDate is null (e.g., picker cleared), we might still need to trigger recalculation
+             // if the expectation is that clearing a date field should update totals.
+             // For now, only trigger if there was a valid newDate.
+        }
+        // The original `recalculateCallback()` call is removed from here because the 'payment-updated'
+        // event dispatched above will trigger it via `calculator.ui.js`.
+    }
+}
+
+/**
+ * Destroys all payment flatpickr instances.
+ * Ensures all DOM elements created by flatpickr are properly removed.
+ * This can be useful when needing to reset the entire application state.
+ */
+export function destroyAllPaymentDatePickers() {
+    paymentDatePickers.forEach((instance, inputElement) => {
+        // Store reference to the calendar container before destroying
+        const calendarContainer = instance.calendarContainer;
+        
+        // Call the destroy method to clean up
+        instance.destroy();
+        
+        // Manually remove the calendar container from the DOM if it still exists
+        if (calendarContainer && calendarContainer.parentNode) {
+            calendarContainer.parentNode.removeChild(calendarContainer);
+        }
+    });
+    
+    // Clear the Map
+    paymentDatePickers.clear();
+}
+
+/**
+ * Updates the constraints for all payment date pickers.
+ * This should be called when prejudgment start date or postjudgment end date changes.
+ */
+export function updatePaymentDateConstraints() {
+    const state = useStore.getState();
+    const prejudgmentDate = state.inputs.prejudgmentStartDate;
+    const postjudgmentEndDate = state.inputs.postjudgmentEndDate;
+
+    let minConstraint = "1993-01-01";
+    if (prejudgmentDate) {
+        minConstraint = formatDateForDisplay(prejudgmentDate);
+    }
+
+    let maxConstraint = "2025-06-30"; // Fallback
+    if (postjudgmentEndDate) {
+        maxConstraint = formatDateForDisplay(postjudgmentEndDate);
+    }
+
+    paymentDatePickers.forEach((instance, inputElement) => {
+        try {
+            instance.set('minDate', minConstraint);
+            instance.set('maxDate', maxConstraint);
+
+            // Re-validate current selection
+            const selectedDate = instance.selectedDates.length > 0 ? instance.selectedDates[0] : null;
+            let isValid = true;
+            if (selectedDate) {
+                const selectedDateStr = formatDateForDisplay(selectedDate);
+                if (prejudgmentDate && selectedDateStr < minConstraint) {
+                    isValid = false;
+                }
+                if (postjudgmentEndDate && selectedDateStr > maxConstraint) {
+                    isValid = false;
+                }
+            }
+
+            if (!isValid && selectedDate) {
+                instance.clear();
+                inputElement.style.backgroundColor = ERROR_BACKGROUND_COLOR;
+            } else if (selectedDate) {
+                inputElement.style.backgroundColor = NORMAL_BACKGROUND_COLOR;
+            }
+        } catch (error) {
+            // Silently handle error
         }
     });
 }

@@ -10,8 +10,9 @@ NC='\033[0m' # No Color
 echo -e "${YELLOW}Starting deployment of test mode functionality...${NC}"
 
 # Deploy Firebase Hosting configuration
-echo -e "${YELLOW}Deploying Firebase Hosting configuration...${NC}"
-firebase deploy --only hosting
+echo -e "${YELLOW}Deploying Firebase Hosting configuration for test environment...${NC}"
+firebase target:apply hosting test test-courtorderinterestcalculator
+firebase deploy --only hosting:test
 if [ $? -ne 0 ]; then
   echo -e "${RED}Error deploying Firebase Hosting configuration. Aborting.${NC}"
   exit 1

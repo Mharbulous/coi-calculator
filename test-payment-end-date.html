@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment End Date Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 8px; }
+        th { background-color: #f2f2f2; }
+        .payment-row { background-color: #e6f7ff; }
+        button { margin: 10px 0; padding: 10px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Payment End Date Test</h1>
+    <p>This page tests handling payment dates that fall on the exact end date of interest calculation rows.</p>
+    
+    <button id="testButton">Run Test</button>
+    
+    <div id="results">
+        <h2>Table Before Payment</h2>
+        <table id="beforeTable">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>Principal</th>
+                    <th>Rate</th>
+                    <th>Interest</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>2019-06-30<br>2019-07-01</td>
+                    <td><br>1 days</td>
+                    <td>$10,000.00</td>
+                    <td><br>2.30%</td>
+                    <td><br>$0.63</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h2>Table After Payment</h2>
+        <table id="afterTable">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>Principal</th>
+                    <th>Rate</th>
+                    <th>Interest</th>
+                </tr>
+            </thead>
+            <tbody id="afterTableBody">
+                <!-- This will be populated by the test -->
+            </tbody>
+        </table>
+    </div>
+    
+    <script type="module">
+        // Import the necessary modules
+        import { insertPaymentRecord } from './payment-insertion.js';
+        import { handleRowDuplicationAfterPayment } from './dom/tables.interest.rowSorting.js';
+        
+        // Mock state structure
+        const mockState = {
+            inputs: {
+                dateOfJudgment: new Date('2021-01-01'),
+                prejudgmentStartDate: new Date('2019-06-30')
+            },
+            results: {
+                prejudgmentResult: {
+                    details: [
+                        {
+                            start: new Date('2019-06-30'),
+                            end: new Date('2019-07-01'),
+                            rate: 2.3,
+                            principal: 10000,
+                            interest: 0.63,
+                            description: '1 days',
+                            _days: 1
+                        }
+                    ],
+                    total: 0.63
+                },
+                payments: []
+            }
+        };
+        
+        // Mock rates data
+        const mockRatesData = {
+            BC: [
+                {
+                    start: new Date('2019-01-01'),
+                    prejudgment: 2.3,
+                    postjudgment: 2.3
+                }
+            ]
+        };
+        
+        // Test function to simulate adding a payment on end date
+        document.getElementById('testButton').addEventListener('click', function() {
+            const tableBody = document.getElementById('afterTableBody');
+            
+            // Create initial interest row
+            const interestRow = document.createElement('tr');
+            interestRow.innerHTML = `
+                <td>2019-06-30<br>2019-07-01</td>
+                <td><br>1 days</td>
+                <td>$10,000.00</td>
+                <td><br>2.30%</td>
+                <td><br>$0.63</td>
+            `;
+            tableBody.appendChild(interestRow);
+            
+            // Create payment row
+            const paymentRow = document.createElement('tr');
+            paymentRow.className = 'payment-row';
+            paymentRow.innerHTML = `
+                <td>2019-07-01</td>
+                <td>Payment received: $0.00</td>
+                <td></td>
+                <td></td>
+                <td></td>
+            `;
+            
+            // Simulate inserting payment 
+            const paymentDate = new Date('2019-07-01');
+            const paymentObj = { date: paymentDate, amount: 0 };
+            
+            // Test our handling logic directly
+            const updatedState = insertPaymentRecord(mockState, paymentObj, mockRatesData);
+            
+            // Display the result
+            console.log('Updated state:', updatedState);
+            
+            // Insert the payment row and test DOM duplication handling
+            tableBody.appendChild(paymentRow);
+            handleRowDuplicationAfterPayment(paymentRow, tableBody, 1);
+            
+            // Output resulting HTML structure
+            console.log('Resulting table HTML:', tableBody.innerHTML);
+            console.log('Total rows after insertion:', tableBody.rows.length);
+        });
+    </script>
+</body>
+</html>

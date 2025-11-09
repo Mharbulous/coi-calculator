@@ -1,0 +1,1 @@
+Examine the codebase to determine whether this is something that can be implemented easily, or is a complex fix that will require lengthy planning before we start coding. If it is easy, tell me. If it looks hard, warn me.

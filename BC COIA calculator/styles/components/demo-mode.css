@@ -185,13 +185,27 @@ body.demo-mode {
   gap: 10px;
 }
 
+/* Override action-button positioning when in modal */
+.demo-modal-buttons .action-button {
+  position: relative;
+  top: auto;
+  right: auto;
+  width: auto;
+  transform: none;
+}
+
 .demo-modal-dismiss {
-  background-color: #FFC107; /* Amber color */
+  background-color: #E0E0E0; /* Light gray */
   border: none;
   padding: 8px 16px;
   border-radius: 4px;
   cursor: pointer;
-  color: #000; /* Ensure text is visible on amber background */
+  color: #000; /* Ensure text is visible on light gray background */
+  transition: background-color 0.3s ease; /* Smooth transition for hover effect */
+}
+
+.demo-modal-dismiss:hover {
+  background-color: #BDBDBD; /* Darker gray for hover state */
 }
 
 .demo-modal-print {
@@ -208,14 +222,6 @@ body.demo-mode {
   background-color: #3a7bc8;
 }
 
-.demo-modal-purchase {
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-}
 
 /* Demo Modal Notice Section */
 .demo-modal-notice {

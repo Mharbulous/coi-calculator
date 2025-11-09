@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="styles/main.css">
     <!-- Flatpickr CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <!-- Custom Flatpickr styles for modal integration -->
+    <link rel="stylesheet" href="styles/components/flatpickr-modal-custom.css">
     <!-- Print Warning Styles -->
     <link rel="stylesheet" href="styles/components/print-warning.css">
     <script type="importmap">
@@ -145,10 +147,7 @@
              </tfoot>
         </table>
 
-        <!-- Record Payment Button with zero-margin container -->
-        <div style="margin: 0; padding: 0;">
-            <button id="record-payment-button">Record Payment</button>
-        </div>
+        <!-- Button Container removed as functionality is now in dropdown menu -->
 
         <!-- Print Warning - Only visible in print from browser -->
         <div id="print-warning" class="print-only">
@@ -333,6 +332,15 @@
     
     <!-- Application initializer for test/live mode -->
     <script src="app-initializer.js" type="module"></script>
+    
+    <!-- Record Payment functionality -->
+    <script src="record-payment.js" type="module"></script>
+    
+    <!-- Test Modal functionality -->
+    <script src="new-payment-modal.js" type="module"></script>
+    
+    <!-- Test Payment Insertion functionality - removed -->
+    <!-- <script src="test-payment-insertion.js" type="module"></script> -->
     </div> <!-- Close two-layer-container -->
 </body>
 </html>
