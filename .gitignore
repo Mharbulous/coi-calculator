@@ -2,3 +2,12 @@ node_modules/
 .DS_Store
 .env
 .netlify/
+
+# Firebase
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+
+# Claude Code
+.claude/
