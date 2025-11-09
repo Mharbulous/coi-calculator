@@ -5,6 +5,7 @@ node_modules/
 
 # Firebase
 .firebase/
+.firebase/*.cache
 firebase-debug.log
 firestore-debug.log
 ui-debug.log
