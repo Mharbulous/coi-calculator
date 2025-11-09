@@ -3,7 +3,7 @@
 // Part of the hybrid deployment architecture where:
 // - Firebase handles application hosting
 // - Netlify provides serverless functions for API endpoints
-exports.handler = async function(event, context) {
+export const handler = async function(event, context) {
   // Get client IP from headers
   const clientIP = event.headers['client-ip'] || 
                    event.headers['x-forwarded-for'] || 

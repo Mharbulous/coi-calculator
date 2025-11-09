@@ -4,15 +4,17 @@
 // - Firebase handles application hosting
 // - Netlify provides serverless functions for payment processing
 
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-const crypto = require('crypto');
+import Stripe from 'stripe';
+import crypto from 'crypto';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // Generate a random verification token
 function generateToken() {
   return crypto.randomBytes(32).toString('hex');
 }
 
-exports.handler = async function(event) {
+export const handler = async function(event) {
   // Enable CORS
   const headers = {
     'Access-Control-Allow-Origin': '*',
